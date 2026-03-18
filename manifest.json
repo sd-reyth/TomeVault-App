@@ -1,0 +1,26 @@
+{
+  "learningNotes": "manifest.json is a Web App Manifest — it tells browsers how to install this web app on a phone's home screen (PWA). It defines the app name, icon, startup URL, display mode, and colors.",
+  "name": "TomeVault",
+  "short_name": "TomeVault",
+  "description": "A multiplayer TTRPG companion app for handouts, inventory, and ambience.",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "theme_color": "#151123",
+  "background_color": "#151123",
+  "icons": [
+    {
+      "src": "references/tomeVaultLogo1.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "assets/tomevault-logo.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ],
+  "categories": ["games", "entertainment"],
+  "lang": "en"
+}

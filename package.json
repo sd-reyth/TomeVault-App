@@ -1,0 +1,11 @@
+{
+  "name": "tomevault",
+  "version": "1.0.0",
+  "description": "The perfect addition to your TTRPG sessions, TomeVault is a multiplayer companion app for handouts, inventory management, and ambience control. It enhances gameplay by providing a centralized platform for players and game masters to share resources, manage character inventories, and create immersive atmospheres with ease.",
+  "learningNotes": "JSON files do not allow real comments, so this field explains purpose: package.json is metadata used by Node tooling. In this project it mainly sets module type to ESM so index.mjs can use import/export syntax directly in modern browsers and tooling.",
+  "license": "MIT",
+  "type": "module",
+  "scripts": {
+    "start": "npx serve . -l 3000 --cors"
+  }
+}

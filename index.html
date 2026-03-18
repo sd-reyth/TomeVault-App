@@ -1,0 +1,2053 @@
+﻿<!DOCTYPE html><html lang="en"><head>
+  <!--
+    LEARNER NOTE (read me first)
+    ---------------------------------------------------------------------------
+    This document is the "structure" of the app.
+
+    Think of your app as a house:
+    - HTML = rooms and furniture (what exists on the page)
+    - CSS  = interior design (how it looks and feels)
+    - JS   = electricity and automation (how it behaves)
+
+    Why the structure is organized in "screens":
+    This app is a single-page app (SPA). Instead of navigating to different HTML
+    files, we keep multiple <section> blocks in one file and show/hide them.
+    That makes the experience feel more like a mobile app: fast transitions,
+    no full page reloads, and continuous state.
+
+    IMPORTANT RULE FOR THIS FILE:
+    JavaScript uses many element IDs (for example "btnJoin", "screenDMDash").
+    Those IDs are part of the API between HTML and JS. If you rename an ID,
+    the connected JS logic will stop finding that element.
+  -->
+
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="description" content="TomeVault helps GMs share live handouts, invites, and session tools in one place.">
+  <meta name="theme-color" content="#1f1a16">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="TomeVault">
+  <link rel="icon" type="image/png" href="references/tomeVaultLogo1.png">
+  <link rel="apple-touch-icon" href="references/tomeVaultLogo1.png">
+  <link rel="manifest" href="manifest.json">
+  <title>TomeVault &middot; Live Handouts</title>
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="TomeVault">
+  <meta property="og:title" content="TomeVault - Live Handouts for Your Table">
+  <meta property="og:description" content="Share session invites, PINs, and handouts in seconds.">
+  <meta property="og:image" content="references/tomeVaultLogo1.png">
+  <meta property="og:image:alt" content="TomeVault logo">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="TomeVault - Live Handouts for Your Table">
+  <meta name="twitter:description" content="Share session invites, PINs, and handouts in seconds.">
+  <meta name="twitter:image" content="references/tomeVaultLogo1.png">
+  <link rel="stylesheet" href="style.css?v=20260314fix7">
+  <!-- fantasy fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700;900&family=Open+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+ </head>
+
+<body>
+  <div class="app-shell">
+  <a href="#main" class="skip-link">Skip to content</a>
+  <header id="topBar" class="topbar hidden">
+    <div class="brand">
+      <button id="btnBrandHome" class="brand__homeBtn" type="button" aria-label="Home">
+        <span class="brand__title"><span class="brand__accent">T</span>ome<span class="brand__accent">V</span>ault</span>
+      </button>
+    </div>
+    <div class="topbar__right">
+      <button id="nuggetCounter" class="pill pill--nugget hidden" type="button" aria-label="Nugget balance">
+        <svg class="nuggetIcon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" style="width:16px;height:16px">
+          <path d="M12 3L4 9l2 10h12l2-10L12 3z" fill="#F5C82F"/>
+          <path d="M12 3L8 9h8l-4-6z" fill="#FFE566" opacity=".7"/>
+          <path d="M8 9l-2 10h5l-3-10zm8 0l2 10h-5l3-10z" fill="#C8960E" opacity=".35"/>
+          <path d="M12 3L4 9l2 10h12l2-10L12 3z" stroke="#B8860B" stroke-width=".8" fill="none"/>
+        </svg>
+        <span id="nuggetBalance">0</span>
+      </button>
+
+      <button id="btnNotifBell" class="pill pill--clickable notifBell hidden" type="button" aria-label="Notifications">
+        <svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" style="width:18px;height:18px">
+          <path d="M12 2a7 7 0 00-7 7v3.528a1 1 0 01-.293.707L3.293 14.65A1 1 0 004 16h16a1 1 0 00.707-1.35l-1.414-1.415A1 1 0 0119 12.528V9a7 7 0 00-7-7z"/>
+          <path d="M10 18a2 2 0 104 0h-4z"/>
+        </svg>
+        <span id="notifBadge" class="notifBell__badge hidden"></span>
+      </button>
+
+      <!-- Social button removed per UX request -->
+    </div>
+  </header>
+
+  <!--
+    Main content region.
+    Each section below acts like a screen in a native app.
+    We never leave this page; JS switches visibility by toggling .hidden.
+  -->
+  <main id="main" class="layout">
+
+    <!-- SCREEN: LANDING &middot; Auth-first page that morphs into a home screen after sign-in -->
+    <section id="screenLanding" class="card landingCard">
+
+      <!-- -- Branding -- -->
+      <div class="landingHero">
+        <div class="landing-logo" aria-label="TomeVault logo">
+          <img src="references/tomeVaultLogo1.png" alt="TomeVault logo" loading="eager" decoding="async">
+        </div>
+        <h1 class="landingTitle">Tome<span>Vault</span></h1>
+        <p class="landingLead">Guide your table through living lore. Create handouts, share secrets, and reveal mysteries with a single scan.</p>
+      </div>
+
+      <!-- -- Auth card (visible when NOT signed in) -- -->
+      <div id="authCard" class="auth-card">
+
+        <div class="auth-social-hub" aria-label="Continue with connected account">
+          <p class="auth-social-title">Continue with</p>
+          <div class="auth-social-row">
+            <button id="btnGoogleContinue" type="button" class="auth-social-btn" title="Continue with Google">
+              <!-- Google "G" -->
+              <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
+                <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 01-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4"/>
+                <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+                <path d="M5.84 14.09A6.97 6.97 0 015.48 12c0-.72.13-1.43.36-2.09V7.07H2.18A11.96 11.96 0 001 12c0 1.94.46 3.77 1.18 5.07l3.66-2.84z" fill="#FBBC05"/>
+                <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+              </svg>
+              <span>Continue with Google</span>
+            </button>
+            <button type="button" class="auth-social-btn auth-social-btn--disabled" title="Coming soon" aria-disabled="true">
+              <!-- Apple -->
+              <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor" aria-hidden="true"><path d="M17.05 20.28c-.98.95-2.05.88-3.08.4-1.09-.5-2.08-.51-3.23 0-1.44.64-2.2.45-3.06-.4C3.79 16.17 4.36 9.04 8.93 8.78c1.32.07 2.23.75 3 .8.96-.2 1.87-.9 2.97-.82 1.32.12 2.34.7 3 1.78-2.72 1.62-2.08 5.2.37 6.2-.54 1.42-1.24 2.83-2.38 3.55l.16-.01zM12.05 8.73c-.16-2.42 1.83-4.48 4.08-4.73.32 2.64-2.4 4.61-4.08 4.73z"/></svg>
+              <span>Apple</span>
+            </button>
+            <button type="button" class="auth-social-btn auth-social-btn--disabled" title="Coming soon" aria-disabled="true">
+              <!-- Facebook -->
+              <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M24 12.073C24 5.405 18.627 0 12 0S0 5.405 0 12.073C0 18.1 4.388 23.094 10.125 24v-8.437H7.078v-3.49h3.047v-2.66c0-3.025 1.792-4.697 4.533-4.697 1.312 0 2.686.236 2.686.236v2.97H15.83c-1.491 0-1.956.93-1.956 1.886v2.265h3.328l-.532 3.49h-2.796V24C19.612 23.094 24 18.1 24 12.073z" fill="#1877F2"/></svg>
+              <span>Facebook</span>
+            </button>
+            <button type="button" class="auth-social-btn auth-social-btn--disabled" title="Coming soon" aria-disabled="true">
+              <!-- Microsoft -->
+              <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><rect x="1" y="1" width="10" height="10" fill="#F25022"/><rect x="13" y="1" width="10" height="10" fill="#7FBA00"/><rect x="1" y="13" width="10" height="10" fill="#00A4EF"/><rect x="13" y="13" width="10" height="10" fill="#FFB900"/></svg>
+              <span>Microsoft</span>
+            </button>
+          </div>
+          <p class="auth-info">Google will sign you in if your account exists, or create it automatically if it doesn't.</p>
+        </div>
+
+        <!-- Tab bar -->
+        <div class="auth-tabs" role="tablist">
+          <button id="authTabSignIn" class="auth-tab is-active" role="tab" aria-selected="true" aria-controls="authSignIn">Sign In</button>
+          <button id="authTabSignUp" class="auth-tab" role="tab" aria-selected="false" aria-controls="authSignUp">Sign Up</button>
+        </div>
+
+        <!-- Sign In panel -->
+        <div id="authSignIn" class="auth-panel" role="tabpanel">
+          <div class="auth-divider"><span>or continue with email</span></div>
+
+          <form id="formSignIn" class="auth-form" autocomplete="on" novalidate>
+            <div class="auth-field">
+              <label class="label" for="signInEmail">Email</label>
+              <input id="signInEmail" class="input" type="email" placeholder="you@example.com" autocomplete="email" required>
+              <p class="input-error hidden" id="signInEmailErr"></p>
+            </div>
+            <div class="auth-field">
+              <label class="label" for="signInPassword">Password</label>
+              <input id="signInPassword" class="input" type="password" placeholder="Your password" autocomplete="current-password" required>
+              <p class="input-error hidden" id="signInPasswordErr"></p>
+            </div>
+            <button type="submit" id="btnSignIn" class="btn auth-submit">Sign In</button>
+            <button type="button" id="btnForgotPassword" class="btn--link auth-forgot">Forgot password?</button>
+            <p class="input-error hidden" id="signInFormErr"></p>
+          </form>
+        </div>
+
+        <!-- Sign Up panel -->
+        <div id="authSignUp" class="auth-panel hidden" role="tabpanel">
+          <div class="auth-divider"><span>or continue with email</span></div>
+
+          <form id="formSignUp" class="auth-form" autocomplete="on" novalidate>
+            <p class="auth-info">We only collect what's necessary for your account. Your character name is how other players will see you.</p>
+
+            <div class="auth-field">
+              <label class="label" for="signUpIGN">Character name</label>
+              <input id="signUpIGN" class="input" type="text" placeholder="e.g. Elara, Thorn, Merlin" autocomplete="username" required minlength="2" maxlength="30">
+              <p class="input-helper">This is your display name &middot; visible to other players.</p>
+              <p class="input-error hidden" id="signUpIGNErr"></p>
+            </div>
+            <div class="auth-field">
+              <label class="label" for="signUpEmail">Email</label>
+              <input id="signUpEmail" class="input" type="email" placeholder="you@example.com" autocomplete="email" required>
+              <p class="input-helper">Required for account recovery only &middot; we'll never share or spam it.</p>
+              <p class="input-error hidden" id="signUpEmailErr"></p>
+            </div>
+            <div class="auth-field">
+              <label class="label" for="signUpPassword">Password</label>
+              <input id="signUpPassword" class="input" type="password" placeholder="Use 12+ characters" autocomplete="new-password" required minlength="12" maxlength="128">
+              <p class="input-helper">Use 12+ characters. Passphrases are encouraged. Avoid common passwords and personal info.</p>
+              <p class="input-error hidden" id="signUpPasswordErr"></p>
+            </div>
+            <div class="auth-field">
+              <label class="label" for="signUpConfirm">Confirm password</label>
+              <input id="signUpConfirm" class="input" type="password" placeholder="Re-enter your password exactly" autocomplete="new-password" required minlength="12" maxlength="128">
+              <p class="input-error hidden" id="signUpConfirmErr"></p>
+            </div>
+
+            <button type="submit" id="btnSignUp" class="btn auth-submit">Create Account</button>
+            <p class="input-error hidden" id="signUpFormErr"></p>
+          </form>
+        </div>
+      </div>
+
+      <!-- Guest one-shot CTA (visible when NOT signed in) -->
+      <div id="authGuestCta" class="auth-guest-cta">
+        <div class="auth-guest-actions">
+          <button id="btnGuestOneShotCreate" class="btn btn--ghost auth-guest-btn" type="button">Create One-Shot</button>
+          <button id="btnGuestOneShotJoin" class="btn btn--ghost auth-guest-btn" type="button">Join One-Shot</button>
+        </div>
+        <p class="auth-guest-ttl">Session data is stored for 24 hours only.</p>
+      </div>
+
+      <!-- -- Home section (visible AFTER sign-in) -- -->
+      <div id="landingHome" class="landing-home hidden">
+        <div class="landing-welcome">
+          <p>Welcome, <strong id="landingDisplayName">Adventurer</strong></p>
+          <button id="btnSignOut" class="btn--link" type="button">Sign out</button>
+        </div>
+
+        <div class="landing-home__actions">
+          <button id="btnGoDM" class="landing-action-card" type="button">
+            <span class="landing-action-card__icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 3L19 6V11C19 16.25 15.75 20.74 12 22C8.25 20.74 5 16.25 5 11V6L12 3Z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </span>
+            <span class="landing-action-card__label">Create Session</span>
+            <span class="landing-action-card__sub muted small">Start a new campaign or one-shot as DM</span>
+          </button>
+          <button id="btnGoPlayer" class="landing-action-card" type="button">
+            <span class="landing-action-card__icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M16 21V19C16 17.9391 15.5786 16.9217 14.8284 16.1716C14.0783 15.4214 13.0609 15 12 15H5C3.93913 15 2.92172 15.4214 2.17157 16.1716C1.42143 16.9217 1 17.9391 1 19V21" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><circle cx="8.5" cy="7" r="4" stroke="currentColor" stroke-width="1.8"/><path d="M20 8V14M17 11H23" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+            </span>
+            <span class="landing-action-card__label">Join Session</span>
+            <span class="landing-action-card__sub muted small">Enter a session code or scan a QR</span>
+          </button>
+        </div>
+
+        <div class="landingSessions">
+          <div class="landingSessions__head">
+            <h3>Your sessions</h3>
+            <span id="landingSessionCount" class="muted small"></span>
+          </div>
+          <div id="landingSessionList"></div>
+          <div id="landingSessionEmpty" class="emptyState">
+            <span class="emptyState__icon" aria-hidden="true">📖</span>
+            <span class="emptyState__title">No sessions yet</span>
+            <span class="emptyState__hint">Create a new session as DM or join one as a player to get started.</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- One-shot banner (shown on GM/Player views when in guest mode) -->
+      <div id="oneShotBanner" class="oneshot-banner hidden">
+        <span>One-Shot mode &middot; data expires in <strong id="oneShotTimeLeft">24h</strong>.</span>
+        <button id="btnOneShotUpgrade" class="btn--link" type="button">Sign up to save your campaign</button>
+      </div>
+
+    </section>
+
+    <!--
+      SCREEN: GM CREATE SESSION
+      What it does:
+      - Collects session name and numeric pincode.
+      - Starts a new session document in Firestore when GM confirms.
+
+      Why it works:
+      - Input IDs map to JS variables.
+      - The create button triggers validation + database write.
+      - Message paragraph (`dmCreateMsg`) is used as inline feedback area.
+    -->
+    <section id="screenDMCreate" class="card hidden">
+      <h2 id="dmCreateHeading">New Session</h2>
+      <p id="dmCreateGuestNotice" class="auth-info hidden">You're in one-shot mode. This session will expire in 24 hours. Sign up after creating to keep it.</p>
+
+      <label class="label">Session name</label>
+      <input id="dmSessionName" class="input" placeholder="e.g. The Lost Mine" minlength="2" maxlength="48">
+
+      <label class="label">Pincode (4&middot;8 digits)</label>
+      <input id="dmPin" class="input" inputmode="numeric" placeholder="e.g. 1234">
+
+      <div class="row">
+        <!-- Secondary: return to role-selection screen -->
+        <button id="btnDMBack" class="btn btn--ghost"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" aria-hidden="true" style="width:16px;height:16px;flex-shrink:0;vertical-align:-2px;margin-right:4px"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5"/></svg>Back</button>
+        <!-- Primary: validate + create session in Firebase -->
+        <button id="btnCreateSession" class="btn">Create session</button>
+      </div>
+
+      <p id="dmCreateMsg" class="muted"></p>
+    </section>
+
+    <!--
+      SCREEN: GM DASHBOARD
+      What it does:
+      - Central control surface for GM.
+      - Shows session ID, invites, player list, and handout management.
+
+      Why it works:
+      - This screen is hydrated by realtime listeners after session creation.
+      - Sub-panels separate responsibilities (invite/social vs handouts).
+      - IDs are stable hooks used for rendering dynamic content.
+    -->
+    <section id="screenDMDash" class="card hidden">
+      <div class="dashHeader dashHeader--handouts">
+        <h2 id="dmDashTitle">Handouts</h2>
+        <div class="dashHeader__actions dashHeader__actions--handouts">
+          <button id="btnCreateHandoutInline" class="btn btn--small" type="button" aria-label="Create handout" title="Create handout" style="display:none">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" aria-hidden="true" style="width:16px;height:16px"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <div id="dmSplit" class="split singlePane">
+        <div id="dmSocialPanel" class="panel hidden">
+          <div class="dmSocialHeader">
+            <h3 class="heading--natural">Session Info</h3>
+            <div class="dmSocialHeader__actions">
+              <button id="btnShareInviteSocial" class="iconBtn" type="button" aria-label="Share invite" title="Share invite">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M7.217 10.907a2.25 2.25 0 1 0 0 2.186m0-2.186c.18.324.283.696.283 1.093s-.103.77-.283 1.093m0-2.186 9.566-5.314m-9.566 7.5 9.566 5.314m0-12.814a2.25 2.25 0 1 0 3.935-2.186 2.25 2.25 0 0 0-3.935 2.186Zm0 12.814a2.25 2.25 0 1 0 3.935 2.186 2.25 2.25 0 0 0-3.935-2.186Z" /></svg>
+              </button>
+              <button id="btnCloseSocial" class="iconBtn closeIconBtn" type="button" aria-label="Close">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" /></svg>
+              </button>
+            </div>
+          </div>
+          <div class="socialMeta">
+            <div class="socialMeta__row"><span class="muted small">Join Tag</span><strong id="dmSessionIdText">&middot;</strong></div>
+            <div class="socialMeta__row"><span class="muted small">Pincode</span><strong id="dmPinShown">&middot;</strong><button id="btnChangePin" class="btn btn--ghost btn--small" type="button">Change</button></div>
+            <div class="socialMeta__row"><span class="muted small">DM Transfer PIN</span><strong id="dmTransferPinShown">Not set</strong><button id="btnChangeTransferPin" class="btn btn--ghost btn--small" type="button">Set</button></div>
+          </div>
+
+          <div class="socialQRActions">
+            <button id="btnShowQRInvite" class="btn socialQRActions__primary" type="button">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true" style="width:18px;height:18px"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 4.875c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5A1.125 1.125 0 0 1 3.75 9.375v-4.5ZM3.75 14.625c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5a1.125 1.125 0 0 1-1.125-1.125v-4.5ZM13.5 4.875c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5A1.125 1.125 0 0 1 13.5 9.375v-4.5Z"/><path stroke-linecap="round" stroke-linejoin="round" d="M6.75 6.75h.75v.75h-.75v-.75ZM6.75 16.5h.75v.75h-.75V16.5ZM16.5 6.75h.75v.75h-.75v-.75ZM13.5 13.5h.75v.75h-.75V13.5ZM13.5 19.5h.75v.75h-.75V19.5ZM19.5 13.5h.75v.75h-.75V13.5ZM19.5 19.5h.75v.75h-.75V19.5ZM16.5 16.5h.75v.75h-.75V16.5Z"/></svg>
+              Show QR Code
+            </button>
+            <button id="btnCopyJoinLinkSocial" class="btn btn--ghost socialQRActions__secondary" type="button">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true" style="width:16px;height:16px"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 17.25v3.375c0 .621-.504 1.125-1.125 1.125h-9.75a1.125 1.125 0 0 1-1.125-1.125V7.875c0-.621.504-1.125 1.125-1.125H6.75a9.06 9.06 0 0 1 1.5.124m7.5 10.376h3.375c.621 0 1.125-.504 1.125-1.125V11.25c0-4.46-3.243-8.161-7.5-8.876a9.06 9.06 0 0 0-1.5-.124H9.375c-.621 0-1.125.504-1.125 1.125v3.5m7.5 10.375H9.375a1.125 1.125 0 0 1-1.125-1.125v-9.25m12 6.625v-1.875a3.375 3.375 0 0 0-3.375-3.375h-1.5a1.125 1.125 0 0 1-1.125-1.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H9.75"/></svg>
+              Copy Join Link
+            </button>
+          </div>
+        </div>
+
+        <div id="dmHandoutsPanel" class="panel panel--main">
+          <h3>Handouts</h3>
+
+          <div class="dashTools">
+            <input id="dmSearch" class="input" placeholder="Search handouts..." aria-label="Search handouts">
+            <button id="btnToggleFilters" class="btn btn--ghost btn--small filterToggleBtn" type="button" aria-expanded="false" aria-controls="dmFilterRow">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="width:14px;height:14px;flex-shrink:0"><path d="M3 6h18M7 12h10M11 18h2"/></svg>
+              Filter
+              <span id="filterActiveBadge" class="filterActiveBadge hidden" aria-label="Filter active">●</span>
+              <svg class="filterToggleChevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true" style="width:12px;height:12px;flex-shrink:0;transition:transform 200ms ease-in-out"><path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5"/></svg>
+            </button>
+          </div>
+
+          <div class="chipRow hidden" id="dmFilterRow">
+            <button class="chip chip--active" data-filter="all" type="button">All</button>
+            <button class="chip" data-filter="loot" type="button">Loot</button>
+            <button class="chip" data-filter="npc" type="button">Npc</button>
+            <button class="chip" data-filter="clue" type="button">Clue</button>
+            <button class="chip" data-filter="letter" type="button">Letter</button>
+            <button class="chip" data-filter="quest" type="button">Quest</button>
+            <button class="chip" data-filter="map" type="button">Map</button>
+          </div>
+
+          <div id="dmHandoutList" class="list"></div>
+          <div id="dmHandoutEmpty" class="emptyState">
+            <span class="emptyState__icon" aria-hidden="true">🔮</span>
+            <span class="emptyState__title">No handouts yet</span>
+            <span class="emptyState__hint">Use the + button to create your first handout.</span>
+          </div>
+        </div>
+
+        <div class="dmDashRail" aria-label="Session tools">
+          <!-- Atmosphere panel removed &middot; use Music button in the bottom bar instead -->
+          <!-- IDs kept hidden for JS compatibility -->
+          <span id="dmAtmosphereTrack" class="hidden"></span>
+          <span id="dmAtmosphereStatus" class="hidden"></span>
+          <span id="dmAtmosphereVolume" class="hidden"></span>
+          <button id="btnOpenAtmospherePanel" class="hidden" type="button" aria-hidden="true"></button>
+
+          <aside id="dmPartyPanel" class="panel dmPartyPanel" aria-label="Party panel">
+            <div class="dmPartyPanel__head">
+              <h3>The Party</h3>
+              <button id="btnCollapseParty" class="partyCollapseBtn iconBtn" type="button" aria-expanded="false" aria-label="Expand party list" title="Expand / collapse player list">
+                <svg class="partyCollapseChevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true" style="width:16px;height:16px;transition:transform 300ms ease-in-out"><path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5"/></svg>
+              </button>
+            </div>
+            <div class="dmPartyPanel__actions dmPartyPanel__actions--bar">
+              <button id="btnRollInitiative" class="btn btn--small partyAction" type="button">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="width:15px;height:15px;flex-shrink:0"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8.5" cy="8.5" r="1.2" fill="currentColor"/><circle cx="15.5" cy="8.5" r="1.2" fill="currentColor"/><circle cx="8.5" cy="15.5" r="1.2" fill="currentColor"/><circle cx="15.5" cy="15.5" r="1.2" fill="currentColor"/><circle cx="12" cy="12" r="1.2" fill="currentColor"/></svg>
+                Roll
+              </button>
+              <button id="btnResetInitiative" class="btn btn--ghost btn--small partyAction" type="button" title="Reset all initiative values">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" aria-hidden="true" style="width:15px;height:15px;flex-shrink:0"><path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99"/></svg>
+                Reset
+              </button>
+              <button id="btnOpenSocialFromParty" class="btn btn--ghost btn--small partyAction partyAction--invite" type="button">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" aria-hidden="true" style="width:15px;height:15px;flex-shrink:0"><path stroke-linecap="round" stroke-linejoin="round" d="M7.217 10.907a2.25 2.25 0 1 0 0 2.186m0-2.186c.18.324.283.696.283 1.093s-.103.77-.283 1.093m0-2.186 9.566-5.314m-9.566 7.5 9.566 5.314m0-12.814a2.25 2.25 0 1 0 3.935-2.186 2.25 2.25 0 0 0-3.935 2.186Zm0 12.814a2.25 2.25 0 1 0 3.935 2.186 2.25 2.25 0 0 0-3.935-2.186Z" /></svg>
+                Invite
+              </button>
+              <!-- btnAddNpc hidden &middot; NPC initiative added via handout creation instead -->
+              <button id="btnAddNpc" class="hidden" type="button" aria-hidden="true"></button>
+            </div>
+            <!-- Turn navigator &middot; shown when initiative is active -->
+            <div id="dmTurnNav" class="dmTurnNav hidden" aria-label="Turn navigation">
+              <button id="btnTurnPrev" class="dmTurnNav__btn" type="button" aria-label="Previous turn">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" aria-hidden="true" style="width:16px;height:16px"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 15.75 7.5-7.5 7.5 7.5"/></svg>
+              </button>
+              <span id="dmTurnLabel" class="dmTurnNav__label">Round 1 &middot; Turn 1</span>
+              <button id="btnTurnNext" class="dmTurnNav__btn" type="button" aria-label="Next turn">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" aria-hidden="true" style="width:16px;height:16px"><path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5"/></svg>
+              </button>
+            </div>
+            <button id="btnPartyBattle" class="btn btn--ghost partyAction partyAction--battle" type="button" aria-pressed="false" title="Toggle battle mode">
+              <span class="dmPartyPanel__battleEmoji" aria-hidden="true">💤</span>
+              <span>Battle: OFF</span>
+            </button>
+            <div id="dmPartyRollOverlay" class="dmPartyPanel__overlay hidden" aria-hidden="true">
+              <div class="authLoadingOverlay__spinner"></div>
+              <span class="muted small">Rolling initiative...</span>
+            </div>
+            <div class="partyListWrap">
+            <div id="dmPartyInlineList" class="list dmPartyPanel__list"></div>
+            <div id="dmPartyInlineEmpty" class="emptyState dmPartyPanel__empty">
+              <span class="emptyState__icon" aria-hidden="true">👥</span>
+              <span class="emptyState__title">No players yet</span>
+              <span class="emptyState__hint">Players appear here once they join. Create an NPC handout and use &ldquo;Add for Initiative&rdquo; to add enemies.</span>
+            </div>
+            </div><!-- end partyListWrap -->
+          </aside>
+        </div>
+      </div>
+    </section>
+
+    <section id="createHandoutModal" class="modal hidden">
+      <div class="modal__card createModalCard">
+        <div class="modal__top">
+          <h3>Create Handout</h3>
+          <!-- Beginner note: close buttons use Heroicons so they look identical across platforms. -->
+          <button id="btnCloseCreateModal" class="iconBtn closeIconBtn" aria-label="Close create handout modal">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"></path></svg>
+          </button>
+        </div>
+
+        <!--
+          Portrait hero:
+          shown near the top like a profile avatar to give immediate identity
+          to the handout while authoring.
+        -->
+        <div class="portraitHero">
+          <div class="portraitFrame">
+            <img id="dmImagePreview" class="portraitPreview hidden" alt="Handout portrait preview">
+            <div id="portraitPlaceholder" class="portraitPlaceholder" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M20 21V19C20 17.8954 19.1046 17 18 17H6C4.89543 17 4 17.8954 4 19V21" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></path>
+                <path d="M12 13C14.2091 13 16 11.2091 16 9C16 6.79086 14.2091 5 12 5C9.79086 5 8 6.79086 8 9C8 11.2091 9.79086 13 12 13Z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></path>
+              </svg>
+            </div>
+          </div>
+          <div class="imageNavRow" role="group" aria-label="Image controls">
+            <button id="btnImagePrev" class="imageNavBtn" type="button" aria-label="Previous image" title="Previous image">
+              <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                <path d="M15 19L8 12L15 5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></path>
+              </svg>
+            </button>
+            <button id="btnImageNext" class="imageNavBtn" type="button" aria-label="Next image" title="Next image">
+              <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                <path d="M9 5L16 12L9 19" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></path>
+              </svg>
+            </button>
+            <button id="btnImageRandom" class="imageNavBtn" type="button" aria-label="Random image" title="Random image">
+              <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                <path d="M16 3H21V8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></path>
+                <path d="M4 20L10 14" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"></path>
+                <path d="M10 10L4 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"></path>
+                <path d="M21 16V21H16" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></path>
+                <path d="M14 10L21 3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"></path>
+                <path d="M21 21L14 14" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"></path>
+              </svg>
+            </button>
+            <button id="btnImageSelect" class="imageNavBtn" type="button" aria-label="Select image" title="Select image">
+              <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                <rect x="4" y="4" width="6" height="6" rx="1.2" stroke="currentColor" stroke-width="1.8"></rect>
+                <rect x="14" y="4" width="6" height="6" rx="1.2" stroke="currentColor" stroke-width="1.8"></rect>
+                <rect x="4" y="14" width="6" height="6" rx="1.2" stroke="currentColor" stroke-width="1.8"></rect>
+                <rect x="14" y="14" width="6" height="6" rx="1.2" stroke="currentColor" stroke-width="1.8"></rect>
+              </svg>
+            </button>
+          </div>
+          <div id="imagePickerPanel" class="imagePickerPanel hidden" aria-label="Image selection panel">
+            <div class="imagePickerPanel__title muted small">Choose from the placeholder library (chronological order)</div>
+            <div id="imagePickerList" class="imagePickerGrid" role="listbox" aria-label="Available placeholder images"></div>
+          </div>
+          <div id="createMapUploadWrap" class="mapSection hidden">
+            <div id="createMapDisplayFrame" class="mapDisplayFrame">
+              <img id="createMapPreviewImg" class="mapPreviewImg hidden" alt="Map preview">
+              <div id="createMapEmptyState" class="mapDisplayFrame__empty">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3" aria-hidden="true" style="width:48px;height:48px;opacity:.35"><path stroke-linecap="round" stroke-linejoin="round" d="M9 6.75V15m6-6v8.25m.503 3.498 4.875-2.437c.381-.19.622-.58.622-1.006V4.82c0-.836-.88-1.38-1.628-1.006l-3.869 1.934c-.317.159-.69.159-1.006 0L9.503 3.252a1.125 1.125 0 0 0-1.006 0L3.622 5.689C3.24 5.88 3 6.27 3 6.695V19.18c0 .836.88 1.38 1.628 1.006l3.869-1.934c.317-.159.69-.159 1.006 0l4.994 2.497c.317.158.69.158 1.006 0Z"/></svg>
+                <span class="muted small" style="margin-top:8px">No map uploaded yet</span>
+              </div>
+              <div id="createMapLoadingOverlay" class="mapDisplayFrame__loading hidden" aria-hidden="true">
+                <div class="authLoadingOverlay__spinner"></div>
+              </div>
+            </div>
+            <div class="mapBtnRow">
+              <input id="handoutImageUpload" type="file" accept="image/*" class="hidden">
+              <button id="btnHandoutUploadImage" class="btn btn--ghost mapBtn" type="button">
+                <svg class="nuggetIcon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" style="width:14px;height:14px;vertical-align:-2px;margin-right:4px"><path d="M12 3L4 9l2 10h12l2-10L12 3z" fill="#F5C82F"/><path d="M12 3L8 9h8l-4-6z" fill="#FFE566" opacity=".7"/><path d="M8 9l-2 10h5l-3-10zm8 0l2 10h-5l3-10z" fill="#C8960E" opacity=".35"/><path d="M12 3L4 9l2 10h12l2-10L12 3z" stroke="#B8860B" stroke-width=".8" fill="none"/></svg>
+                Upload <span class="mapBtnCost">x1</span>
+              </button>
+              <button id="btnCreateMapAIGenerate" class="btn btn--ghost mapBtn mapBtn--ai" type="button">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true" style="width:14px;height:14px;flex-shrink:0;margin-right:4px"><path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904 9 18.75l-.813-2.846a4.5 4.5 0 0 0-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 0 0 3.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 0 0 3.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 0 0-3.09 3.09ZM18.259 8.715 18 9.75l-.259-1.035a3.375 3.375 0 0 0-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 0 0 2.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 0 0 2.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 0 0-2.456 2.456Z"/></svg>
+                AI Generate <span class="mapBtnFree">Free</span>
+              </button>
+            </div>
+            <span id="handoutImageStatus" class="muted small mapStatusText"></span>
+          </div>
+          <p id="dmImageStatus" class="muted small">Portrait is selected from local placeholders using Title + Public Content only.</p>
+        </div>
+
+        <div class="formGrid">
+          <button id="btnRandomHandout" class="btn btn--ghost" type="button">
+            <svg class="btnInlineIcon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+              <rect x="5" y="5" width="14" height="14" rx="2" stroke="currentColor" stroke-width="1.8"></rect>
+              <circle cx="9" cy="9" r="1.2" fill="currentColor"></circle>
+              <circle cx="15" cy="15" r="1.2" fill="currentColor"></circle>
+              <circle cx="9" cy="15" r="1.2" fill="currentColor"></circle>
+              <circle cx="15" cy="9" r="1.2" fill="currentColor"></circle>
+            </svg>
+            Generate Random Handout
+          </button>
+
+          <!--
+            Template Type decides both semantics and optional helper controls.
+            Example: NPC-specific controls are shown only when type == "npc".
+          -->
+          <label class="label">Template Type</label>
+          <select id="dmType" class="input">
+            <option value="loot">Loot</option>
+            <option value="npc">NPC</option>
+            <option value="clue">Clue</option>
+            <option value="letter">Letter</option>
+            <option value="quest">Quest</option>
+            <option value="map">Map</option>
+          </select>
+
+          <div id="npcDispositionWrap" class="hidden">
+            <label class="label">NPC Alignment (optional)</label>
+            <div class="chipRow" id="npcDispositionRow">
+              <button class="chip chip--unknown chip--active" data-npc-disposition="" type="button">Unknown</button>
+              <button class="chip chip--friendly" data-npc-disposition="friendly" type="button">Friendly</button>
+              <button class="chip chip--enemy" data-npc-disposition="enemy" type="button">Enemy</button>
+              <button class="chip chip--neutral" data-npc-disposition="neutral" type="button">Neutral</button>
+            </div>
+            <button id="btnAddHandoutToInitiative" class="btn btn--ghost btn--small" type="button">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="width:14px;height:14px;margin-right:4px;vertical-align:-2px"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8.5" cy="8.5" r="1.2" fill="currentColor"/><circle cx="15.5" cy="8.5" r="1.2" fill="currentColor"/><circle cx="8.5" cy="15.5" r="1.2" fill="currentColor"/><circle cx="15.5" cy="15.5" r="1.2" fill="currentColor"/><circle cx="12" cy="12" r="1.2" fill="currentColor"/></svg>
+              Add for Initiative
+            </button>
+          </div>
+
+          <label class="label">Title</label>
+          <input id="dmTitle" class="input" placeholder="Name...">
+
+          <label class="label">Public Content</label>
+          <textarea id="dmPublic" class="input" rows="5" placeholder="Description visible to players..."></textarea>
+
+          <div class="secretBlock">
+            <label class="label">Secret content (optional)</label>
+            <textarea id="dmSecret" class="input" rows="4" placeholder="Hidden until revealed..."></textarea>
+          </div>
+
+          <label class="label">Visibility</label>
+          <div class="revealStarRow revealStarRow--single">
+            <button id="btnCreateRevealToggle" class="revealStarBtn" type="button" aria-pressed="false">
+              <span class="revealStarBtn__icon" aria-hidden="true">
+                <svg id="createRevealEyeOpen" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" class="revealStarBtn__iconSvg" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 12s3.75-6.75 9.75-6.75S21.75 12 21.75 12 18 18.75 12 18.75 2.25 12 2.25 12Z"></path><path stroke-linecap="round" stroke-linejoin="round" d="M12 15.25a3.25 3.25 0 1 0 0-6.5 3.25 3.25 0 0 0 0 6.5Z"></path></svg>
+                <svg id="createRevealEyeClosed" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" class="revealStarBtn__iconSvg hidden" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M3 3l18 18"></path><path stroke-linecap="round" stroke-linejoin="round" d="M10.58 10.58A2 2 0 0 0 10 12a2 2 0 0 0 2 2c.52 0 .99-.2 1.35-.53"></path><path stroke-linecap="round" stroke-linejoin="round" d="M9.88 5.09A10.94 10.94 0 0 1 12 4.88c6 0 9.75 7.12 9.75 7.12a17.5 17.5 0 0 1-3.17 3.95"></path><path stroke-linecap="round" stroke-linejoin="round" d="M6.61 6.61C4.31 8.28 2.75 12 2.75 12s3.75 7.12 9.75 7.12c1.16 0 2.24-.23 3.23-.64"></path></svg>
+              </span>
+              <span class="revealStarBtn__text">Unrevealed</span>
+            </button>
+          </div>
+
+          <div class="accordionSection">
+            <button class="accordionToggle" type="button" aria-expanded="false" aria-controls="createAppearanceBody" id="btnCreateAppearanceToggle">
+              Appearance &amp; Options
+              <svg class="accordionChevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5"/></svg>
+            </button>
+            <div class="accordionBody" id="createAppearanceBody">
+          <label class="label">Icon</label>
+          <!-- Suggestion row — populated by JS once title/content is present -->
+          <div id="iconSuggestRow" class="iconSuggestSection hidden" aria-label="Icon suggestions based on handout content" aria-live="polite">
+            <span class="iconSuggestLabel">Suggested</span>
+            <div id="iconSuggestTiles" class="iconSuggestTiles"></div>
+          </div>
+          <!-- Preset icon grid -->
+          <div id="dmIconGrid" class="iconPickerGrid" aria-label="Choose handout icon">
+            <button class="iconTile iconTile--active" type="button" data-icon="🎭" aria-label="Mask icon">🎭</button>
+            <button class="iconTile" type="button" data-icon="📜" aria-label="Scroll icon">📜</button>
+            <button class="iconTile" type="button" data-icon="🗺️" aria-label="Map icon">🗺️</button>
+            <button class="iconTile" type="button" data-icon="🗝️" aria-label="Key icon">🗝️</button>
+            <button class="iconTile" type="button" data-icon="🧭" aria-label="Compass icon">🧭</button>
+            <button class="iconTile" type="button" data-icon="💰" aria-label="Coin icon">💰</button>
+            <button class="iconTile" type="button" data-icon="⚔️" aria-label="Sword icon">⚔️</button>
+            <button class="iconTile" type="button" data-icon="🛡️" aria-label="Shield icon">🛡️</button>
+            <button class="iconTile" type="button" data-icon="🧪" aria-label="Potion icon">🧪</button>
+            <button class="iconTile" type="button" data-icon="📖" aria-label="Book icon">📖</button>
+            <button class="iconTile" type="button" data-icon="💎" aria-label="Gem icon">💎</button>
+            <button class="iconTile" type="button" data-icon="☠️" aria-label="Skull icon">☠️</button>
+          </div>
+          <!-- Custom emoji — below the grid so presets stay prominent -->
+          <div class="emojiCustomRow">
+            <span id="emojiPreview" class="emojiPreview" aria-hidden="true">🎭</span>
+            <div class="emojiCustomField">
+              <span class="emojiCustomLabel">Or type your own emoji</span>
+              <input id="emojiInput" class="emojiInput" type="text" maxlength="12" placeholder="Paste any emoji…" aria-label="Custom emoji input">
+            </div>
+          </div>
+
+          <label class="label">Accent Color <span class="labelSub">· handout card border</span></label>
+          <div id="dmColorRow" class="colorRow">
+            <button class="colorDot colorDot--active" data-color="#f5c82f" style="--dot:#f5c82f" type="button" aria-label="Gold"></button>
+            <button class="colorDot" data-color="#94a9c7" style="--dot:#94a9c7" type="button" aria-label="Slate"></button>
+            <button class="colorDot" data-color="#ff8b1a" style="--dot:#ff8b1a" type="button" aria-label="Orange"></button>
+            <button class="colorDot" data-color="#f84545" style="--dot:#f84545" type="button" aria-label="Red"></button>
+            <button class="colorDot" data-color="#3f88ff" style="--dot:#3f88ff" type="button" aria-label="Blue"></button>
+            <button class="colorDot" data-color="#2dcc71" style="--dot:#2dcc71" type="button" aria-label="Green"></button>
+            <button class="colorDot" data-color="#9b5cff" style="--dot:#9b5cff" type="button" aria-label="Purple"></button>
+            <button class="colorDot" data-color="#e548a8" style="--dot:#e548a8" type="button" aria-label="Pink"></button>
+          </div>
+
+          <div class="claimableRow">
+            <button id="btnCreateClaimable" class="btn btn--ghost" type="button" aria-pressed="false">Claimable Off</button>
+          </div>
+            </div><!-- end accordionBody -->
+          </div><!-- end accordionSection -->
+
+          <div class="row row--end">
+            <button id="btnAddHandout" class="btn">Create Handout</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!--
+      SCREEN: PLAYER JOIN
+      What it does:
+      - Player enters session tag, nickname, and pincode.
+      - Optional in-app QR scanning can auto-fill session tag.
+
+      Why it works:
+      - Join action verifies session + PIN hash before entering live view.
+      - QR scanner writes into the same session tag input used by manual join.
+      - Inline message area explains validation errors immediately.
+    -->
+    <section id="screenPlayerJoin" class="card hidden">
+      <h2>Join Session</h2>
+      <p id="plJoinGuestNotice" class="auth-info hidden">You're joining as a guest. Your data will be kept for 24 hours only.</p>
+      <p id="plJoinSignedNotice" class="muted small hidden">Signed in &middot; session data saved to your account.</p>
+
+      <label class="label">Session Tag (auto if you came via QR link)</label>
+      <input id="plSessionId" class="input" placeholder="lost-mine#1234">
+
+      <label class="label">Nickname</label>
+      <input id="plNick" class="input" placeholder="e.g. Elara">
+
+      <label class="label">Pincode</label>
+      <input id="plPin" class="input" inputmode="numeric" placeholder="e.g. 1234">
+
+      <div class="row">
+        <!-- Secondary: returns to landing and stops scanner if active -->
+        <button id="btnPlayerBack" class="btn btn--ghost"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" aria-hidden="true" style="width:16px;height:16px;flex-shrink:0;vertical-align:-2px;margin-right:4px"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5"/></svg>Back</button>
+        <!-- Utility: opens camera scanner flow for QR join convenience -->
+        <button id="btnScanInApp" class="btn btn--ghost">Scan QR (in-app)</button>
+        <!-- Primary: validates credentials and joins player into session -->
+        <button id="btnJoin" class="btn">Join</button>
+      </div>
+
+      <div id="plRecentWrap" class="joinRecent hidden">
+        <div class="joinRecent__head">
+          <h3>Recently joined one-shots</h3>
+          <span id="plRecentMeta" class="muted small"></span>
+        </div>
+        <div id="plRecentList" class="joinRecent__list"></div>
+      </div>
+
+      <div id="qrReaderWrap" class="blockingModal hidden" role="dialog" aria-modal="true" aria-label="Scan QR code" aria-hidden="true">
+        <div class="blockingModal__card qrReaderModalCard">
+          <h2>Scan Session QR</h2>
+          <p class="muted small">Point your camera at the DM's QR code. Camera access is required.</p>
+          <div class="scannerFrame" role="img" aria-label="Live camera viewfinder">
+            <!-- Native video feed &middot; src is set in JS via getUserMedia -->
+            <video id="scannerVideo" class="scannerVideo" playsinline muted autoplay></video>
+            <!-- Off-screen decode canvas &middot; never visible to users -->
+            <canvas id="scannerCanvas" class="scannerCanvas" aria-hidden="true"></canvas>
+            <!-- Decorative viewfinder corners -->
+            <div class="scannerReticle" aria-hidden="true"></div>
+          </div>
+          <button id="btnStopScan" class="btn btn--ghost" type="button">Stop Scanning</button>
+        </div>
+      </div>
+
+      <p id="plJoinMsg" class="muted"></p>
+    </section>
+
+    <!--
+      SCREEN: PLAYER VIEW
+      What it does:
+      - Shows only revealed handouts.
+      - Lets player enable audio and leave session.
+
+      Why it works:
+      - Realtime listener feeds the list.
+      - Client-side filtering ensures hidden GM content stays hidden in UI.
+    -->
+    <section id="screenPlayerView" class="card hidden">
+      <div class="dashHeader">
+        <div>
+          <h2>Handouts</h2>
+          <div class="muted small">You only see revealed handouts.</div>
+        </div>
+      </div>
+
+      <div class="playerViewLayout">
+        <div class="playerViewLayout__main">
+          <div id="plHandoutList" class="list"></div>
+          <div id="plHandoutEmpty" class="emptyState">
+            <span class="emptyState__icon" aria-hidden="true">📜</span>
+            <span class="emptyState__title">Nothing revealed yet</span>
+            <span class="emptyState__hint">The DM will reveal handouts as your adventure unfolds.</span>
+          </div>
+        </div>
+
+        <aside id="playerPartyPanel" class="panel dmPartyPanel playerPartyPanel" aria-label="Party panel">
+          <div class="dmPartyPanel__head">
+            <h3>The Party</h3>
+            <span class="muted small">Initiative order</span>
+            <button id="btnCollapsePlayerParty" class="partyCollapseBtn iconBtn" type="button" aria-expanded="false" aria-label="Expand party list" title="Expand / collapse party list">
+              <svg class="partyCollapseChevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true" style="width:16px;height:16px;transition:transform 300ms ease-in-out"><path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5"/></svg>
+            </button>
+          </div>
+          <div class="dmPartyPanel__actions dmPartyPanel__actions--bar playerPartyPanel__actions">
+            <button id="btnPlayerInitiativeEdit" class="btn btn--ghost btn--small partyAction" type="button" title="Edit your initiative">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" aria-hidden="true" style="width:15px;height:15px;flex-shrink:0"><path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487a2.1 2.1 0 1 1 2.97 2.97L9.75 17.54l-3.75.78.78-3.75 10.082-10.083Z"/><path stroke-linecap="round" stroke-linejoin="round" d="M14.5 6.85l2.65 2.65"/></svg>
+              Edit
+            </button>
+            <button id="btnPlayerInitiativeRoll" class="btn btn--small partyAction" type="button" title="Roll and set your initiative">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="width:15px;height:15px;flex-shrink:0"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8.5" cy="8.5" r="1.2" fill="currentColor"/><circle cx="15.5" cy="8.5" r="1.2" fill="currentColor"/><circle cx="8.5" cy="15.5" r="1.2" fill="currentColor"/><circle cx="15.5" cy="15.5" r="1.2" fill="currentColor"/><circle cx="12" cy="12" r="1.2" fill="currentColor"/></svg>
+              Roll
+            </button>
+          </div>
+          <div class="partyListWrap">
+          <div id="playerPartyInlineList" class="list dmPartyPanel__list"></div>
+          <div id="playerPartyInlineEmpty" class="emptyState dmPartyPanel__empty">
+            <span class="emptyState__icon" aria-hidden="true">👥</span>
+            <span class="emptyState__title">No party yet</span>
+            <span class="emptyState__hint">Fellow players appear here once they join the session.</span>
+          </div>
+          </div><!-- end partyListWrap -->
+        </aside>
+      </div>
+    </section>
+
+    <!--
+      SCREEN: PLAYER INVENTORY
+      Per-player items + coin pouches. GM also sees Party Treasury with
+      distribute/grant controls. Content is rendered dynamically by JS.
+    -->
+    <section id="screenPlayerInventory" class="card hidden">
+      <div class="dashHeader">
+        <div>
+          <h2>Inventory</h2>
+        </div>
+        <div class="row">
+          <button id="btnInventoryBack" class="btn btn--ghost"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" aria-hidden="true" style="width:16px;height:16px;flex-shrink:0;vertical-align:-2px;margin-right:4px"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5"/></svg>Back</button>
+        </div>
+      </div>
+
+      <!-- Inventory search / filter -->
+      <div class="inventorySearchWrap">
+        <div class="searchInputWrap">
+          <svg class="searchInputIcon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"/></svg>
+          <input id="inventorySearch" class="input" placeholder="Search items..." autocomplete="off" aria-label="Search items">
+        </div>
+      </div>
+
+      <!-- Party Treasury -->
+      <div id="partyTreasurySection" class="coinSection">
+        <div class="coinSection__head">
+          <h3>Party Treasury</h3>
+          <span class="muted small">Managed by DM</span>
+        </div>
+        <div id="partyTreasuryCoins" class="coinRow">
+          <div class="coinItem" data-coin="bronze">
+            <div class="coinItem__center">
+              <span class="coinIcon coinIcon--bronze" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.5"/><text x="12" y="16" text-anchor="middle" font-size="10" font-weight="700" fill="currentColor">B</text></svg>
+              </span>
+              <span class="coinValue" data-wallet="party" data-denom="bronze">0</span>
+            </div>
+            <div class="coinControls hidden">
+              <button class="coinBtn coinBtn--minus" data-wallet="party" data-denom="bronze" type="button" aria-label="Remove bronze"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M5 12h14"/></svg></button>
+              <button class="coinBtn coinBtn--plus" data-wallet="party" data-denom="bronze" type="button" aria-label="Add bronze"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg></button>
+            </div>
+          </div>
+          <div class="coinItem" data-coin="silver">
+            <div class="coinItem__center">
+              <span class="coinIcon coinIcon--silver" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.5"/><text x="12" y="16" text-anchor="middle" font-size="10" font-weight="700" fill="currentColor">S</text></svg>
+              </span>
+              <span class="coinValue" data-wallet="party" data-denom="silver">0</span>
+            </div>
+            <div class="coinControls hidden">
+              <button class="coinBtn coinBtn--minus" data-wallet="party" data-denom="silver" type="button" aria-label="Remove silver"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M5 12h14"/></svg></button>
+              <button class="coinBtn coinBtn--plus" data-wallet="party" data-denom="silver" type="button" aria-label="Add silver"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg></button>
+            </div>
+          </div>
+          <div class="coinItem" data-coin="gold">
+            <div class="coinItem__center">
+              <span class="coinIcon coinIcon--gold" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.5"/><text x="12" y="16" text-anchor="middle" font-size="10" font-weight="700" fill="currentColor">G</text></svg>
+              </span>
+              <span class="coinValue" data-wallet="party" data-denom="gold">0</span>
+            </div>
+            <div class="coinControls hidden">
+              <button class="coinBtn coinBtn--minus" data-wallet="party" data-denom="gold" type="button" aria-label="Remove gold"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M5 12h14"/></svg></button>
+              <button class="coinBtn coinBtn--plus" data-wallet="party" data-denom="gold" type="button" aria-label="Add gold"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg></button>
+            </div>
+          </div>
+          <div class="coinItem" data-coin="platinum">
+            <div class="coinItem__center">
+              <span class="coinIcon coinIcon--platinum" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.5"/><text x="12" y="16" text-anchor="middle" font-size="10" font-weight="700" fill="currentColor">P</text></svg>
+              </span>
+              <span class="coinValue" data-wallet="party" data-denom="platinum">0</span>
+            </div>
+            <div class="coinControls hidden">
+              <button class="coinBtn coinBtn--minus" data-wallet="party" data-denom="platinum" type="button" aria-label="Remove platinum"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M5 12h14"/></svg></button>
+              <button class="coinBtn coinBtn--plus" data-wallet="party" data-denom="platinum" type="button" aria-label="Add platinum"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg></button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Player inventories rendered here by JS -->
+      <div id="inventoryPlayersContainer" class="inventoryPlayers"></div>
+      <div id="inventoryEmptyMsg" class="emptyState hidden">
+        <span class="emptyState__icon" aria-hidden="true">🎒</span>
+        <span class="emptyState__title">Inventory is empty</span>
+        <span class="emptyState__hint">Use the + button to add items to your bag.</span>
+      </div>
+    </section>
+
+    <!-- Create / Edit Inventory Item Modal -->
+    <section id="createInventoryModal" class="modal hidden">
+      <div class="modal__card createInventoryCard">
+        <div class="modal__top">
+          <h3 id="inventoryModalTitle">New Item</h3>
+          <button id="btnCloseInventoryModal" class="iconBtn closeIconBtn" aria-label="Close inventory item modal">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"></path></svg>
+          </button>
+        </div>
+
+        <!-- Item avatar picker (simplified) -->
+        <div class="inventoryAvatarPicker">
+          <div class="inventoryAvatarPicker__top">
+            <div class="inventoryAvatarFrame">
+              <img id="inventoryItemAvatarPreview" class="inventoryAvatarImg hidden" alt="Item avatar">
+              <div id="inventoryItemAvatarPlaceholder" class="inventoryAvatarPlaceholder" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M7 8H17L18 20H6L7 8Z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M9 8V7C9 5.343 10.343 4 12 4C13.657 4 15 5.343 15 7V8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+              </div>
+            </div>
+            <div class="inventoryAvatarControls">
+              <div class="inventoryAvatarNav">
+                <button id="btnInvAvatarPrev" class="imageNavBtn" type="button" aria-label="Previous avatar">
+                  <svg viewBox="0 0 24 24" fill="none"><path d="M15 18L9 12L15 6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                </button>
+                <button id="btnInvAvatarNext" class="imageNavBtn" type="button" aria-label="Next avatar">
+                  <svg viewBox="0 0 24 24" fill="none"><path d="M9 6L15 12L9 18" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                </button>
+                <button id="btnInvAvatarRandom" class="imageNavBtn" type="button" aria-label="Random avatar">
+                  <svg viewBox="0 0 24 24" fill="none"><path d="M4 4v5h5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M20 20v-5h-5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M4 9a9 9 0 0114.5-3.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M20 15a9 9 0 01-14.5 3.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+                </button>
+                <button id="btnInvAvatarGallery" class="imageNavBtn" type="button" aria-label="Browse all images" title="Browse all images">
+                  <svg viewBox="0 0 24 24" fill="none">
+                    <rect x="4" y="4" width="6" height="6" rx="1.2" stroke="currentColor" stroke-width="1.8"></rect>
+                    <rect x="14" y="4" width="6" height="6" rx="1.2" stroke="currentColor" stroke-width="1.8"></rect>
+                    <rect x="4" y="14" width="6" height="6" rx="1.2" stroke="currentColor" stroke-width="1.8"></rect>
+                    <rect x="14" y="14" width="6" height="6" rx="1.2" stroke="currentColor" stroke-width="1.8"></rect>
+                  </svg>
+                </button>
+              </div>
+              <div class="inventoryAvatarUploadRow">
+                <input id="inventoryImageUpload" type="file" accept="image/*" class="hidden">
+                <button id="btnInvUploadImage" class="btn btn--ghost btn--small" type="button"><svg class="nuggetIcon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" style="width:14px;height:14px;vertical-align:-2px;margin-right:3px"><path d="M12 3L4 9l2 10h12l2-10L12 3z" fill="#F5C82F"/><path d="M12 3L8 9h8l-4-6z" fill="#FFE566" opacity=".7"/><path d="M8 9l-2 10h5l-3-10zm8 0l2 10h-5l3-10z" fill="#C8960E" opacity=".35"/><path d="M12 3L4 9l2 10h12l2-10L12 3z" stroke="#B8860B" stroke-width=".8" fill="none"/></svg>x1 Upload Image</button>
+                <span id="inventoryImageStatus" class="muted small"></span>
+              </div>
+            </div>
+          </div>
+          <div id="invGalleryPanel" class="invGalleryPanel hidden">
+            <div id="invGalleryGrid" class="invGalleryGrid" role="listbox" aria-label="All item images"></div>
+          </div>
+        </div>
+
+        <label class="label" for="inventoryItemName">Item Name</label>
+        <input id="inventoryItemName" class="input" placeholder="e.g. Healing Potion">
+
+        <label class="label" for="inventoryItemDesc">Description</label>
+        <textarea id="inventoryItemDesc" class="input" rows="3" placeholder="What is this item?"></textarea>
+
+        <label class="label" for="inventoryItemAmount">Amount</label>
+        <input id="inventoryItemAmount" class="input" inputmode="numeric" value="1" min="1" placeholder="1">
+
+        <input id="inventoryItemId" type="hidden" value="">
+        <input id="inventoryItemOwner" type="hidden" value="">
+
+        <div class="modal-actions">
+          <button id="btnSaveInventoryItem" class="btn">Create Item</button>
+        </div>
+      </div>
+    </section>
+
+  <!-- Settings Drawer (slides in from right, triggered by hamburger) -->
+  <aside id="settingsDrawer" class="settings-drawer" aria-hidden="true">
+    <div id="settingsDrawerBackdrop" class="settings-drawer__backdrop"></div>
+    <div class="settings-drawer__panel">
+      <div class="settings-drawer__head">
+        <h2>Settings</h2>
+        <div id="settingsSessionInfo" class="muted small hidden"></div>
+      </div>
+      <div class="settingsMenu">
+        <div id="trialStatus" class="trialBanner hidden">
+          <span id="trialText" class="muted small"></span>
+        </div>
+        <button id="btnReplayTutorial" class="btn btn--ghost" type="button">Replay Tutorial</button>
+        <div class="settingsAppearance">
+          <div class="label">Appearance</div>
+          <div class="settingsAppearance__options" role="group" aria-label="Appearance theme">
+            <button id="btnThemeSystem" class="btn btn--ghost btn--small" type="button" aria-pressed="false">System</button>
+            <button id="btnThemeDark" class="btn btn--ghost btn--small" type="button" aria-pressed="false">Dark</button>
+            <button id="btnThemeLight" class="btn btn--ghost btn--small" type="button" aria-pressed="false">Light</button>
+          </div>
+        </div>
+
+        <!-- Role switching -->
+        <div id="settingsRoleSection" class="settingsRoleSwitch hidden">
+          <div class="label">Role</div>
+          <button id="btnSwitchToPlayer" class="btn btn--ghost hidden" type="button"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" aria-hidden="true" style="width:16px;height:16px;flex-shrink:0;vertical-align:-2px;margin-right:6px"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z"/></svg>Switch to Player View</button>
+          <button id="btnSwitchToDM" class="btn btn--ghost hidden" type="button"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" aria-hidden="true" style="width:16px;height:16px;flex-shrink:0;vertical-align:-2px;margin-right:6px"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75m-3-7.036A11.959 11.959 0 0 1 3.598 6 11.99 11.99 0 0 0 3 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285Z"/></svg>Switch to DM</button>
+          <p id="settingsIdentityHint" class="muted small hidden">Session invite details are kept in the Social tab to avoid duplicates.</p>
+          <div id="dmPinPrompt" class="dmPinPrompt hidden">
+            <input id="switchDMPinInput" class="input" inputmode="numeric" placeholder="Enter DM Transfer PIN">
+            <div class="row row--gap-sm">
+              <button id="btnCancelSwitchDM" class="btn btn--ghost btn--small" type="button">Cancel</button>
+              <button id="btnConfirmSwitchDM" class="btn btn--small" type="button">Confirm</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Sound toggle (removed &middot; mute toggle now in ambience bar) -->
+        <div id="settingsSoundSection" class="settingsAppearance hidden" style="display:none">
+          <div class="label">Sound</div>
+          <button id="btnToggleSound" class="btn btn--ghost btn--small" type="button">Enable sound</button>
+        </div>
+
+        <!-- GM-only: Premade Profiles -->
+        <button id="btnCharacterProfiles" class="btn btn--ghost btn--gm hidden" type="button">Premade Profiles</button>
+
+        <!-- GM-only: Transfer GM Role -->
+        <button id="btnTransferGMRole" class="btn btn--ghost btn--gm hidden" type="button">Transfer DM Role</button>
+
+        <!-- Desktop only: Keyboard Shortcuts reference -->
+        <button id="btnShowShortcuts" class="btn btn--ghost hidden" type="button">Keyboard Shortcuts</button>
+
+        <!-- Music credits -->
+        <button id="btnShowCredits" class="btn btn--ghost" type="button"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true" style="width:18px;height:18px;vertical-align:-3px;margin-right:6px"><path stroke-linecap="round" stroke-linejoin="round" d="m9 9 10.5-3m0 6.553v3.75a2.25 2.25 0 0 1-1.632 2.163l-1.32.377a1.803 1.803 0 1 1-.99-3.467l2.31-.66a2.25 2.25 0 0 0 1.632-2.163Zm0 0V4.5l-10.5 3v6.553m0 0v3.75a2.25 2.25 0 0 1-1.632 2.163l-1.32.377a1.803 1.803 0 0 1-.99-3.467l2.31-.66A2.25 2.25 0 0 0 9 13.053Z"/></svg>Credits</button>
+
+          <!-- Leave / Delete / Discard session &middot; danger zone, clearly separated -->
+          <div class="settingsSection settingsSection--danger">
+            <div class="settingsSection__title settingsSection__title--danger">Session Actions</div>
+            <button id="btnLeaveSession" class="btn btn--ghost btn--warning" type="button">Leave Session</button>
+            <button id="btnDeleteSession" class="btn btn--ghost btn--danger hidden" type="button">Delete Session</button>
+            <button id="btnDiscardSession" class="btn btn--ghost btn--danger hidden" type="button">Discard Session</button>
+          </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Hidden settings screen for backward compat with showOnly("settings") -->
+  <section id="screenSettings" class="hidden" style="display:none"></section>
+
+    <!--
+      SCREEN: SETTINGS ? PROFILE
+      Edit display name, bio, profile picture, and character stats.
+      Includes OCR scanner for importing stats from a character sheet photo.
+    -->
+    <section id="screenSettingsProfile" class="card hidden">
+      <div class="dashHeader">
+        <div>
+          <h2>Settings</h2>
+          <div class="muted">Profile</div>
+        </div>
+        <div class="row">
+          <button id="btnProfileBack" class="btn btn--ghost"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" aria-hidden="true" style="width:16px;height:16px;flex-shrink:0;vertical-align:-2px;margin-right:4px"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5"/></svg>Back</button>
+        </div>
+      </div>
+
+      <div class="settingsCard">
+        <div class="settingsCard__head">
+          <div class="settingsAvatarWrap">
+            <img id="profileAvatarPreview" class="settingsAvatar hidden" alt="Profile picture">
+            <div id="profileAvatarPlaceholder" class="settingsAvatarPlaceholder" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M20 21V19C20 17.8954 19.1046 17 18 17H6C4.89543 17 4 17.8954 4 19V21" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></path>
+                <path d="M12 13C14.2091 13 16 11.2091 16 9C16 6.79086 14.2091 5 12 5C9.79086 5 8 6.79086 8 9C8 11.2091 9.79086 13 12 13Z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></path>
+              </svg>
+            </div>
+          </div>
+          <div class="settingsAvatarActions">
+            <label class="label" for="profileAvatarFile">Profile picture</label>
+            <input id="profileAvatarFile" class="input" type="file" accept="image/*">
+            <p id="profileAvatarStatus" class="muted small" aria-live="polite">Upload a profile picture to preview it before saving.</p>
+          </div>
+        </div>
+
+        <p id="profileContextMsg" class="muted small hidden"></p>
+
+        <div class="formGrid">
+          <label class="label" for="profileDisplayName">Display Name</label>
+          <input id="profileDisplayName" class="input" placeholder="e.g. Elara Stormborn">
+
+          <label class="label" for="profileBio">Bio</label>
+          <textarea id="profileBio" class="input" rows="4" placeholder="Short profile for your table..."></textarea>
+
+          <div id="profileQuickStatsWrap">
+          <h3>Quick Stats</h3>
+          <div class="profileStatsGrid profileStatsGrid--core">
+            <div class="profileStatItem profileStatItem--core">
+              <label class="profileStatItem__label" for="profileStatLevel">Level</label>
+              <input id="profileStatLevel" class="profileStatItem__input" inputmode="numeric" placeholder="1">
+            </div>
+            <div class="profileStatItem profileStatItem--core">
+              <label class="profileStatItem__label" for="profileStatArmorRating">Armor Rating</label>
+              <input id="profileStatArmorRating" class="profileStatItem__input" inputmode="numeric" placeholder="10">
+            </div>
+            <div class="profileStatItem profileStatItem--core">
+              <label class="profileStatItem__label" for="profileStatHitPoints">Hit Points</label>
+              <input id="profileStatHitPoints" class="profileStatItem__input" inputmode="numeric" placeholder="12">
+            </div>
+            <div class="profileStatItem profileStatItem--core">
+              <label class="profileStatItem__label" for="profileStatInitiative">Initiative</label>
+              <input id="profileStatInitiative" class="profileStatItem__input" inputmode="numeric" placeholder="+2">
+            </div>
+          </div>
+
+          <div class="accordionSection accordionSection--profile">
+            <button class="accordionToggle" type="button" aria-expanded="false" aria-controls="profileAbilityScoresBody" id="btnProfileAbilityToggle">
+              Ability Scores
+              <svg class="accordionChevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5"/></svg>
+            </button>
+            <div class="accordionBody" id="profileAbilityScoresBody">
+              <div class="row" style="margin-bottom:8px">
+                <button id="btnScanCharacterSheet" class="btn btn--ghost btn--small" type="button" aria-label="Scan character sheet to import stats">
+                  <svg class="btnInlineIcon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M6.827 6.175A2.31 2.31 0 0 1 5.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 0 0 2.25 2.25h15A2.25 2.25 0 0 0 21.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 0 0-1.134-.175 2.31 2.31 0 0 1-1.64-1.055l-.822-1.316a2.192 2.192 0 0 0-1.736-1.039 48.774 48.774 0 0 0-5.232 0 2.192 2.192 0 0 0-1.736 1.039l-.821 1.316Z" /><path stroke-linecap="round" stroke-linejoin="round" d="M16.5 12.75a4.5 4.5 0 1 1-9 0 4.5 4.5 0 0 1 9 0ZM18.75 10.5h.008v.008h-.008V10.5Z" /></svg>
+                  Scan Character Sheet
+                </button>
+                <input id="characterSheetPhoto" class="hidden" type="file" accept="image/*" capture="environment">
+              </div>
+              <div id="characterSheetCameraPanel" class="characterSheetCameraPanel hidden">
+                <video id="characterSheetVideo" class="characterSheetVideo" autoplay playsinline muted></video>
+                <div class="row">
+                  <button id="btnCaptureCharacterSheet" class="btn" type="button">Capture</button>
+                  <button id="btnCloseCharacterSheetCamera" class="iconBtn closeIconBtn" type="button" aria-label="Close camera panel">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" /></svg>
+                  </button>
+                </div>
+              </div>
+              <p id="profileScanStatus" class="muted small" aria-live="polite"></p>
+              <div class="profileStatsGrid">
+                <div class="profileStatItem">
+                  <label class="profileStatItem__label" for="profileStatStrength">Strength</label>
+                  <input id="profileStatStrength" class="profileStatItem__input" inputmode="numeric" placeholder="10">
+                </div>
+                <div class="profileStatItem">
+                  <label class="profileStatItem__label" for="profileStatDexterity">Dexterity</label>
+                  <input id="profileStatDexterity" class="profileStatItem__input" inputmode="numeric" placeholder="10">
+                </div>
+                <div class="profileStatItem">
+                  <label class="profileStatItem__label" for="profileStatConstitution">Constitution</label>
+                  <input id="profileStatConstitution" class="profileStatItem__input" inputmode="numeric" placeholder="10">
+                </div>
+                <div class="profileStatItem">
+                  <label class="profileStatItem__label" for="profileStatIntelligence">Intelligence</label>
+                  <input id="profileStatIntelligence" class="profileStatItem__input" inputmode="numeric" placeholder="10">
+                </div>
+                <div class="profileStatItem">
+                  <label class="profileStatItem__label" for="profileStatWisdom">Wisdom</label>
+                  <input id="profileStatWisdom" class="profileStatItem__input" inputmode="numeric" placeholder="10">
+                </div>
+                <div class="profileStatItem">
+                  <label class="profileStatItem__label" for="profileStatCharisma">Charisma</label>
+                  <input id="profileStatCharisma" class="profileStatItem__input" inputmode="numeric" placeholder="10">
+                </div>
+              </div>
+            </div><!-- end accordionBody -->
+          </div><!-- end accordionSection -->
+          </div>
+
+          <div class="row row--end">
+            <button id="btnSaveProfile" class="btn">Save Profile</button>
+          </div>
+          <p id="profileSaveMsg" class="muted small" aria-live="polite"></p>
+        </div>
+      </div>
+    </section>
+
+    <!--
+      SCREEN: CHARACTER TEMPLATES (GM only)
+      Manage pre-built character profiles that can be assigned to players.
+    -->
+    <section id="screenCharacterTemplates" class="card hidden">
+      <div class="dashHeader">
+        <div>
+          <h2 class="heading--natural">Premade Profiles</h2>
+          <div class="muted small">Create and assign premade profiles to players.</div>
+        </div>
+        <div class="row templateHeaderActions">
+          <button id="btnBackFromTemplates" class="btn btn--ghost" type="button"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" aria-hidden="true" style="width:16px;height:16px;flex-shrink:0;vertical-align:-2px;margin-right:4px"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5"/></svg>Back</button>
+          <button id="btnCreateTemplate" class="btn btn--small" type="button"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width:14px;height:14px;vertical-align:-2px;margin-right:4px" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>New</button>
+        </div>
+      </div>
+      <div id="templateList" class="list"></div>
+      <div id="templateEmpty" class="emptyState hidden">
+        <span class="emptyState__icon" aria-hidden="true">👤</span>
+        <span class="emptyState__title">No premade profiles yet</span>
+        <span class="emptyState__hint">Create a premade profile and assign it to a player.</span>
+      </div>
+    </section>
+
+    <section id="screenNotes" class="card hidden">
+      <div class="dashHeader">
+        <div>
+          <h2>Session Notes</h2>
+          <div class="muted small">Private notes for this session.</div>
+        </div>
+        <div class="row row--gap-sm">
+          <button id="btnNotesBack" class="btn btn--ghost btn--small" type="button"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" aria-hidden="true" style="width:15px;height:15px;flex-shrink:0;vertical-align:-2px;margin-right:4px"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5"/></svg>Back</button>
+          <button id="btnNotesUndo" class="btn btn--ghost btn--small" type="button" aria-label="Undo note change" title="Undo last change">Undo</button>
+          <button id="btnNotesSave" class="btn btn--small" type="button">Save</button>
+        </div>
+      </div>
+      <textarea id="notesEditor" class="input notesEditor" rows="14" placeholder="Write your session notes here..."></textarea>
+      <p id="notesStatus" class="muted small" aria-live="polite">Tap Save to store your notes.</p>
+    </section>
+
+    <section id="screenInfo" class="card hidden">
+      <div class="dashHeader">
+        <div>
+          <h2>About TomeVault</h2>
+          <div class="muted small">Placeholder section for app information.</div>
+        </div>
+        <div class="row">
+          <button id="btnInfoBack" class="btn btn--ghost" type="button"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" aria-hidden="true" style="width:16px;height:16px;flex-shrink:0;vertical-align:-2px;margin-right:4px"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5"/></svg>Back</button>
+        </div>
+      </div>
+      <div class="settingsCard">
+        <p class="muted" style="line-height:1.6">This section is reserved for your future content: mission, goals, roadmap, and usage guidance for players and Dungeon Masters.</p>
+      </div>
+    </section>
+
+    <!--
+      SCREEN: PROFILE
+      Player: Stats + Spells tabs (read-only by default, Edit button unlocks).
+      GM: Campaign overview with quick links.
+    -->
+    <section id="screenProfile" class="card hidden">
+      <div class="dashHeader">
+        <div>
+          <h2 id="profileScreenTitle">Profile</h2>
+          <div id="profileScreenSubtitle" class="muted small"></div>
+        </div>
+        <div class="row">
+          <button id="btnProfileEdit" class="btn btn--ghost btn--small hidden" type="button">Edit</button>
+          <button id="btnProfileCancelEdit" class="btn btn--ghost btn--small hidden" type="button">Cancel</button>
+          <button id="btnProfileSave" class="btn btn--small hidden" type="button">Save</button>
+        </div>
+      </div>
+
+      <!-- Player profile content -->
+      <div id="profilePlayerContent" class="hidden">
+        <!-- Avatar + name display -->
+        <div class="profile-hero">
+          <div class="profile-hero__avatarRing">
+            <div class="profile-hero__avatar" id="profileHeroAvatar">
+              <svg class="profile-hero__placeholder" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                <circle cx="12" cy="9" r="4" fill="currentColor"/>
+                <path d="M4 20c0-3.314 3.582-6 8-6s8 2.686 8 6" fill="currentColor"/>
+              </svg>
+              <img id="profileHeroImg" class="profile-hero__img hidden" alt="" />
+            </div>
+          </div>
+          <h3 id="profileHeroName" class="profile-hero__name">&middot;</h3>
+          <p id="profileHeroBio" class="profile-hero__bio muted small"></p>
+          <!-- Avatar upload (edit mode) -->
+          <div id="profileHeroUploadWrap" class="hidden">
+            <input id="profileHeroAvatarFile" type="file" accept="image/*" class="hidden">
+            <button id="btnProfileHeroUpload" class="btn btn--ghost btn--small" type="button">📷 Change Avatar</button>
+          </div>
+          <!-- Name + Bio editing (edit mode) -->
+          <div id="profileHeroEditFields" class="hidden">
+            <div class="auth-field"><label class="label" for="profileEditName">Character Name</label><input id="profileEditName" class="input" placeholder="e.g. Elara Stormborn"></div>
+            <div class="auth-field"><label class="label" for="profileEditBio">Bio</label><textarea id="profileEditBio" class="input" rows="3" placeholder="Short backstory..."></textarea></div>
+          </div>
+        </div>
+
+        <!-- Stats / Spells tab bar -->
+        <div class="chipRow profileTabBar" id="profileTabBar">
+          <button class="chip chip--active" data-profile-tab="stats" type="button">Stats</button>
+          <button class="chip" data-profile-tab="spells" type="button">Spells</button>
+        </div>
+
+        <!-- Stats pane -->
+        <div id="profileStatsPane">
+          <!-- Read-only stats grid -->
+          <div id="profileStatsReadOnly" class="profileStatsGrid"></div>
+          <!-- Editable stats grid (edit mode) -->
+          <div id="profileStatsEditable" class="profileGrid hidden">
+            <div class="profileStatRow"><label class="label small" for="profStatLevel">Level</label><input id="profStatLevel" class="input input--small" inputmode="numeric" placeholder="1"></div>
+            <div class="profileStatRow"><label class="label small" for="profStatArmorRating">Armor Rating</label><input id="profStatArmorRating" class="input input--small" inputmode="numeric" placeholder="10"></div>
+            <div class="profileStatRow"><label class="label small" for="profStatHitPoints">Hit Points</label><input id="profStatHitPoints" class="input input--small" inputmode="numeric" placeholder="12"></div>
+            <div class="profileStatRow"><label class="label small" for="profStatInitiative">Initiative</label><input id="profStatInitiative" class="input input--small" placeholder="+2"></div>
+            <div class="profileStatRow"><label class="label small" for="profStatStrength">Strength</label><input id="profStatStrength" class="input input--small" inputmode="numeric" placeholder="10"></div>
+            <div class="profileStatRow"><label class="label small" for="profStatDexterity">Dexterity</label><input id="profStatDexterity" class="input input--small" inputmode="numeric" placeholder="10"></div>
+            <div class="profileStatRow"><label class="label small" for="profStatConstitution">Constitution</label><input id="profStatConstitution" class="input input--small" inputmode="numeric" placeholder="10"></div>
+            <div class="profileStatRow"><label class="label small" for="profStatIntelligence">Intelligence</label><input id="profStatIntelligence" class="input input--small" inputmode="numeric" placeholder="10"></div>
+            <div class="profileStatRow"><label class="label small" for="profStatWisdom">Wisdom</label><input id="profStatWisdom" class="input input--small" inputmode="numeric" placeholder="10"></div>
+            <div class="profileStatRow"><label class="label small" for="profStatCharisma">Charisma</label><input id="profStatCharisma" class="input input--small" inputmode="numeric" placeholder="10"></div>
+          </div>
+          <!-- Camera scan (edit mode) -->
+          <div id="profileScanWrap" class="hidden">
+            <button id="btnProfileScan" class="btn btn--ghost btn--small" type="button"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true" style="width:18px;height:18px;vertical-align:-3px;margin-right:6px"><path stroke-linecap="round" stroke-linejoin="round" d="M6.827 6.175A2.31 2.31 0 0 1 5.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 0 0 2.25 2.25h15A2.25 2.25 0 0 0 21.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 0 0-1.134-.175 2.31 2.31 0 0 1-1.64-1.055l-.822-1.316a2.192 2.192 0 0 0-1.736-1.039 48.774 48.774 0 0 0-5.232 0 2.192 2.192 0 0 0-1.736 1.039l-.821 1.316Z"/><path stroke-linecap="round" stroke-linejoin="round" d="M16.5 12.75a4.5 4.5 0 1 1-9 0 4.5 4.5 0 0 1 9 0ZM18.75 10.5h.008v.008h-.008V10.5Z"/></svg>Scan Character Sheet</button>
+            <p id="profileScanMsg" class="muted small" aria-live="polite"></p>
+          </div>
+        </div>
+
+        <!-- Spells pane -->
+        <div id="profileSpellsPane" class="hidden">
+          <div id="profileSpellsList" class="list"></div>
+          <div id="profileSpellsEmpty" class="emptyState">
+            <span class="emptyState__icon" aria-hidden="true">?</span>
+            <span class="emptyState__title">No spells yet</span>
+            <span class="emptyState__hint">Tap the + button to add your first spell.</span>
+          </div>
+          <!-- Add spell FAB -->
+          <button id="btnAddSpell" class="gm-fab spell-fab" type="button" aria-label="Add spell">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- GM profile content -->
+      <div id="profileGMContent" class="hidden">
+        <div class="profile-hero">
+          <div class="profile-hero__avatarRing profile-hero__avatarRing--gm">
+            <div class="profile-hero__avatar" id="profileGMAvatar">
+              <svg class="profile-hero__placeholder" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                <circle cx="12" cy="9" r="4" fill="currentColor"/>
+                <path d="M4 20c0-3.314 3.582-6 8-6s8 2.686 8 6" fill="currentColor"/>
+              </svg>
+              <img id="profileGMImg" class="profile-hero__img hidden" alt="" />
+            </div>
+          </div>
+          <h3 id="profileGMName" class="profile-hero__name">Dungeon Master</h3>
+          <p id="profileGMBio" class="profile-hero__bio muted small"></p>
+        </div>
+        <div class="settingsMenu">
+          <button id="btnGMProfileNotes" class="btn btn--ghost" type="button"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true" style="width:18px;height:18px;vertical-align:-3px;margin-right:6px"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z"/></svg>Campaign Notes</button>
+          <button id="btnGMProfilePremades" class="btn btn--ghost hidden" type="button"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true" style="width:18px;height:18px;vertical-align:-3px;margin-right:6px"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 0 0 2.625.372 9.337 9.337 0 0 0 4.121-.952 4.125 4.125 0 0 0-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 0 1 8.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0 1 11.964-3.07M12 6.375a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0Zm8.25 2.25a2.625 2.625 0 1 1-5.25 0 2.625 2.625 0 0 1 5.25 0Z"/></svg>Premade Profiles</button>
+          <button id="btnGMProfileEdit" class="btn btn--ghost" type="button"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true" style="width:18px;height:18px;vertical-align:-3px;margin-right:6px"><path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10"/></svg>Edit DM Profile</button>
+        </div>
+      </div>
+
+      <p id="profileSaveStatus" class="muted small" aria-live="polite"></p>
+    </section>
+
+  </main><!-- end .layout -->
+
+    <!-- Create / Edit Character Template Modal -->
+    <section id="createTemplateModal" class="modal hidden">
+      <div class="modal__card">
+        <div class="modal__top">
+          <h3 id="templateModalTitle" style="text-transform:none">New Premade Profile</h3>
+          <button id="btnCloseTemplateModal" class="iconBtn closeIconBtn" aria-label="Close template modal">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"></path></svg>
+          </button>
+        </div>
+        <div class="auth-field">
+          <label class="label" for="templateName">Character Name</label>
+          <input id="templateName" class="input" placeholder="e.g. Elara Nightwhisper">
+        </div>
+        <div class="auth-field">
+          <label class="label" for="templateBio">Bio / Backstory</label>
+          <textarea id="templateBio" class="input" rows="3" placeholder="Short backstory..."></textarea>
+        </div>
+        <div class="auth-field">
+          <label class="label" for="templateImage">Character Image</label>
+          <div class="templateImagePicker">
+            <img id="templateImagePreview" class="templateImagePreview hidden" alt="Character preview" />
+            <input id="templateImage" type="file" accept="image/*" class="hidden">
+            <button id="btnPickTemplateImage" class="btn btn--ghost btn--small" type="button"><svg class="nuggetIcon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" style="width:14px;height:14px;vertical-align:-2px;margin-right:3px"><path d="M12 3L4 9l2 10h12l2-10L12 3z" fill="#F5C82F"/><path d="M12 3L8 9h8l-4-6z" fill="#FFE566" opacity=".7"/><path d="M8 9l-2 10h5l-3-10zm8 0l2 10h-5l3-10z" fill="#C8960E" opacity=".35"/><path d="M12 3L4 9l2 10h12l2-10L12 3z" stroke="#B8860B" stroke-width=".8" fill="none"/></svg>x1 Upload Image</button>
+            <span id="templateImageStatus" class="muted small"></span>
+          </div>
+        </div>
+        <div class="label">Stats</div>
+        <div class="profileGrid" id="templateStatsGrid">
+          <div class="profileStatRow"><label class="label small">Level</label><input id="tplStatLevel" class="input input--small" type="number" min="0"></div>
+          <div class="profileStatRow"><label class="label small">Armor Rating</label><input id="tplStatArmorRating" class="input input--small" type="number" min="0"></div>
+          <div class="profileStatRow"><label class="label small">Hit Points</label><input id="tplStatHitPoints" class="input input--small" type="number" min="0"></div>
+          <div class="profileStatRow"><label class="label small">Initiative</label><input id="tplStatInitiative" class="input input--small" type="number" min="0"></div>
+          <div class="profileStatRow"><label class="label small">Strength</label><input id="tplStatStrength" class="input input--small" type="number" min="0"></div>
+          <div class="profileStatRow"><label class="label small">Dexterity</label><input id="tplStatDexterity" class="input input--small" type="number" min="0"></div>
+          <div class="profileStatRow"><label class="label small">Constitution</label><input id="tplStatConstitution" class="input input--small" type="number" min="0"></div>
+          <div class="profileStatRow"><label class="label small">Intelligence</label><input id="tplStatIntelligence" class="input input--small" type="number" min="0"></div>
+          <div class="profileStatRow"><label class="label small">Wisdom</label><input id="tplStatWisdom" class="input input--small" type="number" min="0"></div>
+          <div class="profileStatRow"><label class="label small">Charisma</label><input id="tplStatCharisma" class="input input--small" type="number" min="0"></div>
+        </div>
+        <div class="modal-actions">
+          <button id="btnCancelTemplate" class="btn btn--ghost" type="button">Cancel</button>
+          <button id="btnSaveTemplate" class="btn" type="button">Save</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Keyboard Shortcuts Reference Card -->
+    <div id="shortcutOverlay" class="modal hidden">
+      <div class="modal__card shortcutCard">
+        <div class="modal__top">
+          <h3>Keyboard Shortcuts</h3>
+          <button id="btnCloseShortcuts" class="iconBtn closeIconBtn" aria-label="Close shortcuts">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"></path></svg>
+          </button>
+        </div>
+        <div class="shortcutCard__list">
+          <div><span class="shortcutCard__key">Ctrl+S</span> Save current handout</div>
+          <div><span class="shortcutCard__key">Ctrl+N</span> New handout</div>
+          <div><span class="shortcutCard__key">Ctrl+F</span> Search handouts</div>
+          <div><span class="shortcutCard__key">Ctrl+1</span> Social panel</div>
+          <div><span class="shortcutCard__key">Ctrl+2</span> Ambience</div>
+          <div><span class="shortcutCard__key">Ctrl+3</span> Handouts</div>
+          <div><span class="shortcutCard__key">Ctrl+4</span> Inventory</div>
+          <div><span class="shortcutCard__key">Ctrl+5</span> Settings</div>
+          <div><span class="shortcutCard__key">Esc</span> Close panel / modal</div>
+        </div>
+      </div>
+    </div>
+
+    <!--
+      REUSABLE MODAL (GM + Player)
+      What it does:
+      - Displays one handout in detail.
+      - Shows extra controls only for GM role.
+
+      Why it works:
+      - Modal content is filled by JS each time a list item is clicked.
+      - Same HTML component is reused for both roles to reduce duplication.
+    -->
+    <section id="modal" class="modal hidden">
+      <div class="modal__card">
+        <div class="modal__top">
+          <div id="modalTag" class="tag">&middot;</div>
+          <!-- Closes modal without changing data -->
+          <button id="modalClose" class="iconBtn closeIconBtn" aria-label="Close handout modal">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"></path></svg>
+          </button>
+        </div>
+
+        <h3 id="modalTitle">&middot;</h3>
+        <div class="handoutModalImageRow">
+          <div id="modalImageWrap" class="handoutModalImageWrap hidden">
+            <img id="modalImage" class="handoutModalImage" alt="Handout image">
+          </div>
+          <button id="btnPlayerClaim" class="btn btn--primary btnPlayerClaim hidden" type="button" aria-label="Claim loot">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true" class="btnInlineIcon"><path stroke-linecap="round" stroke-linejoin="round" d="M10.05 4.575a1.575 1.575 0 10-3.15 0v3.15M10.05 4.575a1.575 1.575 0 013.15 0v3.15M10.05 4.575v3.15M3.75 10.05a1.575 1.575 0 003.15 0m0 0V4.575m0 5.476v5.1a2.85 2.85 0 002.85 2.85h4.5a2.85 2.85 0 002.85-2.85V7.725m-10.2 2.325h10.2m0 0V4.575m0 3.15a1.575 1.575 0 013.15 0v3.15m-3.15-3.15v3.15m3.15 0a1.575 1.575 0 01-3.15 0m3.15 0v2.175a2.85 2.85 0 01-2.85 2.85"></path></svg>
+            Claim
+          </button>
+        </div>
+        <div id="modalPublic" class="modalText"></div>
+
+        <div id="modalSecretWrap" class="secret hidden">
+          <div class="secret__label">SECRET</div>
+          <div id="modalSecret" class="modalText"></div>
+        </div>
+
+        <!--
+          Claim area (shared for GM + Player):
+          - Player sees status + "Claim loot" when allowed.
+          - GM sees status too, plus extra GM-only claim controls below.
+        -->
+        <div id="modalClaimWrap" class="hidden">
+          <hr class="hr">
+          <p id="claimStatus" class="muted small"></p>
+          <button id="btnClaim" class="btn btn--primary hidden" type="button">Claim loot</button>
+        </div>
+
+        <!-- GM-only moderation controls -->
+        <div id="modalDMControls" class="hidden">
+          <hr class="hr">
+          <div class="revealStarRow">
+            <button id="btnToggleReveal" class="revealStarBtn" type="button" aria-pressed="false">
+              <span class="revealStarBtn__icon" aria-hidden="true">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="revealStarBtn__iconSvg" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M11.48 3.499a.562.562 0 011.04 0l2.125 5.111a.563.563 0 00.475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 00-.182.557l1.285 5.385a.562.562 0 01-.84.61l-4.725-2.885a.562.562 0 00-.586 0L6.982 20.54a.562.562 0 01-.84-.61l1.285-5.386a.562.562 0 00-.182-.557l-4.204-3.602a.562.562 0 01.321-.988l5.518-.442a.563.563 0 00.475-.345L11.48 3.5z"></path></svg>
+              </span>
+              <span class="revealStarBtn__text">Reveal Handout</span>
+            </button>
+
+            <button id="btnToggleRevealSecret" class="revealStarBtn" type="button" aria-pressed="false">
+              <span class="revealStarBtn__icon" aria-hidden="true">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="revealStarBtn__iconSvg" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"></path></svg>
+              </span>
+              <span class="revealStarBtn__text">Reveal Secret</span>
+            </button>
+          </div>
+
+          <div id="modalMapUploadWrap" class="mapSection hidden">
+            <div id="modalMapDisplayFrame" class="mapDisplayFrame">
+              <img id="modalMapPreviewImg" class="mapPreviewImg hidden" alt="Map preview">
+              <div id="modalMapEmptyState" class="mapDisplayFrame__empty">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3" aria-hidden="true" style="width:48px;height:48px;opacity:.35"><path stroke-linecap="round" stroke-linejoin="round" d="M9 6.75V15m6-6v8.25m.503 3.498 4.875-2.437c.381-.19.622-.58.622-1.006V4.82c0-.836-.88-1.38-1.628-1.006l-3.869 1.934c-.317.159-.69.159-1.006 0L9.503 3.252a1.125 1.125 0 0 0-1.006 0L3.622 5.689C3.24 5.88 3 6.27 3 6.695V19.18c0 .836.88 1.38 1.628 1.006l3.869-1.934c.317-.159.69-.159 1.006 0l4.994 2.497c.317.158.69.158 1.006 0Z"/></svg>
+                <span class="muted small" style="margin-top:8px">No map image yet</span>
+              </div>
+              <div id="modalMapLoadingOverlay" class="mapDisplayFrame__loading hidden" aria-hidden="true">
+                <div class="authLoadingOverlay__spinner"></div>
+              </div>
+            </div>
+            <div class="mapBtnRow">
+              <input id="modalMapImageUpload" type="file" accept="image/*" class="hidden">
+              <button id="btnModalMapUpload" class="btn btn--ghost mapBtn" type="button">
+                <svg class="nuggetIcon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" style="width:14px;height:14px;vertical-align:-2px;margin-right:4px"><path d="M12 3L4 9l2 10h12l2-10L12 3z" fill="#F5C82F"/><path d="M12 3L8 9h8l-4-6z" fill="#FFE566" opacity=".7"/><path d="M8 9l-2 10h5l-3-10zm8 0l2 10h-5l3-10z" fill="#C8960E" opacity=".35"/><path d="M12 3L4 9l2 10h12l2-10L12 3z" stroke="#B8860B" stroke-width=".8" fill="none"/></svg>
+                Upload <span class="mapBtnCost">x1</span>
+              </button>
+              <button id="btnModalMapAIGenerate" class="btn btn--ghost mapBtn mapBtn--ai" type="button">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true" style="width:14px;height:14px;flex-shrink:0;margin-right:4px"><path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904 9 18.75l-.813-2.846a4.5 4.5 0 0 0-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 0 0 3.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 0 0 3.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 0 0-3.09 3.09ZM18.259 8.715 18 9.75l-.259-1.035a3.375 3.375 0 0 0-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 0 0 2.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 0 0 2.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 0 0-2.456 2.456Z"/></svg>
+                AI Generate <span class="mapBtnFree">Free</span>
+              </button>
+            </div>
+            <span id="modalMapUploadStatus" class="muted small mapStatusText"></span>
+          </div>
+
+          <div id="modalDMClaimControls" class="hidden">
+            <hr class="hr">
+            <div class="row">
+              <button id="btnToggleClaimable" class="btn btn--ghost" type="button" aria-pressed="false">Claimable Off</button>
+
+              <button id="btnResetClaim" class="btn btn--ghost" type="button">Reset claim</button>
+            </div>
+
+            <div class="row assignRow">
+              <label class="label small" for="dmAssignPlayer">Assign to player</label>
+              <select id="dmAssignPlayer" class="input"></select>
+              <button id="btnAssignClaim" class="btn btn--ghost" type="button">Assign selected player</button>
+            </div>
+          </div>
+
+          <hr class="hr">
+          <!--
+            Beginner note:
+            This action row is intentionally placed at the bottom of the modal.
+            CSS makes it sticky so these primary actions are always reachable.
+          -->
+          <div class="row modalActionRow modalActionRow--bottom">
+            <button id="btnSaveHandout" class="btn">Save</button>
+            <button id="btnAddHandoutToInitiativeModal" class="btn btn--ghost hidden" type="button">Add for Initiative</button>
+            <button id="btnDeleteHandout" class="btn btn--ghost btn--danger">Delete</button>
+          </div>
+          <p id="modalSaveState" class="modalSaveState" aria-live="polite">All changes saved</p>
+        </div>
+      </div>
+    </section>
+
+ 
+
+  <!-- Player profile card &middot; Discord-style popup when clicking a player -->
+  <div id="playerCardOverlay" class="playerCard__overlay hidden" aria-hidden="true">
+    <div class="playerCard" role="dialog" aria-label="Player profile card">
+      <!-- Close button: top-right corner -->
+      <button id="pcClose" class="playerCard__close iconBtn" type="button" aria-label="Close player card">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" /></svg>
+      </button>
+      <!-- GM-only: message envelope in banner area -->
+      <button id="btnMessagePlayer" class="playerCard__msgBtn iconBtn closeIconBtn hidden" type="button" aria-label="Send message" title="Send message">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true" style="width:16px;height:16px"><path stroke-linecap="round" stroke-linejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.243a2.25 2.25 0 0 1-1.07 1.916l-7.5 4.615a2.25 2.25 0 0 1-2.36 0L3.32 8.91a2.25 2.25 0 0 1-1.07-1.916V6.75" /></svg>
+      </button>
+      <div class="playerCard__banner"></div>
+      <div class="playerCard__avatarRing">
+        <div class="playerCard__avatar" id="pcAvatar"></div>
+        <span class="status-dot" id="pcStatusDot"></span>
+      </div>
+      <div class="playerCard__body">
+        <h3 id="pcName" class="playerCard__name"></h3>
+        <span id="pcRole" class="playerCard__role tag"></span>
+        <span id="pcStatus" class="playerCard__statusText muted small"></span>
+        <hr class="hr">
+        <div class="playerCard__stats">
+          <div class="playerCard__stat"><span id="pcItemsLabel" class="muted small">Items</span><strong id="pcItems">0</strong></div>
+          <div class="playerCard__stat"><span id="pcCoinsLabel" class="muted small">Coins</span><strong id="pcCoins">0</strong></div>
+        </div>
+        <!-- GM-only: quick stat editor -->
+        <div id="pcQuickStatsWrap" class="playerCard__quickStats hidden">
+          <hr class="hr">
+          <div class="label small">Session Stats</div>
+          <div id="pcQuickStatsGrid" class="profileGrid profileGrid--compact"></div>
+          <button id="btnSavePcStats" class="btn btn--small" type="button">Save Stats</button>
+        </div>
+        <!-- GM-only: direct message to player -->
+        <div id="pcMessageWrap" class="hidden">
+          <hr class="hr">
+          <label class="label small" for="pcMessageInput">Send a message</label>
+          <textarea id="pcMessageInput" class="input" rows="2" maxlength="280" placeholder="Type a message..."></textarea>
+          <button id="btnSendPlayerMessage" class="btn btn--small" type="button">Send</button>
+        </div>
+        <div class="playerCard__actions">
+          <button id="btnEditPlayerStats" class="btn btn--ghost btn--small hidden" type="button">Edit Stats</button>
+          <button id="btnKickPlayer" class="btn btn--ghost btn--danger btn--small hidden" type="button">Kick Player</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- App bottom bar: 5-tab navigation with golden profile centerpiece -->
+  <div id="bottomBar" class="bottom-bar hidden">
+    <div class="bottom-bar__inner" role="toolbar" aria-label="App controls">
+      <!-- Handouts -->
+      <button id="btnOpenHandouts" class="bottom-bar__btn" aria-label="Handouts" title="Handouts">
+        <span class="bottom-bar__icon-wrap">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25"/></svg>
+        </span>
+        <span class="bottom-bar__label">Handouts</span>
+      </button>
+      <!-- Music / Ambience -->
+      <button id="btnOpenAmbienceBar" class="bottom-bar__btn" aria-label="Music" title="Music">
+        <span class="bottom-bar__icon-wrap">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="m9 9 10.5-3m0 6.553v3.75a2.25 2.25 0 0 1-1.632 2.163l-1.32.377a1.803 1.803 0 1 1-.99-3.467l2.31-.66a2.25 2.25 0 0 0 1.632-2.163Zm0 0V4.5l-10.5 3v6.553m0 0v3.75a2.25 2.25 0 0 1-1.632 2.163l-1.32.377a1.803 1.803 0 0 1-.99-3.467l2.31-.66A2.25 2.25 0 0 0 9 13.053Z"/></svg>
+        </span>
+        <span class="bottom-bar__label">Music</span>
+      </button>
+      <!-- PROFILE &middot; center hero button with golden avatar ring (rising sun) -->
+      <button id="btnOpenProfile" class="bottom-bar__profile" aria-label="Profile" title="Profile">
+        <div class="bottom-bar__profile-ring">
+          <svg class="bottom-bar__profile-placeholder" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <circle cx="12" cy="9" r="4" fill="currentColor"/>
+            <path d="M4 20c0-3.314 3.582-6 8-6s8 2.686 8 6" fill="currentColor"/>
+          </svg>
+          <img id="bottomBarAvatarImg" class="bottom-bar__profile-img hidden" alt="" />
+        </div>
+      </button>
+      <!-- Inventory -->
+      <button id="btnOpenInventory" class="bottom-bar__btn" aria-label="Inventory" title="Inventory">
+        <span class="bottom-bar__icon-wrap">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9 6.75V6a3 3 0 0 1 6 0v.75"/>
+            <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 9h10.5a2.25 2.25 0 0 1 2.25 2.25v7.5A2.25 2.25 0 0 1 17.25 21H6.75a2.25 2.25 0 0 1-2.25-2.25v-7.5A2.25 2.25 0 0 1 6.75 9Z"/>
+            <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 12h7.5"/>
+            <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 15.75h3"/>
+          </svg>
+        </span>
+        <span class="bottom-bar__label">Inventory</span>
+      </button>
+      <!-- Notes -->
+      <button id="btnOpenNotes" class="bottom-bar__btn" aria-label="Notes" title="Notes">
+        <span class="bottom-bar__icon-wrap">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M16.5 3.75v2.25m-9-2.25v2.25m11.25 0H5.25A2.25 2.25 0 0 0 3 8.25v10.5A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V8.25A2.25 2.25 0 0 0 18.75 6Zm-12 6.75h10.5"/></svg>
+        </span>
+        <span class="bottom-bar__label">Notes</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Floating hamburger FAB (bottom-right) &middot; toggles speed-dial actions -->
+  <button id="btnHamburger" class="settings-fab hidden" type="button" aria-label="Menu" aria-expanded="false">
+    <span class="hamburger-line"></span>
+    <span class="hamburger-line"></span>
+    <span class="hamburger-line"></span>
+  </button>
+
+  <div id="hamburgerSpeedDial" class="hamburger-speed-dial hidden" aria-hidden="true">
+    <button id="btnDialSettings" class="speed-dial-btn speed-dial-btn--settings" type="button" aria-label="Open Settings" title="Settings">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.592c.55 0 1.02.398 1.11.94l.213 1.277c.075.446.367.826.777 1.02.402.191.87.178 1.26-.03l1.122-.6a1.125 1.125 0 011.53.41l1.296 2.244a1.125 1.125 0 01-.41 1.53l-1.122.6a1.125 1.125 0 00-.546 1.23c.078.44.078.89 0 1.33a1.125 1.125 0 00.546 1.23l1.122.6c.54.288.739.96.41 1.53l-1.296 2.244a1.125 1.125 0 01-1.53.41l-1.122-.6a1.125 1.125 0 00-1.26-.03c-.41.194-.702.574-.777 1.02l-.213 1.277c-.09.542-.56.94-1.11.94h-2.592c-.55 0-1.02-.398-1.11-.94l-.213-1.277a1.125 1.125 0 00-.777-1.02 1.125 1.125 0 00-1.26.03l-1.122.6a1.125 1.125 0 01-1.53-.41L2.9 17.6a1.125 1.125 0 01.41-1.53l1.122-.6c.39-.208.602-.638.546-1.08a8.54 8.54 0 010-1.63c.056-.442-.156-.872-.546-1.08l-1.122-.6a1.125 1.125 0 01-.41-1.53L4.196 5.306a1.125 1.125 0 011.53-.41l1.122.6c.39.208.858.221 1.26.03.41-.194.702-.574.777-1.02l.213-1.277z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+      <span>Settings</span>
+    </button>
+  </div>
+
+  <!-- GM Floating Action Button for creating handouts -->
+  <button id="gmFab" class="gm-fab hidden" type="button" aria-label="Create handout">
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
+  </button>
+
+  <!-- Ambience bottom bar (hidden by default, toggled by GM) -->
+  <!--
+    Secondary control bar:
+    - GM chooses track and volume.
+    - Play/Pause writes ambience state to session doc.
+    - Players receive those changes through realtime listener.
+  -->
+  <!-- Ambience bottom bar (hidden by default, toggled by GM) -->
+  <!--
+    Secondary control bar:
+    - GM chooses track and volume.
+    - Play/Pause writes ambience state to session doc.
+    - Players receive those changes through realtime listener.
+  -->
+  <div id="ambienceBar" class="ambience-bar hidden" aria-hidden="true">
+    <div class="ambience-bar__inner card">
+
+      <!-- Track selector row -->
+      <div class="ambience-row ambience-trackRow">
+        <select id="dmAmbience" class="input ambience-select" aria-label="Choose ambience track">
+          <option value="tavern">🍺 Tavern</option>
+          <option value="forest">🌲 Forest</option>
+          <option value="dungeon">🗺 Dungeon</option>
+          <option value="battle">⚔ Battle</option>
+          <option value="ocean">🌊 Ocean</option>
+          <option value="mysterious">🔮 Mysterious</option>
+        </select>
+        <button id="btnAmbienceInfo" class="ambience-info-btn btn btn--ghost btn--small" type="button" aria-label="Music credits">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="m11.25 11.25.041-.02a.75.75 0 0 1 1.063.852l-.708 2.836a.75.75 0 0 0 1.063.853l.041-.021M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9-3.75h.008v.008H12V8.25Z" /></svg>
+        </button>
+      </div>
+
+      <!-- Playback controls + volume row -->
+      <div class="ambience-row ambience-controlsRow">
+        <div class="dm-audio-controls">
+          <!-- Animated gold bars shown when a track is playing -->
+          <span id="ambienceAudioBars" class="audio-bars hidden" aria-label="Playing" aria-hidden="true">
+            <span class="audio-bar"></span>
+            <span class="audio-bar"></span>
+            <span class="audio-bar"></span>
+          </span>
+          <button id="btnDMPlay" class="iconBtnLarge" aria-label="Play">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M5.25 5.653c0-.856.917-1.398 1.667-.986l11.54 6.347a1.125 1.125 0 010 1.972l-11.54 6.347c-.75.412-1.667-.13-1.667-.986V5.653z"></path></svg>
+          </button>
+          <button id="btnDMPause" class="iconBtnLarge" aria-label="Pause">
+            <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" style="width:60%;height:60%;">
+              <path d="M6 4h4v16H6V4zm8 0h4v16h-4V4z"></path>
+            </svg>
+          </button>
+        </div>
+        <div class="ambience-volumeWrap">
+          <button id="btnMuteToggle" class="iconBtnLarge" type="button" aria-label="Toggle mute">
+            <svg id="muteIconOn" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true" style="width:60%;height:60%"><path stroke-linecap="round" stroke-linejoin="round" d="M19.114 5.636a9 9 0 010 12.728M16.463 8.288a5.25 5.25 0 010 7.424M6.75 8.25l4.72-4.72a.75.75 0 011.28.53v15.88a.75.75 0 01-1.28.53l-4.72-4.72H4.51c-.88 0-1.704-.507-1.938-1.354A9.009 9.009 0 012.25 12c0-.83.112-1.633.322-2.396C2.806 8.756 3.63 8.25 4.51 8.25H6.75z"/></svg>
+            <svg id="muteIconOff" class="hidden" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true" style="width:60%;height:60%"><path stroke-linecap="round" stroke-linejoin="round" d="M17.25 9.75 19.5 12m0 0 2.25 2.25M19.5 12l2.25-2.25M19.5 12l-2.25 2.25m-10.5-6 4.72-4.72a.75.75 0 0 1 1.28.53v15.88a.75.75 0 0 1-1.28.53l-4.72-4.72H4.51c-.88 0-1.704-.507-1.938-1.354A9.009 9.009 0 0 1 2.25 12c0-.83.112-1.633.322-2.396.234-.847 1.058-1.354 1.938-1.354H6.75Z"/></svg>
+          </button>
+          <input id="dmVolume" type="range" min="0" max="1" step="0.05" value="0.6" aria-label="Volume">
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Image Lightbox Modal -->
+  <div id="imageLightboxModal" class="lightboxModal hidden" aria-hidden="true" role="dialog" aria-modal="true" aria-label="Image Lightbox">
+    <div class="lightboxModal__backdrop"></div>
+    <div class="lightboxModal__content">
+      <button id="btnCloseLightbox" class="iconBtn closeIconBtn lightboxModal__close" aria-label="Close image lightbox">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+      </button>
+      <div id="lightboxZoomWrap" class="lightboxModal__zoomWrap">
+        <img id="lightboxImage" src="" alt="Full screen graphic" class="lightboxModal__img">
+      </div>
+    </div>
+  </div>
+
+  <!-- Change PIN modal (DM only) -->
+  <div id="changePinModal" class="blockingModal hidden" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="changePinTitle">
+    <div class="blockingModal__backdrop"></div>
+    <div class="blockingModal__box card" style="max-width:340px">
+      <h3 id="changePinTitle">Change PIN</h3>
+      <input id="changePinInput" class="input" inputmode="numeric" maxlength="8" placeholder="4&middot;8 digits">
+      <p id="changePinMsg" class="muted small modal-msg"></p>
+      <div class="modal-actions"><button id="btnCancelChangePin" class="btn btn--ghost btn--small" type="button">Cancel</button><button id="btnConfirmChangePin" class="btn btn--small" type="button">Save</button></div>
+    </div>
+  </div>
+
+  <div id="changeTransferPinModal" class="blockingModal hidden" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="changeTransferPinTitle">
+    <div class="blockingModal__backdrop"></div>
+    <div class="blockingModal__box card" style="max-width:340px">
+      <h3 id="changeTransferPinTitle">Set DM Transfer PIN</h3>
+      <p class="muted small">Players need this PIN to take over the DM role. Keep it separate from the session join PIN.</p>
+      <input id="changeTransferPinInput" class="input" inputmode="numeric" maxlength="8" placeholder="4&middot;8 digits">
+      <p id="changeTransferPinMsg" class="muted small modal-msg"></p>
+      <div class="modal-actions">
+        <button id="btnCancelChangeTransferPin" class="btn btn--ghost btn--small" type="button">Cancel</button>
+        <button id="btnRemoveTransferPin" class="btn btn--ghost btn--danger btn--small" type="button">Remove</button>
+        <button id="btnConfirmChangeTransferPin" class="btn btn--small" type="button">Save</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Music Credits modal (opened from Info button or Settings ? Credits) -->
+  <div id="creditsModal" class="credits-modal hidden" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="creditsModalTitle">
+    <div class="credits-modal__backdrop"></div>
+    <div class="credits-modal__box card">
+      <div class="credits-modal__head">
+        <h3 id="creditsModalTitle">🎵 Music Credits</h3>
+        <button id="btnCloseCredits" class="credits-close-btn closeIconBtn" type="button" aria-label="Close credits">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" /></svg>
+        </button>
+      </div>
+      <p class="credits-modal__intro muted small">All tracks are royalty-free. Attributions required by license are listed below.</p>
+      <p class="credits-modal__intro muted small">Special thanks to:</p>
+      <ul class="credits-list" aria-label="Track credits">
+        <li class="credit-item" data-primary-url="https://pixabay.com/music/volk-medieval-citytavern-ambient-235876/">
+          <div class="credit-item__track"><a href="https://pixabay.com/music/volk-medieval-citytavern-ambient-235876/" target="_blank" rel="noopener noreferrer">🍺 Tavern &middot; Music &amp; Ambience</a></div>
+          <div class="credit-item__title"><a href="https://pixabay.com/music/volk-medieval-citytavern-ambient-235876/" target="_blank" rel="noopener noreferrer">Medieval City Tavern Ambient</a></div>
+          <div class="credit-item__attr">Music by <a href="https://pixabay.com/users/deuslower-45666444/" target="_blank" rel="noopener noreferrer"><strong>Vlad Bakutov</strong></a> &middot; <a href="https://pixabay.com/music/volk-medieval-citytavern-ambient-235876/" target="_blank" rel="noopener noreferrer">Pixabay</a> &middot; <a href="https://pixabay.com/service/license-summary/" target="_blank" rel="noopener noreferrer">Royalty-free</a></div>
+        </li>
+        <li class="credit-item" data-primary-url="https://freesound.org/s/625588/">
+          <div class="credit-item__track"><a href="https://freesound.org/s/625588/" target="_blank" rel="noopener noreferrer">🌲 Forest &middot; Ambience</a></div>
+          <div class="credit-item__title"><a href="https://freesound.org/s/625588/" target="_blank" rel="noopener noreferrer">Forest Spring NL MONO</a></div>
+          <div class="credit-item__attr"><a href="https://freesound.org/people/klankbeeld/" target="_blank" rel="noopener noreferrer"><strong>klankbeeld</strong></a> &middot; <a href="https://freesound.org/s/625588/" target="_blank" rel="noopener noreferrer">Freesound</a> &middot; <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener noreferrer">CC Attribution 4.0</a></div>
+        </li>
+        <li class="credit-item" data-primary-url="https://freesound.org/s/388340/">
+          <div class="credit-item__track"><a href="https://freesound.org/s/388340/" target="_blank" rel="noopener noreferrer">🗺 Dungeon &middot; Ambience</a></div>
+          <div class="credit-item__title"><a href="https://freesound.org/s/388340/" target="_blank" rel="noopener noreferrer">Dungeon Ambiance</a></div>
+          <div class="credit-item__attr"><a href="https://freesound.org/people/phlair/" target="_blank" rel="noopener noreferrer"><strong>phlair</strong></a> &middot; <a href="https://freesound.org/s/388340/" target="_blank" rel="noopener noreferrer">Freesound</a> &middot; <a href="https://creativecommons.org/licenses/by/3.0/" target="_blank" rel="noopener noreferrer">CC Attribution 3.0</a></div>
+        </li>
+        <li class="credit-item" data-primary-url="https://pixabay.com/music/dramatisch-klassiek-serious-dramatic-intense-music-no-copyright-395147/">
+          <div class="credit-item__track"><a href="https://pixabay.com/music/dramatisch-klassiek-serious-dramatic-intense-music-no-copyright-395147/" target="_blank" rel="noopener noreferrer">⚔ Battle &middot; Music</a></div>
+          <div class="credit-item__title"><a href="https://pixabay.com/music/dramatisch-klassiek-serious-dramatic-intense-music-no-copyright-395147/" target="_blank" rel="noopener noreferrer">Serious Dramatic Intense Music</a></div>
+          <div class="credit-item__attr">Music by <a href="https://pixabay.com/users/poorkidmusic-51675254/" target="_blank" rel="noopener noreferrer"><strong>Abhishek M</strong></a> &middot; <a href="https://pixabay.com/music/dramatisch-klassiek-serious-dramatic-intense-music-no-copyright-395147/" target="_blank" rel="noopener noreferrer">Pixabay</a> &middot; <a href="https://pixabay.com/service/license-summary/" target="_blank" rel="noopener noreferrer">Royalty-free</a></div>
+        </li>
+        <li class="credit-item" data-primary-url="https://freesound.org/s/550915/">
+          <div class="credit-item__track"><a href="https://freesound.org/s/550915/" target="_blank" rel="noopener noreferrer">🌊 Ocean &middot; Ambience</a></div>
+          <div class="credit-item__title"><a href="https://freesound.org/s/550915/" target="_blank" rel="noopener noreferrer">Water Beach Ocean Waves &middot; Greece</a></div>
+          <div class="credit-item__attr"><a href="https://freesound.org/people/Profispiesser/" target="_blank" rel="noopener noreferrer"><strong>Profispiesser</strong></a> &middot; <a href="https://freesound.org/s/550915/" target="_blank" rel="noopener noreferrer">Freesound</a> &middot; <a href="https://creativecommons.org/publicdomain/zero/1.0/" target="_blank" rel="noopener noreferrer">CC0 (Public Domain)</a></div>
+        </li>
+        <li class="credit-item" data-primary-url="https://pixabay.com/music/horrorscene-scary-horror-493702/">
+          <div class="credit-item__track"><a href="https://pixabay.com/music/horrorscene-scary-horror-493702/" target="_blank" rel="noopener noreferrer">🔮 Mysterious &middot; Music &amp; Ambience</a></div>
+          <div class="credit-item__title"><a href="https://pixabay.com/music/horrorscene-scary-horror-493702/" target="_blank" rel="noopener noreferrer">Scary Horror Atmosphere</a></div>
+          <div class="credit-item__attr">Music by <a href="https://pixabay.com/users/everything_is_dead-54651617/" target="_blank" rel="noopener noreferrer"><strong>everything_is_dead</strong></a> &middot; <a href="https://pixabay.com/music/horrorscene-scary-horror-493702/" target="_blank" rel="noopener noreferrer">Pixabay</a> &middot; <a href="https://pixabay.com/service/license-summary/" target="_blank" rel="noopener noreferrer">Royalty-free</a></div>
+        </li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- External link confirmation modal -->
+  <div id="externalLinkModal" class="blockingModal hidden" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="externalLinkTitle">
+    <div class="blockingModal__card externalLinkCard">
+      <h2 id="externalLinkTitle">External Link</h2>
+      <p class="muted">You are about to visit an external link, do you want to proceed?</p>
+      <p id="externalLinkHost" class="externalLinkHost muted small"></p>
+      <div class="externalLinkActions">
+        <button id="btnExternalLinkConfirm" class="iconBtnLarge externalLinkYes" type="button" aria-label="Yes, proceed">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" /></svg>
+        </button>
+        <button id="btnExternalLinkCancel" class="iconBtnLarge externalLinkNo" type="button" aria-label="No, stay here">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" /></svg>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div id="toastStack" class="toastStack" aria-live="polite" aria-atomic="true"></div>
+
+  <!-- Auth loading overlay -->
+  <div id="authLoadingOverlay" class="authLoadingOverlay hidden" aria-hidden="true">
+    <div class="authLoadingOverlay__inner">
+      <div class="authLoadingOverlay__brand"><span class="brand__accent">T</span>ome<span class="brand__accent">V</span>ault</div>
+      <div class="authLoadingOverlay__spinner"></div>
+      <p class="authLoadingOverlay__text">Loading your adventure&middot;</p>
+    </div>
+  </div>
+
+  <!-- Notification dropdown panel -->
+  <div id="notifPanel" class="notifPanel hidden" role="dialog" aria-label="Notifications" aria-hidden="true">
+    <div class="notifPanel__header">
+      <strong>Notifications</strong>
+      <button id="btnNotifMarkAll" class="btn--link btn--small" type="button">Mark all read</button>
+    </div>
+    <div id="notifList" class="notifPanel__list"></div>
+    <p id="notifEmpty" class="muted small" style="text-align:center;padding:16px">No notifications yet.</p>
+  </div>
+
+  <!-- Transfer GM blocking modal (shown to target player) -->
+  <div id="transferModal" class="blockingModal hidden" aria-hidden="true">
+    <div class="blockingModal__card">
+      <h2>DM Role Transfer</h2>
+      <p id="transferModalMsg">The DM wants to transfer the DM role to you.</p>
+      <div class="auth-field">
+        <label class="label" for="transferPinInput">Enter transfer PIN</label>
+        <input id="transferPinInput" class="input" type="text" inputmode="numeric" placeholder="Enter PIN" maxlength="20">
+      </div>
+      <div class="modal-actions">
+        <button id="btnDeclineTransfer" class="btn btn--ghost btn--danger" type="button">Decline</button>
+        <button id="btnAcceptTransfer" class="btn" type="button">Accept</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Character profile assignment blocking modal (shown to target player) -->
+  <div id="profileOfferModal" class="blockingModal hidden" aria-hidden="true">
+    <div class="blockingModal__card">
+      <h2>Character Profile Offer</h2>
+      <p id="profileOfferMsg">The DM has created a character for you.</p>
+      <div id="profileOfferPreview" class="profileOfferPreview"></div>
+      <div class="modal-actions">
+        <button id="btnRejectProfile" class="btn btn--ghost btn--danger" type="button">Reject</button>
+        <button id="btnAcceptProfile" class="btn" type="button">Accept</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Delete Session confirmation modal (GM only) -->
+  <div id="deleteSessionModal" class="blockingModal hidden" aria-hidden="true">
+    <div class="blockingModal__card">
+      <h2 class="text--danger">⚠️ Delete Session</h2>
+      <p class="muted" style="line-height:1.5">This will <strong>permanently destroy</strong> this session and <strong>all</strong> of its data &middot; players, wallets, inventory, handouts, and notifications. This action <strong>cannot be undone</strong>.</p>
+      <label class="label" for="deleteSessionConfirmInput">Type <strong>DELETE</strong> to confirm</label>
+      <input id="deleteSessionConfirmInput" class="input" type="text" autocomplete="off" placeholder="DELETE" style="text-align:center;letter-spacing:2px">
+      <div class="modal-actions">
+        <button id="btnCancelDeleteSession" class="btn btn--ghost" type="button">Cancel</button>
+        <button id="btnConfirmDeleteSession" class="btn btn--danger-fill" type="button" disabled>Delete Forever</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Discard Session confirmation modal (Player only) -->
+  <div id="discardSessionModal" class="blockingModal hidden" aria-hidden="true">
+    <div class="blockingModal__card">
+      <h2 class="text--danger">Leave Permanently</h2>
+      <p class="muted" style="line-height:1.5">Your character profile will be transferred to the DM's premade profiles. Your wallet, inventory, and player data will be removed from this session.</p>
+      <label class="label" for="discardSessionConfirmInput">Type <strong>DISCARD</strong> to confirm</label>
+      <input id="discardSessionConfirmInput" class="input" type="text" autocomplete="off" placeholder="DISCARD" style="text-align:center;letter-spacing:2px">
+      <div class="modal-actions">
+        <button id="btnCancelDiscardSession" class="btn btn--ghost" type="button">Cancel</button>
+        <button id="btnConfirmDiscardSession" class="btn btn--danger-fill" type="button" disabled>Discard &amp; Leave</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Nickname prompt modal (shown when user has no character name) -->
+  <div id="nicknameModal" class="blockingModal hidden" aria-hidden="true">
+    <div class="blockingModal__card" style="text-align:center;max-width:340px">
+      <h2>🎲 Choose Your Name</h2>
+      <p class="muted" style="line-height:1.5;margin-bottom:12px">Enter a character name or nickname to use in this session.</p>
+      <input id="nicknameInput" class="input" type="text" maxlength="40" placeholder="Name or nickname" autocomplete="off" style="text-align:center;font-size:var(--text-lg)" />
+      <button id="btnNicknameConfirm" class="btn btn--full" type="button">Continue</button>
+    </div>
+  </div>
+
+  <div id="spellModal" class="modal hidden" aria-hidden="true">
+    <div class="modal__card spellModalCard">
+      <div class="modal__header">
+        <h3 class="heading--natural">Add Spell</h3>
+      </div>
+      <div class="auth-field">
+        <label class="label" for="spellNameInput">Spell Name</label>
+        <input id="spellNameInput" class="input" type="text" maxlength="80" placeholder="e.g. Magic Missile" autocomplete="off">
+      </div>
+      <div class="row spellModalCard__metaRow" style="gap:10px;align-items:flex-start">
+        <div class="auth-field" style="flex:1 1 50%">
+          <label class="label" for="spellSchoolInput">School</label>
+          <input id="spellSchoolInput" class="input" type="text" maxlength="40" placeholder="Evocation" autocomplete="off">
+        </div>
+        <div class="auth-field" style="flex:1 1 50%">
+          <label class="label" for="spellLevelInput">Level</label>
+          <input id="spellLevelInput" class="input" type="text" maxlength="24" placeholder="Cantrip / 1" autocomplete="off">
+        </div>
+      </div>
+      <div class="auth-field">
+        <label class="label" for="spellDescInput">Effect</label>
+        <textarea id="spellDescInput" class="input" rows="3" maxlength="280" placeholder="Short spell effect or reminder..."></textarea>
+      </div>
+      <div class="modal-actions">
+        <button id="btnSpellCancel" class="btn btn--ghost" type="button">Cancel</button>
+        <button id="btnSpellSave" class="btn" type="button">Save Spell</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Session Deleted blocking overlay (shown to players when GM deletes session) -->
+  <div id="sessionDeletedModal" class="blockingModal hidden" aria-hidden="true">
+    <div class="blockingModal__card" style="text-align:center">
+      <h2>💀 Session Deleted</h2>
+      <p class="muted" style="line-height:1.5">The Dungeon Master has deleted this session. All session data has been removed.</p>
+      <button id="btnSessionDeletedOk" class="btn btn--full" type="button">Return to Home</button>
+    </div>
+  </div>
+
+  <!-- Player picker modal (used for profile assignment and GM transfer) -->
+  <div id="playerPickerModal" class="modal hidden" aria-hidden="true">
+    <div class="modal__card playerPickerCard">
+      <div class="modal__top">
+        <h3 id="playerPickerTitle">Select Player</h3>
+        <button id="btnPlayerPickerCancel" class="iconBtn closeIconBtn" aria-label="Close player picker">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"></path></svg>
+        </button>
+      </div>
+      <div id="playerPickerList" class="playerPickerList"></div>
+      <div id="playerPickerPinWrap" class="auth-field hidden">
+        <label class="label" for="playerPickerPin">Transfer PIN</label>
+        <input id="playerPickerPin" class="input" type="text" inputmode="numeric" maxlength="20" placeholder="Set one-time PIN">
+      </div>
+      <div class="modal-actions">
+        <button id="btnPlayerPickerConfirm" class="btn" type="button">Confirm</button>
+      </div>
+    </div>
+  </div>
+
+  </div>
+
+  <!-- Nugget Shop modal (placeholder for future purchases) -->
+  <div id="nuggetShopModal" class="modal hidden" aria-hidden="true">
+    <div class="modal__card nuggetShopCard">
+      <div class="modal__header">
+        <h3 class="heading--natural">Nugget Shop</h3>
+        <button id="btnCloseNuggetShop" class="iconBtn closeIconBtn" aria-label="Close nugget shop">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+      </div>
+
+      <div class="nuggetShop__hero">
+        <svg class="nuggetShop__icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <path d="M12 3L4 9l2 10h12l2-10L12 3z" fill="#F5C82F"/>
+          <path d="M12 3L8 9h8l-4-6z" fill="#FFE566" opacity=".7"/>
+          <path d="M8 9l-2 10h5l-3-10zm8 0l2 10h-5l3-10z" fill="#C8960E" opacity=".35"/>
+          <path d="M12 3L4 9l2 10h12l2-10L12 3z" stroke="#B8860B" stroke-width=".8" fill="none"/>
+        </svg>
+        <div class="nuggetShop__balance">
+          <span class="muted small">Your balance</span>
+          <span id="nuggetShopBalance" class="nuggetShop__amount">0</span>
+        </div>
+      </div>
+
+      <p class="muted small" style="text-align:center;line-height:1.5">
+        Nuggets are used for uploads and premium features.<br>
+        Full nugget packs &amp; subscriptions are coming soon!
+      </p>
+
+      <div class="nuggetShop__actions">
+        <button id="btnResetNuggets" class="btn" type="button">Reset to 6 nuggets</button>
+        <p id="nuggetResetStatus" class="muted small" style="text-align:center"></p>
+      </div>
+
+      <div class="nuggetShop__comingSoon">
+        <div class="nuggetShop__comingSoonTitle">Coming soon</div>
+        <div class="nuggetShop__packRow">
+          <div class="nuggetShop__pack nuggetShop__pack--disabled">
+            <span class="nuggetShop__packAmount">20</span>
+            <span class="nuggetShop__packLabel">Nuggets</span>
+            <span class="nuggetShop__packPrice">$0.99</span>
+          </div>
+          <div class="nuggetShop__pack nuggetShop__pack--disabled">
+            <span class="nuggetShop__packAmount">60</span>
+            <span class="nuggetShop__packLabel">Nuggets</span>
+            <span class="nuggetShop__packPrice">$1.99</span>
+          </div>
+          <div class="nuggetShop__pack nuggetShop__pack--disabled">
+            <span class="nuggetShop__packAmount">&infin;</span>
+            <span class="nuggetShop__packLabel">Monthly</span>
+            <span class="nuggetShop__packPrice">$4.99/mo</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  </div>
+
+  <!-- Sortable.js for drag-and-drop reordering -->
+  <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.6/Sortable.min.js"></script>
+
+  <!--
+    QR INVITE MODAL (GM)
+    Triggered by "Show QR Code" in the social panel.
+    Uses animateModalIn/Out (Dramatic tier motion).
+    Primary action: Copy Join Link (gold CTA).
+    Secondary: Share via native sheet / WhatsApp fallback.
+  -->
+  <section id="qrInviteModal" class="modal hidden" role="dialog" aria-modal="true" aria-label="QR invite code">
+    <div class="modal__card qrInviteModalCard">
+      <div class="modal__top">
+        <h3>Invite Players</h3>
+        <button id="btnCloseQRModal" class="iconBtn closeIconBtn" type="button" aria-label="Close invite modal">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12"/></svg>
+        </button>
+      </div>
+      <div id="qrBox" class="qr qr--modal" aria-label="Session join QR code" role="img"></div>
+      <p class="muted small qrInviteHint">Scan to join. Link and share actions stay in the Social panel.</p>
+    </div>
+  </section>
+
+  <!-- jsQR: browser-native QR decoder used by the getUserMedia scanner -->
+  <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
+
+  <!-- Player Initiative Modal &middot; GM enters what each player rolled -->
+  <section id="playerInitiativeModal" class="modal hidden" role="dialog" aria-modal="true" aria-label="Player Initiative">
+    <div class="modal__card" style="max-width:400px">
+      <div class="modal__top">
+        <h3 id="playerInitModalTitle">Player Initiative</h3>
+        <button id="btnCloseInitModal" class="iconBtn closeIconBtn" type="button" aria-label="Close initiative modal">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" /></svg>
+        </button>
+      </div>
+      <p id="playerInitModalHint" class="muted small" style="margin:4px 0 14px">Enemies rolled automatically. Enter each player&rsquo;s initiative result below.</p>
+      <div id="playerInitList" class="playerInitList"></div>
+      <div class="modal-actions">
+        <button id="btnCancelInitModal" class="btn btn--ghost" type="button">Skip</button>
+        <button id="btnConfirmInitiatives" class="btn" type="button">Set Initiatives</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- AI Map Generator modal -->
+  <div id="mapGenerateModal" class="modal hidden" role="dialog" aria-modal="true" aria-label="AI Map Generator">
+    <div class="modal__card mapGenerateCard">
+      <div class="modal__top">
+        <h3>AI Map Generator</h3>
+        <button id="btnCloseMapGenerate" class="iconBtn closeIconBtn" aria-label="Close AI map generator">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" /></svg>
+        </button>
+      </div>
+      <div class="formGrid">
+        <p class="muted small mapGenInfo">Powered by Pollinations AI &middot; Completely free, no API key needed.</p>
+
+        <label class="label" for="mapGenDescription">Describe the map</label>
+        <textarea id="mapGenDescription" class="input" rows="4" placeholder="A dense ancient forest with crumbling stone ruins, a narrow rope bridge over a deep ravine, a hidden underground lake..."></textarea>
+
+        <label class="label" for="mapGenStyle">Image style</label>
+        <textarea id="mapGenStyle" class="input" rows="3" placeholder="Ink carved into thin leather showing fine detail, aged parchment with a worn texture... or: clean black &amp; white dungeon map, top-down grid style"></textarea>
+
+        <div id="mapGenPreviewWrap" class="mapGenPreviewWrap hidden">
+          <div id="mapGenLoadingOverlay" class="mapGenLoadingOverlay" aria-live="polite">
+            <div class="authLoadingOverlay__spinner"></div>
+            <span class="muted small">Generating your map&hellip; (10&ndash;30 seconds)</span>
+          </div>
+          <img id="mapGenPreviewImg" class="mapGenPreviewImg hidden" alt="AI generated map preview">
+        </div>
+
+        <p id="mapGenStatus" class="muted small" aria-live="polite"></p>
+      </div>
+      <div class="row mapGenActions">
+        <button id="btnMapGenCancel" class="btn btn--ghost" type="button">Cancel</button>
+        <button id="btnMapGenGenerate" class="btn" type="button">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true" style="width:15px;height:15px;flex-shrink:0;margin-right:4px"><path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904 9 18.75l-.813-2.846a4.5 4.5 0 0 0-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 0 0 3.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 0 0 3.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 0 0-3.09 3.09ZM18.259 8.715 18 9.75l-.259-1.035a3.375 3.375 0 0 0-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 0 0 2.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 0 0 2.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 0 0-2.456 2.456Z"/></svg>
+          Generate Map
+        </button>
+        <button id="btnMapGenUse" class="btn btn--primary hidden" type="button">&#10003; Use This Map</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- App entry point -->
+  <script type="module" src="index.mjs?v=20260314fix7"></script>
+</body>
+</html>

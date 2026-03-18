@@ -1,0 +1,142 @@
+// Firestore Security Rules for TomeVault.
+// These rules control who can read/write data in the database.
+// BEGINNER NOTE: Rules run server-side — even if someone modifies the client
+// code, these rules still protect the data. Each match block specifies a
+// document path and the conditions under which reads/writes are allowed.
+// Private replication glossary is intentionally kept in local-only notes at
+// .private/REPLICATION_NOTES.md (gitignored).
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ── Helper: fetch the GM's UID (User ID) from the parent session ──
+    function isDM(sessionId) {
+      return request.auth != null
+          && get(/databases/$(database)/documents/sessions/$(sessionId)).data.dmUid == request.auth.uid;
+    }
+
+    // ── User profiles ──
+    match /users/{userId} {
+      allow read:   if request.auth != null;
+      allow write:  if request.auth != null && request.auth.uid == userId;
+    }
+
+    // ── Sessions ──
+    match /sessions/{sessionId} {
+      allow read:  if request.auth != null;
+
+      // Any authenticated user can create a new session (they become the GM)
+      allow create: if request.auth != null
+                    && request.resource.data.dmUid == request.auth.uid;
+
+      // Only the GM can update or delete the session
+      allow update, delete: if isDM(sessionId);
+
+      // Allow a player to take over the DM role via:
+      // a) DM transfer PIN set on the session (player self-service), or
+      // b) A pending transfer document (DM-initiated transfer flow).
+      // The player can only change dmUid (to themselves) and updatedAt.
+      //
+      // LEARNING NOTE:
+      // `diff(resource.data).affectedKeys().hasOnly([...])` is critical here.
+      // Without this guard, a malicious client could attempt to modify any
+      // writable session field during takeover (for example, ambience or joinTag).
+      // We intentionally permit only dmUid + updatedAt in this special path.
+      //
+      // The OR block below represents two allowed takeover mechanisms:
+      // 1) Session has a non-empty dmTransferPinHash (manual PIN handoff flow).
+      // 2) A pendingTransfer/current document exists (explicit transfer workflow).
+      allow update: if request.auth != null
+                    && request.resource.data.dmUid == request.auth.uid
+                    && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['dmUid', 'updatedAt'])
+                    && (
+                      (resource.data.dmTransferPinHash is string
+                       && resource.data.dmTransferPinHash.size() > 0)
+                      || exists(/databases/$(database)/documents/sessions/$(sessionId)/pendingTransfer/current)
+                    );
+
+      // ── Wallets  (party treasury + per-player) ──
+      match /wallets/{walletId} {
+        allow read: if request.auth != null;
+
+        // GM can edit any wallet
+        // Players can edit only their own wallet (walletId === uid)
+        // "party" wallet is GM-only (handled by the first condition)
+        allow write: if isDM(sessionId)
+                     || (request.auth != null && walletId == request.auth.uid);
+      }
+
+      // ── Handouts ──
+      match /handouts/{handoutId} {
+        allow read: if request.auth != null;
+        allow write: if isDM(sessionId);
+      }
+
+      // ── Players (presence / heartbeat) ──
+      match /players/{playerId} {
+        allow read: if request.auth != null;
+        allow write: if isDM(sessionId)
+                     || (request.auth != null && playerId == request.auth.uid);
+      }
+
+      // ── Inventory items ──
+      match /inventory/{itemId} {
+        allow read: if request.auth != null;
+
+        // GM can do anything
+        allow write: if isDM(sessionId);
+
+        // Players can CREATE items where they set themselves as owner
+        allow create: if request.auth != null
+                      && request.resource.data.ownerUid == request.auth.uid;
+
+        // Players can UPDATE / DELETE their own items
+        allow update, delete: if request.auth != null
+                              && resource.data.ownerUid == request.auth.uid;
+      }
+
+      // ── Notifications (per-player, in-app) ──
+      match /notifications/{notifId} {
+        allow read: if request.auth != null;
+
+        // GM can create notifications for any player
+        allow create: if isDM(sessionId);
+
+        // Target player can mark their own notifications as read
+        allow update: if request.auth != null
+                      && resource.data.targetUid == request.auth.uid;
+
+        // GM or target player can delete
+        allow delete: if isDM(sessionId)
+                      || (request.auth != null && resource.data.targetUid == request.auth.uid);
+      }
+
+      // ── Character templates (GM-managed) ──
+      match /characterTemplates/{templateId} {
+        allow read: if request.auth != null;
+        allow create, delete: if isDM(sessionId);
+
+        // GM can update anything; assigned player can update assignmentStatus
+        allow update: if isDM(sessionId)
+                      || (request.auth != null
+                          && resource.data.assignedToUid == request.auth.uid);
+      }
+
+      // ── Pending GM role transfer ──
+      match /pendingTransfer/{transferId} {
+        allow read: if request.auth != null;
+        allow create: if isDM(sessionId);
+
+        // LEARNING NOTE:
+        // This collection acts like a short-lived handshake record between
+        // current GM and target player. Broad update/delete are allowed here
+        // because transfer state transitions are coordinated by client flow,
+        // while the actual authority change remains guarded above in sessions.
+        // Target player or GM can delete (accept/decline)
+        allow delete: if request.auth != null;
+        allow update: if request.auth != null;
+      }
+    }
+  }
+}
