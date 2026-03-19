@@ -19,6 +19,14 @@
     JavaScript uses many element IDs (for example "btnJoin", "screenDMDash").
     Those IDs are part of the API between HTML and JS. If you rename an ID,
     the connected JS logic will stop finding that element.
+
+    ID NAMING GUIDE:
+    - btn*    : clickable button controls
+    - screen* : full-page screen sections
+    - dm*     : DM-specific controls/containers
+    - pl*     : player-specific controls/containers
+    - modal*  : modal wrappers and modal-specific controls
+    Keep IDs stable and use classes for purely visual styling variants.
   -->
 
   <meta charset="UTF-8">

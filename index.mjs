@@ -66,6 +66,29 @@ const USE_EMULATORS = false;
 const IS_LOCALHOST = location.hostname === "localhost" || location.hostname === "127.0.0.1";
 const SESSION_NAME_MAX_CHARS = 48;
 const SESSION_SLUG_MAX_CHARS = 32;
+const UI_TIMERS = {
+  ICON_SUGGEST_DEBOUNCE_MS: 300,
+  DM_SEARCH_DEBOUNCE_MS: 250,
+  CREATE_DRAFT_DEBOUNCE_MS: 500,
+  FAB_HOLD_MS: 2000,
+  FAB_DRAG_TOAST_MS: 1500,
+  ONLINE_THRESHOLD_MS: 90_000,
+  AWAY_THRESHOLD_MS: 300_000,
+};
+const SCREEN_KEYS = {
+  LANDING: "landing",
+  DM_DASH: "dmDash",
+  PLAYER_VIEW: "plView",
+  PLAYER_INVENTORY: "plInventory",
+  NOTES: "notes",
+  PROFILE: "profile",
+  SETTINGS: "settings",
+  INFO: "info",
+  SETTINGS_PROFILE: "settingsProfile",
+  CHARACTER_TEMPLATES: "characterTemplates",
+  PL_JOIN: "plJoin",
+  DM_CREATE: "dmCreate",
+};
 
 // ---- 3) Your Firebase config ----
 const firebaseConfig = {
@@ -1181,14 +1204,14 @@ function showOnly(screenKey) {
   document.body.dataset.screen = screenKey;
 
   // Stop QR scanner camera if navigating away from the join screen.
-  if (currentScreenKey === "plJoin" && screenKey !== "plJoin") {
+  if (currentScreenKey === SCREEN_KEYS.PL_JOIN && screenKey !== SCREEN_KEYS.PL_JOIN) {
     try { stopScan(); } catch {}
   }
 
   currentScreenKey = screenKey;
   // Clear lingering toasts on screen transition so they don't persist across views.
   if (toastStack) toastStack.innerHTML = "";
-  const isSessionScreen = screenKey === "dmDash" || screenKey === "plView" || screenKey === "plInventory" || screenKey === "notes" || screenKey === "settings" || screenKey === "info" || screenKey === "settingsProfile" || screenKey === "characterTemplates" || screenKey === "profile";
+  const isSessionScreen = screenKey === SCREEN_KEYS.DM_DASH || screenKey === SCREEN_KEYS.PLAYER_VIEW || screenKey === SCREEN_KEYS.PLAYER_INVENTORY || screenKey === SCREEN_KEYS.NOTES || screenKey === SCREEN_KEYS.SETTINGS || screenKey === SCREEN_KEYS.INFO || screenKey === SCREEN_KEYS.SETTINGS_PROFILE || screenKey === SCREEN_KEYS.CHARACTER_TEMPLATES || screenKey === SCREEN_KEYS.PROFILE;
   const hasSession = !!state.sessionId;
 
   // Keep top shell UI minimal until a session is active.
@@ -1228,7 +1251,7 @@ function showOnly(screenKey) {
     if (plJoinSignedNotice) {
       plJoinSignedNotice.classList.toggle("hidden", state.isGuest || !state.isSignedIn);
     }
-    if (screenKey === "plJoin") {
+    if (screenKey === SCREEN_KEYS.PL_JOIN) {
       renderRecentOneShotJoins().catch(() => {});
     }
   } catch (e) {}
@@ -1241,7 +1264,7 @@ function showOnly(screenKey) {
 
   // Show inline create handout button on DM dash only
   const cInline = document.getElementById("btnCreateHandoutInline");
-  if (cInline) cInline.style.display = (state.role === "dm" && screenKey === "dmDash" && hasSession) ? "" : "none";
+  if (cInline) cInline.style.display = (state.role === "dm" && screenKey === SCREEN_KEYS.DM_DASH && hasSession) ? "" : "none";
 
   // Close settings drawer on any screen navigation
   closeHamburgerSpeedDial();
@@ -1297,15 +1320,15 @@ function showOnly(screenKey) {
     }
   } catch (e) {}
 
-  if (screenKey !== "dmDash") {
+  if (screenKey !== SCREEN_KEYS.DM_DASH) {
     setDMSocialMode(false);
   }
 
-  if (screenKey !== "settings") {
+  if (screenKey !== SCREEN_KEYS.SETTINGS) {
     stopCharacterSheetCamera();
   }
 
-  if (screenKey === "notes") {
+  if (screenKey === SCREEN_KEYS.NOTES) {
     loadNotesForCurrentSession();
   }
 }
@@ -1323,10 +1346,10 @@ function resolveScreenKey(screenKey) {
 function syncBottomBarActiveState(screenKey) {
   // Compute a small "screen-state matrix" first.
   // This makes each button toggle below easy to reason about.
-  const isDMView = screenKey === "dmDash";
-  const isPlayerView = screenKey === "plView";
-  const isInventoryView = screenKey === "plInventory";
-  const isProfileView = screenKey === "profile" || screenKey === "settingsProfile";
+  const isDMView = screenKey === SCREEN_KEYS.DM_DASH;
+  const isPlayerView = screenKey === SCREEN_KEYS.PLAYER_VIEW;
+  const isInventoryView = screenKey === SCREEN_KEYS.PLAYER_INVENTORY;
+  const isProfileView = screenKey === SCREEN_KEYS.PROFILE || screenKey === SCREEN_KEYS.SETTINGS_PROFILE;
   const hasSession = !!state.sessionId;
 
   // Handouts tab is active on dmDash (without social mode) or plView
@@ -1353,7 +1376,7 @@ function syncBottomBarActiveState(screenKey) {
   }
 
   // Notes tab
-  const isNotesView = screenKey === "notes";
+  const isNotesView = screenKey === SCREEN_KEYS.NOTES;
   if (btnOpenNotes) {
     btnOpenNotes.classList.toggle("hidden", !hasSession);
     btnOpenNotes.classList.toggle("is-active", isNotesView);
@@ -2040,7 +2063,7 @@ async function openProfileEditor(targetUid, returnScreenKey = currentScreenKey) 
   if (profileSaveMsg) {
     profileSaveMsg.textContent = canEdit ? `Editing ${roleLabel} profile.` : "Viewing profile.";
   }
-  showOnly("settingsProfile");
+  showOnly(SCREEN_KEYS.SETTINGS_PROFILE);
 }
 
 // ---- Profile screen rendering (new bottom-bar profile tab) ----
@@ -3135,10 +3158,10 @@ templateImage?.addEventListener("change", async () => {
 });
 
 btnCharacterProfiles?.addEventListener("click", () => {
-  showOnly("characterTemplates");
+  showOnly(SCREEN_KEYS.CHARACTER_TEMPLATES);
   renderTemplateList();
 });
-btnBackFromTemplates?.addEventListener("click", () => showOnly("settings"));
+btnBackFromTemplates?.addEventListener("click", () => showOnly(SCREEN_KEYS.SETTINGS));
 
 btnCreateTemplate?.addEventListener("click", () => {
   editingTemplateId = null;
@@ -3668,11 +3691,11 @@ function startOnboarding(options = {}) {
     const s = STEPS[step];
 
     if (s?.returnTo) {
-      if (s.returnTo === "dmDash") {
-        showOnly("dmDash");
+      if (s.returnTo === SCREEN_KEYS.DM_DASH) {
+        showOnly(SCREEN_KEYS.DM_DASH);
         try { setDMSocialMode(false); } catch (_) {}
-      } else if (s.returnTo === "plView") {
-        showOnly("plView");
+      } else if (s.returnTo === SCREEN_KEYS.PLAYER_VIEW) {
+        showOnly(SCREEN_KEYS.PLAYER_VIEW);
       }
     }
 
@@ -3926,7 +3949,7 @@ function leaveCurrentSessionLocally(message, tone = "info") {
   localStorage.removeItem("tv_sessionId");
   localStorage.removeItem("tv_joinTag");
   localStorage.removeItem("tv_dmPin");
-  showOnly("landing");
+  showOnly(SCREEN_KEYS.LANDING);
   loadMySessions();
   if (message) showToast(message, tone);
 }
@@ -5164,6 +5187,16 @@ async function addNpcToInitiativeFromHandoutName(name, linkedNpcHandout = null) 
   }
 }
 
+function bindDelegatedClick(container, selector, onMatch) {
+  container?.addEventListener("click", (event) => {
+    const target = event.target;
+    if (!(target instanceof Element)) return;
+    const matched = target.closest(selector);
+    if (!(matched instanceof HTMLElement)) return;
+    onMatch(matched, event);
+  });
+}
+
 function setupCreateBuilderUI() {
   // One place where all create-modal listeners are attached.
   dmType?.addEventListener("change", syncCreateTypeDependentUI);
@@ -5194,21 +5227,13 @@ function setupCreateBuilderUI() {
   });
 
   // Suggestion strip — delegate clicks to iconTile buttons inside it.
-  iconSuggestRow?.addEventListener("click", (event) => {
-    const target = event.target;
-    if (!(target instanceof Element)) return;
-    const tile = target.closest(".iconTile");
-    if (!(tile instanceof HTMLElement)) return;
+  bindDelegatedClick(iconSuggestRow, ".iconTile", (tile) => {
     const icon = String(tile.getAttribute("data-icon") || "").trim();
     if (!icon) return;
     setCreateIcon(icon);
   });
 
-  dmIconGrid?.addEventListener("click", (event) => {
-    const target = event.target;
-    if (!(target instanceof Element)) return;
-    const tile = target.closest(".iconTile");
-    if (!(tile instanceof HTMLElement)) return;
+  bindDelegatedClick(dmIconGrid, ".iconTile", (tile) => {
     const icon = String(tile.getAttribute("data-icon") || "").trim();
     if (!icon) return;
     setCreateIcon(icon);
@@ -5222,17 +5247,13 @@ function setupCreateBuilderUI() {
     setCreateIcon(firstEmoji || "🎭");
   });
 
-  dmColorRow?.addEventListener("click", (event) => {
-    const target = event.target;
-    if (!(target instanceof Element)) return;
-    const dot = target.closest(".colorDot");
-    if (!(dot instanceof HTMLElement)) return;
+  bindDelegatedClick(dmColorRow, ".colorDot", (dot) => {
     dmColorRow.querySelector(".colorDot--active")?.classList.remove("colorDot--active");
     dot.classList.add("colorDot--active");
   });
 
   // Update icon suggestions as the GM types the title or public content.
-  const _debouncedSuggestions = debounce(renderIconSuggestions, 300);
+  const _debouncedSuggestions = debounce(renderIconSuggestions, UI_TIMERS.ICON_SUGGEST_DEBOUNCE_MS);
   dmTitle?.addEventListener("input", _debouncedSuggestions);
   dmPublic?.addEventListener("input", _debouncedSuggestions);
 
@@ -5259,11 +5280,7 @@ function setupCreateBuilderUI() {
     setImagePickerOpen(opening);
   });
 
-  imagePickerList?.addEventListener("click", (event) => {
-    const target = event.target;
-    if (!(target instanceof Element)) return;
-    const tile = target.closest(".imagePickerTile");
-    if (!(tile instanceof HTMLElement)) return;
+  bindDelegatedClick(imagePickerList, ".imagePickerTile", (tile) => {
     const selectedUrl = String(tile.getAttribute("data-url") || "").trim();
     if (!selectedUrl) return;
 
@@ -6357,7 +6374,7 @@ async function signOutFn() {
   localStorage.removeItem("tv_dmPin");
   localStorage.removeItem("tv_isGuest");
   cleanupListeners();
-  showOnly("landing");
+  showOnly(SCREEN_KEYS.LANDING);
   updateLandingAuthState();
   showToast("Signed out.", "info");
 }
@@ -6414,14 +6431,14 @@ function stopHeartbeat() {
 btnGoDM && (btnGoDM.onclick = () => {
   // GM role path starts at create-session screen.
   state.role = "dm";
-  showOnly("dmCreate");
+  showOnly(SCREEN_KEYS.DM_CREATE);
   persistLocal();
 });
 
 btnGoPlayer && (btnGoPlayer.onclick = () => {
   // Player role path starts at join screen.
   state.role = "player";
-  showOnly("plJoin");
+  showOnly(SCREEN_KEYS.PL_JOIN);
   persistLocal();
 });
 
@@ -6495,9 +6512,9 @@ btnSignOut?.addEventListener("click", () => signOutFn());
 btnGuestOneShotCreate?.addEventListener("click", () => startGuestOneShot("dm"));
 btnGuestOneShotJoin?.addEventListener("click", () => startGuestOneShot("player"));
 
-// One-shot upgrade banner ? switch to sign-up tab on landing
+// One-shot upgrade banner → switch to sign-up tab on landing
 btnOneShotUpgrade?.addEventListener("click", () => {
-  showOnly("landing");
+  showOnly(SCREEN_KEYS.LANDING);
   switchAuthTab("signUp");
   // Show auth card even if guest is signed in anonymously
   if (authCard) authCard.classList.remove("hidden");
@@ -6529,6 +6546,64 @@ function syncDMFilterToggleState() {
   filterActiveBadge?.classList.toggle("hidden", !hasActiveFilter);
 }
 
+function applyDMFilterSelection(chip, handouts = state.dmHandoutsRaw) {
+  if (!(chip instanceof HTMLElement) || !dmFilterRow) return;
+  const filter = chip.dataset.filter || "all";
+  state.dmFilter = filter;
+  dmFilterRow.querySelectorAll(".chip").forEach((button) => button.classList.remove("chip--active"));
+  chip.classList.add("chip--active");
+  syncDMFilterToggleState();
+  renderDMHandouts(handouts || []);
+}
+
+function openCreateHandoutModal(options = {}) {
+  const {
+    ensureDashboard = false,
+    collapseAppearance = false,
+    restoreDraftValues = false,
+    resetImageFrameState = false,
+    renderSuggestions = false,
+  } = options;
+
+  if (ensureDashboard && currentScreenKey !== SCREEN_KEYS.DM_DASH) {
+    showOnly(SCREEN_KEYS.DM_DASH);
+  }
+
+  syncCreateTypeDependentUI();
+  createClaimableDraft = false;
+  createRevealDraft = false;
+  pendingHandoutImageUrl = null;
+  pendingHandoutNugget = false;
+  if (resetImageFrameState) resetCreateImageFrame();
+  if (handoutImageStatus) handoutImageStatus.textContent = "";
+  if (handoutImageUpload) handoutImageUpload.value = "";
+  if (restoreDraftValues) restoreCreateDraft();
+  syncCreateTypeDependentUI();
+  syncCreateRevealButton();
+  syncCreateClaimableButton();
+  if (collapseAppearance) setAccordionState(btnCreateAppearanceToggle, createAppearanceBody, false);
+  setImagePickerOpen(false);
+  if (renderSuggestions) renderIconSuggestions();
+  animateModalIn(createHandoutModal);
+}
+
+function openInventoryScreen() {
+  showOnly(SCREEN_KEYS.PLAYER_INVENTORY);
+  renderInventoryScreen();
+}
+
+function openNotesScreen() {
+  showOnly(SCREEN_KEYS.NOTES);
+  loadNotesForCurrentSession();
+}
+
+function openHandoutsHomeScreen() {
+  const target = state.role === "dm" ? SCREEN_KEYS.DM_DASH : SCREEN_KEYS.PLAYER_VIEW;
+  showOnly(target);
+  // Ensure social mode is closed so the handouts panel is visible.
+  if (target === SCREEN_KEYS.DM_DASH) setDMSocialMode(false);
+}
+
 function setPartyPanelCollapsed(panel, toggleButton, collapsed) {
   if (!panel || !toggleButton) return;
   const isCollapsed = isCompactPartyLayout() ? !!collapsed : false;
@@ -6552,13 +6627,7 @@ function wireDashboardFallbackControls() {
     if (!(target instanceof HTMLElement)) return;
     const chip = target.closest(".chip");
     if (!(chip instanceof HTMLElement)) return;
-    const filter = chip.dataset.filter || "all";
-
-    state.dmFilter = filter;
-    dmFilterRow.querySelectorAll(".chip").forEach((button) => button.classList.remove("chip--active"));
-    chip.classList.add("chip--active");
-    syncDMFilterToggleState();
-    renderDMHandouts(state.dmHandoutsRaw || []);
+    applyDMFilterSelection(chip, state.dmHandoutsRaw || []);
   });
 
   // Social button is handled by the role-aware listener registered later.
@@ -6567,39 +6636,25 @@ function wireDashboardFallbackControls() {
 
   btnOpenCreateHandout && (btnOpenCreateHandout.onclick = () => {
     if (btnOpenCreateHandout.disabled) return;
-    if (currentScreenKey !== "dmDash") showOnly("dmDash");
-    syncCreateTypeDependentUI();
-    createClaimableDraft = false;
-    createRevealDraft = false;
-    pendingHandoutImageUrl = null;
-    pendingHandoutNugget = false;
-    if (handoutImageStatus) handoutImageStatus.textContent = "";
-    if (handoutImageUpload) handoutImageUpload.value = "";
-    syncCreateRevealButton();
-    syncCreateClaimableButton();
-    setAccordionState(btnCreateAppearanceToggle, createAppearanceBody, false);
-    setImagePickerOpen(false);
-    renderIconSuggestions();
-    animateModalIn(createHandoutModal);
+    openCreateHandoutModal({
+      ensureDashboard: true,
+      collapseAppearance: true,
+      renderSuggestions: true,
+    });
   });
 
   btnOpenInventory && (btnOpenInventory.onclick = () => {
     if (btnOpenInventory.disabled) return;
-    showOnly("plInventory");
-    renderInventoryScreen();
+    openInventoryScreen();
   });
 
   btnOpenNotes && (btnOpenNotes.onclick = () => {
     if (btnOpenNotes.disabled) return;
-    showOnly("notes");
-    loadNotesForCurrentSession();
+    openNotesScreen();
   });
 
   btnOpenHandouts && (btnOpenHandouts.onclick = () => {
-    const target = state.role === "dm" ? "dmDash" : "plView";
-    showOnly(target);
-    // Ensure social mode is closed so the handouts panel is visible
-    if (target === "dmDash") setDMSocialMode(false);
+    openHandoutsHomeScreen();
   });
 }
 
@@ -6617,7 +6672,6 @@ if (btnHamburger) {
   let fabDragTimer = 0;
   let fabDragging = false;
   let fabStartX = 0, fabStartY = 0;
-  const FAB_HOLD_MS = 2000;
 
   // Restore saved position from localStorage
   try {
@@ -6641,8 +6695,8 @@ if (btnHamburger) {
       btnHamburger.classList.add("is-dragging");
       btnHamburger.setPointerCapture?.(e.pointerId);
       navigator.vibrate?.(50);
-      showToast("Drag to reposition", "info", 1500);
-    }, FAB_HOLD_MS);
+      showToast("Drag to reposition", "info", UI_TIMERS.FAB_DRAG_TOAST_MS);
+    }, UI_TIMERS.FAB_HOLD_MS);
   }
 
   function moveFab(e) {
@@ -6724,7 +6778,7 @@ btnOpenAtmospherePanel?.addEventListener("click", () => {
 
 window.addEventListener("resize", () => {
   syncResponsivePanelState();
-  if (currentScreenKey === "dmDash") syncDMDashboardLayout();
+  if (currentScreenKey === SCREEN_KEYS.DM_DASH) syncDMDashboardLayout();
 });
 
 btnToggleFilters?.addEventListener("click", () => {
@@ -6758,8 +6812,8 @@ syncResponsivePanelState();
 
 // Social toggle in top bar (GM only)
 btnTopBarSocial && (btnTopBarSocial.onclick = () => {
-  if (currentScreenKey !== "dmDash") {
-    showOnly("dmDash");
+  if (currentScreenKey !== SCREEN_KEYS.DM_DASH) {
+    showOnly(SCREEN_KEYS.DM_DASH);
     setDMSocialMode(true);
     return;
   }
@@ -6769,25 +6823,14 @@ btnTopBarSocial && (btnTopBarSocial.onclick = () => {
 
 // Profile button in bottom bar
 btnOpenProfile && (btnOpenProfile.onclick = () => {
-  showOnly("profile");
+  showOnly(SCREEN_KEYS.PROFILE);
   renderProfileScreen();
 });
 
 // GM floating action button � opens create handout modal
 gmFab && (gmFab.onclick = () => {
   if (state.role !== "dm") return;
-  syncCreateTypeDependentUI();
-  createClaimableDraft = false;
-  createRevealDraft = false;
-  pendingHandoutImageUrl = null;
-  pendingHandoutNugget = false;
-  if (handoutImageStatus) handoutImageStatus.textContent = "";
-  if (handoutImageUpload) handoutImageUpload.value = "";
-  syncCreateRevealButton();
-  syncCreateClaimableButton();
-  setAccordionState(btnCreateAppearanceToggle, createAppearanceBody, false);
-  setImagePickerOpen(false);
-  animateModalIn(createHandoutModal);
+  openCreateHandoutModal({ collapseAppearance: true });
 });
 
 // Inline create handout button (replaces floating gmFab)
@@ -6795,18 +6838,7 @@ const btnCreateHandoutInline = $("btnCreateHandoutInline");
 if (btnCreateHandoutInline) {
   btnCreateHandoutInline.onclick = () => {
     if (state.role !== "dm") return;
-    syncCreateTypeDependentUI();
-    createClaimableDraft = false;
-    createRevealDraft = false;
-    pendingHandoutImageUrl = null;
-    pendingHandoutNugget = false;
-    if (handoutImageStatus) handoutImageStatus.textContent = "";
-    if (handoutImageUpload) handoutImageUpload.value = "";
-    syncCreateRevealButton();
-    syncCreateClaimableButton();
-    setAccordionState(btnCreateAppearanceToggle, createAppearanceBody, false);
-    setImagePickerOpen(false);
-    animateModalIn(createHandoutModal);
+    openCreateHandoutModal({ collapseAppearance: true });
   };
 }
 
@@ -6841,7 +6873,7 @@ btnGMProfileEdit && (btnGMProfileEdit.onclick = () => {
 // GM campaign notes button
 const btnGMProfileNotes = $("btnGMProfileNotes");
 btnGMProfileNotes && (btnGMProfileNotes.onclick = () => {
-  showOnly("notes");
+  showOnly(SCREEN_KEYS.NOTES);
   loadNotesForCurrentSession();
 });
 
@@ -7026,7 +7058,7 @@ if (landingSessionList) {
     // Fallback: open join screen with session tag prefilled
     if (plSessionId) plSessionId.value = joinTag || sessionId;
     state.role = "player";
-    showOnly("plJoin");
+    showOnly(SCREEN_KEYS.PL_JOIN);
   };
 
   landingSessionList.addEventListener("click", (e) => {
@@ -7058,12 +7090,12 @@ if (landingSessionList) {
   });
 }
 
-btnDMBack && (btnDMBack.onclick = () => { showOnly("landing"); loadMySessions(); });
+btnDMBack && (btnDMBack.onclick = () => { showOnly(SCREEN_KEYS.LANDING); loadMySessions(); });
 
 btnPlayerBack && (btnPlayerBack.onclick = async () => {
   // If scanner is active, stop it before leaving screen.
   await stopScan();
-  showOnly("landing");
+  showOnly(SCREEN_KEYS.LANDING);
 });
 
 btnInventoryBack && (btnInventoryBack.onclick = () => {
@@ -7226,7 +7258,7 @@ btnSwitchToPlayer && (btnSwitchToPlayer.onclick = async () => {
   await requireNickname();
   state.role = "player";
   persistLocal();
-  settingsReturnScreenKey = "plView";
+  settingsReturnScreenKey = SCREEN_KEYS.PLAYER_VIEW;
   await openPlayerView(state.sessionName || "Session");
   showToast("Switched to Player view.");
 });
@@ -7243,7 +7275,7 @@ btnSwitchToDM && (btnSwitchToDM.onclick = async () => {
       state.role = "dm";
       persistLocal();
       if (dmPinPrompt) dmPinPrompt.classList.add("hidden");
-      settingsReturnScreenKey = "dmDash";
+      settingsReturnScreenKey = SCREEN_KEYS.DM_DASH;
       await openDMDashboard(snap.data().name || state.sessionName || "Session");
       showToast("Switched to DM mode.");
       return;
@@ -7327,7 +7359,7 @@ btnLeaveSession && (btnLeaveSession.onclick = () => {
   localStorage.removeItem("tv_sessionId");
   localStorage.removeItem("tv_joinTag");
   localStorage.removeItem("tv_dmPin");
-  showOnly("landing");
+  showOnly(SCREEN_KEYS.LANDING);
   loadMySessions();
   showToast("Left session.");
 });
@@ -7574,7 +7606,7 @@ btnConfirmDeleteSession && (btnConfirmDeleteSession.onclick = async () => {
     localStorage.removeItem("tv_joinTag");
     localStorage.removeItem("tv_dmPin");
     animateModalOut(deleteSessionModal);
-    showOnly("landing");
+    showOnly(SCREEN_KEYS.LANDING);
     loadMySessions();
     showToast("Session deleted permanently.");
   } catch (e) {
@@ -7674,7 +7706,7 @@ btnConfirmDiscardSession && (btnConfirmDiscardSession.onclick = async () => {
     localStorage.removeItem("tv_joinTag");
     localStorage.removeItem("tv_dmPin");
     animateModalOut(discardSessionModal);
-    showOnly("landing");
+    showOnly(SCREEN_KEYS.LANDING);
     loadMySessions();
     showToast("You have left the session permanently.");
   } catch (e) {
@@ -7710,7 +7742,7 @@ btnSessionDeletedOk && (btnSessionDeletedOk.onclick = () => {
   localStorage.removeItem("tv_joinTag");
   localStorage.removeItem("tv_dmPin");
   animateModalOut(sessionDeletedModal);
-  showOnly("landing");
+  showOnly(SCREEN_KEYS.LANDING);
   loadMySessions();
 });
 
@@ -8076,7 +8108,7 @@ async function openDMDashboard(sessionName) {
   // Subscribe to nugget balance.
   subscribeNuggets();
 
-  showOnly("dmDash");
+  showOnly(SCREEN_KEYS.DM_DASH);
   ensureOwnProfileLoaded().catch(() => {});
 
   // Initialize drag-and-drop for handout list
@@ -8204,7 +8236,7 @@ function restoreCreateDraft() {
   } catch (_) {}
 }
 function clearCreateDraft() { try { localStorage.removeItem(CREATE_DRAFT_KEY); } catch (_) {} }
-const _debouncedSaveCreateDraft = debounce(saveCreateDraft, 500);
+const _debouncedSaveCreateDraft = debounce(saveCreateDraft, UI_TIMERS.CREATE_DRAFT_DEBOUNCE_MS);
 dmTitle?.addEventListener("input", _debouncedSaveCreateDraft);
 dmPublic?.addEventListener("input", _debouncedSaveCreateDraft);
 dmSecret?.addEventListener("input", _debouncedSaveCreateDraft);
@@ -8213,21 +8245,11 @@ dmType?.addEventListener("change", _debouncedSaveCreateDraft);
 if (btnOpenCreateModal) {
   btnOpenCreateModal.onclick = () => {
     if (state.role !== "dm") return;
-    syncCreateTypeDependentUI();
-    createClaimableDraft = false;
-    createRevealDraft = false;
-    pendingHandoutImageUrl = null;
-    pendingHandoutNugget = false;
-    resetCreateImageFrame();
-    if (handoutImageStatus) handoutImageStatus.textContent = "";
-    if (handoutImageUpload) handoutImageUpload.value = "";
-    restoreCreateDraft();
-    syncCreateTypeDependentUI();
-    syncCreateRevealButton();
-    syncCreateClaimableButton();
-    setImagePickerOpen(false);
-    renderIconSuggestions();
-    animateModalIn(createHandoutModal);
+    openCreateHandoutModal({
+      restoreDraftValues: true,
+      resetImageFrameState: true,
+      renderSuggestions: true,
+    });
   };
 }
 
@@ -8372,7 +8394,7 @@ if (dmSearch) {
   dmSearch.addEventListener("input", debounce(() => {
     state.dmSearchQuery = dmSearch.value || "";
     renderDMHandouts(state.dmHandoutsRaw);
-  }, 250));
+  }, UI_TIMERS.DM_SEARCH_DEBOUNCE_MS));
 }
 
 if (dmFilterRow) {
@@ -8382,14 +8404,7 @@ if (dmFilterRow) {
     if (!(target instanceof HTMLElement)) return;
     const chip = target.closest(".chip");
     if (!(chip instanceof HTMLElement)) return;
-    const filter = chip.dataset.filter || "all";
-
-    state.dmFilter = filter;
-    const chips = dmFilterRow.querySelectorAll(".chip");
-    chips.forEach((button) => button.classList.remove("chip--active"));
-    chip.classList.add("chip--active");
-    syncDMFilterToggleState();
-    renderDMHandouts(state.dmHandoutsRaw);
+    applyDMFilterSelection(chip, state.dmHandoutsRaw);
   });
 }
 
@@ -8399,8 +8414,8 @@ function getOnlineStatus(lastSeenAt) {
   if (!lastSeenAt) return { cls: "dead", label: "Unavailable" };
   const ts = lastSeenAt.toDate ? lastSeenAt.toDate() : lastSeenAt;
   const diffMs = Date.now() - ts.getTime();
-  if (diffMs < 90_000)  return { cls: "online",  label: "Online" };
-  if (diffMs < 300_000) return { cls: "away",    label: "Away" };
+  if (diffMs < UI_TIMERS.ONLINE_THRESHOLD_MS) return { cls: "online", label: "Online" };
+  if (diffMs < UI_TIMERS.AWAY_THRESHOLD_MS) return { cls: "away", label: "Away" };
   return { cls: "offline", label: "Offline" };
 }
 
@@ -9783,7 +9798,7 @@ state.unsubHandouts = onSnapshot(handoutsRef, (snap) => {
   // Subscribe to nugget balance.
   subscribeNuggets();
 
-  showOnly("plView");
+  showOnly(SCREEN_KEYS.PLAYER_VIEW);
   ensureOwnProfileLoaded().catch(() => {});
   startHeartbeat();
 
@@ -11466,7 +11481,7 @@ function leavePlayerSession() {
   state.inventoryItems = [];
   state.wallets = {};
   persistLocal();
-  showOnly("landing");
+  showOnly(SCREEN_KEYS.LANDING);
   loadMySessions();
 }
 
@@ -11488,7 +11503,7 @@ btnEndSession && (btnEndSession.onclick = () => {
   state.inventoryItems = [];
   state.wallets = {};
   persistLocal();
-  showOnly("landing");
+  showOnly(SCREEN_KEYS.LANDING);
   loadMySessions();
 });
 
@@ -11658,7 +11673,7 @@ if (btnOpenAmbienceBar) {
     if (!ambienceBar) return;
     const isHidden = ambienceBar.classList.contains("hidden");
     if (isHidden) {
-      if (currentScreenKey === "dmDash") setDMSocialMode(false);
+      if (currentScreenKey === SCREEN_KEYS.DM_DASH) setDMSocialMode(false);
       ambienceBar.classList.remove("hidden");
       ambienceBar.setAttribute("aria-hidden", "false");
       try { dmAmbience?.focus(); } catch {}
@@ -11779,8 +11794,8 @@ if (btnToggleSocial) {
   // Toolbar action: open/close dedicated social view mode.
   btnToggleSocial.addEventListener("click", (e) => {
     if (btnToggleSocial.disabled) return;
-    if (currentScreenKey !== "dmDash") {
-      showOnly("dmDash");
+    if (currentScreenKey !== SCREEN_KEYS.DM_DASH) {
+      showOnly(SCREEN_KEYS.DM_DASH);
       setDMSocialMode(true);
       return;
     }
@@ -11791,7 +11806,7 @@ if (btnToggleSocial) {
 
 if (btnOpenSocialFromParty) {
   btnOpenSocialFromParty.addEventListener("click", () => {
-    if (currentScreenKey !== "dmDash") showOnly("dmDash");
+    if (currentScreenKey !== SCREEN_KEYS.DM_DASH) showOnly(SCREEN_KEYS.DM_DASH);
     if (state.joinLink) {
       openQRInviteModal();
       return;
@@ -11803,28 +11818,14 @@ if (btnOpenSocialFromParty) {
 if (btnOpenCreateHandout) {
   if (!btnOpenCreateHandout.onclick) btnOpenCreateHandout.addEventListener("click", () => {
     if (btnOpenCreateHandout.disabled) return;
-    if (currentScreenKey !== "dmDash") {
-      showOnly("dmDash");
-    }
-    syncCreateTypeDependentUI();
-    createClaimableDraft = false;
-    createRevealDraft = false;
-    pendingHandoutImageUrl = null;
-    pendingHandoutNugget = false;
-    if (handoutImageStatus) handoutImageStatus.textContent = "";
-    if (handoutImageUpload) handoutImageUpload.value = "";
-    syncCreateRevealButton();
-    syncCreateClaimableButton();
-    setImagePickerOpen(false);
-    animateModalIn(createHandoutModal);
+    openCreateHandoutModal({ ensureDashboard: true });
   });
 }
 
 if (btnOpenInventory) {
   if (!btnOpenInventory.onclick) btnOpenInventory.addEventListener("click", () => {
     if (btnOpenInventory.disabled) return;
-    showOnly("plInventory");
-    renderInventoryScreen();
+    openInventoryScreen();
   });
 }
 
@@ -12319,12 +12320,12 @@ async function main() {
           localStorage.setItem("tv_isGuest", "1");
         } catch (e) {
           console.error("Auto-guest for QR link failed:", e);
-          showOnly("landing");
+          showOnly(SCREEN_KEYS.LANDING);
           return;
         }
       }
       state.role = "player";
-      showOnly("plJoin");
+      showOnly(SCREEN_KEYS.PL_JOIN);
       // Attempt instant auto-join when the link carries a valid PIN.
       try {
         const autoJoined = await tryAutoJoinFromDeepLink(joinFromUrl);
@@ -12341,7 +12342,7 @@ async function main() {
 
     // If not signed in at all, show landing (auth card visible)
     if (!user) {
-      showOnly("landing");
+      showOnly(SCREEN_KEYS.LANDING);
       return;
     }
 
@@ -12363,12 +12364,12 @@ async function main() {
     if (r === "player" && s) {
       const ok = await tryResumePlayer(s);
       if (ok) return;
-      showOnly("plJoin");
+      showOnly(SCREEN_KEYS.PL_JOIN);
       return;
     }
 
-    // Signed-in user with no active session � show landing home section
-    showOnly("landing");
+    // Signed-in user with no active session → show landing home section
+    showOnly(SCREEN_KEYS.LANDING);
     updateLandingAuthState();
   } finally {
     hideAuthLoading();
@@ -12378,7 +12379,7 @@ async function main() {
 main().catch((e) => {
   // Fail-safe startup handling so user still sees UI instead of blank page.
   console.error("Startup error:", e);
-  try { showOnly("landing"); } catch {}
+  try { showOnly(SCREEN_KEYS.LANDING); } catch {}
   showToast("Startup error. Open F12 ? Console for details.", "error", 4500);
 });
 

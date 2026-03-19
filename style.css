@@ -1074,25 +1074,7 @@ textarea.input{resize:vertical;min-height:120px}
 
 .playerViewLayout__main{min-width:0}
 
-/* GM dashboard: on larger screens, keep handouts + party panel visible together. */
-@media (min-width: 1100px){
-	#dmSplit.singlePane{
-		grid-template-columns:minmax(200px, 240px) minmax(0, 1fr) minmax(280px, 340px);
-		grid-template-areas:"social handouts rail";
-		align-items:stretch;
-	}
-	#dmSocialPanel{grid-area:social}
-	#dmHandoutsPanel{grid-area:handouts}
-	#dmSplit .dmDashRail{grid-area:rail}
-	#dmHandoutsPanel{min-height:520px}
-	#dmHandoutsPanel{display:flex;flex-direction:column;}
-	#dmHandoutsPanel #dmHandoutList,
-	#dmHandoutsPanel #dmHandoutEmpty{flex:1}
-	#screenPlayerView .playerViewLayout{
-		grid-template-columns:minmax(0, 1fr) minmax(300px, 360px);
-		align-items:start;
-	}
-}
+/* Desktop layout rules for GM/Player are consolidated later in a single @media block. */
 
 .panel{padding:16px;min-width:0}
 .panel--main h3{display:none}
@@ -1780,6 +1762,7 @@ textarea.input{resize:vertical;min-height:120px}
 	background:rgba(35,29,53,.74);
 }
 
+/* .socialMeta__row breakpoints: base, <=540px, <=480px, >=1100px */
 .socialMeta__row{
 	display:flex;
 	justify-content:space-between;
@@ -5365,8 +5348,7 @@ body[data-screen="landing"] .ambience-bar{display:none !important}
 	.auth-social-row .auth-social-btn:first-child span{display:inline}
 	.auth-guest-actions{grid-template-columns:1fr}
 	.landing-home__actions{grid-template-columns:1fr}
-	.landing-logo{width:112px;height:112px}
-	.landing-logo{padding:0}
+	.landing-logo{width:112px;height:112px;padding:0}
 	.row{flex-direction:column;align-items:stretch}
 	.btn{width:100%}
 	.socialActions .btn{width:100%}
@@ -5390,7 +5372,6 @@ body[data-screen="landing"] .ambience-bar{display:none !important}
 	.modal{padding:8px;place-items:start center}
 	.modal__card{width:100%;max-height:calc(100dvh - 16px);overflow:auto}
 	.createModalCard{max-height:calc(100dvh - 16px)}
-	#createHandoutModal .modal__card{padding:12px}
 	#createHandoutModal .portraitFrame{width:108px;height:108px}
 	#createHandoutModal .imagePickerGrid{grid-template-columns:repeat(3,minmax(0,1fr))}
 	.handoutModalImageWrap{width:min(156px, 54vw);height:min(156px, 54vw);min-height:min(156px, 54vw);flex: 0 0 auto;}
@@ -5437,6 +5418,7 @@ body[data-screen="landing"] .ambience-bar{display:none !important}
 	#screenDMDash .dashTools{gap:8px;margin-bottom:10px}
 	#screenDMDash .chipRow{margin:2px -2px 12px;padding:0 2px 8px}
 	#screenDMDash .playerCountInline{font-size:var(--text-lg)}
+	/* Mobile dashboard social meta tuning (<=540px). */
 	#screenDMDash .socialMeta{padding:8px 10px;gap:6px}
 	#screenDMDash .socialMeta__row{gap:8px}
 	#screenDMDash .list{gap:8px}
@@ -5584,6 +5566,7 @@ body[data-screen="landing"] .ambience-bar{display:none !important}
 	#screenDMDash .panel{padding:0}
 	#screenDMDash .dashHeader{margin-bottom:6px}
 	#screenDMDash .playerCountInline{font-size:var(--text-sm);padding:7px 8px}
+	/* Extra-small dashboard social meta tuning (<=480px). */
 	#screenDMDash .socialMeta{padding:8px}
 	#screenDMDash .socialMeta__row{
 		font-size:var(--text-sm);
@@ -5893,10 +5876,17 @@ outline:2px solid var(--gold);
 outline-offset:2px;
 }
 
+/* Canonical desktop dashboard layout block (single source of truth for >=1100px). */
 @media (min-width: 1100px){
 #dmSplit.singlePane{
 grid-template-columns:minmax(220px, 260px) minmax(0, 1fr) minmax(300px, 360px);
+grid-template-areas:"social handouts rail";
+align-items:stretch;
 }
+
+#dmSocialPanel{grid-area:social}
+#dmHandoutsPanel{grid-area:handouts}
+#dmSplit .dmDashRail{grid-area:rail}
 
 .dashHeader--handouts{
 margin-bottom:18px;
@@ -5913,6 +5903,11 @@ height:52px;
 #dmHandoutsPanel{
 padding:18px;
 }
+
+#dmHandoutsPanel{min-height:520px}
+#dmHandoutsPanel{display:flex;flex-direction:column;}
+#dmHandoutsPanel #dmHandoutList,
+#dmHandoutsPanel #dmHandoutEmpty{flex:1}
 
 .socialMeta{
 padding:12px;
@@ -5941,6 +5936,11 @@ padding:6px 0 4px;
 
 .dmPartyPanel__actions--bar .partyAction{
 min-height:44px;
+}
+
+#screenPlayerView .playerViewLayout{
+grid-template-columns:minmax(0, 1fr) minmax(300px, 360px);
+align-items:start;
 }
 
 #dmHandoutEmpty .emptyState__icon{
