@@ -69,12 +69,7 @@
     </div>
     <div class="topbar__right">
       <button id="nuggetCounter" class="pill pill--nugget hidden" type="button" aria-label="Nugget balance">
-        <svg class="nuggetIcon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" style="width:16px;height:16px">
-          <path d="M12 3L4 9l2 10h12l2-10L12 3z" fill="#F5C82F"/>
-          <path d="M12 3L8 9h8l-4-6z" fill="#FFE566" opacity=".7"/>
-          <path d="M8 9l-2 10h5l-3-10zm8 0l2 10h-5l3-10z" fill="#C8960E" opacity=".35"/>
-          <path d="M12 3L4 9l2 10h12l2-10L12 3z" stroke="#B8860B" stroke-width=".8" fill="none"/>
-        </svg>
+          <img class="nuggetIcon nuggetIcon--counter" src="placeholders/nuggetPlaceholder1Small.png" alt="" aria-hidden="true">
         <span id="nuggetBalance">0</span>
       </button>
 
@@ -97,7 +92,15 @@
   -->
   <main id="main" class="layout">
 
-    <!-- SCREEN: LANDING &middot; Auth-first page that morphs into a home screen after sign-in -->
+    <!--
+      ===================================================================
+      SCREEN: LANDING / HOME
+      Rendered when: always (root view); morphs into home dashboard after sign-in
+      Key IDs: authMethodStep, authCredStep, homeScreen, btnGMFlow, btnPlayerFlow
+      Related CSS: .landingCard, .landingHero, .auth-form, .home-screen
+      Related JS: initAuth(), showScreen(), handleAuthStep()
+      ===================================================================
+    -->
     <section id="screenLanding" class="card landingCard">
 
       <!-- -- Branding -- -->
@@ -112,19 +115,43 @@
       <!-- -- Auth card (visible when NOT signed in) -- -->
       <div id="authCard" class="auth-card">
 
-        <div class="auth-social-hub" aria-label="Continue with connected account">
-          <p class="auth-social-title">Continue with</p>
+        <!-- ── Screen 1: Method selection ───────────────────────────────── -->
+        <div id="authMethodScreen" class="auth-method-screen">
+
+          <!-- Mode selector: Sign In | Sign Up -->
+          <div class="auth-mode-selector" role="tablist" aria-label="Account action">
+            <button id="authModeSignIn" class="auth-mode-btn is-active" type="button" role="tab" aria-selected="true">Sign In</button>
+            <button id="authModeSignUp" class="auth-mode-btn" type="button" role="tab" aria-selected="false">Sign Up</button>
+          </div>
+
+          <!-- Primary CTA: Email -->
+          <button id="authBtnEmail" type="button" class="auth-method-btn auth-method-btn--primary">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" aria-hidden="true">
+              <rect x="2" y="4" width="20" height="16" rx="2" stroke="currentColor" stroke-width="1.8"/>
+              <path d="M2 8l10 6 10-6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            <span>Continue with Email</span>
+          </button>
+
+          <!-- Secondary CTA: Google -->
+          <button id="btnGoogleContinue" type="button" class="auth-method-btn auth-method-btn--ghost" title="Continue with Google">
+            <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
+              <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 01-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4"/>
+              <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+              <path d="M5.84 14.09A6.97 6.97 0 015.48 12c0-.72.13-1.43.36-2.09V7.07H2.18A11.96 11.96 0 001 12c0 1.94.46 3.77 1.18 5.07l3.66-2.84z" fill="#FBBC05"/>
+              <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+            </svg>
+            <span>Continue with Google</span>
+          </button>
+
+          <!-- Error area for Google / method-level errors -->
+          <p class="input-error hidden" id="authMethodErr"></p>
+
+          <!-- More options divider -->
+          <div class="auth-divider auth-divider--more"><span>more providers coming soon</span></div>
+
+          <!-- Disabled provider row: Apple · Facebook · Microsoft -->
           <div class="auth-social-row">
-            <button id="btnGoogleContinue" type="button" class="auth-social-btn" title="Continue with Google">
-              <!-- Google "G" -->
-              <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
-                <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 01-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4"/>
-                <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
-                <path d="M5.84 14.09A6.97 6.97 0 015.48 12c0-.72.13-1.43.36-2.09V7.07H2.18A11.96 11.96 0 001 12c0 1.94.46 3.77 1.18 5.07l3.66-2.84z" fill="#FBBC05"/>
-                <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
-              </svg>
-              <span>Continue with Google</span>
-            </button>
             <button type="button" class="auth-social-btn auth-social-btn--disabled" title="Coming soon" aria-disabled="true">
               <!-- Apple -->
               <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor" aria-hidden="true"><path d="M17.05 20.28c-.98.95-2.05.88-3.08.4-1.09-.5-2.08-.51-3.23 0-1.44.64-2.2.45-3.06-.4C3.79 16.17 4.36 9.04 8.93 8.78c1.32.07 2.23.75 3 .8.96-.2 1.87-.9 2.97-.82 1.32.12 2.34.7 3 1.78-2.72 1.62-2.08 5.2.37 6.2-.54 1.42-1.24 2.83-2.38 3.55l.16-.01zM12.05 8.73c-.16-2.42 1.83-4.48 4.08-4.73.32 2.64-2.4 4.61-4.08 4.73z"/></svg>
@@ -141,71 +168,81 @@
               <span>Microsoft</span>
             </button>
           </div>
-          <p class="auth-info">Google will sign you in if your account exists, or create it automatically if it doesn't.</p>
-        </div>
 
-        <!-- Tab bar -->
-        <div class="auth-tabs" role="tablist">
-          <button id="authTabSignIn" class="auth-tab is-active" role="tab" aria-selected="true" aria-controls="authSignIn">Sign In</button>
-          <button id="authTabSignUp" class="auth-tab" role="tab" aria-selected="false" aria-controls="authSignUp">Sign Up</button>
-        </div>
+        </div><!-- /authMethodScreen -->
 
-        <!-- Sign In panel -->
-        <div id="authSignIn" class="auth-panel" role="tabpanel">
-          <div class="auth-divider"><span>or continue with email</span></div>
+        <!-- ── Screen 2: Email credentials ───────────────────────────────── -->
+        <div id="authEmailScreen" class="auth-email-screen hidden">
 
-          <form id="formSignIn" class="auth-form" autocomplete="on" novalidate>
-            <div class="auth-field">
-              <label class="label" for="signInEmail">Email</label>
-              <input id="signInEmail" class="input" type="email" placeholder="you@example.com" autocomplete="email" required>
-              <p class="input-error hidden" id="signInEmailErr"></p>
+          <!-- Back button + tab bar -->
+          <div class="auth-email-head">
+            <button id="btnAuthBack" type="button" class="auth-back-btn" aria-label="Back to sign-in options">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" aria-hidden="true">
+                <path d="M15 18l-6-6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+              <span>Back</span>
+            </button>
+            <div class="auth-tabs" role="tablist">
+              <button id="authTabSignIn" class="auth-tab is-active" role="tab" aria-selected="true" aria-controls="authSignIn">Sign In</button>
+              <button id="authTabSignUp" class="auth-tab" role="tab" aria-selected="false" aria-controls="authSignUp">Sign Up</button>
             </div>
-            <div class="auth-field">
-              <label class="label" for="signInPassword">Password</label>
-              <input id="signInPassword" class="input" type="password" placeholder="Your password" autocomplete="current-password" required>
-              <p class="input-error hidden" id="signInPasswordErr"></p>
-            </div>
-            <button type="submit" id="btnSignIn" class="btn auth-submit">Sign In</button>
-            <button type="button" id="btnForgotPassword" class="btn--link auth-forgot">Forgot password?</button>
-            <p class="input-error hidden" id="signInFormErr"></p>
-          </form>
-        </div>
+          </div>
 
-        <!-- Sign Up panel -->
-        <div id="authSignUp" class="auth-panel hidden" role="tabpanel">
-          <div class="auth-divider"><span>or continue with email</span></div>
+          <!-- Sign In panel -->
+          <div id="authSignIn" class="auth-panel" role="tabpanel">
+            <form id="formSignIn" class="auth-form" autocomplete="on" novalidate>
+              <div class="auth-field">
+                <label class="label" for="signInEmail">Email</label>
+                <input id="signInEmail" class="input" type="email" placeholder="you@example.com" autocomplete="email" required>
+                <p class="input-error hidden" id="signInEmailErr"></p>
+              </div>
+              <div class="auth-field">
+                <label class="label" for="signInPassword">Password</label>
+                <input id="signInPassword" class="input" type="password" placeholder="Your password" autocomplete="current-password" required>
+                <p class="input-error hidden" id="signInPasswordErr"></p>
+              </div>
+              <button type="submit" id="btnSignIn" class="btn auth-submit">Sign In</button>
+              <button type="button" id="btnForgotPassword" class="btn--link auth-forgot">Forgot password?</button>
+              <p class="input-error hidden" id="signInFormErr"></p>
+            </form>
+          </div>
 
-          <form id="formSignUp" class="auth-form" autocomplete="on" novalidate>
-            <p class="auth-info">We only collect what's necessary for your account. Your character name is how other players will see you.</p>
+          <!-- Sign Up panel -->
+          <div id="authSignUp" class="auth-panel hidden" role="tabpanel">
+            <form id="formSignUp" class="auth-form" autocomplete="on" novalidate>
+              <p class="auth-info">We only collect what's necessary for your account. Your character name is how other players will see you.</p>
 
-            <div class="auth-field">
-              <label class="label" for="signUpIGN">Character name</label>
-              <input id="signUpIGN" class="input" type="text" placeholder="e.g. Elara, Thorn, Merlin" autocomplete="username" required minlength="2" maxlength="30">
-              <p class="input-helper">This is your display name &middot; visible to other players.</p>
-              <p class="input-error hidden" id="signUpIGNErr"></p>
-            </div>
-            <div class="auth-field">
-              <label class="label" for="signUpEmail">Email</label>
-              <input id="signUpEmail" class="input" type="email" placeholder="you@example.com" autocomplete="email" required>
-              <p class="input-helper">Required for account recovery only &middot; we'll never share or spam it.</p>
-              <p class="input-error hidden" id="signUpEmailErr"></p>
-            </div>
-            <div class="auth-field">
-              <label class="label" for="signUpPassword">Password</label>
-              <input id="signUpPassword" class="input" type="password" placeholder="Use 12+ characters" autocomplete="new-password" required minlength="12" maxlength="128">
-              <p class="input-helper">Use 12+ characters. Passphrases are encouraged. Avoid common passwords and personal info.</p>
-              <p class="input-error hidden" id="signUpPasswordErr"></p>
-            </div>
-            <div class="auth-field">
-              <label class="label" for="signUpConfirm">Confirm password</label>
-              <input id="signUpConfirm" class="input" type="password" placeholder="Re-enter your password exactly" autocomplete="new-password" required minlength="12" maxlength="128">
-              <p class="input-error hidden" id="signUpConfirmErr"></p>
-            </div>
+              <div class="auth-field">
+                <label class="label" for="signUpIGN">Character name</label>
+                <input id="signUpIGN" class="input" type="text" placeholder="e.g. Elara, Thorn, Merlin" autocomplete="username" required minlength="2" maxlength="30">
+                <p class="input-helper">This is your display name &middot; visible to other players.</p>
+                <p class="input-error hidden" id="signUpIGNErr"></p>
+              </div>
+              <div class="auth-field">
+                <label class="label" for="signUpEmail">Email</label>
+                <input id="signUpEmail" class="input" type="email" placeholder="you@example.com" autocomplete="email" required>
+                <p class="input-helper">Required for account recovery only &middot; we'll never share or spam it.</p>
+                <p class="input-error hidden" id="signUpEmailErr"></p>
+              </div>
+              <div class="auth-field">
+                <label class="label" for="signUpPassword">Password</label>
+                <input id="signUpPassword" class="input" type="password" placeholder="Use 12+ characters" autocomplete="new-password" required minlength="12" maxlength="128">
+                <p class="input-helper">Use 12+ characters. Passphrases are encouraged. Avoid common passwords and personal info.</p>
+                <p class="input-error hidden" id="signUpPasswordErr"></p>
+              </div>
+              <div class="auth-field">
+                <label class="label" for="signUpConfirm">Confirm password</label>
+                <input id="signUpConfirm" class="input" type="password" placeholder="Re-enter your password exactly" autocomplete="new-password" required minlength="12" maxlength="128">
+                <p class="input-error hidden" id="signUpConfirmErr"></p>
+              </div>
 
-            <button type="submit" id="btnSignUp" class="btn auth-submit">Create Account</button>
-            <p class="input-error hidden" id="signUpFormErr"></p>
-          </form>
-        </div>
+              <button type="submit" id="btnSignUp" class="btn auth-submit">Create Account</button>
+              <p class="input-error hidden" id="signUpFormErr"></p>
+            </form>
+          </div>
+
+        </div><!-- /authEmailScreen -->
+
       </div>
 
       <!-- Guest one-shot CTA (visible when NOT signed in) -->
@@ -274,6 +311,15 @@
       - The create button triggers validation + database write.
       - Message paragraph (`dmCreateMsg`) is used as inline feedback area.
     -->
+    <!--
+      ===================================================================
+      SCREEN: DM CREATE SESSION
+      Rendered when: user selects "Create Session" from landing home
+      Key IDs: dmSessionName, dmPin, btnCreateSession, dmCreateMsg
+      Related CSS: .card, .formGrid, .auth-form
+      Related JS: createSession(), btnDMBack
+      ===================================================================
+    -->
     <section id="screenDMCreate" class="card hidden">
       <h2 id="dmCreateHeading">New Session</h2>
       <p id="dmCreateGuestNotice" class="auth-info hidden">You're in one-shot mode. This session will expire in 24 hours. Sign up after creating to keep it.</p>
@@ -304,6 +350,15 @@
       - This screen is hydrated by realtime listeners after session creation.
       - Sub-panels separate responsibilities (invite/social vs handouts).
       - IDs are stable hooks used for rendering dynamic content.
+    -->
+    <!--
+      ===================================================================
+      SCREEN: GM DASHBOARD
+      Rendered when: role === "dm" && sessionId is active
+      Key IDs: dmSplit, dmSocialPanel, dmHandoutsPanel, dmPartyPanel
+      Related CSS: .dmDash*, .socialMeta, .dmPartyPanel, .dmAtmospherePanel
+      Related JS: setDMSocialMode(), renderHandouts(), syncDMDashboardLayout()
+      ===================================================================
     -->
     <section id="screenDMDash" class="card hidden">
       <div class="dashHeader dashHeader--handouts">
@@ -439,6 +494,16 @@
       </div>
     </section>
 
+    <!--
+      ===================================================================
+      MODAL: CREATE HANDOUT
+      Opened by: btnOpenCreateHandout / btnCreateHandoutInline
+      Closed by: btnCloseCreateModal / Escape key
+      Key IDs: dmTitle, dmType, dmIconGrid, dmColorRow, dmContent
+      Related CSS: .modal, .portraitFrame, .iconPickerGrid, .colorDot
+      Related JS: openCreateModal(), saveHandout(), renderIconSuggestions()
+      ===================================================================
+    -->
     <section id="createHandoutModal" class="modal hidden">
       <div class="modal__card createModalCard">
         <div class="modal__top">
@@ -493,7 +558,15 @@
                 <rect x="14" y="14" width="6" height="6" rx="1.2" stroke="currentColor" stroke-width="1.8"></rect>
               </svg>
             </button>
+            <button id="btnImageUpload" class="imageNavBtn" type="button" aria-label="Upload image" title="Upload image">
+              <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                <path d="M12 16V7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></path>
+                <path d="M8.5 10.5L12 7L15.5 10.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></path>
+                <path d="M4 17.5V18.25C4 19.2165 4.7835 20 5.75 20H18.25C19.2165 20 20 19.2165 20 18.25V17.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></path>
+              </svg>
+            </button>
           </div>
+          <input id="handoutImageUpload" type="file" accept="image/*" class="hidden">
           <div id="imagePickerPanel" class="imagePickerPanel hidden" aria-label="Image selection panel">
             <div class="imagePickerPanel__title muted small">Choose from the placeholder library (chronological order)</div>
             <div id="imagePickerList" class="imagePickerGrid" role="listbox" aria-label="Available placeholder images"></div>
@@ -510,9 +583,8 @@
               </div>
             </div>
             <div class="mapBtnRow">
-              <input id="handoutImageUpload" type="file" accept="image/*" class="hidden">
               <button id="btnHandoutUploadImage" class="btn btn--ghost mapBtn" type="button">
-                <svg class="nuggetIcon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" style="width:14px;height:14px;vertical-align:-2px;margin-right:4px"><path d="M12 3L4 9l2 10h12l2-10L12 3z" fill="#F5C82F"/><path d="M12 3L8 9h8l-4-6z" fill="#FFE566" opacity=".7"/><path d="M8 9l-2 10h5l-3-10zm8 0l2 10h-5l3-10z" fill="#C8960E" opacity=".35"/><path d="M12 3L4 9l2 10h12l2-10L12 3z" stroke="#B8860B" stroke-width=".8" fill="none"/></svg>
+                <img class="nuggetIcon nuggetIcon--button" src="placeholders/nuggetPlaceholder1Small.png" alt="" aria-hidden="true">
                 Upload <span class="mapBtnCost">x1</span>
               </button>
               <button id="btnCreateMapAIGenerate" class="btn btn--ghost mapBtn mapBtn--ai" type="button">
@@ -566,10 +638,10 @@
           </div>
 
           <label class="label">Title</label>
-          <input id="dmTitle" class="input" placeholder="Name...">
+          <input id="dmTitle" class="input" placeholder="Name..." required>
 
           <label class="label">Public Content</label>
-          <textarea id="dmPublic" class="input" rows="5" placeholder="Description visible to players..."></textarea>
+          <textarea id="dmPublic" class="input" rows="5" placeholder="Description visible to players..." required></textarea>
 
           <div class="secretBlock">
             <label class="label">Secret content (optional)</label>
@@ -613,6 +685,18 @@
             <button class="iconTile" type="button" data-icon="📖" aria-label="Book icon">📖</button>
             <button class="iconTile" type="button" data-icon="💎" aria-label="Gem icon">💎</button>
             <button class="iconTile" type="button" data-icon="☠️" aria-label="Skull icon">☠️</button>
+            <button class="iconTile" type="button" data-icon="🐉" aria-label="Dragon">🐉</button>
+            <button class="iconTile" type="button" data-icon="🧙" aria-label="Wizard">🧙</button>
+            <button class="iconTile" type="button" data-icon="👑" aria-label="Crown">👑</button>
+            <button class="iconTile" type="button" data-icon="🏰" aria-label="Castle">🏰</button>
+            <button class="iconTile" type="button" data-icon="🎲" aria-label="Dice">🎲</button>
+            <button class="iconTile" type="button" data-icon="🔥" aria-label="Fire">🔥</button>
+            <button class="iconTile" type="button" data-icon="⚡" aria-label="Lightning">⚡</button>
+            <button class="iconTile" type="button" data-icon="🌙" aria-label="Moon">🌙</button>
+            <button class="iconTile" type="button" data-icon="👁️" aria-label="Eye">👁️</button>
+            <button class="iconTile" type="button" data-icon="🏹" aria-label="Bow and arrow">🏹</button>
+            <button class="iconTile" type="button" data-icon="🕯️" aria-label="Candle">🕯️</button>
+            <button class="iconTile" type="button" data-icon="🌀" aria-label="Vortex">🌀</button>
           </div>
           <!-- Custom emoji — below the grid so presets stay prominent -->
           <div class="emojiCustomRow">
@@ -620,6 +704,7 @@
             <div class="emojiCustomField">
               <span class="emojiCustomLabel">Or type your own emoji</span>
               <input id="emojiInput" class="emojiInput" type="text" maxlength="12" placeholder="Paste any emoji…" aria-label="Custom emoji input">
+              <span class="emojiCustomLabel" style="opacity:.5;margin-top:2px">Tip: <strong>Win + .</strong> or <strong>⌘ Ctrl+Space</strong> opens the system picker</span>
             </div>
           </div>
 
@@ -658,6 +743,15 @@
       - Join action verifies session + PIN hash before entering live view.
       - QR scanner writes into the same session tag input used by manual join.
       - Inline message area explains validation errors immediately.
+    -->
+    <!--
+      ===================================================================
+      SCREEN: PLAYER JOIN
+      Rendered when: user selects "Join Session" from landing home
+      Key IDs: plJoinTag, plPin, btnJoinSession, plJoinMsg
+      Related CSS: .card, .formGrid
+      Related JS: joinSession(), btnPlJoinBack
+      ===================================================================
     -->
     <section id="screenPlayerJoin" class="card hidden">
       <h2>Join Session</h2>
@@ -719,6 +813,15 @@
       - Realtime listener feeds the list.
       - Client-side filtering ensures hidden GM content stays hidden in UI.
     -->
+    <!--
+      ===================================================================
+      SCREEN: PLAYER SESSION VIEW
+      Rendered when: role === "player" && sessionId is active
+      Key IDs: screenPlayerView, plHandoutList, plHandoutEmpty
+      Related CSS: .playerViewLayout, .handoutCard
+      Related JS: renderPlayerHandouts(), listenToSession()
+      ===================================================================
+    -->
     <section id="screenPlayerView" class="card hidden">
       <div class="dashHeader">
         <div>
@@ -771,6 +874,15 @@
       SCREEN: PLAYER INVENTORY
       Per-player items + coin pouches. GM also sees Party Treasury with
       distribute/grant controls. Content is rendered dynamically by JS.
+    -->
+    <!--
+      ===================================================================
+      SCREEN: PLAYER INVENTORY
+      Rendered when: player navigates to inventory tab
+      Key IDs: inventorySearch, inventoryList, inventoryEmpty, walletPanel
+      Related CSS: .item, .itemEmoji, .coinBtn, .invGalleryGrid
+      Related JS: renderInventoryItems(), updateWalletDisplay()
+      ===================================================================
     -->
     <section id="screenPlayerInventory" class="card hidden">
       <div class="dashHeader">
@@ -858,6 +970,16 @@
     </section>
 
     <!-- Create / Edit Inventory Item Modal -->
+    <!--
+      ===================================================================
+      MODAL: CREATE INVENTORY ITEM
+      Opened by: btnCreateInventoryItem
+      Closed by: btnCloseInventoryModal / Escape key
+      Key IDs: invItemTitle, invItemEmoji, invItemDesc
+      Related CSS: .modal, .invGalleryGrid
+      Related JS: openInventoryCreateModal(), saveInventoryItem()
+      ===================================================================
+    -->
     <section id="createInventoryModal" class="modal hidden">
       <div class="modal__card createInventoryCard">
         <div class="modal__top">
@@ -898,7 +1020,7 @@
               </div>
               <div class="inventoryAvatarUploadRow">
                 <input id="inventoryImageUpload" type="file" accept="image/*" class="hidden">
-                <button id="btnInvUploadImage" class="btn btn--ghost btn--small" type="button"><svg class="nuggetIcon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" style="width:14px;height:14px;vertical-align:-2px;margin-right:3px"><path d="M12 3L4 9l2 10h12l2-10L12 3z" fill="#F5C82F"/><path d="M12 3L8 9h8l-4-6z" fill="#FFE566" opacity=".7"/><path d="M8 9l-2 10h5l-3-10zm8 0l2 10h-5l3-10z" fill="#C8960E" opacity=".35"/><path d="M12 3L4 9l2 10h12l2-10L12 3z" stroke="#B8860B" stroke-width=".8" fill="none"/></svg>x1 Upload Image</button>
+                <button id="btnInvUploadImage" class="btn btn--ghost btn--small" type="button"><img class="nuggetIcon nuggetIcon--button" src="placeholders/nuggetPlaceholder1Small.png" alt="" aria-hidden="true">x1 Upload Image</button>
                 <span id="inventoryImageStatus" class="muted small"></span>
               </div>
             </div>
@@ -993,12 +1115,30 @@
   </aside>
 
   <!-- Hidden settings screen for backward compat with showOnly("settings") -->
+    <!--
+      ===================================================================
+      SCREEN: SETTINGS
+      Rendered when: user opens settings drawer
+      Key IDs: screenSettings (empty placeholder — drawer is .settings-drawer)
+      Related CSS: .settings-drawer
+      Related JS: openSettingsDrawer(), closeSettingsDrawer()
+      ===================================================================
+    -->
   <section id="screenSettings" class="hidden" style="display:none"></section>
 
     <!--
       SCREEN: SETTINGS ? PROFILE
       Edit display name, bio, profile picture, and character stats.
       Includes OCR scanner for importing stats from a character sheet photo.
+    -->
+    <!--
+      ===================================================================
+      SCREEN: SETTINGS PROFILE
+      Rendered when: user taps avatar / profile in settings
+      Key IDs: profileAvatarFile, profileAvatarPreview, btnSaveProfile
+      Related CSS: .profile-hero, .profileStatsGrid, .spellRow
+      Related JS: loadUserProfile(), saveProfile()
+      ===================================================================
     -->
     <section id="screenSettingsProfile" class="card hidden">
       <div class="dashHeader">
@@ -1124,6 +1264,15 @@
       SCREEN: CHARACTER TEMPLATES (GM only)
       Manage pre-built character profiles that can be assigned to players.
     -->
+    <!--
+      ===================================================================
+      SCREEN: CHARACTER TEMPLATES
+      Rendered when: user navigates to templates in settings
+      Key IDs: templateList, templateEmpty, btnCreateTemplate
+      Related CSS: .templateCard, .templateBadge
+      Related JS: renderCharacterTemplates(), assignTemplate()
+      ===================================================================
+    -->
     <section id="screenCharacterTemplates" class="card hidden">
       <div class="dashHeader">
         <div>
@@ -1143,6 +1292,15 @@
       </div>
     </section>
 
+    <!--
+      ===================================================================
+      SCREEN: NOTES
+      Rendered when: user navigates to notes
+      Key IDs: notesContent, btnSaveNotes
+      Related CSS: .notes-editor
+      Related JS: loadNotes(), saveNotes()
+      ===================================================================
+    -->
     <section id="screenNotes" class="card hidden">
       <div class="dashHeader">
         <div>
@@ -1159,6 +1317,14 @@
       <p id="notesStatus" class="muted small" aria-live="polite">Tap Save to store your notes.</p>
     </section>
 
+    <!--
+      ===================================================================
+      SCREEN: INFO / CREDITS
+      Rendered when: user opens info screen
+      Key IDs: screenInfo
+      Related CSS: .credits-modal, .credit-item
+      ===================================================================
+    -->
     <section id="screenInfo" class="card hidden">
       <div class="dashHeader">
         <div>
@@ -1178,6 +1344,15 @@
       SCREEN: PROFILE
       Player: Stats + Spells tabs (read-only by default, Edit button unlocks).
       GM: Campaign overview with quick links.
+    -->
+    <!--
+      ===================================================================
+      SCREEN: PUBLIC PLAYER PROFILE
+      Rendered when: user taps another player's avatar
+      Key IDs: screenProfile, profileName, profileStats, profileSpells
+      Related CSS: .profile-hero, .profileStatsGrid, .spellRow
+      Related JS: openPublicProfile(), renderProfile()
+      ===================================================================
     -->
     <section id="screenProfile" class="card hidden">
       <div class="dashHeader">
@@ -1292,6 +1467,16 @@
   </main><!-- end .layout -->
 
     <!-- Create / Edit Character Template Modal -->
+    <!--
+      ===================================================================
+      MODAL: CREATE CHARACTER TEMPLATE
+      Opened by: btnCreateTemplate
+      Closed by: btnCloseTemplateModal / Escape key
+      Key IDs: templateName, templateIconGrid, templateColorRow
+      Related CSS: .modal, .portraitFrame, .iconPickerGrid
+      Related JS: openCreateTemplateModal(), saveTemplate()
+      ===================================================================
+    -->
     <section id="createTemplateModal" class="modal hidden">
       <div class="modal__card">
         <div class="modal__top">
@@ -1313,7 +1498,7 @@
           <div class="templateImagePicker">
             <img id="templateImagePreview" class="templateImagePreview hidden" alt="Character preview" />
             <input id="templateImage" type="file" accept="image/*" class="hidden">
-            <button id="btnPickTemplateImage" class="btn btn--ghost btn--small" type="button"><svg class="nuggetIcon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" style="width:14px;height:14px;vertical-align:-2px;margin-right:3px"><path d="M12 3L4 9l2 10h12l2-10L12 3z" fill="#F5C82F"/><path d="M12 3L8 9h8l-4-6z" fill="#FFE566" opacity=".7"/><path d="M8 9l-2 10h5l-3-10zm8 0l2 10h-5l3-10z" fill="#C8960E" opacity=".35"/><path d="M12 3L4 9l2 10h12l2-10L12 3z" stroke="#B8860B" stroke-width=".8" fill="none"/></svg>x1 Upload Image</button>
+            <button id="btnPickTemplateImage" class="btn btn--ghost btn--small" type="button"><img class="nuggetIcon nuggetIcon--button" src="placeholders/nuggetPlaceholder1Small.png" alt="" aria-hidden="true">x1 Upload Image</button>
             <span id="templateImageStatus" class="muted small"></span>
           </div>
         </div>
@@ -1370,6 +1555,16 @@
       - Modal content is filled by JS each time a list item is clicked.
       - Same HTML component is reused for both roles to reduce duplication.
     -->
+    <!--
+      ===================================================================
+      MODAL: SHARED FULLSCREEN HANDOUT VIEWER
+      Opened by: clicking a revealed handout
+      Closed by: btnCloseModal / clicking backdrop / Escape key
+      Key IDs: modal, modalTitle, modalContent, modalImage, modalClaimBtn
+      Related CSS: .modal, .modal__card, .modal__body
+      Related JS: openHandoutModal(), closeModal(), animateModalIn()
+      ===================================================================
+    -->
     <section id="modal" class="modal hidden">
       <div class="modal__card">
         <div class="modal__top">
@@ -1385,6 +1580,7 @@
           <div id="modalImageWrap" class="handoutModalImageWrap hidden">
             <img id="modalImage" class="handoutModalImage" alt="Handout image">
           </div>
+          <input id="modalHandoutImageUpload" type="file" accept="image/*" class="hidden">
           <button id="btnPlayerClaim" class="btn btn--primary btnPlayerClaim hidden" type="button" aria-label="Claim loot">
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true" class="btnInlineIcon"><path stroke-linecap="round" stroke-linejoin="round" d="M10.05 4.575a1.575 1.575 0 10-3.15 0v3.15M10.05 4.575a1.575 1.575 0 013.15 0v3.15M10.05 4.575v3.15M3.75 10.05a1.575 1.575 0 003.15 0m0 0V4.575m0 5.476v5.1a2.85 2.85 0 002.85 2.85h4.5a2.85 2.85 0 002.85-2.85V7.725m-10.2 2.325h10.2m0 0V4.575m0 3.15a1.575 1.575 0 013.15 0v3.15m-3.15-3.15v3.15m3.15 0a1.575 1.575 0 01-3.15 0m3.15 0v2.175a2.85 2.85 0 01-2.85 2.85"></path></svg>
             Claim
@@ -1441,7 +1637,7 @@
             <div class="mapBtnRow">
               <input id="modalMapImageUpload" type="file" accept="image/*" class="hidden">
               <button id="btnModalMapUpload" class="btn btn--ghost mapBtn" type="button">
-                <svg class="nuggetIcon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" style="width:14px;height:14px;vertical-align:-2px;margin-right:4px"><path d="M12 3L4 9l2 10h12l2-10L12 3z" fill="#F5C82F"/><path d="M12 3L8 9h8l-4-6z" fill="#FFE566" opacity=".7"/><path d="M8 9l-2 10h5l-3-10zm8 0l2 10h-5l3-10z" fill="#C8960E" opacity=".35"/><path d="M12 3L4 9l2 10h12l2-10L12 3z" stroke="#B8860B" stroke-width=".8" fill="none"/></svg>
+                <img class="nuggetIcon nuggetIcon--button" src="placeholders/nuggetPlaceholder1Small.png" alt="" aria-hidden="true">
                 Upload <span class="mapBtnCost">x1</span>
               </button>
               <button id="btnModalMapAIGenerate" class="btn btn--ghost mapBtn mapBtn--ai" type="button">
@@ -1464,6 +1660,15 @@
               <label class="label small" for="dmAssignPlayer">Assign to player</label>
               <select id="dmAssignPlayer" class="input"></select>
               <button id="btnAssignClaim" class="btn btn--ghost" type="button">Assign selected player</button>
+            </div>
+          </div>
+
+          <!-- Icon editor — DM can change the handout's emoji icon -->
+          <div id="modalIconWrap" class="emojiCustomRow" style="padding:4px 0 8px">
+            <span id="modalIconPreview" class="emojiPreview" title="Click to change icon" aria-hidden="true">🎭</span>
+            <div class="emojiCustomField">
+              <span class="emojiCustomLabel">Icon &middot; paste or type an emoji</span>
+              <input id="modalIconInput" class="emojiInput" type="text" maxlength="12" placeholder="Paste any emoji&hellip;" aria-label="Change handout icon">
             </div>
           </div>
 
@@ -1526,6 +1731,7 @@
         </div>
         <div class="playerCard__actions">
           <button id="btnEditPlayerStats" class="btn btn--ghost btn--small hidden" type="button">Edit Stats</button>
+          <button id="btnRemoveNpcProfile" class="btn btn--ghost btn--danger btn--small hidden" type="button">Remove NPC</button>
           <button id="btnKickPlayer" class="btn btn--ghost btn--danger btn--small hidden" type="button">Kick Player</button>
         </div>
       </div>
@@ -1925,12 +2131,7 @@
       </div>
 
       <div class="nuggetShop__hero">
-        <svg class="nuggetShop__icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-          <path d="M12 3L4 9l2 10h12l2-10L12 3z" fill="#F5C82F"/>
-          <path d="M12 3L8 9h8l-4-6z" fill="#FFE566" opacity=".7"/>
-          <path d="M8 9l-2 10h5l-3-10zm8 0l2 10h-5l3-10z" fill="#C8960E" opacity=".35"/>
-          <path d="M12 3L4 9l2 10h12l2-10L12 3z" stroke="#B8860B" stroke-width=".8" fill="none"/>
-        </svg>
+        <img class="nuggetIcon nuggetShop__icon" src="placeholders/nuggetPlaceholder1Small.png" alt="" aria-hidden="true">
         <div class="nuggetShop__balance">
           <span class="muted small">Your balance</span>
           <span id="nuggetShopBalance" class="nuggetShop__amount">0</span>
@@ -1976,11 +2177,14 @@
   <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.6/Sortable.min.js"></script>
 
   <!--
-    QR INVITE MODAL (GM)
-    Triggered by "Show QR Code" in the social panel.
-    Uses animateModalIn/Out (Dramatic tier motion).
-    Primary action: Copy Join Link (gold CTA).
-    Secondary: Share via native sheet / WhatsApp fallback.
+    ===================================================================
+    MODAL: QR INVITE CODE (GM)
+    Opened by: "Show QR Code" button in social panel
+    Closed by: btnCloseQRModal / Escape key
+    Key IDs: qrBox, btnCopyJoinLink, btnShareJoinLink
+    Related CSS: .qr, .qrInviteModalCard
+    Related JS: animateModalIn(), animateModalOut(), generateQRCode()
+    ===================================================================
   -->
   <section id="qrInviteModal" class="modal hidden" role="dialog" aria-modal="true" aria-label="QR invite code">
     <div class="modal__card qrInviteModalCard">
@@ -1998,7 +2202,16 @@
   <!-- jsQR: browser-native QR decoder used by the getUserMedia scanner -->
   <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
 
-  <!-- Player Initiative Modal &middot; GM enters what each player rolled -->
+  <!--
+    ===================================================================
+    MODAL: PLAYER INITIATIVE TRACKER (GM)
+    Opened by: initiative button in GM dashboard party panel
+    Closed by: btnCloseInitModal / Escape key
+    Key IDs: playerInitModalTitle, initPlayerList, btnSubmitInit
+    Related CSS: .initRow, .initInput
+    Related JS: openInitiativeModal(), submitInitiative()
+    ===================================================================
+  -->
   <section id="playerInitiativeModal" class="modal hidden" role="dialog" aria-modal="true" aria-label="Player Initiative">
     <div class="modal__card" style="max-width:400px">
       <div class="modal__top">
@@ -2054,6 +2267,9 @@
       </div>
     </div>
   </div>
+
+  <!-- reCAPTCHA v3 loader -->
+  <script src="https://www.google.com/recaptcha/api.js?render=6LeMT5EsAAAAABZpKrhXRvmiG2SLIrjUIq5mqeeK" async defer></script>
 
   <!-- App entry point -->
   <script type="module" src="index.mjs?v=20260314fix7"></script>

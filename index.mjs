@@ -64,17 +64,67 @@ import {
 // Default ports: Auth = 9099, Firestore = 8080, Storage = 9199
 const USE_EMULATORS = false;
 const IS_LOCALHOST = location.hostname === "localhost" || location.hostname === "127.0.0.1";
-const SESSION_NAME_MAX_CHARS = 48;
-const SESSION_SLUG_MAX_CHARS = 32;
+
+// ================================================================
+// ZONE: APP CONSTANTS
+// Purpose: shared timing, limits, collection paths, and screen keys.
+// ================================================================
 const UI_TIMERS = {
+  // Debounce delays
   ICON_SUGGEST_DEBOUNCE_MS: 300,
   DM_SEARCH_DEBOUNCE_MS: 250,
   CREATE_DRAFT_DEBOUNCE_MS: 500,
+  INVENTORY_SEARCH_DEBOUNCE_MS: 300,
+  // FAB timers
   FAB_HOLD_MS: 2000,
   FAB_DRAG_TOAST_MS: 1500,
+  // Presence thresholds
   ONLINE_THRESHOLD_MS: 90_000,
   AWAY_THRESHOLD_MS: 300_000,
+  // Session heartbeat
+  HEARTBEAT_MS: 20_000,
+  // Toast durations (ms)
+  TOAST_SHORT:  3_000,
+  TOAST_MED:    5_000,
+  TOAST_LONG:   7_000,
+  TOAST_NOTICE: 4_500,
+  TOAST_BRIEF:  2_400,
+  // UI feedback
+  COPY_STATE_MS:   360,
+  BUTTON_FLASH_MS: 1_800,
+  MODAL_LEAVE_MS:  420,
+  ROLL_ANIM_MS:    500,
 };
+
+// Validate limits — single source of truth for field min/max values
+const LIMITS = {
+  SESSION_NAME_MIN: 2,
+  SESSION_NAME_MAX: 48,
+  SESSION_SLUG_MAX: 32,
+  PIN_MIN: 4,
+  PIN_MAX: 8,
+  PASSWORD_MIN: 12,
+  PASSWORD_MAX: 128,
+  NICKNAME_MIN: 2,
+  NICKNAME_MAX: 30,
+  IGN_MIN: 2,
+  IGN_MAX: 30,
+};
+
+// Firestore collection path constants
+const FIREBASE_PATHS = {
+  SESSIONS: "sessions",
+  PLAYERS: "players",
+  HANDOUTS: "handouts",
+  INVENTORY: "inventory",
+  WALLETS: "wallets",
+  USERS: "users",
+  NUGGETS: "nuggets",
+  NOTIFICATIONS: "notifications",
+  TEMPLATES: "templates",
+  TEMPLATE_ASSIGNMENTS: "templateAssignments",
+};
+
 const SCREEN_KEYS = {
   LANDING: "landing",
   DM_DASH: "dmDash",
@@ -326,8 +376,18 @@ const authCard = $("authCard");
 const authGuestCta = $("authGuestCta");
 const landingHome = $("landingHome");
 const landingDisplayName = $("landingDisplayName");
+// Screen-level containers
+const authMethodScreen = $("authMethodScreen");
+const authEmailScreen = $("authEmailScreen");
+// Mode selector (Screen 1)
+const authModeSignIn = $("authModeSignIn");
+const authModeSignUp = $("authModeSignUp");
+const authBtnEmail = $("authBtnEmail");
+const authMethodErr = $("authMethodErr");
+// Tab bar (Screen 2)
 const authTabSignIn = $("authTabSignIn");
 const authTabSignUp = $("authTabSignUp");
+const btnAuthBack = $("btnAuthBack");
 const authSignIn = $("authSignIn");
 const authSignUp = $("authSignUp");
 const formSignIn = $("formSignIn");
@@ -441,6 +501,7 @@ const btnImagePrev = $("btnImagePrev");
 const btnImageNext = $("btnImageNext");
 const btnImageRandom = $("btnImageRandom");
 const btnImageSelect = $("btnImageSelect");
+const btnImageUpload = $("btnImageUpload");
 const imagePickerPanel = $("imagePickerPanel");
 const imagePickerList = $("imagePickerList");
 const createMapUploadWrap = $("createMapUploadWrap");
@@ -630,6 +691,9 @@ const modalImageWrap = $("modalImageWrap");
 const modalPublic = $("modalPublic");
 const modalSecretWrap = $("modalSecretWrap");
 const modalSecret = $("modalSecret");
+const modalIconWrap = $("modalIconWrap");
+const modalIconPreview = $("modalIconPreview");
+const modalIconInput = $("modalIconInput");
 const modalDMControls = $("modalDMControls");
 const btnToggleReveal = $("btnToggleReveal");
 const btnToggleRevealSecret = $("btnToggleRevealSecret");
@@ -642,6 +706,7 @@ const modalMapEmptyState = $("modalMapEmptyState");
 const modalMapLoadingOverlay = $("modalMapLoadingOverlay");
 const btnModalMapAIGenerate = $("btnModalMapAIGenerate");
 const modalMapImageUpload = $("modalMapImageUpload");
+const modalHandoutImageUpload = $("modalHandoutImageUpload");
 const btnModalMapUpload = $("btnModalMapUpload");
 const modalMapUploadStatus = $("modalMapUploadStatus");
 const btnAddHandoutToInitiativeModal = $("btnAddHandoutToInitiativeModal");
@@ -1027,10 +1092,12 @@ function getJoinedSessionEntries() {
       const joinTag = String(entry?.joinTag || "").trim();
       const sessionName = String(entry?.sessionName || "").trim();
       const lastSeenAtMs = Number(entry?.lastSeenAtMs || 0);
+      const pin = String(entry?.pin || "").trim();
       entry.sessionId = sessionId;
       entry.joinTag = joinTag || sessionId;
       entry.sessionName = sessionName;
       entry.lastSeenAtMs = Number.isFinite(lastSeenAtMs) ? lastSeenAtMs : 0;
+      entry.pin = /^\d{4,8}$/.test(pin) ? pin : "";
       return true;
     });
   } catch {
@@ -1048,17 +1115,32 @@ function rememberJoinedSession(entry) {
 
   const joinTag = String(entry?.joinTag || "").trim() || sessionId;
   const sessionName = String(entry?.sessionName || "").trim();
-  const existing = getJoinedSessionEntries().filter((item) => item.sessionId !== sessionId);
+  const nextPin = String(entry?.pin || "").trim();
+  const existingAll = getJoinedSessionEntries();
+  const existingMatch = existingAll.find((item) => item.sessionId === sessionId) || null;
+  const existing = existingAll.filter((item) => item.sessionId !== sessionId);
+  const pin = /^\d{4,8}$/.test(nextPin)
+    ? nextPin
+    : String(existingMatch?.pin || "").trim();
 
   saveJoinedSessionEntries([
     {
       sessionId,
       joinTag,
       sessionName,
+      pin: /^\d{4,8}$/.test(pin) ? pin : "",
       lastSeenAtMs: Date.now(),
     },
     ...existing,
   ]);
+}
+
+function getRememberedJoinedSessionPin(sessionIdRaw) {
+  const sessionId = String(sessionIdRaw || "").trim();
+  if (!sessionId) return "";
+  const entry = getJoinedSessionEntries().find((item) => item.sessionId === sessionId);
+  const pin = String(entry?.pin || "").trim();
+  return /^\d{4,8}$/.test(pin) ? pin : "";
 }
 
 function forgetJoinedSession(sessionIdRaw) {
@@ -1074,6 +1156,7 @@ function rememberCurrentPlayerSessionForList() {
     sessionId: state.sessionId,
     joinTag: state.joinTag || state.sessionId,
     sessionName: state.sessionName || "",
+    pin: getRememberedJoinedSessionPin(state.sessionId),
   });
 }
 
@@ -1701,19 +1784,30 @@ async function loadUserProfile(uid, { role = "player", force = false } = {}) {
   }
 }
 
+// Returns `url` if truthy, otherwise picks a stable deterministic placeholder
+// image from EMPTY_PROFILE_PLACEHOLDER_URLS based on a hash of the uid.
+// This ensures a placeholder PNG is always shown, never a blank avatar slot.
+function resolveDisplayAvatar(url, uid) {
+  const trimmed = String(url || "").trim();
+  if (trimmed) return trimmed;
+  if (!EMPTY_PROFILE_PLACEHOLDER_URLS || !EMPTY_PROFILE_PLACEHOLDER_URLS.length) return "";
+  const hash = String(uid || "").split("").reduce((acc, c) => acc + c.charCodeAt(0), 0);
+  return EMPTY_PROFILE_PLACEHOLDER_URLS[hash % EMPTY_PROFILE_PLACEHOLDER_URLS.length];
+}
+
 function setProfileAvatarPreview(url) {
-  const avatar = String(url || "").trim();
+  const resolved = resolveDisplayAvatar(url, state.uid);
   if (profileAvatarPreview) {
-    profileAvatarPreview.classList.toggle("hidden", !avatar);
-    if (avatar) profileAvatarPreview.src = avatar;
+    profileAvatarPreview.classList.toggle("hidden", !resolved);
+    if (resolved) profileAvatarPreview.src = resolved;
     else profileAvatarPreview.removeAttribute("src");
   }
-  profileAvatarPlaceholder?.classList.toggle("hidden", !!avatar);
+  profileAvatarPlaceholder?.classList.toggle("hidden", !!resolved);
 }
 
 function updateTopBarAvatar(url) {
   if (!bottomBarAvatarImg) return;
-  const src = String(url || "").trim();
+  const src = resolveDisplayAvatar(url, state.uid);
   bottomBarAvatarImg.classList.toggle("hidden", !src);
   if (src) bottomBarAvatarImg.src = src;
   else bottomBarAvatarImg.removeAttribute("src");
@@ -2093,9 +2187,13 @@ async function renderProfileScreen() {
   try {
     const role = isGM ? "dm" : "player";
     const profile = await loadUserProfile(state.uid, { role, force: false });
+    const alternateRole = role === "dm" ? "player" : "dm";
+    const fallbackProfile = await loadUserProfile(state.uid, { role: alternateRole, force: false });
+    const resolvedTopBarAvatar = String(profile?.avatarUrl || fallbackProfile?.avatarUrl || "").trim();
+    updateTopBarAvatar(resolvedTopBarAvatar);
 
     // Update hero section (player + GM use separate DOM nodes).
-    const src = String(profile.avatarUrl || "").trim();
+    const src = resolveDisplayAvatar(profile.avatarUrl, state.uid);
     if (isGM) {
       if (profileGMImg) {
         profileGMImg.classList.toggle("hidden", !src);
@@ -2250,10 +2348,9 @@ async function saveCurrentProfile() {
   profileSaveMsg && (profileSaveMsg.textContent = "Profile saved.");
   showToast("Profile saved.", "success");
 
-  // Navigate back to the previous screen after a short delay
+  // Navigate back to the main handout page after a short delay
   setTimeout(() => {
-    const target = resolveScreenKey(settingsProfileReturnScreenKey || "settings");
-    showOnly(target);
+    showOnly(getDefaultRoleScreen());
   }, 400);
 }
 
@@ -2263,12 +2360,8 @@ async function uploadOwnAvatar(file) {
     profileAvatarStatus && (profileAvatarStatus.textContent = "Please upload an image file.");
     return;
   }
-  if (file.size > 5 * 1024 * 1024) {
-    profileAvatarStatus && (profileAvatarStatus.textContent = "Image must be under 5 MB.");
-    showToast("Image must be under 5 MB.", "error");
-    return;
-  }
   profileAvatarStatus && (profileAvatarStatus.textContent = "Uploading profile picture...");
+  try { file = await compressImageToMaxSize(file); } catch (_) { profileAvatarStatus && (profileAvatarStatus.textContent = "Could not process image."); return; }
   const ext = (file.name.split(".").pop() || "png").toLowerCase();
   const path = `users/${state.uid}/avatar-${Date.now()}.${ext}`;
   const avatarRef = storageRef(storage, path);
@@ -2298,24 +2391,19 @@ async function uploadOwnAvatar(file) {
 
 async function ensureOwnProfileLoaded() {
   if (!state.uid) return;
-  let profile;
+  let primaryProfile;
+  let fallbackProfile;
   try {
     const preferredRole = normalizeProfileRole(state.role || "player");
-    profile = await loadUserProfile(state.uid, { role: preferredRole });
-    if (!profile?.avatarUrl && preferredRole === "dm") {
-      const fallbackPlayerProfile = await loadUserProfile(state.uid, { role: "player" });
-      if (fallbackPlayerProfile?.avatarUrl) {
-        profile = {
-          ...profile,
-          avatarUrl: fallbackPlayerProfile.avatarUrl,
-        };
-      }
-    }
+    const alternateRole = preferredRole === "dm" ? "player" : "dm";
+    primaryProfile = await loadUserProfile(state.uid, { role: preferredRole });
+    fallbackProfile = await loadUserProfile(state.uid, { role: alternateRole });
   } catch (err) {
     console.warn("Profile preload skipped:", err);
     return;
   }
-  updateTopBarAvatar(profile.avatarUrl);
+  const resolvedAvatarUrl = String(primaryProfile?.avatarUrl || fallbackProfile?.avatarUrl || "").trim();
+  updateTopBarAvatar(resolvedAvatarUrl);
 }
 
 async function hydrateActivePlayerProfiles(players) {
@@ -2943,10 +3031,17 @@ async function spendNuggetWithFeedback(reason) {
   return true;
 }
 
+function confirmNuggetCost(message) {
+  return window.confirm(`${message}\n\nThis action costs 1 nugget. Proceed?`);
+}
+
 let pendingAvatarNugget = false;
 let pendingTemplateNugget = false;
 let pendingHandoutNugget = false;
 let pendingInventoryNugget = false;
+let profileAvatarUploadConfirmed = false;
+let createHandoutImageUploadConfirmed = false;
+let editHandoutImageUploadConfirmed = false;
 
 // -- GM Role Transfer --
 // Flow: GM picks player ? sets PIN ? writes pendingTransfer doc ? target
@@ -3139,11 +3234,13 @@ templateImage?.addEventListener("change", async () => {
     return;
   }
   if (templateImageStatus) templateImageStatus.textContent = "Uploading...";
-  const ext = (file.name.split(".").pop() || "png").toLowerCase();
+  let uploadFile;
+  try { uploadFile = await compressImageToMaxSize(file); } catch (_) { if (templateImageStatus) templateImageStatus.textContent = "Could not process image."; return; }
+  const ext = (uploadFile.name.split(".").pop() || "png").toLowerCase();
   const path = `users/${state.uid}/templates/${Date.now()}.${ext}`;
   const ref = storageRef(storage, path);
   try {
-    await uploadBytes(ref, file, { contentType: file.type });
+    await uploadBytes(ref, uploadFile, { contentType: uploadFile.type });
     pendingTemplateImageUrl = await getDownloadURL(ref);
     if (templateImagePreview) {
       templateImagePreview.src = pendingTemplateImageUrl;
@@ -3243,40 +3340,51 @@ async function renderTemplateList() {
     templates.forEach(t => {
       const card = document.createElement("div");
       card.className = "templateCard item item--clickable";
-      const statusCls = t.assignmentStatus === "accepted" ? "templateCard__status--accepted"
-        : t.assignmentStatus === "rejected" ? "templateCard__status--rejected"
-        : t.assignmentStatus === "pending" ? "templateCard__status--pending"
-        : "";
-      const statusLabel = t.assignmentStatus === "unassigned" ? "Unassigned"
-        : t.assignmentStatus === "pending" ? "Pending"
-        : t.assignmentStatus === "accepted" ? "Accepted"
+
+      // Status badge
+      const statusBadgeCls = t.assignmentStatus === "accepted" ? "templateCard__badge templateCard__badge--accepted"
+        : t.assignmentStatus === "rejected" ? "templateCard__badge templateCard__badge--rejected"
+        : t.assignmentStatus === "pending" ? "templateCard__badge templateCard__badge--pending"
+        : "templateCard__badge";
+      const statusIcon = t.assignmentStatus === "accepted"
+        ? `<svg viewBox="0 0 24 24" fill="none" aria-hidden="true" style="width:11px;height:11px;flex-shrink:0"><path d="M4.5 12.75l6 6 9-13.5" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`
+        : t.assignmentStatus === "rejected"
+        ? `<svg viewBox="0 0 24 24" fill="none" aria-hidden="true" style="width:11px;height:11px;flex-shrink:0"><path d="M6 18L18 6M6 6l12 12" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg>`
+        : t.assignmentStatus === "pending"
+        ? `<svg viewBox="0 0 24 24" fill="none" aria-hidden="true" style="width:11px;height:11px;flex-shrink:0"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2"/><path d="M12 7v5l3 3" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>`
+        : `<svg viewBox="0 0 24 24" fill="none" aria-hidden="true" style="width:11px;height:11px;flex-shrink:0"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2" stroke-dasharray="3 3"/></svg>`;
+      const statusLabel = t.assignmentStatus === "accepted" ? "Accepted"
         : t.assignmentStatus === "rejected" ? "Rejected"
-        : t.assignmentStatus || "Unassigned";
+        : t.assignmentStatus === "pending" ? "Pending"
+        : "Unassigned";
+
+      // Avatar
+      const initial = escapeHtml((t.name || "?").trim().charAt(0).toUpperCase());
+      const avatarHtml = t.imageUrl
+        ? `<img class="templateCard__avatar" src="${escapeHtml(t.imageUrl)}" alt="${escapeHtml(t.name)}" loading="lazy">`
+        : `<div class="templateCard__avatar templateCard__avatar--initials" aria-hidden="true">${initial}</div>`;
+
       card.innerHTML = `
-        <div class="templateCard__header">
-          <strong>${escapeHtml(t.name)}</strong>
-          <div class="templateCard__statusWrap">
-            <span class="templateCard__status ${statusCls}"></span>
-            <span class="templateCard__statusLabel muted small">${statusLabel}</span>
+        ${avatarHtml}
+        <div class="templateCard__body">
+          <div class="templateCard__titleRow">
+            <strong class="templateCard__name">${escapeHtml(t.name)}</strong>
+            <span class="${statusBadgeCls}">${statusIcon}${statusLabel}</span>
           </div>
+          <p class="templateCard__bio muted small">${escapeHtml(t.bio || "")}</p>
         </div>
-        <p class="muted small">${escapeHtml(t.bio || "")}</p>
         <div class="templateActions">
           <button class="btn btn--small btn--ghost tpl-edit templateActionBtn" type="button" aria-label="Edit premade profile" title="Edit">
             <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M16.862 4.487a2.25 2.25 0 1 1 3.182 3.182L9.75 17.963 6 18.75l.787-3.75L16.862 4.487Z" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
-            <span>Edit</span>
           </button>
-          <button class="btn btn--small btn--ghost tpl-assign templateActionBtn" type="button" ${t.assignmentStatus === "accepted" ? "disabled" : ""} aria-label="Assign premade profile" title="Assign">
-            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><circle cx="12" cy="7" r="4" stroke="currentColor" stroke-width="1.8"/><path d="M19 8v4m2-2h-4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
-            <span>Assign</span>
+          <button class="btn btn--small btn--ghost tpl-assign templateActionBtn" type="button" ${t.assignmentStatus === "accepted" ? "disabled" : ""} aria-label="Assign to player" title="Assign to player">
+            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z" fill="currentColor"/></svg>
           </button>
-          <button class="btn btn--small btn--ghost tpl-qr templateActionBtn" type="button" ${t.assignedToUid ? "disabled" : ""} aria-label="Show QR code" title="QR code">
+          <button class="btn btn--small btn--ghost tpl-qr templateActionBtn" type="button" ${t.assignedToUid ? "disabled" : ""} aria-label="Share via QR code" title="Share via QR code">
             <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><rect x="4" y="4" width="6" height="6" rx="1.2" stroke="currentColor" stroke-width="1.8"/><rect x="14" y="4" width="6" height="6" rx="1.2" stroke="currentColor" stroke-width="1.8"/><rect x="4" y="14" width="6" height="6" rx="1.2" stroke="currentColor" stroke-width="1.8"/><path d="M15 14h2v2h-2v-2Zm3 0h2v4h-2v-4Zm-3 3h2v3h-2v-3Z" fill="currentColor"/></svg>
-            <span>QR</span>
           </button>
-          <button class="btn btn--small btn--ghost tpl-delete templateActionBtn" type="button" style="color:var(--danger)" aria-label="Delete premade profile" title="Delete">
+          <button class="btn btn--small btn--danger tpl-delete templateActionBtn" type="button" aria-label="Delete premade profile" title="Delete profile">
             <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M9 4h6m-9 3h12m-9 0v11a2 2 0 0 0 2 2h2a2 2 0 0 0 2-2V7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
-            <span>Delete</span>
           </button>
         </div>
       `;
@@ -3510,6 +3618,7 @@ btnNotesUndo?.addEventListener("click", () => {
 const btnNotesSave = $("btnNotesSave");
 btnNotesSave?.addEventListener("click", () => {
   saveNotesNow(true);
+  setTimeout(() => showOnly(getDefaultRoleScreen()), 400);
 });
 
 btnNotesBack && (btnNotesBack.onclick = () => {
@@ -3983,13 +4092,13 @@ function loadLocal() {
 }
 
 function slugifySessionName(name) {
-  const trimmed = String(name || "").trim().slice(0, SESSION_NAME_MAX_CHARS);
+  const trimmed = String(name || "").trim().slice(0, LIMITS.SESSION_NAME_MAX);
   const base = trimmed
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-+|-+$/g, "")
     .replace(/-{2,}/g, "-")
-    .slice(0, SESSION_SLUG_MAX_CHARS)
+    .slice(0, LIMITS.SESSION_SLUG_MAX)
     .replace(/^-+|-+$/g, "");
   return base || "session";
 }
@@ -5021,11 +5130,10 @@ function syncCreateTypeDependentUI() {
   toggleNpcSpecificUI();
   const isMap = isMapHandoutType(dmType?.value);
   createMapUploadWrap?.classList.toggle("hidden", !isMap);
-  if (!isMap && handoutImageStatus) {
-    handoutImageStatus.textContent = "Map upload is available for Map handouts only.";
-  }
   if (isMap && handoutImageStatus && !String(handoutImageStatus.textContent || "").trim()) {
     handoutImageStatus.textContent = "Upload a map image (cost: 1 nugget).";
+  } else if (!isMap && handoutImageStatus && !String(handoutImageStatus.textContent || "").trim()) {
+    handoutImageStatus.textContent = "Upload your own portrait (costs 1 nugget when creating).";
   }
 }
 
@@ -5045,11 +5153,50 @@ function getVisibleHandoutImageUrl(handout, role = state.role, uid = state.uid) 
   return String(handout?.imageUrl || "").trim();
 }
 
+/**
+ * Compresses an image File to fit within maxBytes using canvas re-encoding.
+ * Returns the original file unchanged when it already fits.
+ * Always outputs JPEG for images that need compression.
+ */
+async function compressImageToMaxSize(file, maxBytes = 5 * 1024 * 1024) {
+  if (file.size <= maxBytes) return file;
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    const objectUrl = URL.createObjectURL(file);
+    img.onload = () => {
+      URL.revokeObjectURL(objectUrl);
+      const canvas = document.createElement("canvas");
+      const tryCompress = (w, h, quality) => {
+        canvas.width = w;
+        canvas.height = h;
+        const ctx = canvas.getContext("2d");
+        ctx.drawImage(img, 0, 0, w, h);
+        canvas.toBlob(blob => {
+          if (!blob) { reject(new Error("Compression failed")); return; }
+          const name = file.name.replace(/\.[^.]+$/, "") + ".jpg";
+          if (blob.size <= maxBytes) {
+            resolve(new File([blob], name, { type: "image/jpeg" }));
+          } else if (quality > 0.3) {
+            tryCompress(w, h, Math.round((quality - 0.1) * 10) / 10);
+          } else if (w > 50 && h > 50) {
+            tryCompress(Math.round(w * 0.75), Math.round(h * 0.75), 0.85);
+          } else {
+            resolve(new File([blob], name, { type: "image/jpeg" }));
+          }
+        }, "image/jpeg", quality);
+      };
+      tryCompress(img.naturalWidth, img.naturalHeight, 0.85);
+    };
+    img.onerror = () => { URL.revokeObjectURL(objectUrl); reject(new Error("Image load failed")); };
+    img.src = objectUrl;
+  });
+}
+
 async function uploadMapImageToStorage(file, { handoutId = "create" } = {}) {
   if (!file) return { ok: false, message: "No file selected." };
   if (!state.uid || !state.sessionId) return { ok: false, message: "Sign in is required before uploading maps." };
   if (!file.type.startsWith("image/")) return { ok: false, message: "Please select an image file." };
-  if (file.size > 5 * 1024 * 1024) return { ok: false, message: "Image must be under 5\u00a0MB." };
+  try { file = await compressImageToMaxSize(file); } catch (_) { return { ok: false, message: "Could not process image." }; }
 
   const spent = await spendNuggetWithFeedback("map image upload");
   if (!spent) return { ok: false, message: "Not enough nuggets for upload." };
@@ -5074,6 +5221,30 @@ async function uploadMapImageToStorage(file, { handoutId = "create" } = {}) {
       return { ok: false, message: "Upload blocked by Storage rules." };
     }
     return { ok: false, message: "Upload failed. Nugget refunded." };
+  }
+}
+
+async function uploadHandoutImageToStorage(file, { handoutId = "create" } = {}) {
+  if (!file) return { ok: false, message: "No file selected." };
+  if (!state.uid || !state.sessionId) return { ok: false, message: "Sign in is required before uploading images." };
+  if (!file.type.startsWith("image/")) return { ok: false, message: "Please select an image file." };
+  try { file = await compressImageToMaxSize(file); } catch (_) { return { ok: false, message: "Could not process image." }; }
+
+  const ext = (file.name.split(".").pop() || "png").toLowerCase();
+  const path = `users/${state.uid}/handouts/${state.sessionId}/${handoutId}-${Date.now()}.${ext}`;
+  const ref = storageRef(storage, path);
+
+  try {
+    await uploadBytes(ref, file, { contentType: file.type });
+    const url = await getDownloadURL(ref);
+    return { ok: true, url, path };
+  } catch (err) {
+    console.error("Handout image upload failed:", err);
+    const msg = String(err?.message || "").toLowerCase();
+    if (msg.includes("unauthorized") || msg.includes("403") || msg.includes("permission")) {
+      return { ok: false, message: "Upload blocked by Storage rules." };
+    }
+    return { ok: false, message: "Upload failed." };
   }
 }
 
@@ -5169,7 +5340,11 @@ async function upsertNpcIntoInitiative(name, linkedNpcHandout, dexMod) {
 
 async function addNpcToInitiativeFromHandoutName(name, linkedNpcHandout = null) {
   if (state.role !== "dm" || !state.sessionId) return;
-  const safeName = String(name || "").trim() || "Unknown Enemy";
+  const safeName = String(name || "").trim();
+  if (!safeName) {
+    showToast("NPC name is required before adding to initiative.", "error");
+    return;
+  }
   const linked = linkedNpcHandout || findLinkedNpcHandoutByName(safeName);
   const dexInput = window.prompt(`DEX modifier for ${safeName} (e.g. +2)`, "0");
   if (dexInput === null) return;
@@ -5205,7 +5380,17 @@ function setupCreateBuilderUI() {
   // "Add for Initiative" button in NPC handout creation
   const btnAddHandoutToInitiative = $("btnAddHandoutToInitiative");
   btnAddHandoutToInitiative?.addEventListener("click", async () => {
-    const name = String(dmTitle?.value || "").trim() || "Unknown Enemy";
+    const name = String(dmTitle?.value || "").trim();
+    const pub = String(dmPublic?.value || "").trim();
+    const validationError = validateHandoutCoreFields({
+      title: name,
+      publicContent: pub,
+      type: "npc",
+    });
+    if (validationError) {
+      showToast(validationError, "error");
+      return;
+    }
     await addNpcToInitiativeFromHandoutName(name);
   });
 
@@ -5278,6 +5463,20 @@ function setupCreateBuilderUI() {
     const opening = !!imagePickerPanel?.classList.contains("hidden");
     if (opening) renderImagePicker();
     setImagePickerOpen(opening);
+  });
+
+  btnImageUpload?.addEventListener("click", () => {
+    const isMap = isMapHandoutType(dmType?.value);
+    if (!isMap) {
+      const confirmed = confirmNuggetCost("Uploading or changing this handout portrait");
+      if (!confirmed) {
+        createHandoutImageUploadConfirmed = false;
+        if (handoutImageStatus) handoutImageStatus.textContent = "Handout portrait upload canceled.";
+        return;
+      }
+      createHandoutImageUploadConfirmed = true;
+    }
+    handoutImageUpload?.click();
   });
 
   bindDelegatedClick(imagePickerList, ".imagePickerTile", (tile) => {
@@ -5383,6 +5582,27 @@ function escapeHtml(s) {
     .replaceAll(">", "&gt;")
     .replaceAll('"', "&quot;")
     .replaceAll("'", "&#039;");
+}
+
+function getSafeHandoutTitle(handout) {
+  const rawTitle = String(handout?.title || "").trim();
+  if (rawTitle) return rawTitle;
+  return String(handout?.type || "").toLowerCase() === "npc" ? "Unnamed NPC" : "Untitled Handout";
+}
+
+function validateHandoutCoreFields({ title, publicContent, type }) {
+  const safeTitle = String(title || "").trim();
+  const safePublic = String(publicContent || "").trim();
+  const isNpc = String(type || "").toLowerCase() === "npc";
+
+  if (!safeTitle) {
+    return isNpc ? "NPC name is required." : "Handout name is required.";
+  }
+  if (!safePublic) {
+    return isNpc ? "NPC bio is required." : "Public content is required.";
+  }
+
+  return "";
 }
 
 function normalizeIconKey(iconValue) {
@@ -5693,8 +5913,62 @@ function clearFieldError(el) {
 
 function clearAllAuthErrors() {
   [signInEmailErr, signInPasswordErr, signInFormErr,
-   signUpIGNErr, signUpEmailErr, signUpPasswordErr, signUpConfirmErr, signUpFormErr
+   signUpIGNErr, signUpEmailErr, signUpPasswordErr, signUpConfirmErr, signUpFormErr,
+   authMethodErr
   ].forEach(clearFieldError);
+}
+
+// ── reCAPTCHA v3 ─────────────────────────────────────────────────────────────
+const RECAPTCHA_SITE_KEY = "6LeMT5EsAAAAABZpKrhXRvmiG2SLIrjUIq5mqeeK";
+const RECAPTCHA_VERIFY_ENDPOINT = "/api/verifyRecaptcha";
+
+async function executeRecaptcha(action) {
+  if (RECAPTCHA_SITE_KEY === "YOUR_SITE_KEY") return null; // not yet configured
+  if (!window.grecaptcha) return null; // script not loaded
+  try {
+    await new Promise((resolve) => window.grecaptcha.ready(resolve));
+    return await window.grecaptcha.execute(RECAPTCHA_SITE_KEY, { action });
+  } catch (e) {
+    console.warn("reCAPTCHA execution failed:", e);
+    return null;
+  }
+}
+
+async function verifyRecaptchaToken(action, token) {
+  const res = await fetch(RECAPTCHA_VERIFY_ENDPOINT, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ action, token }),
+  });
+
+  let payload = null;
+  try {
+    payload = await res.json();
+  } catch {
+    payload = null;
+  }
+
+  return {
+    ok: res.ok,
+    success: payload?.success === true,
+    message: payload?.message || "Security verification failed.",
+  };
+}
+
+async function requireRecaptcha(action) {
+  const token = await executeRecaptcha(action);
+  if (!token) {
+    const err = new Error("Security check unavailable. Refresh and try again.");
+    err.code = "recaptcha/unavailable";
+    throw err;
+  }
+
+  const verification = await verifyRecaptchaToken(action, token);
+  if (!verification.ok || !verification.success) {
+    const err = new Error(verification.message || "Security verification failed.");
+    err.code = "recaptcha/failed";
+    throw err;
+  }
 }
 
 function setSubmitLoading(btn, loading) {
@@ -5725,6 +5999,8 @@ function friendlyAuthError(code) {
     "auth/account-exists-with-different-credential": "An account already exists with this email using a different sign-in method.",
     "auth/network-request-failed": "Network error. Check your connection.",
     "auth/invalid-email": "Please enter a valid email address.",
+    "recaptcha/unavailable": "Security check unavailable. Refresh the page and try again.",
+    "recaptcha/failed": "Security verification failed. Please try again.",
   };
   return map[code] || "Something went wrong. Please try again.";
 }
@@ -5940,16 +6216,19 @@ async function ensureFirestoreProfile(user, extraData = {}) {
           },
         },
       });
-    } else if (extraData.displayName || extraData.lastName || user.displayName) {
-      // Merge provided fields into existing profile
+    } else if (extraData.displayName || extraData.lastName) {
+      // Only update if TomeVault explicitly provides a name — never let the auth
+      // provider's displayName (e.g. Google account name) overwrite the user's
+      // custom in-game name on an existing profile.
       const updates = {};
-      if (resolvedDisplayName) {
-        updates.displayName = resolvedDisplayName;
-        updates["roleProfiles.player.displayName"] = resolvedDisplayName;
-        updates["roleProfiles.dm.displayName"] = resolvedDisplayName;
+      const explicitName = String(extraData.displayName || "").trim();
+      if (explicitName) {
+        updates.displayName = explicitName;
+        updates["roleProfiles.player.displayName"] = explicitName;
+        updates["roleProfiles.dm.displayName"] = explicitName;
       }
       if (extraData.lastName) updates.lastName = extraData.lastName;
-      await updateDoc(userRef, updates);
+      if (Object.keys(updates).length > 0) await updateDoc(userRef, updates);
     }
   } catch (e) {
     console.warn("ensureFirestoreProfile error:", e);
@@ -6080,6 +6359,11 @@ async function cleanupOwnedExpiredOneShots(uid) {
   }
 }
 
+// ================================================================
+// ZONE: AUTHENTICATION FLOW
+// Purpose: auth state bootstrap, sign-in/up providers, guest mode, session ping.
+// ================================================================
+
 // Core auth initializer � returns a promise that resolves on first auth state.
 // Does NOT auto-sign-in anonymously; user must choose.
 //
@@ -6145,6 +6429,12 @@ async function signUpWithEmail() {
     hasErr = true;
   }
   if (hasErr) return;
+  try {
+    await requireRecaptcha("sign_up");
+  } catch (e) {
+    showFieldError(signUpFormErr, authErrorWithCode(e.code));
+    return;
+  }
 
   setSubmitLoading(btnSignUp, true);
   showAuthLoading("Creating your account...");
@@ -6180,7 +6470,7 @@ async function signUpWithEmail() {
 
     updateLandingAuthState();
     if (!user.emailVerified) {
-      showToast("Account created. You're signed in now - please verify your email when convenient.", "info", 7000);
+      showToast("Account created. You're signed in now - please verify your email when convenient.", "info", UI_TIMERS.TOAST_LONG);
     } else {
       showToast("Account created. Welcome to TomeVault!", "success", 4500);
     }
@@ -6209,6 +6499,20 @@ async function signInWithEmailFn() {
   if (!pw) { showFieldError(signInPasswordErr, "Enter your password."); hasErr = true; }
   if (hasErr) return;
 
+  let recaptchaBypassed = false;
+  try {
+    await requireRecaptcha("sign_in");
+  } catch (e) {
+    const isRecaptchaFailure = e?.code === "recaptcha/unavailable" || e?.code === "recaptcha/failed";
+    if (!isRecaptchaFailure) {
+      showFieldError(signInFormErr, authErrorWithCode(e.code));
+      return;
+    }
+    // Keep account access available when reCAPTCHA has infra/false-negative issues.
+    recaptchaBypassed = true;
+    console.warn("Sign-in reCAPTCHA verification bypassed:", e);
+  }
+
   setSubmitLoading(btnSignIn, true);
   showAuthLoading("Signing you in...");
   try {
@@ -6219,7 +6523,7 @@ async function signInWithEmailFn() {
       } catch (verificationErr) {
         console.warn("Resend verification failed:", verificationErr);
       }
-      showToast("Signed in, but your email is not verified yet. A new verification link was sent.", "info", 7000);
+      showToast("Signed in, but your email is not verified yet. A new verification link was sent.", "info", UI_TIMERS.TOAST_LONG);
     }
 
     state.uid = result.user.uid;
@@ -6231,6 +6535,9 @@ async function signInWithEmailFn() {
     const nick = await requireNickname();
     if (nick) state.displayName = nick;
     updateLandingAuthState();
+    if (recaptchaBypassed) {
+      showToast("Signed in. Security check was unavailable and was bypassed for this attempt.", "info", UI_TIMERS.TOAST_MEDIUM);
+    }
     showToast("Welcome back, " + (state.displayName || "Adventurer") + "!", "success");
   } catch (e) {
     console.error("Sign in error:", e);
@@ -6242,14 +6549,16 @@ async function signInWithEmailFn() {
 }
 
 // Sign in / sign up with Google (auto-links anonymous accounts)
-async function signInWithGoogleFn(sourceTab = "signIn") {
+async function signInWithGoogleFn() {
   if (googleAuthInFlight) {
-    showToast("Google sign-in is already in progress...", "info", 2400);
+    showToast("Google sign-in is already in progress...", "info", UI_TIMERS.TOAST_BRIEF);
     return;
   }
+
   googleAuthInFlight = true;
   clearAllAuthErrors();
-  const googleErrorTarget = sourceTab === "signUp" ? signUpFormErr : signInFormErr;
+  // Google button is on Screen 1 — errors surface to authMethodErr
+  const googleErrorTarget = authMethodErr;
   let redirectHandoff = false;
   showAuthLoading("Connecting to Google...");
   try {
@@ -6262,7 +6571,7 @@ async function signInWithGoogleFn(sourceTab = "signIn") {
         if (linkErr.code === "auth/credential-already-in-use") {
           // Google account already exists � sign in directly
           result = await signInWithPopup(auth, googleProvider);
-          showToast("Signed in with existing Google account.", "info", 3000);
+          showToast("Signed in with existing Google account.", "info", UI_TIMERS.TOAST_SHORT);
         } else {
           throw linkErr;
         }
@@ -6289,7 +6598,7 @@ async function signInWithGoogleFn(sourceTab = "signIn") {
 
     if (e.code === "auth/cancelled-popup-request") {
       // Usually caused by overlapping popup attempts (double taps / repeated clicks).
-      showToast("Google sign-in was interrupted. Please try again once.", "info", 3200);
+      showToast("Google sign-in was interrupted. Please try again once.", "info", UI_TIMERS.TOAST_SHORT);
       return;
     }
 
@@ -6308,14 +6617,14 @@ async function signInWithGoogleFn(sourceTab = "signIn") {
         redirectHandoff = false;
         console.error("Google redirect fallback error:", redirectErr);
         showFieldError(googleErrorTarget, authErrorWithCode(redirectErr.code));
-        showToast(authErrorWithCode(redirectErr.code), "error", 7000);
+        showToast(authErrorWithCode(redirectErr.code), "error", UI_TIMERS.TOAST_LONG);
         return;
       }
     }
 
     console.error("Google sign-in error:", e);
     showFieldError(googleErrorTarget, authErrorWithCode(e.code));
-    showToast(authErrorWithCode(e.code), "error", 7000);
+    showToast(authErrorWithCode(e.code), "error", UI_TIMERS.TOAST_LONG);
   } finally {
     if (!redirectHandoff) googleAuthInFlight = false;
     if (!redirectHandoff) hideAuthLoading();
@@ -6332,11 +6641,11 @@ async function sendResetEmailFn() {
   }
   try {
     await sendPasswordResetEmail(auth, email);
-    showToast("If that email exists, a password reset link has been sent.", "success", 5000);
+    showToast("If that email exists, a password reset link has been sent.", "success", UI_TIMERS.TOAST_MED);
   } catch (e) {
     console.error("Reset email error:", e);
     // Show generic message for security (don't reveal if email exists)
-    showToast("If that email exists, a password reset link has been sent.", "success", 5000);
+    showToast("If that email exists, a password reset link has been sent.", "success", UI_TIMERS.TOAST_MED);
   }
 }
 
@@ -6375,6 +6684,7 @@ async function signOutFn() {
   localStorage.removeItem("tv_isGuest");
   cleanupListeners();
   showOnly(SCREEN_KEYS.LANDING);
+  showAuthMethodScreen();
   updateLandingAuthState();
   showToast("Signed out.", "info");
 }
@@ -6382,6 +6692,8 @@ async function signOutFn() {
 // Guest one-shot entry (anonymous auth)
 async function startGuestOneShot(targetRole = "dm") {
   try {
+    const recaptchaAction = targetRole === "player" ? "one_shot_join" : "one_shot_create";
+    await requireRecaptcha(recaptchaAction);
     if (!auth.currentUser) {
       await signInAnonymously(auth);
     }
@@ -6389,7 +6701,7 @@ async function startGuestOneShot(targetRole = "dm") {
     state.isGuest = true;
     state.isSignedIn = true;
     localStorage.setItem("tv_isGuest", "1");
-    showToast("One-shot mode � your session expires in 24 hours.", "info", 5000);
+    showToast("One-shot mode � your session expires in 24 hours.", "info", UI_TIMERS.TOAST_MED);
     // Navigate directly based on selected guest action
     const openAsPlayer = targetRole === "player";
     state.role = openAsPlayer ? "player" : "dm";
@@ -6411,11 +6723,11 @@ function startHeartbeat() {
   stopHeartbeat();
   heartbeatTimer = setInterval(async () => {
     if (!state.sessionId || !state.uid) return;
-    const playerRef = doc(db, "sessions", state.sessionId, "players", state.uid);
+    const playerRef = doc(db, FIREBASE_PATHS.SESSIONS, state.sessionId, FIREBASE_PATHS.PLAYERS, state.uid);
     try {
       await setDoc(playerRef, { lastSeenAt: serverTimestamp() }, { merge: true });
     } catch {}
-  }, 20000);
+  }, UI_TIMERS.HEARTBEAT_MS);
 }
 
 function stopHeartbeat() {
@@ -6443,8 +6755,30 @@ btnGoPlayer && (btnGoPlayer.onclick = () => {
 });
 
 // ---- Auth UI wiring ----
-// Tab switching
+// Two-level state:
+//   activeAuthView  — which card screen is shown ("method" | "email")
+//   activeAuthTab   — which mode is active ("signIn" | "signUp")
+let activeAuthView = "method";
 let activeAuthTab = "signIn";
+
+function showAuthMethodScreen() {
+  activeAuthView = "method";
+  authMethodScreen?.classList.remove("hidden");
+  authEmailScreen?.classList.add("hidden");
+  clearAllAuthErrors();
+}
+
+function showAuthEmailScreen() {
+  activeAuthView = "email";
+  authMethodScreen?.classList.add("hidden");
+  authEmailScreen?.classList.remove("hidden");
+  clearAllAuthErrors();
+  // Focus the first visible input for keyboard accessibility
+  requestAnimationFrame(() => {
+    const firstInput = authEmailScreen?.querySelector("input:not([disabled])");
+    firstInput?.focus();
+  });
+}
 
 function switchAuthTab(tab) {
   if (!authTabSignIn || !authTabSignUp) return;
@@ -6454,6 +6788,11 @@ function switchAuthTab(tab) {
   authTabSignUp.classList.toggle("is-active", !isSignIn);
   authTabSignIn.setAttribute("aria-selected", String(isSignIn));
   authTabSignUp.setAttribute("aria-selected", String(!isSignIn));
+  // Keep mode selector in sync (Screen 1)
+  authModeSignIn?.classList.toggle("is-active", isSignIn);
+  authModeSignUp?.classList.toggle("is-active", !isSignIn);
+  authModeSignIn?.setAttribute("aria-selected", String(isSignIn));
+  authModeSignUp?.setAttribute("aria-selected", String(!isSignIn));
   authSignIn?.classList.toggle("hidden", !isSignIn);
   authSignUp?.classList.toggle("hidden", isSignIn);
   clearAllAuthErrors();
@@ -6483,6 +6822,16 @@ function validateConfirmPasswordLive() {
 authTabSignIn?.addEventListener("click", () => switchAuthTab("signIn"));
 authTabSignUp?.addEventListener("click", () => switchAuthTab("signUp"));
 
+// Mode selector on Screen 1
+authModeSignIn?.addEventListener("click", () => switchAuthTab("signIn"));
+authModeSignUp?.addEventListener("click", () => switchAuthTab("signUp"));
+
+// Email CTA on Screen 1 → go to credential screen
+authBtnEmail?.addEventListener("click", () => showAuthEmailScreen());
+
+// Back button on Screen 2 → return to method screen
+btnAuthBack?.addEventListener("click", () => showAuthMethodScreen());
+
 // Form submissions
 formSignIn?.addEventListener("submit", (e) => { e.preventDefault(); signInWithEmailFn(); });
 formSignUp?.addEventListener("submit", (e) => { e.preventDefault(); signUpWithEmail(); });
@@ -6500,7 +6849,7 @@ signUpPassword?.addEventListener("input", () => {
 signUpConfirm?.addEventListener("input", validateConfirmPasswordLive);
 
 // Social buttons
-btnGoogleContinue?.addEventListener("click", () => signInWithGoogleFn(activeAuthTab));
+btnGoogleContinue?.addEventListener("click", () => signInWithGoogleFn());
 
 // Forgot password
 btnForgotPassword?.addEventListener("click", () => sendResetEmailFn());
@@ -6516,6 +6865,7 @@ btnGuestOneShotJoin?.addEventListener("click", () => startGuestOneShot("player")
 btnOneShotUpgrade?.addEventListener("click", () => {
   showOnly(SCREEN_KEYS.LANDING);
   switchAuthTab("signUp");
+  showAuthEmailScreen();
   // Show auth card even if guest is signed in anonymously
   if (authCard) authCard.classList.remove("hidden");
   if (authGuestCta) authGuestCta.classList.add("hidden");
@@ -6657,6 +7007,11 @@ function wireDashboardFallbackControls() {
     openHandoutsHomeScreen();
   });
 }
+
+// ================================================================
+// ZONE: SESSION & CONTENT RUNTIME
+// Purpose: session lifecycle, handouts, party, inventory, ambience, and modals.
+// ================================================================
 
 wireDashboardFallbackControls();
 
@@ -6880,9 +7235,17 @@ btnGMProfileNotes && (btnGMProfileNotes.onclick = () => {
 // ---- Dynamic session list on landing page ----
 // Queries Firestore for sessions owned by or joined by the current user
 // and renders them in the "Your sessions" list on the landing screen.
+//
+// Generation counter: each call captures `thisGen` at the start. Before any DOM
+// write we check that no newer call has started since; if one has, this call's
+// results are silently discarded. This prevents duplicate cards when two calls
+// (e.g. the leave-handler and an auth-state refresh) race each other.
+let _mySessionsGen = 0;
 async function loadMySessions() {
   if (!landingSessionList) return;
   if (!state.uid) return;
+
+  const thisGen = ++_mySessionsGen;
 
   // Clear previous entries
   landingSessionList.innerHTML = "";
@@ -6987,6 +7350,7 @@ async function loadMySessions() {
 
     // Render session cards
     if (sessions.length === 0) {
+      if (thisGen !== _mySessionsGen) return;
       if (landingSessionEmpty) landingSessionEmpty.classList.remove("hidden");
       if (landingSessionCount) landingSessionCount.textContent = "";
       return;
@@ -6994,6 +7358,9 @@ async function loadMySessions() {
 
     if (landingSessionEmpty) landingSessionEmpty.classList.add("hidden");
     if (landingSessionCount) landingSessionCount.textContent = `${sessions.length} total`;
+
+    // Guard: discard results if a newer call started while we were awaiting Firestore.
+    if (thisGen !== _mySessionsGen) return;
 
     sessions.forEach((s, idx) => {
       s.__idx = idx;
@@ -7037,6 +7404,7 @@ async function loadMySessions() {
       landingSessionList.appendChild(card);
     });
   } catch (e) {
+    if (thisGen !== _mySessionsGen) return;
     console.warn("Could not load sessions list:", e);
     if (landingSessionEmpty) {
       const hintEl = landingSessionEmpty.querySelector(".emptyState__hint");
@@ -7057,6 +7425,8 @@ if (landingSessionList) {
     if (playerOk) return;
     // Fallback: open join screen with session tag prefilled
     if (plSessionId) plSessionId.value = joinTag || sessionId;
+    const rememberedPin = getRememberedJoinedSessionPin(sessionId);
+    if (plPin && rememberedPin) plPin.value = rememberedPin;
     state.role = "player";
     showOnly(SCREEN_KEYS.PL_JOIN);
   };
@@ -7509,6 +7879,29 @@ async function kickPartyMember(targetUid) {
   }
 }
 
+async function removeNpcPartyMember(targetUid) {
+  if (state.role !== "dm" || !state.sessionId || !targetUid) return;
+  const target = (state.partyRoster || []).find((entry) => (entry.id || entry.uid) === targetUid);
+  if (!target || target?.isNpc !== true) return;
+
+  const targetName = String(target?.nickname || "NPC").trim() || "NPC";
+  const shouldRemove = window.confirm(`Remove ${targetName} from the party?`);
+  if (!shouldRemove) return;
+
+  try {
+    closePlayerCard();
+    if (state.currentTurnUid === targetUid) {
+      state.currentTurnUid = null;
+      state.turnRound = Math.max(1, state.turnRound);
+    }
+    await deleteDoc(doc(db, "sessions", state.sessionId, "players", targetUid));
+    showToast(`${targetName} removed from party.`, "success");
+  } catch (err) {
+    console.error("removeNpcPartyMember:", err);
+    showToast("Failed to remove NPC.", "error");
+  }
+}
+
 let dmTemplateStatusSnapshot = null;
 
 async function notifyDMOnTemplateResponses(templates) {
@@ -7766,7 +8159,27 @@ btnSaveProfile && (btnSaveProfile.onclick = () => {
   });
 });
 
+profileAvatarFile?.addEventListener("click", (event) => {
+  const confirmed = confirmNuggetCost("Uploading or changing your profile picture");
+  if (!confirmed) {
+    event.preventDefault();
+    profileAvatarUploadConfirmed = false;
+    profileAvatarStatus && (profileAvatarStatus.textContent = "Profile picture upload canceled.");
+    return;
+  }
+  profileAvatarUploadConfirmed = true;
+});
+
 profileAvatarFile?.addEventListener("change", () => {
+  if (!profileAvatarUploadConfirmed) {
+    const confirmed = confirmNuggetCost("Uploading or changing your profile picture");
+    if (!confirmed) {
+      profileAvatarStatus && (profileAvatarStatus.textContent = "Profile picture upload canceled.");
+      profileAvatarFile.value = "";
+      return;
+    }
+    profileAvatarUploadConfirmed = true;
+  }
   const file = profileAvatarFile.files?.[0];
   if (!file) return;
   uploadOwnAvatar(file).catch((e) => {
@@ -7774,6 +8187,7 @@ profileAvatarFile?.addEventListener("change", () => {
     profileAvatarStatus && (profileAvatarStatus.textContent = "Upload failed.");
     showToast("Picture upload failed.", "error");
   }).finally(() => {
+    profileAvatarUploadConfirmed = false;
     profileAvatarFile.value = "";
   });
 });
@@ -7905,12 +8319,12 @@ btnCreateSession && (btnCreateSession.onclick = async () => {
   }
 
   const rawName = String(dmSessionName.value || "").trim();
-  if (rawName.length > SESSION_NAME_MAX_CHARS) {
-    dmCreateMsg.textContent = `Session name must be ${SESSION_NAME_MAX_CHARS} characters or fewer.`;
+  if (rawName.length > LIMITS.SESSION_NAME_MAX) {
+    dmCreateMsg.textContent = `Session name must be ${LIMITS.SESSION_NAME_MAX} characters or fewer.`;
     btnCreateSession.disabled = false;
     return;
   }
-  const name = (rawName || "Untitled Session").slice(0, SESSION_NAME_MAX_CHARS);
+  const name = (rawName || "Untitled Session").slice(0, LIMITS.SESSION_NAME_MAX);
   const pinPlain = dmPin.value.trim();
 
   if (!/^\d{4,8}$/.test(pinPlain)) {
@@ -8137,8 +8551,9 @@ btnAddHandout && (btnAddHandout.onclick = async () => {
   const npcDisposition = type === "npc" ? getNpcDisposition() : "";
   let imageUrl = pendingHandoutImageUrl || String(dmImagePreview?.getAttribute("src") || "").trim() || null;
 
-  if (!title || !pub) {
-    showToast("Title and public content are required.", "error");
+  const validationError = validateHandoutCoreFields({ title, publicContent: pub, type });
+  if (validationError) {
+    showToast(validationError, "error");
     return;
   }
 
@@ -8264,31 +8679,50 @@ if (btnCloseCreateModal) {
 btnHandoutUploadImage?.addEventListener("click", () => handoutImageUpload?.click());
 handoutImageUpload?.addEventListener("change", async () => {
   const file = handoutImageUpload.files?.[0];
-  if (!file) return;
-  if (!isMapHandoutType(dmType?.value)) {
-    if (handoutImageStatus) handoutImageStatus.textContent = "Map upload is available for Map handouts only.";
-    handoutImageUpload.value = "";
+  if (!file) {
+    createHandoutImageUploadConfirmed = false;
     return;
   }
   if (!state.uid) {
     if (handoutImageStatus) handoutImageStatus.textContent = "Sign in is required before uploading images.";
+    createHandoutImageUploadConfirmed = false;
     return;
   }
   if (!file.type.startsWith("image/")) {
     if (handoutImageStatus) handoutImageStatus.textContent = "Please select an image file.";
+    createHandoutImageUploadConfirmed = false;
     return;
   }
-  if (handoutImageStatus) handoutImageStatus.textContent = "Uploading...";
-  const uploaded = await uploadMapImageToStorage(file, { handoutId: "create" });
+  const isMap = isMapHandoutType(dmType?.value);
+  if (!isMap && !createHandoutImageUploadConfirmed) {
+    const confirmed = confirmNuggetCost("Uploading or changing this handout portrait");
+    if (!confirmed) {
+      if (handoutImageStatus) handoutImageStatus.textContent = "Handout portrait upload canceled.";
+      handoutImageUpload.value = "";
+      return;
+    }
+    createHandoutImageUploadConfirmed = true;
+  }
+  if (handoutImageStatus) handoutImageStatus.textContent = isMap ? "Uploading map..." : "Uploading image...";
+  const uploaded = isMap
+    ? await uploadMapImageToStorage(file, { handoutId: "create" })
+    : await uploadHandoutImageToStorage(file, { handoutId: "create" });
   if (!uploaded.ok || !uploaded.url) {
     if (handoutImageStatus) handoutImageStatus.textContent = uploaded.message || "Upload failed.";
+    createHandoutImageUploadConfirmed = false;
     handoutImageUpload.value = "";
     return;
   }
   pendingHandoutImageUrl = uploaded.url;
   setImagePreview(pendingHandoutImageUrl);
-  pendingHandoutNugget = false;
-  if (handoutImageStatus) handoutImageStatus.textContent = "Map uploaded (1 nugget spent).";
+  pendingHandoutNugget = !isMap;
+  if (handoutImageStatus) {
+    handoutImageStatus.textContent = isMap
+      ? "Map uploaded (1 nugget spent)."
+      : "Image uploaded. 1 nugget will be spent when you create this handout.";
+  }
+  setImagePickerOpen(false);
+  createHandoutImageUploadConfirmed = false;
   handoutImageUpload.value = "";
 });
 
@@ -8361,8 +8795,9 @@ function renderDMHandouts(items) {
     row.style.borderLeft = `4px solid ${h.accentColor || "#f5c82f"}`;
     const visibleImageUrl = getVisibleHandoutImageUrl(h, "dm", state.uid);
     const frameStyle = buildImageFrameInlineStyle(h.imageFrame);
+    const displayTitle = getSafeHandoutTitle(h);
     const thumbHtml = visibleImageUrl
-      ? `<div class="item__thumb"><img src="${escapeHtml(visibleImageUrl)}" alt="${escapeHtml(h.title || "Handout")} portrait"${frameStyle} /></div>`
+      ? `<div class="item__thumb"><img src="${escapeHtml(visibleImageUrl)}" alt="${escapeHtml(displayTitle)} portrait"${frameStyle} /></div>`
       : `<div class="item__thumb">${getHeroIconSvg("photo", "itemThumbIcon")}</div>`;
     // Supports both new (iconKey) and legacy (iconEmoji) stored data.
     const iconMarkup = getHeroIconSvg(normalizeIconKey(h.iconKey || h.iconEmoji), "itemIconSvg");
@@ -8379,7 +8814,7 @@ function renderDMHandouts(items) {
             ${visibilityMetaIcon(h.revealed === true)}
             ${secretMetaIcon(h.secretRevealed === true)}
           </div>
-          <div><strong>${escapeHtml(h.title)}</strong></div>
+          <div><strong>${escapeHtml(displayTitle)}</strong></div>
         </div>
       </div>
       ${thumbHtml}
@@ -8711,6 +9146,17 @@ function renderPartyPanel(players, listEl, emptyEl) {
     row.className = `dmPartyPanel__row list-stagger-item${isNpc ? " dmPartyPanel__row--npc" : ""}${isGMList && p.id === state.currentTurnUid ? " is-active-turn" : ""}`;
     row.dataset.uid = p.id;
     row.style.setProperty("--stagger-index", String(index));
+    if (isNpc) {
+      const _npcHandoutId = String(p?.npcHandoutId || "").trim();
+      const _linked = _npcHandoutId
+        ? (state.dmHandoutsRaw || []).find((e) => e?.id === _npcHandoutId)
+        : (state.dmHandoutsRaw || []).find((e) =>
+            String(e?.type || "").toLowerCase() === "npc" &&
+            normalizeNpcSyncKey(e?.title) === normalizeNpcSyncKey(p?.nickname)
+          );
+      const _accent = String(_linked?.accentColor || "").trim();
+      if (_accent) row.style.borderLeft = `4px solid ${_accent}`;
+    }
 
     let metaText = isNpc ? (p?.isRevealed === false ? "Hidden enemy" : "Revealed enemy") : formatLastSeenDate(p.lastSeenAt);
     if (isNpc && !isGMList && p?.isRevealed === false) {
@@ -9239,6 +9685,7 @@ const pcCoins = $("pcCoins");
 const pcItemsLabel = $("pcItemsLabel");
 const pcCoinsLabel = $("pcCoinsLabel");
 const pcClose = $("pcClose");
+const btnRemoveNpcProfile = $("btnRemoveNpcProfile");
 
 function openPlayerCard(uid, options = {}) {
   if (!playerCardOverlay) return;
@@ -9298,12 +9745,27 @@ function openPlayerCard(uid, options = {}) {
     return getOnlineStatus(player?.lastSeenAt);
   })();
 
+  // Banner color: use handout accentColor for NPCs
+  const pcBanner = playerCardOverlay?.querySelector(".playerCard__banner");
+  if (pcBanner) {
+    if (isNpc) {
+      const npcHandoutId = String(player?.npcHandoutId || "").trim();
+      const linkedHandout = npcHandoutId
+        ? (state.dmHandoutsRaw || []).find((e) => e?.id === npcHandoutId)
+        : findLinkedNpcHandoutByName(nick);
+      const accent = String(linkedHandout?.accentColor || "").trim() || "#5b4d8a";
+      pcBanner.style.background = `linear-gradient(135deg, ${accent}cc 0%, ${accent} 100%)`;
+    } else {
+      pcBanner.style.background = "";
+    }
+  }
+
   // Avatar: show image or initial
   if (pcAvatar) {
-    const initial = (nick.charAt(0) || "?").toUpperCase();
-    pcAvatar.innerHTML = avatarUrl
-      ? `<img src="${escapeHtml(avatarUrl)}" alt="${escapeHtml(nick)}" />`
-      : escapeHtml(initial);
+    const resolvedAvatarUrl = resolveDisplayAvatar(avatarUrl, uid);
+    pcAvatar.innerHTML = resolvedAvatarUrl
+      ? `<img src="${escapeHtml(resolvedAvatarUrl)}" alt="${escapeHtml(nick)}" />`
+      : escapeHtml((nick.charAt(0) || "?").toUpperCase());
   }
 
   if (pcName) pcName.textContent = nick;
@@ -9377,8 +9839,10 @@ function openPlayerCard(uid, options = {}) {
   // GM-only: show Message button for players (not for the GM themselves)
   const showMsg = isGM && !isNpc && uid !== state.uid;
   const showKick = isGM && !isNpc && uid !== state.uid;
+  const showRemoveNpc = isGM && isNpc;
   if (btnMessagePlayer) btnMessagePlayer.classList.toggle("hidden", !showMsg);
   if (btnKickPlayer) btnKickPlayer.classList.toggle("hidden", !showKick);
+  if (btnRemoveNpcProfile) btnRemoveNpcProfile.classList.toggle("hidden", !showRemoveNpc);
   if (pcMessageWrap) pcMessageWrap.classList.add("hidden");
   if (pcMessageInput) pcMessageInput.value = "";
 
@@ -9388,6 +9852,14 @@ function openPlayerCard(uid, options = {}) {
     };
   } else if (btnKickPlayer) {
     btnKickPlayer.onclick = null;
+  }
+
+  if (showRemoveNpc && btnRemoveNpcProfile) {
+    btnRemoveNpcProfile.onclick = () => {
+      removeNpcPartyMember(uid);
+    };
+  } else if (btnRemoveNpcProfile) {
+    btnRemoveNpcProfile.onclick = null;
   }
 
   if (showMsg && btnMessagePlayer) {
@@ -9642,6 +10114,7 @@ async function joinPlayerSession(joinTagRaw, nickRaw, pinRaw) {
       sessionId,
       joinTag: state.joinTag,
       sessionName: s.name || "",
+      pin: pinPlain,
     });
 
     try {
@@ -9880,8 +10353,9 @@ function renderPlayerHandouts(items) {
     row.style.borderLeft = `4px solid ${h.accentColor || "#f5c82f"}`;
     const visibleImageUrl = getVisibleHandoutImageUrl(h, "player", state.uid);
     const frameStyle = buildImageFrameInlineStyle(h.imageFrame);
+    const displayTitle = getSafeHandoutTitle(h);
     const thumbHtml = visibleImageUrl
-      ? `<div class="item__thumb"><img src="${escapeHtml(visibleImageUrl)}" alt="${escapeHtml(h.title || "Handout")} portrait"${frameStyle} /></div>`
+      ? `<div class="item__thumb"><img src="${escapeHtml(visibleImageUrl)}" alt="${escapeHtml(displayTitle)} portrait"${frameStyle} /></div>`
       : `<div class="item__thumb">${getHeroIconSvg("photo", "itemThumbIcon")}</div>`;
     // Same compatibility strategy as GM list.
     const iconMarkup = getHeroIconSvg(normalizeIconKey(h.iconKey || h.iconEmoji), "itemIconSvg");
@@ -9899,7 +10373,7 @@ function renderPlayerHandouts(items) {
             ${visibilityMeta}
             ${secretMeta}
           </div>
-          <div><strong>${escapeHtml(h.title)}</strong></div>
+          <div><strong>${escapeHtml(displayTitle)}</strong></div>
         </div>
       </div>
       ${thumbHtml}
@@ -9933,11 +10407,13 @@ inventoryImageUpload?.addEventListener("change", async () => {
     return;
   }
   if (inventoryImageStatus) inventoryImageStatus.textContent = "Uploading...";
-  const ext = (file.name.split(".").pop() || "png").toLowerCase();
+  let uploadFile;
+  try { uploadFile = await compressImageToMaxSize(file); } catch (_) { if (inventoryImageStatus) inventoryImageStatus.textContent = "Could not process image."; return; }
+  const ext = (uploadFile.name.split(".").pop() || "png").toLowerCase();
   const path = `users/${state.uid}/inventory/${Date.now()}.${ext}`;
   const ref = storageRef(storage, path);
   try {
-    await uploadBytes(ref, file, { contentType: file.type });
+    await uploadBytes(ref, uploadFile, { contentType: uploadFile.type });
     pendingInventoryImageUrl = await getDownloadURL(ref);
     setInventoryAvatarPreview(pendingInventoryImageUrl);
     if (inventoryImageStatus) inventoryImageStatus.textContent = "Uploaded (1 ?? on save).";
@@ -10790,16 +11266,22 @@ let modalCtx = { role: null, handoutId: null };
 // `modalCtx` tracks which handout is currently being edited/viewed in the modal.
 let modalDraft = null;
 
-function refreshModalSaveState() {
-  if (!modalSaveState || !btnSaveHandout || !modalDraft) return;
+function isModalDraftDirty() {
+  if (!modalDraft) return false;
   syncModalTextIntoDraft();
-  const dirty =
-    modalDraft.title !== modalDraft.original.title
+  return modalDraft.title !== modalDraft.original.title
     || modalDraft.publicContent !== modalDraft.original.publicContent
     || modalDraft.secretContent !== modalDraft.original.secretContent
     || !!modalDraft.revealed !== !!modalDraft.original.revealed
     || !!modalDraft.secretRevealed !== !!modalDraft.original.secretRevealed
-    || !!modalDraft.claimable !== !!modalDraft.original.claimable;
+    || !!modalDraft.claimable !== !!modalDraft.original.claimable
+    || modalDraft.iconKey !== modalDraft.original.iconKey
+    || String(modalDraft.imageUrl || "") !== String(modalDraft.original.imageUrl || "");
+}
+
+function refreshModalSaveState() {
+  if (!modalSaveState || !btnSaveHandout || !modalDraft) return;
+  const dirty = isModalDraftDirty();
 
   modalSaveState.textContent = dirty ? "Unsaved changes" : "All changes saved";
   modalSaveState.classList.toggle("is-dirty", dirty);
@@ -10896,6 +11378,10 @@ function renderModalContent(h, role) {
   modalTag.textContent = (h.type ?? "handout").toUpperCase();
   modalTitle.textContent = h.title ?? "";
   modalTitle.classList.toggle("modalTitleEditablePrompt", role === "dm");
+  const _curIcon = String(h.iconKey || h.iconEmoji || "").trim();
+  const _isEmojiIcon = _curIcon && /\p{Extended_Pictographic}/u.test(_curIcon);
+  if (modalIconPreview) modalIconPreview.textContent = _isEmojiIcon ? _curIcon : "🎭";
+  if (modalIconInput) modalIconInput.value = _isEmojiIcon ? _curIcon : "";
   resolveModalImage(h);
   modalPublic.textContent = h.publicContent ?? "";
 
@@ -10913,7 +11399,21 @@ function renderModalContent(h, role) {
   if (modalMapUploadStatus) modalMapUploadStatus.textContent = "";
   if (modalMapImageUpload) modalMapImageUpload.value = "";
   modalDMClaimControls.classList.toggle("hidden", role !== "dm" || String(h.type || "").toLowerCase() !== "loot");
-  btnAddHandoutToInitiativeModal?.classList.toggle("hidden", role !== "dm" || String(h.type || "").toLowerCase() !== "npc");
+  modalImageWrap?.classList.toggle("is-editable", role === "dm" && !isMapHandoutType(h.type));
+  const isNpcType = String(h.type || "").toLowerCase() === "npc";
+  if (btnAddHandoutToInitiativeModal) {
+    btnAddHandoutToInitiativeModal.classList.toggle("hidden", role !== "dm" || !isNpcType);
+    if (role === "dm" && isNpcType) {
+      const linkedId = String(h.id || "").trim();
+      const alreadyInInitiative = (state.partyRoster || []).some((entry) =>
+        entry?.isNpc === true &&
+        (linkedId && String(entry?.npcHandoutId || "").trim() === linkedId ||
+         normalizeNpcSyncKey(entry?.nickname) === normalizeNpcSyncKey(h.title))
+      );
+      btnAddHandoutToInitiativeModal.textContent = alreadyInInitiative ? "Remove from Initiative" : "Add for Initiative";
+      btnAddHandoutToInitiativeModal.dataset.inInitiative = alreadyInInitiative ? "1" : "";
+    }
+  }
 
   setupClaimUI(h, role);
 }
@@ -10974,6 +11474,8 @@ function initModalState(h, role) {
       title: String(h.title || "").trim(),
       publicContent: String(h.publicContent || "").trim(),
       secretContent: String(h.secretContent || "").trim(),
+      iconKey: String(h.iconKey || h.iconEmoji || "").trim(),
+      imageUrl: String(h.imageUrl || "").trim(),
       type: String(h.type || "").toLowerCase(),
       isEditing: false,
       original: {
@@ -10983,6 +11485,8 @@ function initModalState(h, role) {
         title: String(h.title || "").trim(),
         publicContent: String(h.publicContent || "").trim(),
         secretContent: String(h.secretContent || "").trim(),
+        iconKey: String(h.iconKey || h.iconEmoji || "").trim(),
+        imageUrl: String(h.imageUrl || "").trim(),
       },
     };
 
@@ -11027,16 +11531,87 @@ btnCloseLightbox?.addEventListener("click", closeLightbox);
 lightboxModal?.addEventListener("click", (e) => {
   if (e.target === lightboxModal || e.target.classList.contains("lightboxModal__zoomWrap")) closeLightbox();
 });
-if (modalImage) {
-  modalImage.style.cursor = "zoom-in";
-  modalImage.addEventListener("click", () => openLightbox(modalImage.src));
+if (modalImageWrap) {
+  modalImageWrap.addEventListener("click", () => {
+    if (modalCtx.role === "dm" && modalDraft && modalDraft.type !== "map") {
+      const confirmed = confirmNuggetCost("Changing this handout portrait");
+      if (!confirmed) {
+        editHandoutImageUploadConfirmed = false;
+        if (modalSaveState) modalSaveState.textContent = "Handout portrait update canceled.";
+        return;
+      }
+      editHandoutImageUploadConfirmed = true;
+      modalHandoutImageUpload?.click();
+      return;
+    }
+    if (modalImage?.src) openLightbox(modalImage.src);
+  });
 }
+
+modalHandoutImageUpload?.addEventListener("change", async () => {
+  const file = modalHandoutImageUpload.files?.[0];
+  if (!file || modalCtx.role !== "dm" || !modalCtx.handoutId || !modalDraft || modalDraft.type === "map") {
+    editHandoutImageUploadConfirmed = false;
+    return;
+  }
+  if (!editHandoutImageUploadConfirmed) {
+    const confirmed = confirmNuggetCost("Changing this handout portrait");
+    if (!confirmed) {
+      if (modalSaveState) modalSaveState.textContent = "Handout portrait update canceled.";
+      modalHandoutImageUpload.value = "";
+      return;
+    }
+    editHandoutImageUploadConfirmed = true;
+  }
+  if (modalSaveState) modalSaveState.textContent = "Uploading image...";
+
+  const uploaded = await uploadHandoutImageToStorage(file, { handoutId: modalCtx.handoutId });
+  if (!uploaded.ok || !uploaded.url) {
+    if (modalSaveState) modalSaveState.textContent = uploaded.message || "Upload failed.";
+    editHandoutImageUploadConfirmed = false;
+    modalHandoutImageUpload.value = "";
+    return;
+  }
+
+  modalDraft.imageUrl = uploaded.url;
+  const current = (state.dmHandoutsRaw || []).find((entry) => entry?.id === modalCtx.handoutId) || {};
+  resolveModalImage({ ...current, imageUrl: uploaded.url, type: modalDraft.type });
+  refreshModalSaveState();
+  showToast("Image updated. Save to apply changes.", "info");
+  editHandoutImageUploadConfirmed = false;
+  modalHandoutImageUpload.value = "";
+});
 
 modalTitle?.addEventListener("click", () => {
   if (modalCtx.role !== "dm" || !modalDraft || modalDraft.isEditing) return;
   setModalEditing(true);
   modalTitle.focus();
 });
+
+modalPublic?.addEventListener("click", () => {
+  if (modalCtx.role !== "dm" || !modalDraft || modalDraft.isEditing) return;
+  setModalEditing(true);
+  modalPublic.focus();
+});
+
+modalSecret?.addEventListener("click", () => {
+  if (modalCtx.role !== "dm" || !modalDraft || modalDraft.isEditing) return;
+  setModalEditing(true);
+  modalSecret.focus();
+});
+
+modalIconInput?.addEventListener("input", () => {
+  if (!modalDraft) return;
+  const val = String(modalIconInput.value || "").trim();
+  const segments = val ? [...new Intl.Segmenter().segment(val)] : [];
+  const firstEmoji = segments.length ? segments[0].segment : "";
+  const resolved = firstEmoji && /\p{Extended_Pictographic}/u.test(firstEmoji) ? firstEmoji : "";
+  if (modalIconPreview) modalIconPreview.textContent = resolved || "🎭";
+  modalDraft.iconKey = resolved || modalDraft.original.iconKey || "";
+  refreshModalSaveState();
+});
+
+modalIconPreview?.addEventListener("click", () => modalIconInput?.focus());
 
 modalTitle?.addEventListener("keydown", (event) => {
   if (event.key !== "Enter") return;
@@ -11131,9 +11706,36 @@ if (btnAddHandoutToInitiativeModal) {
   btnAddHandoutToInitiativeModal.onclick = async () => {
     if (state.role !== "dm") return;
     if (!modalDraft || String(modalDraft.type || "").toLowerCase() !== "npc") return;
-    const npcName = String(modalDraft.title || modalTitle?.textContent || "").trim() || "Unknown Enemy";
+    const npcName = String(modalDraft.title || modalTitle?.textContent || "").trim();
+    if (!npcName) {
+      showToast("NPC name is required before adding to initiative.", "error");
+      return;
+    }
     const linkedById = (state.dmHandoutsRaw || []).find((entry) => entry?.id === modalCtx.handoutId) || null;
-    await addNpcToInitiativeFromHandoutName(npcName, linkedById);
+    const linkedId = String(modalCtx.handoutId || "").trim();
+    if (btnAddHandoutToInitiativeModal.dataset.inInitiative === "1") {
+      // Remove the NPC from initiative
+      const entry = (state.partyRoster || []).find((e) =>
+        e?.isNpc === true &&
+        (linkedId && String(e?.npcHandoutId || "").trim() === linkedId ||
+         normalizeNpcSyncKey(e?.nickname) === normalizeNpcSyncKey(npcName))
+      );
+      if (entry?.id) {
+        try {
+          await deleteDoc(doc(db, "sessions", state.sessionId, "players", entry.id));
+          showToast(`${npcName} removed from initiative.`, "info");
+          btnAddHandoutToInitiativeModal.textContent = "Add for Initiative";
+          btnAddHandoutToInitiativeModal.dataset.inInitiative = "";
+        } catch (err) {
+          console.error("Remove from initiative failed:", err);
+          showToast("Could not remove from initiative.", "error");
+        }
+      }
+    } else {
+      await addNpcToInitiativeFromHandoutName(npcName, linkedById);
+      btnAddHandoutToInitiativeModal.textContent = "Remove from Initiative";
+      btnAddHandoutToInitiativeModal.dataset.inInitiative = "1";
+    }
   };
 }
 
@@ -11167,12 +11769,27 @@ function openModal(h, role) {
 async function saveCurrentHandout() {
   if (modalCtx.role !== "dm" || !modalCtx.handoutId || !modalDraft) return;
   if (btnSaveHandout) btnSaveHandout.disabled = true;
+  let spentForEdit = false;
   try {
     syncModalTextIntoDraft();
-    if (!modalDraft.title || !modalDraft.publicContent) {
-      showToast("Title and public content are required.", "error");
+    const validationError = validateHandoutCoreFields({
+      title: modalDraft.title,
+      publicContent: modalDraft.publicContent,
+      type: modalDraft.type,
+    });
+    if (validationError) {
+      showToast(validationError, "error");
       return;
     }
+
+    if (!isModalDraftDirty()) {
+      closeModalDiscardChanges();
+      return;
+    }
+
+    const spent = await spendNuggetWithFeedback("handout edit");
+    if (!spent) return;
+    spentForEdit = true;
 
     const ref = doc(db, "sessions", state.sessionId, "handouts", modalCtx.handoutId);
     const payload = {
@@ -11183,6 +11800,15 @@ async function saveCurrentHandout() {
       secretRevealed: !!modalDraft.secretRevealed,
       updatedAt: serverTimestamp(),
     };
+    if (modalDraft.iconKey && modalDraft.iconKey !== modalDraft.original.iconKey) {
+      payload.iconKey = modalDraft.iconKey;
+      payload.iconEmoji = modalDraft.iconKey;
+    }
+
+    if (String(modalDraft.imageUrl || "") !== String(modalDraft.original.imageUrl || "")) {
+      payload.imageUrl = modalDraft.imageUrl || null;
+      payload.imageFrame = null;
+    }
 
     if (modalDraft.type === "loot") {
       payload.claimable = !!modalDraft.claimable;
@@ -11193,6 +11819,11 @@ async function saveCurrentHandout() {
     closeModalDiscardChanges();
   } catch (e) {
     console.error(e);
+    if (spentForEdit && state.sessionId && state.uid) {
+      const walletId = state.role === "dm" ? "dm" : state.uid;
+      const walletRef = doc(db, "sessions", state.sessionId, "wallets", walletId);
+      try { await updateDoc(walletRef, { nuggets: increment(1) }); } catch (_) {}
+    }
     showToast("Saving handout failed. Check Console (F12).", "error");
   } finally {
     if (btnSaveHandout) btnSaveHandout.disabled = false;
@@ -12292,6 +12923,11 @@ async function main() {
     await processRedirectAuthResult();
     const user = await initAuth();
 
+
+// ================================================================
+// ZONE: APP BOOTSTRAP
+// Purpose: start app initialization exactly once.
+// ================================================================
     // If returning user is signed in, load profile cache
     if (user) {
       updateTopBarAvatar("");
@@ -12392,5 +13028,10 @@ main().catch((e) => {
 });
 
 // Service worker registration intentionally disabled.
+
+
+
+
+
 
 
