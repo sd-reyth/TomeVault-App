@@ -663,12 +663,7 @@ const profileStatLevel = $("profileStatLevel");
 const profileStatArmorRating = $("profileStatArmorRating");
 const profileStatHitPoints = $("profileStatHitPoints");
 const profileStatInitiative = $("profileStatInitiative");
-const profileStatStrength = $("profileStatStrength");
-const profileStatDexterity = $("profileStatDexterity");
-const profileStatConstitution = $("profileStatConstitution");
-const profileStatIntelligence = $("profileStatIntelligence");
-const profileStatWisdom = $("profileStatWisdom");
-const profileStatCharisma = $("profileStatCharisma");
+// Ability score inputs are now dynamic — managed by renderCommonStats()
 const btnScanCharacterSheet = $("btnScanCharacterSheet");
 const characterSheetPhoto = $("characterSheetPhoto");
 const characterSheetCameraPanel = $("characterSheetCameraPanel");
@@ -739,9 +734,7 @@ const btnMapGenCancel = $("btnMapGenCancel");
 // ---- Create modal appearance accordion ----
 const btnCreateAppearanceToggle = $("btnCreateAppearanceToggle");
 const createAppearanceBody = $("createAppearanceBody");
-// ---- Profile ability scores accordion ----
-const btnProfileAbilityToggle = $("btnProfileAbilityToggle");
-const profileAbilityScoresBody = $("profileAbilityScoresBody");
+// Profile ability scores accordion removed — replaced by dynamic stat system
 
 // -- Notification bell + panel --
 const btnNotifBell = $("btnNotifBell");
@@ -804,30 +797,30 @@ const inventorySearch = $("inventorySearch");
 // Once saved, it becomes the `claimable` field on the Firestore document.
 let createClaimableDraft = false;
 let createRevealDraft = false;
-const PROFILE_STAT_KEYS = [
-  "level",
-  "armorRating",
-  "hitPoints",
-  "initiative",
-  "strength",
-  "dexterity",
-  "constitution",
-  "intelligence",
-  "wisdom",
-  "charisma",
-];
+const PROFILE_STAT_KEYS = ["level", "armorRating", "hitPoints", "initiative"];
 const profileInputByKey = {
   level: profileStatLevel,
   armorRating: profileStatArmorRating,
   hitPoints: profileStatHitPoints,
   initiative: profileStatInitiative,
-  strength: profileStatStrength,
-  dexterity: profileStatDexterity,
-  constitution: profileStatConstitution,
-  intelligence: profileStatIntelligence,
-  wisdom: profileStatWisdom,
-  charisma: profileStatCharisma,
 };
+
+// === Dynamic stats system ===
+const COMMON_STAT_KEYS = ["strength", "dexterity", "constitution", "intelligence", "wisdom", "charisma"];
+const COMMON_STAT_LABELS = {
+  strength: "Strength", dexterity: "Dexterity", constitution: "Constitution",
+  intelligence: "Intelligence", wisdom: "Wisdom", charisma: "Charisma",
+};
+let dynamicStats = {
+  commonStats: { strength: null, dexterity: null, constitution: null, intelligence: null, wisdom: null, charisma: null },
+  customStats: [],  // [{ id, name, value }]
+  bonuses: [],      // [{ id, name, value, appliesTo: string[] }]
+};
+let profileEditorIsEditable = true;
+function genId() { return Math.random().toString(36).slice(2, 10) + Date.now().toString(36); }
+function escHtml(str) {
+  return String(str ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+}
 // BEGINNER NOTE � profileCache:
 // A Map() works like an object but with better performance for frequent
 // add/delete. We cache fetched player profiles so repeated renders
@@ -845,6 +838,7 @@ let createImageScale = 1.14;
 let createImageOffsetX = 0;
 let createImageOffsetY = 0;
 let createImageDragState = null;
+const MAP_HANDOUT_AVATAR_URL = "placeholders/itemsPrompt3image1_3.png";
 let pickerSelectionUid = "";
 let pickerResolver = null;
 
@@ -1658,12 +1652,8 @@ function getDefaultQuickStats() {
     armorRating: "",
     hitPoints: "",
     initiative: "",
-    strength: "",
-    dexterity: "",
-    constitution: "",
-    intelligence: "",
-    wisdom: "",
-    charisma: "",
+    customStats: [],
+    bonuses: [],
   };
 }
 
@@ -1705,6 +1695,37 @@ function sanitizeProfileRecord(data, uid) {
   PROFILE_STAT_KEYS.forEach((key) => {
     quickStats[key] = String(data?.quickStats?.[key] ?? "").trim().slice(0, 24);
   });
+  // Preserve active common stats (opt-in ability scores)
+  COMMON_STAT_KEYS.forEach((key) => {
+    if (data?.quickStats?.[key] != null && data.quickStats[key] !== "") {
+      quickStats[key] = String(data.quickStats[key]).trim().slice(0, 24);
+    }
+  });
+  // Sanitize custom stats
+  quickStats.customStats = Array.isArray(data?.quickStats?.customStats)
+    ? data.quickStats.customStats
+        .filter((e) => e && typeof e === "object" && String(e.name || "").trim())
+        .map((e) => ({
+          id: String(e.id || "").trim().slice(0, 40) || genId(),
+          name: String(e.name || "").trim().slice(0, 40),
+          value: String(e.value || "").trim().slice(0, 24),
+        }))
+        .slice(0, 30)
+    : [];
+  // Sanitize bonuses
+  quickStats.bonuses = Array.isArray(data?.quickStats?.bonuses)
+    ? data.quickStats.bonuses
+        .filter((e) => e && typeof e === "object" && String(e.name || "").trim())
+        .map((e) => ({
+          id: String(e.id || "").trim().slice(0, 40) || genId(),
+          name: String(e.name || "").trim().slice(0, 40),
+          value: String(e.value || "").trim().slice(0, 24),
+          appliesTo: Array.isArray(e.appliesTo)
+            ? e.appliesTo.map((s) => String(s).trim().slice(0, 40)).filter(Boolean).slice(0, 20)
+            : [],
+        }))
+        .slice(0, 20)
+    : [];
 
   const spells = normalizeSpellList(data?.spells);
 
@@ -1814,6 +1835,7 @@ function updateTopBarAvatar(url) {
 }
 
 function applyProfileToEditor(profile, canEdit) {
+  profileEditorIsEditable = canEdit;
   profileDisplayName && (profileDisplayName.value = profile.displayName || "");
   profileBio && (profileBio.value = profile.bio || "");
   PROFILE_STAT_KEYS.forEach((key) => {
@@ -1821,6 +1843,33 @@ function applyProfileToEditor(profile, canEdit) {
     if (input) input.value = profile.quickStats?.[key] ?? "";
   });
   setProfileAvatarPreview(profile.avatarUrl || "");
+
+  // Reset and hydrate dynamic stats from profile data
+  dynamicStats = {
+    commonStats: { strength: null, dexterity: null, constitution: null, intelligence: null, wisdom: null, charisma: null },
+    customStats: [],
+    bonuses: [],
+  };
+  COMMON_STAT_KEYS.forEach((key) => {
+    const val = profile.quickStats?.[key];
+    if (val != null && val !== "") dynamicStats.commonStats[key] = String(val);
+  });
+  if (Array.isArray(profile.quickStats?.customStats)) {
+    dynamicStats.customStats = profile.quickStats.customStats.map((e) => ({
+      id: e.id || genId(),
+      name: String(e.name || ""),
+      value: String(e.value || ""),
+    }));
+  }
+  if (Array.isArray(profile.quickStats?.bonuses)) {
+    dynamicStats.bonuses = profile.quickStats.bonuses.map((e) => ({
+      id: e.id || genId(),
+      name: String(e.name || ""),
+      value: String(e.value || ""),
+      appliesTo: Array.isArray(e.appliesTo) ? [...e.appliesTo] : [],
+    }));
+  }
+  renderAllDynamic();
 
   const disabled = !canEdit;
   profileDisplayName && (profileDisplayName.disabled = disabled);
@@ -1834,6 +1883,13 @@ function applyProfileToEditor(profile, canEdit) {
     const input = profileInputByKey[key];
     if (input) input.disabled = disabled;
   });
+  // Disable/enable stat action buttons
+  const _btnAddCommonStats = document.getElementById("btnAddCommonStats");
+  const _btnAddCustomStat = document.getElementById("btnAddCustomStat");
+  const _btnAddBonus = document.getElementById("btnAddBonus");
+  if (_btnAddCommonStats) _btnAddCommonStats.disabled = disabled;
+  if (_btnAddCustomStat) _btnAddCustomStat.disabled = disabled;
+  if (_btnAddBonus) _btnAddBonus.disabled = disabled;
 
   if (profileContextMsg) {
     profileContextMsg.classList.toggle("hidden", canEdit);
@@ -2063,6 +2119,16 @@ function applyParsedProfileToEditor(parsed) {
     const input = profileInputByKey[key];
     if (input) input.value = incoming.slice(0, 24);
   });
+
+  // Auto-activate and fill any common stats detected by OCR
+  let ocrChangedCommon = false;
+  COMMON_STAT_KEYS.forEach((key) => {
+    const incoming = String(parsed.quickStats?.[key] || "").trim();
+    if (!incoming) return;
+    dynamicStats.commonStats[key] = incoming.slice(0, 24);
+    ocrChangedCommon = true;
+  });
+  if (ocrChangedCommon) renderAllDynamic();
 }
 
 async function scanCharacterSheetAndFill(file) {
@@ -2108,12 +2174,247 @@ async function scanCharacterSheetAndFill(file) {
   }
 }
 
+// ============================================================
+// === Dynamic stats render system ============================
+// ============================================================
+
+function getAllStatLabels() {
+  const labels = ["Level", "Armor Rating", "Hit Points", "Initiative"];
+  COMMON_STAT_KEYS.forEach((key) => {
+    if (dynamicStats.commonStats[key] !== null) labels.push(COMMON_STAT_LABELS[key]);
+  });
+  dynamicStats.customStats.forEach((s) => {
+    const n = String(s.name || "").trim();
+    if (n) labels.push(n);
+  });
+  return labels;
+}
+
+function updateCommonStatChips() {
+  COMMON_STAT_KEYS.forEach((key) => {
+    const chip = document.querySelector(`.commonStatChip[data-stat="${key}"]`);
+    if (!chip) return;
+    const isActive = dynamicStats.commonStats[key] !== null;
+    chip.classList.toggle("is-active", isActive);
+    chip.setAttribute("aria-pressed", isActive ? "true" : "false");
+  });
+}
+
+function toggleCommonStatsPicker() {
+  const picker = document.getElementById("commonStatsPicker");
+  if (!picker) return;
+  const isOpen = picker.classList.contains("is-open");
+  picker.classList.toggle("is-open", !isOpen);
+  picker.setAttribute("aria-hidden", isOpen ? "true" : "false");
+  const btn = document.getElementById("btnAddCommonStats");
+  if (btn) btn.setAttribute("aria-expanded", isOpen ? "false" : "true");
+}
+
+function renderCommonStats() {
+  const section = document.getElementById("profileCommonStatsSection");
+  if (!section) return;
+  const active = COMMON_STAT_KEYS.filter((key) => dynamicStats.commonStats[key] !== null);
+  if (active.length === 0) { section.innerHTML = ""; return; }
+  const dis = !profileEditorIsEditable ? " disabled" : "";
+  section.innerHTML = `
+    <div class="statDynamicSection__header">Ability Scores</div>
+    <div class="profileStatsGrid profileStatsGrid--dynamic">
+      ${active.map((key) => `
+        <div class="profileStatItem profileStatItem--dynamic">
+          <div class="profileStatItem__topRow">
+            <label class="profileStatItem__label" for="dynCommonStat_${key}">${COMMON_STAT_LABELS[key]}</label>
+            <button class="statRemoveBtn" type="button" data-action="remove-common" data-key="${key}" aria-label="Remove ${COMMON_STAT_LABELS[key]}"${dis}>×</button>
+          </div>
+          <input id="dynCommonStat_${key}" class="profileStatItem__input" inputmode="numeric" placeholder="10" value="${escHtml(dynamicStats.commonStats[key] || "")}" data-action="common-value" data-key="${key}"${dis}>
+        </div>`).join("")}
+    </div>`;
+  updateCommonStatChips();
+}
+
+function renderCustomStats() {
+  const section = document.getElementById("profileCustomStatsSection");
+  if (!section) return;
+  if (dynamicStats.customStats.length === 0) { section.innerHTML = ""; return; }
+  const dis = !profileEditorIsEditable ? " disabled" : "";
+  section.innerHTML = `
+    <div class="statDynamicSection__header">Custom Stats</div>
+    <div class="statDynamicList">
+      ${dynamicStats.customStats.map((stat) => `
+        <div class="statDynamicRow" data-stat-id="${stat.id}">
+          <input class="statDynamicRow__nameInput" type="text" placeholder="Stat name\u2026" maxlength="40" value="${escHtml(stat.name)}" data-action="custom-name" data-id="${stat.id}" aria-label="Stat name"${dis}>
+          <input class="statDynamicRow__valueInput" inputmode="numeric" placeholder="0" maxlength="24" value="${escHtml(stat.value)}" data-action="custom-value" data-id="${stat.id}" aria-label="Stat value"${dis}>
+          <button class="statRemoveBtn" type="button" data-action="remove-custom" data-id="${stat.id}" aria-label="Remove stat"${dis}>×</button>
+        </div>`).join("")}
+    </div>`;
+}
+
+function renderBonuses() {
+  const section = document.getElementById("profileBonusesSection");
+  if (!section) return;
+  if (dynamicStats.bonuses.length === 0) { section.innerHTML = ""; return; }
+  const allLabels = getAllStatLabels();
+  const dis = !profileEditorIsEditable ? " disabled" : "";
+  section.innerHTML = `
+    <div class="statDynamicSection__header">Bonuses</div>
+    <div class="statDynamicList">
+      ${dynamicStats.bonuses.map((bonus) => {
+        const available = allLabels.filter((l) => !bonus.appliesTo.includes(l));
+        return `
+          <div class="statDynamicRow statDynamicRow--bonus" data-bonus-id="${bonus.id}">
+            <div class="statDynamicRow__bonusMain">
+              <input class="statDynamicRow__nameInput" type="text" placeholder="Bonus name\u2026" maxlength="40" value="${escHtml(bonus.name)}" data-action="bonus-name" data-id="${bonus.id}" aria-label="Bonus name"${dis}>
+              <input class="statDynamicRow__valueInput statDynamicRow__valueInput--signed" type="text" inputmode="numeric" placeholder="+0" maxlength="8" value="${escHtml(bonus.value)}" data-action="bonus-value" data-id="${bonus.id}" aria-label="Bonus value"${dis}>
+              <button class="statRemoveBtn" type="button" data-action="remove-bonus" data-id="${bonus.id}" aria-label="Remove bonus"${dis}>×</button>
+            </div>
+            <div class="statDynamicRow__bonusApplies">
+              <span class="bonusAppliesLabel">Applies to:</span>
+              <div class="bonusTagArea">
+                ${bonus.appliesTo.map((label) => `
+                  <span class="bonusTag">${escHtml(label)}<button class="bonusTag__remove" type="button" data-action="remove-applies" data-bonus-id="${bonus.id}" data-label="${escHtml(label)}" aria-label="Remove ${escHtml(label)}"${dis}>×</button></span>
+                `).join("")}
+                ${available.length > 0 && profileEditorIsEditable ? `
+                  <select class="bonusAddDropdown" data-action="add-applies" data-bonus-id="${bonus.id}" aria-label="Add stat this bonus applies to">
+                    <option value="">\uFF0B stat\u2026</option>
+                    ${available.map((l) => `<option value="${escHtml(l)}">${escHtml(l)}</option>`).join("")}
+                  </select>` : ""}
+              </div>
+            </div>
+          </div>`;
+      }).join("")}
+    </div>`;
+}
+
+function renderAllDynamic() {
+  renderCommonStats();
+  renderCustomStats();
+  renderBonuses();
+  updateCommonStatChips();
+}
+
+function handleStatsPanelEvent(e) {
+  // Common stat chip toggles (inside #commonStatsPicker)
+  if (e.type === "click") {
+    const chip = e.target.closest(".commonStatChip");
+    if (chip) {
+      if (!profileEditorIsEditable) return;
+      const key = chip.dataset.stat;
+      if (!key) return;
+      dynamicStats.commonStats[key] = dynamicStats.commonStats[key] !== null ? null : "";
+      renderAllDynamic();
+      return;
+    }
+  }
+
+  const actionEl = e.target.closest("[data-action]");
+  const action = actionEl?.dataset?.action;
+  if (!action) return;
+  if (!profileEditorIsEditable) return;
+
+  if (e.type === "click") {
+    switch (action) {
+      case "remove-common": {
+        const key = actionEl.dataset.key;
+        dynamicStats.commonStats[key] = null;
+        renderAllDynamic();
+        break;
+      }
+      case "remove-custom": {
+        const id = actionEl.dataset.id;
+        dynamicStats.customStats = dynamicStats.customStats.filter((s) => s.id !== id);
+        renderAllDynamic();
+        break;
+      }
+      case "remove-bonus": {
+        const id = actionEl.dataset.id;
+        dynamicStats.bonuses = dynamicStats.bonuses.filter((b) => b.id !== id);
+        renderBonuses();
+        break;
+      }
+      case "remove-applies": {
+        const bonusId = actionEl.dataset.bonusId;
+        const label = actionEl.dataset.label;
+        const bonus = dynamicStats.bonuses.find((b) => b.id === bonusId);
+        if (bonus) { bonus.appliesTo = bonus.appliesTo.filter((l) => l !== label); renderBonuses(); }
+        break;
+      }
+    }
+  } else if (e.type === "input") {
+    switch (action) {
+      case "custom-name": {
+        const id = actionEl.dataset.id;
+        const stat = dynamicStats.customStats.find((s) => s.id === id);
+        if (stat) { stat.name = e.target.value; renderBonuses(); }
+        break;
+      }
+      case "custom-value": {
+        const id = actionEl.dataset.id;
+        const stat = dynamicStats.customStats.find((s) => s.id === id);
+        if (stat) stat.value = e.target.value;
+        break;
+      }
+      case "bonus-name": {
+        const id = actionEl.dataset.id;
+        const bonus = dynamicStats.bonuses.find((b) => b.id === id);
+        if (bonus) bonus.name = e.target.value;
+        break;
+      }
+      case "bonus-value": {
+        const id = actionEl.dataset.id;
+        const bonus = dynamicStats.bonuses.find((b) => b.id === id);
+        if (bonus) bonus.value = e.target.value;
+        break;
+      }
+      case "common-value": {
+        const key = actionEl.dataset.key;
+        if (key && dynamicStats.commonStats[key] !== null) dynamicStats.commonStats[key] = e.target.value;
+        break;
+      }
+    }
+  } else if (e.type === "change") {
+    if (action === "add-applies") {
+      const bonusId = actionEl.dataset.bonusId;
+      const label = e.target.value;
+      e.target.value = "";
+      if (!label) return;
+      const bonus = dynamicStats.bonuses.find((b) => b.id === bonusId);
+      if (bonus && !bonus.appliesTo.includes(label)) { bonus.appliesTo.push(label); renderBonuses(); }
+    }
+  }
+}
+
+// ============================================================
+
 function collectProfileFromEditor() {
   const quickStats = getDefaultQuickStats();
+  // Core 4 fixed stats
   PROFILE_STAT_KEYS.forEach((key) => {
     const input = profileInputByKey[key];
     quickStats[key] = String(input?.value || "").trim().slice(0, 24);
   });
+  // Active common stats — read from rendered inputs
+  COMMON_STAT_KEYS.forEach((key) => {
+    if (dynamicStats.commonStats[key] !== null) {
+      const input = document.getElementById(`dynCommonStat_${key}`);
+      quickStats[key] = String(input?.value ?? dynamicStats.commonStats[key] ?? "").trim().slice(0, 24);
+    }
+  });
+  // Custom stats
+  quickStats.customStats = dynamicStats.customStats
+    .filter((s) => String(s.name || "").trim())
+    .map((s) => ({
+      id: s.id,
+      name: String(s.name || "").trim().slice(0, 40),
+      value: String(s.value || "").trim().slice(0, 24),
+    }));
+  // Bonuses
+  quickStats.bonuses = dynamicStats.bonuses
+    .filter((b) => String(b.name || "").trim())
+    .map((b) => ({
+      id: b.id,
+      name: String(b.name || "").trim().slice(0, 40),
+      value: String(b.value || "").trim().slice(0, 24),
+      appliesTo: [...(b.appliesTo || [])],
+    }));
 
   return sanitizeProfileRecord(
     {
@@ -2177,8 +2478,6 @@ async function renderProfileScreen() {
   const profileStatsPane = $("profileStatsPane");
   const profileSpellsPane = $("profileSpellsPane");
   const btnAddSpell = $("btnAddSpell");
-
-  setAccordionState(btnProfileAbilityToggle, profileAbilityScoresBody, false);
 
   const isGM = state.role === "dm";
   if (profilePlayerContent) profilePlayerContent.classList.toggle("hidden", isGM);
@@ -5130,11 +5429,62 @@ function syncCreateTypeDependentUI() {
   toggleNpcSpecificUI();
   const isMap = isMapHandoutType(dmType?.value);
   createMapUploadWrap?.classList.toggle("hidden", !isMap);
+  if (isMap) {
+    setImagePreview(MAP_HANDOUT_AVATAR_URL, {
+      loading: "Loading map handout avatar...",
+      success: "Map handout avatar locked.",
+      fail: "Could not load map handout avatar.",
+    });
+    setImagePickerOpen(false);
+  }
+  [btnImagePrev, btnImageNext, btnImageRandom, btnImageSelect, btnImageUpload].forEach((btn) => {
+    if (!(btn instanceof HTMLButtonElement)) return;
+    btn.disabled = isMap;
+    btn.classList.toggle("is-disabled", isMap);
+  });
+  syncCreateMapPreview(isMap ? pendingHandoutImageUrl : "");
   if (isMap && handoutImageStatus && !String(handoutImageStatus.textContent || "").trim()) {
     handoutImageStatus.textContent = "Upload a map image (cost: 1 nugget).";
   } else if (!isMap && handoutImageStatus && !String(handoutImageStatus.textContent || "").trim()) {
     handoutImageStatus.textContent = "Upload your own portrait (costs 1 nugget when creating).";
   }
+}
+
+function syncCreateMapPreview(url) {
+  if (!createMapPreviewImg) return;
+  const nextUrl = String(url || "").trim();
+  const hasMap = !!nextUrl;
+  createMapPreviewImg.classList.toggle("hidden", !hasMap);
+  createMapEmptyState?.classList.toggle("hidden", hasMap);
+  if (createMapLoadingOverlay) createMapLoadingOverlay.classList.add("hidden");
+  if (hasMap) {
+    createMapPreviewImg.src = nextUrl;
+    return;
+  }
+  createMapPreviewImg.removeAttribute("src");
+}
+
+function syncModalMapPreview(handout, role = state.role) {
+  if (!modalMapPreviewImg) return;
+  const mapUrl = isMapHandoutType(handout?.type)
+    ? String(getVisibleHandoutImageUrl(handout, role, state.uid) || "").trim()
+    : "";
+  const hasMap = !!mapUrl;
+  modalMapPreviewImg.classList.toggle("hidden", !hasMap);
+  modalMapEmptyState?.classList.toggle("hidden", hasMap);
+  if (modalMapLoadingOverlay) modalMapLoadingOverlay.classList.add("hidden");
+  if (hasMap) {
+    modalMapPreviewImg.src = mapUrl;
+    return;
+  }
+  modalMapPreviewImg.removeAttribute("src");
+}
+
+function getHandoutAvatarImageUrl(handout) {
+  if (isMapHandoutType(handout?.type)) {
+    return String(handout?.imageUrl || MAP_HANDOUT_AVATAR_URL).trim();
+  }
+  return String(handout?.imageUrl || "").trim();
 }
 
 function canUserViewMap(handout, role = state.role, uid = state.uid) {
@@ -6963,7 +7313,6 @@ function setPartyPanelCollapsed(panel, toggleButton, collapsed) {
 
 function syncResponsivePanelState() {
   setAccordionState(btnCreateAppearanceToggle, createAppearanceBody, false);
-  setAccordionState(btnProfileAbilityToggle, profileAbilityScoresBody, false);
   setPartyPanelCollapsed(dmPartyPanel, btnCollapseParty, dmPartyPanel?.classList.contains("is-collapsed") ?? isCompactPartyLayout());
   setPartyPanelCollapsed(playerPartyPanel, btnCollapsePlayerParty, playerPartyPanel?.classList.contains("is-collapsed") ?? isCompactPartyLayout());
   syncDMFilterToggleState();
@@ -7147,10 +7496,39 @@ btnCreateAppearanceToggle?.addEventListener("click", () => {
   setAccordionState(btnCreateAppearanceToggle, createAppearanceBody, nextOpen);
 });
 
-btnProfileAbilityToggle?.addEventListener("click", () => {
-  if (!isCompactAccordionLayout()) return;
-  const nextOpen = btnProfileAbilityToggle.getAttribute("aria-expanded") !== "true";
-  setAccordionState(btnProfileAbilityToggle, profileAbilityScoresBody, nextOpen);
+// Dynamic stats panel event delegation
+const _statsWrap = document.getElementById("profileQuickStatsWrap");
+if (_statsWrap) {
+  _statsWrap.addEventListener("click", handleStatsPanelEvent);
+  _statsWrap.addEventListener("input", handleStatsPanelEvent);
+  _statsWrap.addEventListener("change", handleStatsPanelEvent);
+}
+
+// Add Common Stats picker toggle
+document.getElementById("btnAddCommonStats")?.addEventListener("click", () => {
+  if (!profileEditorIsEditable) return;
+  toggleCommonStatsPicker();
+});
+
+// Add Custom Stat row
+document.getElementById("btnAddCustomStat")?.addEventListener("click", () => {
+  if (!profileEditorIsEditable) return;
+  dynamicStats.customStats.push({ id: genId(), name: "", value: "" });
+  renderAllDynamic();
+  // Focus the new name input
+  const rows = document.querySelectorAll("#profileCustomStatsSection .statDynamicRow");
+  const lastRow = rows[rows.length - 1];
+  lastRow?.querySelector(".statDynamicRow__nameInput")?.focus();
+});
+
+// Add Bonus row
+document.getElementById("btnAddBonus")?.addEventListener("click", () => {
+  if (!profileEditorIsEditable) return;
+  dynamicStats.bonuses.push({ id: genId(), name: "", value: "+0", appliesTo: [] });
+  renderAllDynamic();
+  const rows = document.querySelectorAll("#profileBonusesSection .statDynamicRow--bonus");
+  const lastRow = rows[rows.length - 1];
+  lastRow?.querySelector(".statDynamicRow__nameInput")?.focus();
 });
 
 btnCollapseParty?.addEventListener("click", () => {
@@ -8592,7 +8970,7 @@ await addDoc(handoutsRef, {
   iconKey,
   accentColor,
   npcDisposition,
-  imageUrl: isMap ? null : imageUrl,
+  imageUrl: isMap ? MAP_HANDOUT_AVATAR_URL : imageUrl,
   mapImageUrl: isMap ? imageUrl : null,
   mapVisibleToUid: null,
   imageFrame,
@@ -8618,6 +8996,7 @@ await addDoc(handoutsRef, {
   createRevealDraft = false;
   syncCreateRevealButton();
   setImagePreview("");
+  syncCreateMapPreview("");
   pendingHandoutImageUrl = null;
   pendingHandoutNugget = false;
   if (handoutImageStatus) handoutImageStatus.textContent = "";
@@ -8714,7 +9093,11 @@ handoutImageUpload?.addEventListener("change", async () => {
     return;
   }
   pendingHandoutImageUrl = uploaded.url;
-  setImagePreview(pendingHandoutImageUrl);
+  if (isMap) {
+    syncCreateMapPreview(pendingHandoutImageUrl);
+  } else {
+    setImagePreview(pendingHandoutImageUrl);
+  }
   pendingHandoutNugget = !isMap;
   if (handoutImageStatus) {
     handoutImageStatus.textContent = isMap
@@ -8793,7 +9176,7 @@ function renderDMHandouts(items) {
     row.dataset.id = h.id;
     row.style.setProperty("--stagger-index", String(index));
     row.style.borderLeft = `4px solid ${h.accentColor || "#f5c82f"}`;
-    const visibleImageUrl = getVisibleHandoutImageUrl(h, "dm", state.uid);
+    const visibleImageUrl = getHandoutAvatarImageUrl(h);
     const frameStyle = buildImageFrameInlineStyle(h.imageFrame);
     const displayTitle = getSafeHandoutTitle(h);
     const thumbHtml = visibleImageUrl
@@ -10351,7 +10734,7 @@ function renderPlayerHandouts(items) {
     row.className = "item list-stagger-item";
     row.style.setProperty("--stagger-index", String(index));
     row.style.borderLeft = `4px solid ${h.accentColor || "#f5c82f"}`;
-    const visibleImageUrl = getVisibleHandoutImageUrl(h, "player", state.uid);
+    const visibleImageUrl = getHandoutAvatarImageUrl(h);
     const frameStyle = buildImageFrameInlineStyle(h.imageFrame);
     const displayTitle = getSafeHandoutTitle(h);
     const thumbHtml = visibleImageUrl
@@ -11396,6 +11779,7 @@ function renderModalContent(h, role) {
 
   modalDMControls.classList.toggle("hidden", role !== "dm");
   modalMapUploadWrap?.classList.toggle("hidden", role !== "dm" || !isMapHandoutType(h.type));
+  syncModalMapPreview(h, role);
   if (modalMapUploadStatus) modalMapUploadStatus.textContent = "";
   if (modalMapImageUpload) modalMapImageUpload.value = "";
   modalDMClaimControls.classList.toggle("hidden", role !== "dm" || String(h.type || "").toLowerCase() !== "loot");
@@ -11421,8 +11805,7 @@ function renderModalContent(h, role) {
 function resolveModalImage(h) {
   if (!modalImage) return;
   const hardFallbackUrl = "placeholders/Prompt1image1_1.png";
-  const isMap = isMapHandoutType(h?.type);
-  const storedImageUrl = String(getVisibleHandoutImageUrl(h, modalCtx.role || state.role, state.uid) || "").trim();
+  const storedImageUrl = String(getHandoutAvatarImageUrl(h) || "").trim();
   const semanticFallbackUrl = selectBestPlaceholderImage({
     title: String(h.title || ""),
     publicContent: String(h.publicContent || ""),
@@ -11434,7 +11817,7 @@ function resolveModalImage(h) {
     ? chronologicalPool[stableHash(`${String(h.id || "")}|${String(h.title || "")}`) % chronologicalPool.length].url
     : "";
 
-  const fallbackImageUrl = isMap ? "" : String(semanticFallbackUrl || seededFallbackUrl || hardFallbackUrl).trim();
+  const fallbackImageUrl = String(semanticFallbackUrl || seededFallbackUrl || hardFallbackUrl).trim();
   const resolvedImageUrl = String(storedImageUrl || fallbackImageUrl).trim();
   const frame = h?.imageFrame || null;
   const showImage = !!resolvedImageUrl;
@@ -11475,7 +11858,7 @@ function initModalState(h, role) {
       publicContent: String(h.publicContent || "").trim(),
       secretContent: String(h.secretContent || "").trim(),
       iconKey: String(h.iconKey || h.iconEmoji || "").trim(),
-      imageUrl: String(h.imageUrl || "").trim(),
+      imageUrl: String(getHandoutAvatarImageUrl(h) || "").trim(),
       type: String(h.type || "").toLowerCase(),
       isEditing: false,
       original: {
@@ -11486,7 +11869,7 @@ function initModalState(h, role) {
         publicContent: String(h.publicContent || "").trim(),
         secretContent: String(h.secretContent || "").trim(),
         iconKey: String(h.iconKey || h.iconEmoji || "").trim(),
-        imageUrl: String(h.imageUrl || "").trim(),
+        imageUrl: String(getHandoutAvatarImageUrl(h) || "").trim(),
       },
     };
 
@@ -11644,12 +12027,12 @@ modalMapImageUpload?.addEventListener("change", async () => {
     await updateDoc(handoutRef, {
       mapImageUrl: uploaded.url,
       mapVisibleToUid: visibleUid,
-      imageUrl: null,
+      imageUrl: MAP_HANDOUT_AVATAR_URL,
       updatedAt: serverTimestamp(),
     });
     if (modalMapUploadStatus) modalMapUploadStatus.textContent = "Map replaced (1 nugget spent).";
-    resolveModalImage({ ...current, type: "map", mapImageUrl: uploaded.url, imageUrl: null, mapVisibleToUid: visibleUid });
-    openLightbox(uploaded.url);
+    syncModalMapPreview({ ...current, type: "map", mapImageUrl: uploaded.url, mapVisibleToUid: visibleUid }, modalCtx.role || state.role);
+    resolveModalImage({ ...current, type: "map", mapImageUrl: uploaded.url, imageUrl: MAP_HANDOUT_AVATAR_URL, mapVisibleToUid: visibleUid });
   } catch (err) {
     console.error("Modal map update failed:", err);
     if (modalMapUploadStatus) modalMapUploadStatus.textContent = "Upload succeeded but update failed.";
@@ -11758,12 +12141,6 @@ function openModal(h, role) {
   renderModalContent(h, role);
   initModalState(h, role);
   animateModalIn(modal);
-  if (isMapHandoutType(h?.type)) {
-    const mapUrl = String(getVisibleHandoutImageUrl(h, role, state.uid) || "").trim();
-    if (mapUrl) {
-      setTimeout(() => openLightbox(mapUrl), 120);
-    }
-  }
 }
 
 async function saveCurrentHandout() {

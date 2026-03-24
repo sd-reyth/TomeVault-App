@@ -1180,6 +1180,7 @@
 
           <div id="profileQuickStatsWrap">
           <h3>Quick Stats</h3>
+          <!-- Core stats — always visible -->
           <div class="profileStatsGrid profileStatsGrid--core">
             <div class="profileStatItem profileStatItem--core">
               <label class="profileStatItem__label" for="profileStatLevel">Level</label>
@@ -1199,57 +1200,55 @@
             </div>
           </div>
 
-          <div class="accordionSection accordionSection--profile">
-            <button class="accordionToggle" type="button" aria-expanded="false" aria-controls="profileAbilityScoresBody" id="btnProfileAbilityToggle">
-              Ability Scores
-              <svg class="accordionChevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5"/></svg>
-            </button>
-            <div class="accordionBody" id="profileAbilityScoresBody">
-              <div class="row" style="margin-bottom:8px">
-                <button id="btnScanCharacterSheet" class="btn btn--ghost btn--small" type="button" aria-label="Scan character sheet to import stats">
-                  <svg class="btnInlineIcon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M6.827 6.175A2.31 2.31 0 0 1 5.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 0 0 2.25 2.25h15A2.25 2.25 0 0 0 21.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 0 0-1.134-.175 2.31 2.31 0 0 1-1.64-1.055l-.822-1.316a2.192 2.192 0 0 0-1.736-1.039 48.774 48.774 0 0 0-5.232 0 2.192 2.192 0 0 0-1.736 1.039l-.821 1.316Z" /><path stroke-linecap="round" stroke-linejoin="round" d="M16.5 12.75a4.5 4.5 0 1 1-9 0 4.5 4.5 0 0 1 9 0ZM18.75 10.5h.008v.008h-.008V10.5Z" /></svg>
-                  Scan Character Sheet
+          <!-- Dynamic stat sections — rendered by JS -->
+          <div id="profileCommonStatsSection" class="statDynamicSection"></div>
+          <div id="profileCustomStatsSection" class="statDynamicSection"></div>
+          <div id="profileBonusesSection" class="statDynamicSection"></div>
+
+          <!-- Common stats picker panel (collapsed by default) -->
+          <div id="commonStatsPicker" class="commonStatsPicker" aria-hidden="true">
+            <div class="commonStatsPicker__scan">
+              <button id="btnScanCharacterSheet" class="btn btn--ghost btn--small" type="button" aria-label="Scan character sheet to import stats">
+                <svg class="btnInlineIcon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M6.827 6.175A2.31 2.31 0 0 1 5.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 0 0 2.25 2.25h15A2.25 2.25 0 0 0 21.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 0 0-1.134-.175 2.31 2.31 0 0 1-1.64-1.055l-.822-1.316a2.192 2.192 0 0 0-1.736-1.039 48.774 48.774 0 0 0-5.232 0 2.192 2.192 0 0 0-1.736 1.039l-.821 1.316Z" /><path stroke-linecap="round" stroke-linejoin="round" d="M16.5 12.75a4.5 4.5 0 1 1-9 0 4.5 4.5 0 0 1 9 0ZM18.75 10.5h.008v.008h-.008V10.5Z" /></svg>
+                Scan Character Sheet
+              </button>
+              <input id="characterSheetPhoto" class="hidden" type="file" accept="image/*" capture="environment">
+            </div>
+            <div id="characterSheetCameraPanel" class="characterSheetCameraPanel hidden">
+              <video id="characterSheetVideo" class="characterSheetVideo" autoplay playsinline muted></video>
+              <div class="row">
+                <button id="btnCaptureCharacterSheet" class="btn" type="button">Capture</button>
+                <button id="btnCloseCharacterSheetCamera" class="iconBtn closeIconBtn" type="button" aria-label="Close camera panel">
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" /></svg>
                 </button>
-                <input id="characterSheetPhoto" class="hidden" type="file" accept="image/*" capture="environment">
               </div>
-              <div id="characterSheetCameraPanel" class="characterSheetCameraPanel hidden">
-                <video id="characterSheetVideo" class="characterSheetVideo" autoplay playsinline muted></video>
-                <div class="row">
-                  <button id="btnCaptureCharacterSheet" class="btn" type="button">Capture</button>
-                  <button id="btnCloseCharacterSheetCamera" class="iconBtn closeIconBtn" type="button" aria-label="Close camera panel">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" /></svg>
-                  </button>
-                </div>
-              </div>
-              <p id="profileScanStatus" class="muted small" aria-live="polite"></p>
-              <div class="profileStatsGrid">
-                <div class="profileStatItem">
-                  <label class="profileStatItem__label" for="profileStatStrength">Strength</label>
-                  <input id="profileStatStrength" class="profileStatItem__input" inputmode="numeric" placeholder="10">
-                </div>
-                <div class="profileStatItem">
-                  <label class="profileStatItem__label" for="profileStatDexterity">Dexterity</label>
-                  <input id="profileStatDexterity" class="profileStatItem__input" inputmode="numeric" placeholder="10">
-                </div>
-                <div class="profileStatItem">
-                  <label class="profileStatItem__label" for="profileStatConstitution">Constitution</label>
-                  <input id="profileStatConstitution" class="profileStatItem__input" inputmode="numeric" placeholder="10">
-                </div>
-                <div class="profileStatItem">
-                  <label class="profileStatItem__label" for="profileStatIntelligence">Intelligence</label>
-                  <input id="profileStatIntelligence" class="profileStatItem__input" inputmode="numeric" placeholder="10">
-                </div>
-                <div class="profileStatItem">
-                  <label class="profileStatItem__label" for="profileStatWisdom">Wisdom</label>
-                  <input id="profileStatWisdom" class="profileStatItem__input" inputmode="numeric" placeholder="10">
-                </div>
-                <div class="profileStatItem">
-                  <label class="profileStatItem__label" for="profileStatCharisma">Charisma</label>
-                  <input id="profileStatCharisma" class="profileStatItem__input" inputmode="numeric" placeholder="10">
-                </div>
-              </div>
-            </div><!-- end accordionBody -->
-          </div><!-- end accordionSection -->
+            </div>
+            <p id="profileScanStatus" class="muted small" aria-live="polite"></p>
+            <div class="commonStatsPicker__chips">
+              <button class="commonStatChip" type="button" data-stat="strength" aria-pressed="false">Strength</button>
+              <button class="commonStatChip" type="button" data-stat="dexterity" aria-pressed="false">Dexterity</button>
+              <button class="commonStatChip" type="button" data-stat="constitution" aria-pressed="false">Constitution</button>
+              <button class="commonStatChip" type="button" data-stat="intelligence" aria-pressed="false">Intelligence</button>
+              <button class="commonStatChip" type="button" data-stat="wisdom" aria-pressed="false">Wisdom</button>
+              <button class="commonStatChip" type="button" data-stat="charisma" aria-pressed="false">Charisma</button>
+            </div>
+          </div>
+
+          <!-- Stat action buttons -->
+          <div class="statActionBar">
+            <button id="btnAddCommonStats" class="btn btn--ghost btn--small" type="button" aria-expanded="false">
+              <svg class="btnInlineIcon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
+              Add Common Stats
+            </button>
+            <button id="btnAddCustomStat" class="btn btn--ghost btn--small" type="button">
+              <svg class="btnInlineIcon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
+              Custom Stat
+            </button>
+            <button id="btnAddBonus" class="btn btn--ghost btn--small" type="button">
+              <svg class="btnInlineIcon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
+              Add Bonus
+            </button>
+          </div>
           </div>
 
           <div class="row row--end">

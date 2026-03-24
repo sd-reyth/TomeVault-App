@@ -10,27 +10,27 @@
 		These variables act like a design system. Reuse avoids hard-coded colors
 		spread all over the stylesheet.
 	*/
-	/* Deep void backgrounds — merged from NextJS TomeVault design */
+	/* Deep void backgrounds � merged from NextJS TomeVault design */
 	--bg:#0e0614;
 	--bg2:#160c2a;
 	--surface:#1e1040;
 	--surface-2:#271454;
 	--surface-3:#130a28;
-	/* Warm parchment text — medieval D&D feel */
+	/* Warm parchment text � medieval D&D feel */
 	--text:#f4e4bc;
 	--muted:rgba(196,180,148,.7);
 	/* Antique gold accent */
 	--gold:#d4af37;
 	--gold-2:#a68521;
-	/* Amethyst + crimson — from NextJS TomeVault app */
+	/* Amethyst + crimson � from NextJS TomeVault app */
 	--amethyst:#3b1b5e;
 	--amethyst-light:#5c2c91;
 	--crimson:#8a1c1c;
-	/* Line/border tokens — amethyst-tinted */
+	/* Line/border tokens � amethyst-tinted */
 	--line:rgba(92,44,145,.28);
 	--line-strong:rgba(212,175,55,.5);
 	--danger:#dc2f2f;
-	/* Cinzel for headings — the defining vibe shift */
+	/* Cinzel for headings � the defining vibe shift */
 	--font-heading: 'Cinzel', 'Georgia', serif;
 	--font-ui: 'Open Sans', system-ui, sans-serif;
 	--text-xs: 12px;
@@ -75,12 +75,12 @@
 	--gold-hover: rgba(212,175,55,.28);
 	--gold-strong: rgba(212,175,55,.42);
 	--text-on-gold: #1a1206;
-	/* Warning (orange) — leave/cautionary actions */
+	/* Warning (orange) � leave/cautionary actions */
 	--warning: #ff8b1a;
 	--warning-light: #ffb870;
-	/* Danger light — softer danger for headings on dark surfaces */
+	/* Danger light � softer danger for headings on dark surfaces */
 	--danger-light: #ff7b7b;
-	/* Steel — cool-blue inventory accent */
+	/* Steel � cool-blue inventory accent */
 	--steel: #94a9c7;
 	/* Elevation border - white glass highlight for lifted surfaces */
 	--card-border: rgba(255,255,255,0.08);
@@ -103,14 +103,14 @@ html,body{min-height:100dvh}
 	==========================================================================
 	Centralized timing & easing so every animation in the app feels cohesive.
 	Adjust --tv-ease or --tv-dur-* to change the app's overall feel:
-	  shorter durations → snappy/techy, longer → smooth/premium.
+	  shorter durations ? snappy/techy, longer ? smooth/premium.
 */
 :root{
-	--tv-ease:cubic-bezier(.22,1,.36,1);      /* smooth deceleration – feels natural */
-	--tv-ease-bounce:cubic-bezier(.34,1.56,.64,1); /* slight overshoot – playful pop */
-	--tv-dur-fast:.2s;    /* Micro tier – 200ms per UX contract (hover, press, toggle) */
-	--tv-dur-mid:.3s;     /* Standard tier – 300ms per UX contract (screen swaps, panels) */
-	--tv-dur-slow:.36s;   /* Dramatic tier – modal/drawer entrance (modal, onboarding hero) */
+	--tv-ease:cubic-bezier(.22,1,.36,1);      /* smooth deceleration � feels natural */
+	--tv-ease-bounce:cubic-bezier(.34,1.56,.64,1); /* slight overshoot � playful pop */
+	--tv-dur-fast:.2s;    /* Micro tier � 200ms per UX contract (hover, press, toggle) */
+	--tv-dur-mid:.3s;     /* Standard tier � 300ms per UX contract (screen swaps, panels) */
+	--tv-dur-slow:.36s;   /* Dramatic tier � modal/drawer entrance (modal, onboarding hero) */
 
 	/*
 		LEARNING NOTE:
@@ -241,7 +241,7 @@ body::after{
 
 .brand{display:flex;align-items:center;gap:10px}
 
-/* Brand home button — transparent wrapper around brand title */
+/* Brand home button � transparent wrapper around brand title */
 .brand__homeBtn{
 	background:none;border:none;padding:0;margin:0;cursor:pointer;
 	font:inherit;color:inherit;text-align:left;
@@ -279,7 +279,7 @@ body::after{
 .topbar__iconBtn:hover{color:var(--text);background:rgba(255,255,255,.06)}
 .topbar__iconBtn svg{width:22px;height:22px}
 
-/* Floating hamburger FAB (bottom-right) — animated ☰ → X */
+/* Floating hamburger FAB (bottom-right) � animated ? ? X */
 .settings-fab{
 	position:fixed;
 	bottom:calc(60px + env(safe-area-inset-bottom));
@@ -309,7 +309,7 @@ body::after{
 	transition:transform var(--tv-dur-fast) ease-in-out, opacity var(--tv-dur-fast) ease-in-out;
 	pointer-events:none;
 }
-/* Hamburger → X morph when .is-open */
+/* Hamburger ? X morph when .is-open */
 .settings-fab.is-open .hamburger-line:nth-child(1){transform:translateY(7px) rotate(45deg)}
 .settings-fab.is-open .hamburger-line:nth-child(2){opacity:0}
 .settings-fab.is-open .hamburger-line:nth-child(3){transform:translateY(-7px) rotate(-45deg)}
@@ -679,11 +679,11 @@ body::after{
 	==========================================================================
 	BUTTON PRESS FEEDBACK
 	==========================================================================
-	A tiny scale-down on :active mimics a physical press — satisfying on touch
+	A tiny scale-down on :active mimics a physical press � satisfying on touch
 	and helpful as an instant visual cue that the tap registered.
 	Duolingo, Discord, and most native apps use this pattern.
 */
-button:active:not(:disabled):not(.btn):not(.iconBtn):not(.iconBtnLarge):not(.closeIconBtn):not(.imageNavBtn):not(.partyCollapseBtn),
+button:active:not(:disabled):not(.btn):not(.iconBtn):not(.iconBtnLarge):not(.closeIconBtn):not(.imageNavBtn):not(.partyCollapseBtn):not(.pill--clickable),
 .chip:active{transform:scale(.97);transition:transform var(--tv-dur-fast) var(--tv-ease)}
 
 
@@ -724,7 +724,7 @@ button:active:not(:disabled):not(.btn):not(.iconBtn):not(.iconBtnLarge):not(.clo
 	COIN VALUE PULSE
 	==========================================================================
 	When JS adds `.coin-pulse` after a wallet update, the coin badge briefly
-	glows gold — drawing the eye so the player notices their balance changed.
+	glows gold � drawing the eye so the player notices their balance changed.
 */
 @keyframes coinRipple{
 	0%{transform:scale(.7);opacity:.85}
@@ -802,14 +802,14 @@ button:active:not(:disabled):not(.btn):not(.iconBtn):not(.iconBtnLarge):not(.clo
 */
 html{overscroll-behavior:contain;scroll-behavior:smooth}
 
-/* Custom scrollbar — amethyst track, gold on hover (matches NextJS app) */
+/* Custom scrollbar � amethyst track, gold on hover (matches NextJS app) */
 ::-webkit-scrollbar{width:6px;height:6px}
 ::-webkit-scrollbar-track{background:var(--bg)}
 ::-webkit-scrollbar-thumb{background:var(--amethyst);border-radius:var(--radius-md)}
 ::-webkit-scrollbar-thumb:hover{background:var(--amethyst-light)}
 html{scrollbar-width:thin;scrollbar-color:var(--amethyst) var(--bg)}
 
-/* Apply Cinzel to brand elements that aren't h1–h4 tags */
+/* Apply Cinzel to brand elements that aren't h1�h4 tags */
 .brand__title,
 .brand-wordmark,
 .tavern-overlay__title{
@@ -841,7 +841,7 @@ html{scrollbar-width:thin;scrollbar-color:var(--amethyst) var(--bg)}
 	SKELETON LOADING PLACEHOLDER
 	==========================================================================
 	A shimmer card shown while Firestore data is loading.
-	Uses a repeating CSS gradient animation — no JS needed for the shimmer.
+	Uses a repeating CSS gradient animation � no JS needed for the shimmer.
 */
 @keyframes shimmer{
 	from{background-position:-400px 0}
@@ -867,8 +867,8 @@ html{scrollbar-width:thin;scrollbar-color:var(--amethyst) var(--bg)}
 .row--gap-sm{gap:8px}
 
 /*
-	─── Standardized modal / form action footer ────────────────────────────────────────────
-	HTML order: [Cancel / Secondary] … [Primary CTA].
+	--- Standardized modal / form action footer --------------------------------------------
+	HTML order: [Cancel / Secondary] � [Primary CTA].
 	Primary button is always the RIGHTMOST child.
 	On mobile: buttons stack full-width, primary wins top position via column-reverse.
 */
@@ -934,14 +934,14 @@ h3{font-size: var(--text-2xl)}
 	BUTTON SYSTEM
 	==========================================================================
 	Two button variants:
-	.btn          — Primary gold (call-to-action): "Create Session", "Join", "Save"
-	.btn--ghost   — Secondary transparent: "Cancel", "Back", navigation
+	.btn          � Primary gold (call-to-action): "Create Session", "Join", "Save"
+	.btn--ghost   � Secondary transparent: "Cancel", "Back", navigation
 
-	BEGINNER NOTE — min-height:44px:
+	BEGINNER NOTE � min-height:44px:
 	Apple's Human Interface Guidelines recommend 44px minimum touch targets.
 	This ensures buttons are easy to tap on phones, even for thick fingers.
 
-	BEGINNER NOTE — var(--gold-gradient):
+	BEGINNER NOTE � var(--gold-gradient):
 	Using a CSS variable for the gradient means we can change the gold color
 	in one place (:root) and every button updates automatically.
 */
@@ -956,21 +956,21 @@ h3{font-size: var(--text-2xl)}
 	cursor:pointer;
 	background:var(--gold-gradient);
 	color:var(--text-on-gold);
-	/* 3D depth layer — gold-2 is the official darker gold twin */
-	box-shadow:0 4px 0 var(--gold-2), 0 8px 20px rgba(10,8,18,.34);
+	/* 3D depth shadow � dark amber so it reads as genuine depth, not a decorative stripe */
+	box-shadow:0 4px 0 rgba(20,12,1,.88), 0 8px 20px rgba(10,8,18,.34);
 	transition:transform .1s ease-out, box-shadow .1s ease-out, filter .1s ease-out;
 	position:relative;
 }
 
-.btn:hover:not(:disabled){filter:brightness(1.06);box-shadow:0 4px 0 var(--gold-2), 0 0 0 1px rgba(212,175,55,.28), 0 10px 24px rgba(212,175,55,.16)}
-.btn:active:not(:disabled){transform:translateY(3px);box-shadow:0 1px 0 var(--gold-2);filter:brightness(1.0)}
+.btn:hover:not(:disabled){filter:brightness(1.06);box-shadow:0 4px 0 rgba(20,12,1,.88), 0 0 0 1px rgba(212,175,55,.28), 0 10px 24px rgba(212,175,55,.16)}
+.btn:active:not(:disabled){transform:translateY(3px);box-shadow:0 1px 0 rgba(20,12,1,.88);filter:brightness(1.0)}
 .btn:disabled{box-shadow:none;opacity:.45;cursor:not-allowed}
 
 .btn--ghost{
 	background:rgba(57,47,82,.7);
 	color:var(--text);
 	border-color:var(--line);
-	/* Subtle depth — dark void shadow so ghost buttons still feel 3D */
+	/* Subtle depth � dark void shadow so ghost buttons still feel 3D */
 	box-shadow:0 4px 0 rgba(0,0,0,.55);
 	transition:transform .1s ease-out, box-shadow .1s ease-out, border-color .1s ease-out, filter .1s ease-out;
 }
@@ -991,13 +991,13 @@ button{
 	transition:box-shadow var(--tv-dur-fast) ease-in-out, border-color var(--tv-dur-fast) ease-in-out, filter var(--tv-dur-fast) ease-in-out;
 }
 
-button:hover:not(:disabled):not(.btn):not(.iconBtn):not(.iconBtnLarge):not(.closeIconBtn):not(.imageNavBtn):not(.partyCollapseBtn):not(.bottom-bar__btn):not(.bottom-bar__profile){
+button:hover:not(:disabled):not(.btn):not(.iconBtn):not(.iconBtnLarge):not(.closeIconBtn):not(.imageNavBtn):not(.partyCollapseBtn):not(.pill--clickable):not(.bottom-bar__btn):not(.bottom-bar__profile){
 	box-shadow:0 0 0 1px var(--gold-border), 0 4px 12px var(--gold-tint);
 }
 
 /*
 	Focus-visible rings for keyboard navigation.
-	Gold ring matching the brand — consistent across all interactive elements.
+	Gold ring matching the brand � consistent across all interactive elements.
 */
 .iconBtn:focus-visible,
 .chip:focus-visible,
@@ -1067,18 +1067,18 @@ textarea.input{resize:vertical;min-height:120px}
 	border:1px solid transparent;
 	background:var(--gold-gradient);
 	color:var(--text-on-gold);
-	box-shadow:0 4px 0 var(--gold-2), 0 8px 20px rgba(10,8,18,.34);
+	box-shadow:0 4px 0 rgba(20,12,1,.88), 0 8px 20px rgba(10,8,18,.34);
 }
 
 #btnCreateHandoutInline:hover{
 	transform:none;
 	filter:brightness(1.06);
-	box-shadow:0 4px 0 var(--gold-2), 0 0 0 1px rgba(212,175,55,.28), 0 10px 24px rgba(212,175,55,.16);
+	box-shadow:0 4px 0 rgba(20,12,1,.88), 0 0 0 1px rgba(212,175,55,.28), 0 10px 24px rgba(212,175,55,.16);
 }
 
 #btnCreateHandoutInline:active:not(:disabled){
 	transform:translateY(3px);
-	box-shadow:0 1px 0 var(--gold-2);
+	box-shadow:0 1px 0 rgba(20,12,1,.88);
 }
 
 #btnCreateHandoutInline svg{width:22px;height:22px}
@@ -1242,7 +1242,7 @@ textarea.input{resize:vertical;min-height:120px}
 	transition:color 200ms ease-in-out, background 200ms ease-in-out;
 }
 .partyCollapseBtn:hover{color:var(--gold);background:rgba(245,200,47,.08)}
-/* ↓ partyCollapseBtn display + chevron rotation consolidated into the 1099px block above ↓ */
+/* ? partyCollapseBtn display + chevron rotation consolidated into the 1099px block above ? */
 
 .dmPartyPanel__actions{
 	display:flex;
@@ -1621,7 +1621,7 @@ textarea.input{resize:vertical;min-height:120px}
 .tag--npcNeutral{color:#f7dfa0;border-color:rgba(245,200,47,.56);background:rgba(87,70,22,.34)}
 .tag--npcUnknown{color:#c8bfd9;border-color:rgba(143,135,159,.48);background:rgba(56,45,78,.44)}
 
-/* QR container — base style used in both inline and modal contexts. */
+/* QR container � base style used in both inline and modal contexts. */
 .qr{
 	display:grid;
 	place-items:center;
@@ -1744,7 +1744,7 @@ textarea.input{resize:vertical;min-height:120px}
 	object-fit:cover;
 }
 
-/* The decode canvas is invisible — only used for jsQR pixel reads */
+/* The decode canvas is invisible � only used for jsQR pixel reads */
 .scannerCanvas{
 	display:none;
 }
@@ -1859,7 +1859,7 @@ textarea.input{resize:vertical;min-height:120px}
 
 /*
 	Modal backdrop and card treatment for dialogs/overlays.
-	BEGINNER NOTE — position:fixed + inset:0 creates a full-viewport overlay.
+	BEGINNER NOTE � position:fixed + inset:0 creates a full-viewport overlay.
 	z-index:90 ensures the modal sits above all other content.
 	display:grid + place-items centers the card both horizontally and vertically.
 	overflow-y:auto lets the user scroll long handout details within the modal.
@@ -2360,7 +2360,7 @@ textarea.input{resize:vertical;min-height:120px}
 
 /*
 	Non-blocking toast notifications.
-	BEGINNER NOTE — pointer-events:none:
+	BEGINNER NOTE � pointer-events:none:
 	The toast container covers part of the screen but is invisible.
 	pointer-events:none means clicks pass through it to the content behind.
 	Individual toast items re-enable pointer-events so they can be interacted with.
@@ -2399,7 +2399,7 @@ textarea.input{resize:vertical;min-height:120px}
 	to{opacity:1;transform:translateY(0)}
 }
 
-/* Audio unlock prompt — fixed banner at bottom center */
+/* Audio unlock prompt � fixed banner at bottom center */
 .audioUnlockPrompt{
 	position:fixed;
 	left:50%;
@@ -2462,7 +2462,7 @@ textarea.input{resize:vertical;min-height:120px}
 	background:rgba(70,57,92,.7);
 }
 
-/* Suggestion strip — appears above the grid once title/content is typed */
+/* Suggestion strip � appears above the grid once title/content is typed */
 .iconSuggestSection{
 	display:flex;
 	align-items:center;
@@ -2495,7 +2495,7 @@ textarea.input{resize:vertical;min-height:120px}
 	background:rgba(245,200,47,.16) !important;
 }
 
-/* Custom emoji row — lives below the icon grid */
+/* Custom emoji row � lives below the icon grid */
 .emojiCustomRow{
 	display:flex;
 	align-items:center;
@@ -2536,7 +2536,7 @@ textarea.input{resize:vertical;min-height:120px}
 }
 .emojiInput::placeholder{color:var(--muted);font-size:13px}
 
-/* Label sub-text for context hints (e.g. "Accent Color · card border") */
+/* Label sub-text for context hints (e.g. "Accent Color � card border") */
 .labelSub{
 	font-size:11px;
 	font-weight:400;
@@ -2565,7 +2565,7 @@ textarea.input{resize:vertical;min-height:120px}
 	border-color:#fff;
 }
 
-/* Claimable row — visually separated from the color picker above it */
+/* Claimable row � visually separated from the color picker above it */
 .claimableRow{
 	padding-top:12px;
 	border-top:1px solid var(--line);
@@ -2842,7 +2842,7 @@ textarea.input{resize:vertical;min-height:120px}
 .playerCard-mini__initials{line-height:1}
 .playerCard-mini__name{flex:1;font-size:var(--text-base);font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 
-/* Status dots — online/away/offline indicators */
+/* Status dots � online/away/offline indicators */
 .status-dot{
 	width:10px;height:10px;
 	border-radius:50%;
@@ -2991,7 +2991,7 @@ textarea.input{resize:vertical;min-height:120px}
 
 /*
 	==========================================================================
-	BOTTOM BAR — App-style navigation strip
+	BOTTOM BAR � App-style navigation strip
 	==========================================================================
 	Fixed to the bottom of the viewport like a native mobile app tab bar.
 	Contains role-aware buttons: Ambience, Social (GM only), Handouts,
@@ -3063,7 +3063,7 @@ textarea.input{resize:vertical;min-height:120px}
 	display:none;
 }
 
-/* Golden center profile button — "rising sun" effect */
+/* Golden center profile button � "rising sun" effect */
 .bottom-bar__profile{
 	background:none;border:none;padding:0;
 	display:flex;flex-direction:column;align-items:center;
@@ -3135,7 +3135,7 @@ textarea.input{resize:vertical;min-height:120px}
 	Notification dot: a small circle layered on a bottom-bar button
 	to signal new unread content (new handout revealed, etc.).
 */
-/* ── Desktop bottom bar: wider, labeled, constrained ── */
+/* -- Desktop bottom bar: wider, labeled, constrained -- */
 @media(min-width:768px){
 	.bottom-bar__inner{
 		max-width:640px;
@@ -3185,7 +3185,7 @@ textarea.input{resize:vertical;min-height:120px}
 	pointer-events:none;
 }
 
-/* GM-only button marker — small gold bar on the left edge */
+/* GM-only button marker � small gold bar on the left edge */
 .btn--gm{
 	position:relative;
 	padding-left:18px;
@@ -3428,7 +3428,7 @@ textarea.input{resize:vertical;min-height:120px}
 /* Browser native range color for volume track thumb/active segment. */
 #dmVolume{accent-color:var(--gold)}
 
-/* Info button next to the track selector — square, matches .btn style */
+/* Info button next to the track selector � square, matches .btn style */
 .ambience-info-btn{
 	flex-shrink:0;
 	display:inline-flex;
@@ -3616,6 +3616,210 @@ textarea.input{resize:vertical;min-height:120px}
 	font-size:var(--text-base);
 }
 
+/* === Dynamic Stats System === */
+.statActionBar{
+	display:flex;
+	flex-wrap:wrap;
+	gap:8px;
+	margin-top:16px;
+}
+.commonStatsPicker{
+	overflow:hidden;
+	max-height:0;
+	opacity:0;
+	transition:max-height 300ms var(--tv-ease),opacity 200ms var(--tv-ease),margin-top 300ms var(--tv-ease);
+	margin-top:0;
+}
+.commonStatsPicker.is-open{
+	max-height:500px;
+	opacity:1;
+	margin-top:12px;
+	padding:12px;
+	border:1px solid rgba(92,44,145,.28);
+	border-radius:var(--radius-lg);
+	background:rgba(30,16,56,.55);
+}
+.commonStatsPicker__scan{
+	display:flex;
+	gap:8px;
+	align-items:center;
+	flex-wrap:wrap;
+	margin-bottom:8px;
+}
+.commonStatsPicker__chips{
+	display:flex;
+	flex-wrap:wrap;
+	gap:8px;
+	margin-top:8px;
+}
+.commonStatChip{
+	padding:6px 14px;
+	border-radius:var(--radius-md);
+	border:1px solid rgba(92,44,145,.40);
+	background:rgba(92,44,145,.10);
+	color:var(--muted);
+	font-size:var(--text-sm);
+	font-family:inherit;
+	cursor:pointer;
+	transition:background 200ms var(--tv-ease),border-color 200ms var(--tv-ease),color 200ms var(--tv-ease);
+	letter-spacing:.04em;
+}
+.commonStatChip:hover{
+	background:rgba(92,44,145,.22);
+	border-color:rgba(212,175,55,.30);
+	color:var(--text);
+}
+.commonStatChip.is-active{
+	background:rgba(212,175,55,.12);
+	border-color:rgba(212,175,55,.50);
+	color:var(--gold);
+	font-weight:600;
+}
+.commonStatChip.is-active:hover{
+	background:rgba(212,175,55,.20);
+}
+.profileStatItem__topRow{
+	display:flex;
+	justify-content:space-between;
+	align-items:center;
+	margin-bottom:2px;
+}
+.statDynamicSection{
+	margin-top:12px;
+}
+.statDynamicSection__header{
+	font-size:var(--text-xs);
+	text-transform:uppercase;
+	letter-spacing:.07em;
+	color:var(--muted);
+	margin-bottom:8px;
+}
+.statDynamicList{
+	display:flex;
+	flex-direction:column;
+	gap:8px;
+}
+.statDynamicRow{
+	display:flex;
+	align-items:center;
+	gap:8px;
+	padding:8px 12px;
+	border:1px solid rgba(92,44,145,.22);
+	border-radius:var(--radius-lg);
+	background:linear-gradient(180deg,rgba(46,31,72,.54),rgba(30,20,52,.46));
+}
+.statDynamicRow--bonus{
+	flex-direction:column;
+	align-items:stretch;
+	gap:6px;
+}
+.statDynamicRow__bonusMain{
+	display:flex;
+	align-items:center;
+	gap:8px;
+}
+.statDynamicRow__bonusApplies{
+	display:flex;
+	align-items:flex-start;
+	gap:8px;
+	flex-wrap:wrap;
+}
+.bonusAppliesLabel{
+	font-size:var(--text-xs);
+	color:var(--muted);
+	white-space:nowrap;
+	padding-top:4px;
+	letter-spacing:.04em;
+}
+.statDynamicRow__nameInput{
+	flex:1;
+	background:transparent;
+	border:none;
+	border-bottom:1px solid rgba(245,200,47,.20);
+	color:var(--text);
+	font-size:var(--text-base);
+	font-family:inherit;
+	padding:4px 2px;
+	outline:none;
+	transition:border-color 200ms var(--tv-ease);
+	min-width:0;
+}
+.statDynamicRow__nameInput:focus{border-bottom-color:rgba(245,200,47,.50)}
+.statDynamicRow__nameInput::placeholder{color:rgba(196,180,148,.30)}
+.statDynamicRow__valueInput{
+	width:72px;
+	flex-shrink:0;
+	background:rgba(255,255,255,.05);
+	border:1px solid rgba(245,200,47,.20);
+	border-radius:var(--radius-sm);
+	color:var(--text);
+	font-size:var(--text-base);
+	font-weight:700;
+	font-family:inherit;
+	padding:4px 6px;
+	text-align:center;
+	outline:none;
+	transition:border-color 200ms var(--tv-ease);
+}
+.statDynamicRow__valueInput:focus{border-color:rgba(245,200,47,.50)}
+.statDynamicRow__valueInput--signed{width:64px}
+.statDynamicRow__valueInput::placeholder{color:rgba(196,180,148,.30);font-weight:400}
+.statRemoveBtn{
+	background:none;
+	border:none;
+	color:rgba(196,180,148,.40);
+	font-size:1.1rem;
+	line-height:1;
+	padding:4px;
+	cursor:pointer;
+	border-radius:var(--radius-sm);
+	transition:color 200ms var(--tv-ease),background 200ms var(--tv-ease);
+	flex-shrink:0;
+}
+.statRemoveBtn:hover{color:#e05c5c;background:rgba(224,92,92,.10)}
+.bonusTagArea{
+	display:flex;
+	flex-wrap:wrap;
+	gap:4px;
+	align-items:center;
+}
+.bonusTag{
+	display:inline-flex;
+	align-items:center;
+	gap:4px;
+	padding:2px 8px 2px 10px;
+	border-radius:var(--radius-md);
+	background:rgba(212,175,55,.12);
+	border:1px solid rgba(212,175,55,.30);
+	color:var(--gold);
+	font-size:var(--text-xs);
+	font-weight:600;
+}
+.bonusTag__remove{
+	background:none;
+	border:none;
+	color:rgba(212,175,55,.60);
+	font-size:.85rem;
+	line-height:1;
+	padding:0 2px;
+	cursor:pointer;
+	transition:color 150ms ease-in-out;
+}
+.bonusTag__remove:hover{color:#e05c5c}
+.bonusAddDropdown{
+	background:rgba(46,31,72,.70);
+	border:1px solid rgba(92,44,145,.35);
+	border-radius:var(--radius-sm);
+	color:var(--text);
+	font-size:var(--text-xs);
+	font-family:inherit;
+	padding:3px 6px;
+	cursor:pointer;
+	outline:none;
+	transition:border-color 200ms var(--tv-ease);
+}
+.bonusAddDropdown:focus{border-color:rgba(212,175,55,.40)}
+
 .profileStatsEditable{
 	display:grid;
 	grid-template-columns:repeat(2,1fr);
@@ -3669,10 +3873,10 @@ textarea.input{resize:vertical;min-height:120px}
 	INVENTORY SYSTEM STYLES
 	==========================================================================
 	The inventory screen displays:
-	- Party Treasury (GM only) — shared coin pool with distribute/grant controls
-	- Per-player sections — each player's items + personal coin pouch
-	- Coin controls — +/- buttons for each denomination (platinum/gold/silver/bronze)
-	- Item cards — individual inventory items with edit/delete actions
+	- Party Treasury (GM only) � shared coin pool with distribute/grant controls
+	- Per-player sections � each player's items + personal coin pouch
+	- Coin controls � +/- buttons for each denomination (platinum/gold/silver/bronze)
+	- Item cards � individual inventory items with edit/delete actions
 
 	LAYOUT NOTE:
 	Coins use a 4-column grid (one column per denomination).
@@ -4012,7 +4216,7 @@ textarea.input{resize:vertical;min-height:120px}
 	letter-spacing:.04em;
 }
 
-/* ── GM treasury distribute controls ── */
+/* -- GM treasury distribute controls -- */
 .treasuryDistributeWrap{
 	margin-top:10px;
 	padding-top:10px;
@@ -4058,7 +4262,7 @@ textarea.input{resize:vertical;min-height:120px}
 	white-space:nowrap;
 }
 
-/* ── GM per-player grant coins row ── */
+/* -- GM per-player grant coins row -- */
 .grantCoinsRow{
 	display:flex;
 	flex-wrap:wrap;
@@ -4086,13 +4290,13 @@ textarea.input{resize:vertical;min-height:120px}
 	==========================================================================
 	Auth-first design with hero title + auth card / signed-in home section.
 
-	BEGINNER NOTE — clamp(min, preferred, max):
+	BEGINNER NOTE � clamp(min, preferred, max):
 	clamp() is a CSS function that constrains a value between a minimum and
 	maximum. Example: clamp(32px, 7vw, 72px) means "use 7% of viewport width,
 	but never go below 32px or above 72px." This creates responsive padding
 	that adapts to screen size without needing a media query.
 
-	BEGINNER NOTE — dvh (dynamic viewport height):
+	BEGINNER NOTE � dvh (dynamic viewport height):
 	100dvh is the actual visible height on mobile browsers, accounting for
 	the browser's address bar that shrinks/grows when you scroll.
 	Regular vh includes the hidden area behind the address bar.
@@ -4115,7 +4319,7 @@ textarea.input{resize:vertical;min-height:120px}
 
 .landingLead{font-size: var(--text-3xl);font-family:var(--font-heading);line-height:1.35;color:var(--muted);margin:12px auto 0;max-width:100%}
 
-/* ── Landing logo image ── */
+/* -- Landing logo image -- */
 .landing-logo{
 	width:148px;height:148px;
 	border:none;
@@ -4136,7 +4340,7 @@ textarea.input{resize:vertical;min-height:120px}
 	display:block;
 }
 
-/* ── Auth card ── */
+/* -- Auth card -- */
 .auth-card{
 	/* Wider, responsive auth surface that scales with page width */
 	width:100%;
@@ -4194,7 +4398,7 @@ textarea.input{resize:vertical;min-height:120px}
 
 .auth-panel.hidden{display:none}
 
-/* ── Auth two-screen structure ── */
+/* -- Auth two-screen structure -- */
 .auth-method-screen,
 .auth-email-screen{
 	width:100%;
@@ -4261,7 +4465,7 @@ textarea.input{resize:vertical;min-height:120px}
 .auth-method-btn:hover{transform:translateY(-1px)}
 .auth-method-btn:active{transform:translateY(0)}
 
-/* Primary (Email) — gold fill */
+/* Primary (Email) � gold fill */
 .auth-method-btn--primary{
 	background:var(--gold);
 	border-color:var(--gold);
@@ -4273,7 +4477,7 @@ textarea.input{resize:vertical;min-height:120px}
 	box-shadow:0 6px 20px rgba(212,175,55,.38);
 }
 
-/* Ghost (Google) — transparent fill */
+/* Ghost (Google) � transparent fill */
 .auth-method-btn--ghost{
 	background:rgba(255,255,255,.05);
 	color:var(--text);
@@ -4495,7 +4699,7 @@ textarea.input{resize:vertical;min-height:120px}
 	background:rgba(44,36,68,.42);
 }
 
-/* ── Home section (post-login) ── */
+/* -- Home section (post-login) -- */
 .landing-home{
 	width:100%;
 	max-width:540px;
@@ -4554,7 +4758,7 @@ textarea.input{resize:vertical;min-height:120px}
 }
 .landing-action-card__sub{line-height:1.3}
 
-/* ── One-shot banner ── */
+/* -- One-shot banner -- */
 .oneshot-banner{
 	position:fixed;
 	top:0;left:50%;transform:translateX(-50%);
@@ -4656,31 +4860,31 @@ textarea.input{resize:vertical;min-height:120px}
 /* Create handout modal internals (form spacing). */
 .formGrid{display:grid;gap:12px;min-width:0}
 
-/* ── Semantic button and text variants ── */
-/* Ghost danger variant — destructive actions */
+/* -- Semantic button and text variants -- */
+/* Ghost danger variant � destructive actions */
 .btn--danger{border-color:var(--danger);color:var(--danger);box-shadow:0 4px 0 rgba(100,15,15,.7);transition:transform .1s ease-out, box-shadow .1s ease-out, background .1s ease-out;}
 .btn--danger:hover:not(:disabled){background:rgba(220,47,47,.1);border-color:var(--danger);box-shadow:0 4px 0 rgba(100,15,15,.7), 0 0 0 1px rgba(220,47,47,.28), 0 6px 18px rgba(220,47,47,.12)}
 .btn--danger:active:not(:disabled){transform:translateY(4px);box-shadow:0 0 0 rgba(100,15,15,.7)}
-/* Filled danger variant — final destructive confirm */
+/* Filled danger variant � final destructive confirm */
 .btn--danger-fill{background:var(--danger);border-color:var(--danger);color:#fff;box-shadow:0 5px 0 #7a1010;transition:transform .1s ease-out, box-shadow .1s ease-out, filter .1s ease-out;}
 .btn--danger-fill:hover:not(:disabled){filter:brightness(1.1);box-shadow:0 5px 0 #7a1010, 0 0 0 1px rgba(220,47,47,.36), 0 6px 22px rgba(220,47,47,.18)}
 .btn--danger-fill:active:not(:disabled){transform:translateY(4px);box-shadow:0 1px 0 #7a1010}
-/* Warning ghost variant — cautionary reversible actions */
+/* Warning ghost variant � cautionary reversible actions */
 .btn--warning{border-color:var(--warning);color:var(--warning-light);box-shadow:0 4px 0 rgba(140,70,0,.6);transition:transform .1s ease-out, box-shadow .1s ease-out, background .1s ease-out;}
 .btn--warning:hover:not(:disabled){background:rgba(255,139,26,.1);border-color:var(--warning);box-shadow:0 4px 0 rgba(140,70,0,.6), 0 0 0 1px rgba(255,139,26,.28), 0 6px 18px rgba(255,139,26,.12)}
 .btn--warning:active:not(:disabled){transform:translateY(4px);box-shadow:0 0 0 rgba(140,70,0,.6)}
 
-/* Semantic aliases — identical to .btn (gold primary CTA).
+/* Semantic aliases � identical to .btn (gold primary CTA).
    Use btn--primary or btn--gold when the semantic name improves readability. */
-/* .btn--primary and .btn--gold are semantic aliases for .btn — inherit all 3D rules above */
+/* .btn--primary and .btn--gold are semantic aliases for .btn � inherit all 3D rules above */
 .btn--primary,.btn--gold{
 	background:var(--gold-gradient);
 	color:var(--text-on-gold);
 	border-color:transparent;
-	box-shadow:0 4px 0 var(--gold-2), 0 8px 20px rgba(10,8,18,.34);
+	box-shadow:0 4px 0 rgba(20,12,1,.88), 0 8px 20px rgba(10,8,18,.34);
 }
-.btn--primary:hover:not(:disabled),.btn--gold:hover:not(:disabled){filter:brightness(1.06);box-shadow:0 4px 0 var(--gold-2), 0 0 0 1px rgba(212,175,55,.28), 0 10px 24px rgba(212,175,55,.16)}
-.btn--primary:active:not(:disabled),.btn--gold:active:not(:disabled){transform:translateY(3px);box-shadow:0 1px 0 var(--gold-2);filter:brightness(1.0)}
+.btn--primary:hover:not(:disabled),.btn--gold:hover:not(:disabled){filter:brightness(1.06);box-shadow:0 4px 0 rgba(20,12,1,.88), 0 0 0 1px rgba(212,175,55,.28), 0 10px 24px rgba(212,175,55,.16)}
+.btn--primary:active:not(:disabled),.btn--gold:active:not(:disabled){transform:translateY(3px);box-shadow:0 1px 0 rgba(20,12,1,.88);filter:brightness(1.0)}
 
 /* Utility: force-full-width button (blocking modal single-action prompts). */
 .btn--full{display:block;width:100%}
@@ -4867,7 +5071,7 @@ textarea.input{resize:vertical;min-height:120px}
 }
 .externalLinkNo:hover{background:rgba(220,90,90,.16)}
 
-/* ── Auth Loading Overlay ── */
+/* -- Auth Loading Overlay -- */
 .authLoadingOverlay{
 	position:fixed;inset:0;z-index:9999;
 	display:flex;align-items:center;justify-content:center;
@@ -4884,7 +5088,7 @@ textarea.input{resize:vertical;min-height:120px}
 @keyframes spin{to{transform:rotate(360deg)}}
 .authLoadingOverlay__text{color:var(--muted);font-size:.95rem}
 
-/* ── Notification Bell ── */
+/* -- Notification Bell -- */
 .notifBell{position:relative;cursor:pointer;transition:color var(--tv-dur-fast) ease-in-out,border-color var(--tv-dur-fast) ease-in-out,background var(--tv-dur-fast) ease-in-out,box-shadow var(--tv-dur-fast) ease-in-out}
 .notifBell--unread{
 	color:#f29d0a;
@@ -4900,7 +5104,7 @@ textarea.input{resize:vertical;min-height:120px}
 }
 .notifBell__badge.hidden{display:none}
 
-/* ── Notification Panel ── */
+/* -- Notification Panel -- */
 .notifPanel{
 	position:fixed;top:52px;right:12px;z-index:600;
 	width:320px;max-height:420px;overflow-y:auto;
@@ -4930,7 +5134,7 @@ textarea.input{resize:vertical;min-height:120px}
 .notifItem__msg{font-size:.88rem;color:var(--text);line-height:1.3}
 .notifItem__time{font-size:.75rem;color:var(--muted);margin-top:2px}
 
-/* ── Image Lightbox Modal ── */
+/* -- Image Lightbox Modal -- */
 .lightboxModal{
 	position:fixed;inset:0;z-index:10001;
 	display:flex;align-items:center;justify-content:center;
@@ -4969,7 +5173,7 @@ textarea.input{resize:vertical;min-height:120px}
 	transition:transform var(--tv-dur-fast) ease;
 }
 
-/* ── Blocking Modal (full-screen, user cannot dismiss) ── */
+/* -- Blocking Modal (full-screen, user cannot dismiss) -- */
 .blockingModal{
 	position:fixed;inset:0;z-index:10000;
 	display:flex;align-items:center;justify-content:center;
@@ -5003,7 +5207,7 @@ textarea.input{resize:vertical;min-height:120px}
 .profileOfferPreview__stat{display:flex;justify-content:space-between;font-size:.88rem}
 .profileOfferPreview__stat span:first-child{color:var(--muted)}
 
-/* ── Undo Toast ── */
+/* -- Undo Toast -- */
 .toast--undo{display:flex;align-items:center;gap:10px}
 .toast--undo .toast__undoBtn{
 	background:none;border:1px solid var(--gold);color:var(--gold);
@@ -5012,7 +5216,7 @@ textarea.input{resize:vertical;min-height:120px}
 }
 .toast--undo .toast__undoBtn:hover{background:rgba(245,200,47,.12)}
 
-/* ── Onboarding Tooltip ── */
+/* -- Onboarding Tooltip -- */
 .onboardOverlay{
 	position:fixed;inset:0;z-index:8000;
 	pointer-events:none;
@@ -5115,7 +5319,7 @@ textarea.input{resize:vertical;min-height:120px}
 
 .notesEditor{min-height:320px;line-height:1.5;resize:vertical}
 
-/* ── Nugget Shop Modal ── */
+/* -- Nugget Shop Modal -- */
 .nuggetShopCard{max-width:380px;margin:0 auto}
 .nuggetShop__hero{display:flex;align-items:center;gap:14px;justify-content:center;padding:18px 0 10px}
 .nuggetShop__icon{width:56px;height:56px}
@@ -5131,7 +5335,7 @@ textarea.input{resize:vertical;min-height:120px}
 .nuggetShop__packLabel{font-size:var(--text-sm);color:var(--muted)}
 .nuggetShop__packPrice{font-size:var(--text-lg);font-weight:700;color:var(--text);margin-top:4px}
 
-/* ── Keyboard Shortcuts Card ── */
+/* -- Keyboard Shortcuts Card -- */
 .shortcutCard{display:flex;flex-direction:column;gap:6px;padding:8px 0}
 .shortcutCard__row{display:flex;justify-content:space-between;align-items:center;padding:4px 0}
 .shortcutCard__key{
@@ -5140,7 +5344,7 @@ textarea.input{resize:vertical;min-height:120px}
 	color:var(--gold);
 }
 
-/* ── Inventory Search ── */
+/* -- Inventory Search -- */
 .searchInputWrap{
 	position:relative;
 }
@@ -5157,12 +5361,12 @@ textarea.input{resize:vertical;min-height:120px}
 }
 .searchInputWrap .input{padding-left:36px}
 
-/* ── Template Image Picker ── */
+/* -- Template Image Picker -- */
 .templateImagePicker{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
 .templateImagePreview{width:64px;height:64px;border-radius:var(--radius-md);object-fit:cover;border:1px solid var(--line);transform:scale(var(--tv-image-zoom));transform-origin:center}
 .templateImagePreview.hidden{display:none}
 
-/* ── Character Templates ── */
+/* -- Character Templates -- */
 .templateCard{
 	border:1px solid var(--line);border-radius:var(--radius-xl);
 	background:linear-gradient(180deg,rgba(49,41,72,.93),rgba(43,36,62,.92));
@@ -5171,7 +5375,7 @@ textarea.input{resize:vertical;min-height:120px}
 }
 .templateCard:hover{border-color:var(--gold-strong)}
 
-/* Avatar — square with soft rounded corners */
+/* Avatar � square with soft rounded corners */
 .templateCard__avatar{
 	width:56px;height:56px;border-radius:var(--radius-md);object-fit:cover;
 	border:1px solid var(--line);flex-shrink:0;background:rgba(92,44,145,.18);
@@ -5183,13 +5387,13 @@ textarea.input{resize:vertical;min-height:120px}
 	background:rgba(92,44,145,.22);
 }
 
-/* Body — name + badge + bio */
+/* Body � name + badge + bio */
 .templateCard__body{flex:1;min-width:0}
 .templateCard__titleRow{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:4px}
 .templateCard__name{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .templateCard__bio{margin:0;overflow:hidden;display:-webkit-box;line-clamp:2;-webkit-line-clamp:2;-webkit-box-orient:vertical}
 
-/* Status badges — pill shaped, color-coded */
+/* Status badges � pill shaped, color-coded */
 .templateCard__badge{
 	display:inline-flex;align-items:center;gap:4px;
 	padding:3px 8px;border-radius:999px;
@@ -5201,7 +5405,7 @@ textarea.input{resize:vertical;min-height:120px}
 .templateCard__badge--accepted{color:#4caf50;border-color:rgba(76,175,80,.4);background:rgba(76,175,80,.12)}
 .templateCard__badge--rejected{color:#e53935;border-color:rgba(229,57,53,.4);background:rgba(229,57,53,.12)}
 
-/* Action buttons — equal-size icon-only */
+/* Action buttons � equal-size icon-only */
 .templateActions{display:flex;gap:6px;flex-shrink:0}
 .templateActionBtn{
 	width:40px;height:40px;min-height:40px;padding:0;
@@ -5212,7 +5416,7 @@ textarea.input{resize:vertical;min-height:120px}
 
 /* ============================
    "ENTER THE TAVERN" OVERLAY
-   Player entry gate — browser autoplay policy workaround + atmosphere
+   Player entry gate � browser autoplay policy workaround + atmosphere
    Mirrors app/player/[sessionId]/SessionEntryPrompt.tsx from NextJS build
    ============================ */
 .tavern-overlay{
@@ -5341,7 +5545,7 @@ textarea.input{resize:vertical;min-height:120px}
 
 /* ============================
    AUDIO BARS ANIMATION
-   Active track indicator — 3 pulsing gold bars (matches NextJS GMAudioControls)
+   Active track indicator � 3 pulsing gold bars (matches NextJS GMAudioControls)
    ============================ */
 .audio-bars{
 	display:inline-flex;
@@ -5389,7 +5593,7 @@ textarea.input{resize:vertical;min-height:120px}
 	.templateActions{width:100%;justify-content:flex-end;flex-wrap:nowrap}
 }
 
-/* ── Player card quick stats (GM) ── */
+/* -- Player card quick stats (GM) -- */
 .playerCard__quickStats{padding:0 4px}
 .profileGrid--compact{
 	display:grid;grid-template-columns:1fr 1fr;gap:4px 10px;
@@ -5397,21 +5601,21 @@ textarea.input{resize:vertical;min-height:120px}
 .profileGrid--compact .profileStatRow{display:flex;align-items:center;gap:6px}
 .profileGrid--compact .input--small{width:64px}
 
-/* ── Inventory search wrap ── */
+/* -- Inventory search wrap -- */
 .inventorySearchWrap{margin-bottom:10px}
 
-/* ── Drag-and-drop ghost ── */
+/* -- Drag-and-drop ghost -- */
 .item--dragging{opacity:.4;border:2px dashed var(--gold)}
 
-/* ── Shortcut card list (for shortcut overlay) ── */
+/* -- Shortcut card list (for shortcut overlay) -- */
 .shortcutCard__list{display:flex;flex-direction:column;gap:8px;padding:8px 0}
 .shortcutCard__list > div{display:flex;align-items:center;gap:10px}
 
-/* ── Profile offer preview stats ── */
+/* -- Profile offer preview stats -- */
 .profileOfferPreview__stats{display:grid;grid-template-columns:1fr 1fr;gap:4px 10px;margin-top:8px}
 .profileOfferPreview__stat{display:flex;justify-content:space-between;font-size:.85rem}
 
-/* ── Visual fixes: bottom bar polish, search width, empty state ── */
+/* -- Visual fixes: bottom bar polish, search width, empty state -- */
 
 /* Icon-only bottom nav: labels intentionally hidden on all breakpoints. */
 .bottom-bar__label{display:none}
@@ -5484,9 +5688,9 @@ body[data-screen="landing"] .ambience-bar{display:none !important}
 	==========================================================================
 	STRATEGY FOR BEGINNERS:
 	We use three "mobile-first stacked" breakpoints:
-	  1200px — Tablet: reduce font sizes, narrow controls
-	   800px — Mobile: stack layouts vertically, full-width buttons
-	   480px — Small phone: aggressive compaction for tiny screens
+	  1200px � Tablet: reduce font sizes, narrow controls
+	   800px � Mobile: stack layouts vertically, full-width buttons
+	   480px � Small phone: aggressive compaction for tiny screens
 
 	HOW @media WORKS:
 	`@media (max-width: 800px)` means "apply these rules ONLY when the
@@ -5495,7 +5699,7 @@ body[data-screen="landing"] .ambience-bar{display:none !important}
 
 	WHY NOT USE min-width (mobile-first)?
 	Our default styles target desktop. Mobile overrides are additive corrections.
-	This is called "desktop-first" responsive design — equally valid as
+	This is called "desktop-first" responsive design � equally valid as
 	mobile-first, and easier when your initial design was built for desktop.
 */
 
@@ -5667,7 +5871,7 @@ body[data-screen="landing"] .ambience-bar{display:none !important}
 
 	.iconPickerGrid{grid-template-columns:repeat(4,minmax(0,1fr))}
 
-	/* Inventory "Add Item" modal — phone-friendly layout */
+	/* Inventory "Add Item" modal � phone-friendly layout */
 	.createInventoryCard{max-height:calc(100dvh - 16px)}
 	.inventoryAvatarPicker__top{flex-wrap:wrap;gap:10px}
 	.inventoryAvatarFrame{width:64px;height:64px}
@@ -5760,14 +5964,14 @@ body[data-screen="landing"] .ambience-bar{display:none !important}
 	#createHandoutModal .chip{font-size:var(--text-sm);padding:6px 9px}
 	#createHandoutModal .colorDot{width:30px;height:30px}
 
-	/* Inventory modal — extra-small phone tightening */
+	/* Inventory modal � extra-small phone tightening */
 	.inventoryAvatarFrame{width:56px;height:56px;border-radius:var(--radius-md)}
 	.inventoryAvatarNav .imageNavBtn{width:42px;height:42px}
 	.invGalleryGrid{grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
 	/* Modal action footers: stack full-width on phones, primary button rises to top */
 	.modal-actions{flex-direction:column-reverse}
 	.modal-actions .btn{width:100%;flex:none}
-	/* Map generate card — merged from orphan @media(max-width:480px) block */
+	/* Map generate card � merged from orphan @media(max-width:480px) block */
 	.mapGenerateCard{padding:16px 14px}
 	.mapGenActions{justify-content:stretch}
 	.mapGenActions .btn{flex:1;min-width:0}
@@ -5810,13 +6014,28 @@ body[data-screen="landing"] .ambience-bar{display:none !important}
 	letter-spacing:.02em;
 	width:100%;
 	justify-content:center;
+	box-shadow:0 4px 0 rgba(0,0,0,.55);
+	transition:transform .1s ease-out, box-shadow .1s ease-out, border-color .1s ease-out, filter .1s ease-out;
+}
+.partyAction--battle:hover:not(:disabled){
+	border-color:rgba(190,180,210,.65);
+	filter:brightness(1.08);
+	box-shadow:0 4px 0 rgba(0,0,0,.55), 0 0 0 1px rgba(180,170,200,.12);
+}
+.partyAction--battle:active:not(:disabled){
+	transform:translateY(3px);
+	box-shadow:0 1px 0 rgba(0,0,0,.55);
 }
 
 .partyAction--battle.is-active{
 	background:radial-gradient(circle at 16% 28%, rgba(245,200,47,.2), transparent 66%), linear-gradient(158deg, rgba(68,49,18,.95), rgba(51,37,13,.97));
 	border-color:rgba(245,200,47,.7);
 	color:var(--gold);
-	box-shadow:0 4px 14px rgba(10,7,16,.42), inset 0 0 0 1px rgba(245,200,47,.2);
+	box-shadow:0 4px 0 rgba(0,0,0,.55), 0 4px 14px rgba(10,7,16,.42), inset 0 0 0 1px rgba(245,200,47,.2);
+}
+.partyAction--battle.is-active:active:not(:disabled){
+	transform:translateY(3px);
+	box-shadow:0 1px 0 rgba(0,0,0,.55), 0 1px 6px rgba(10,7,16,.3);
 }
 
 .playerPartyPanel__actions .partyAction{
@@ -5834,17 +6053,21 @@ body[data-screen="landing"] .ambience-bar{display:none !important}
 		radial-gradient(circle at 16% 22%, rgba(245,200,47,.18), transparent 62%),
 		linear-gradient(155deg, rgba(46,35,69,.95), rgba(27,19,46,.95));
 	color:var(--parchment);
-	box-shadow:0 10px 24px rgba(9,6,16,.4), inset 0 0 0 1px rgba(245,200,47,.1);
+	box-shadow:0 4px 0 rgba(0,0,0,.55), 0 10px 24px rgba(9,6,16,.4), inset 0 0 0 1px rgba(245,200,47,.1);
 	font-weight:700;
 	letter-spacing:.02em;
 }
-
 .dmPartyPanel__actions--bar .partyAction--invite:hover{
 	border-color:rgba(245,200,47,.68);
 	color:var(--gold);
 	background:
 		radial-gradient(circle at 16% 22%, rgba(245,200,47,.26), transparent 62%),
 		linear-gradient(155deg, rgba(57,43,84,.96), rgba(35,25,58,.96));
+	box-shadow:0 4px 0 rgba(0,0,0,.55), 0 10px 24px rgba(9,6,16,.4), inset 0 0 0 1px rgba(245,200,47,.1);
+}
+.dmPartyPanel__actions--bar .partyAction--invite:active:not(:disabled){
+	transform:translateY(3px);
+	box-shadow:0 1px 0 rgba(0,0,0,.55);
 }
 
 /* ---- Player initiative modal list ---- */
@@ -5873,7 +6096,7 @@ body[data-screen="landing"] .ambience-bar{display:none !important}
 	padding:6px 8px;
 }
 
-/* ── Turn navigation strip ──────────────────────────────── */
+/* -- Turn navigation strip -------------------------------- */
 .dmTurnNav{
 	display:flex;
 	align-items:center;
@@ -5914,7 +6137,7 @@ body[data-screen="landing"] .ambience-bar{display:none !important}
 	text-overflow:ellipsis;
 }
 
-/* ── Active-turn row highlight ──────────────────────────── */
+/* -- Active-turn row highlight ---------------------------- */
 .dmPartyPanel__row.is-active-turn{
 	background:rgba(212,175,55,.08);
 	border-left:3px solid var(--gold);
@@ -5940,7 +6163,7 @@ body[data-screen="landing"] .ambience-bar{display:none !important}
 }
 
 /* ==========================================================================
-   COMPONENT-LEVEL LAYOUT FIXES — removes reliance on inline styles
+   COMPONENT-LEVEL LAYOUT FIXES � removes reliance on inline styles
    ==========================================================================
 
    Session social panel: session info heading
@@ -6049,11 +6272,19 @@ border-color:var(--gold-border);
 color:var(--gold);
 font-weight:700;
 letter-spacing:.02em;
+box-shadow:0 4px 0 rgba(0,0,0,.55);
+transition:transform .1s ease-out, box-shadow .1s ease-out, border-color .1s ease-out, filter .1s ease-out;
 }
 
 .dmPartyPanel__actions--bar .partyAction--invite:hover{
 border-color:var(--gold);
 filter:brightness(1.06);
+box-shadow:0 4px 0 rgba(0,0,0,.55), 0 6px 16px rgba(212,175,55,.10);
+}
+
+.dmPartyPanel__actions--bar .partyAction--invite:active:not(:disabled){
+transform:translateY(3px);
+box-shadow:0 1px 0 rgba(0,0,0,.55);
 }
 
 .dmPartyPanel__actions--bar .partyAction--invite:focus-visible{
@@ -6169,6 +6400,8 @@ padding-left:16px;
 .topbar__right > .sessionPeekWrap > .pill{
 min-height:44px;
 border-radius:var(--radius-md);
+box-shadow:0 3px 0 rgba(0,0,0,.60), 0 8px 16px rgba(8,6,18,.18);
+transition:transform .1s ease-out, box-shadow .1s ease-out, filter .1s ease-out;
 }
 
 .topbar__right > .pill--clickable,
@@ -6176,7 +6409,19 @@ border-radius:var(--radius-md);
 .topbar__right > .topbar__iconBtn{
 background:linear-gradient(180deg, rgba(61,50,89,.88), rgba(48,40,71,.84));
 border-color:rgba(245,200,47,.12);
-box-shadow:0 10px 18px rgba(8,6,18,.18);
+box-shadow:0 3px 0 rgba(0,0,0,.60), 0 10px 18px rgba(8,6,18,.18);
+}
+.topbar__right > .pill--clickable:hover,
+.topbar__right > .sessionPeekWrap > .pill--clickable:hover,
+.topbar__right > .topbar__iconBtn:hover{
+filter:brightness(1.1);
+box-shadow:0 3px 0 rgba(0,0,0,.60), 0 14px 24px rgba(8,6,18,.28);
+}
+.topbar__right > .pill--clickable:active:not(:disabled),
+.topbar__right > .sessionPeekWrap > .pill--clickable:active:not(:disabled),
+.topbar__right > .topbar__iconBtn:active:not(:disabled){
+transform:translateY(3px);
+box-shadow:0 0 0 rgba(0,0,0,.60), 0 4px 8px rgba(8,6,18,.10);
 }
 
 .sessionPeek{
@@ -6453,45 +6698,45 @@ grid-template-columns:1fr;
 }
 }
 
-/* ═══════════════════════════════════════════════════════════════════════════
-   LIGHT MODE — Illuminated Manuscript
-   ═══════════════════════════════════════════════════════════════════════════
+/* ---------------------------------------------------------------------------
+   LIGHT MODE � Illuminated Manuscript
+   ---------------------------------------------------------------------------
    Design: warm parchment backgrounds, dark espresso text, deepened gold
    accents, sepia borders.  The daylight face of TomeVault's fantasy coin.
 
    Strategy: override ALL CSS variables so 80 %+ of components auto-correct,
    then add targeted component overrides only where hardcoded dark rgba()
    values or gradients would otherwise bleed through.
-   ═══════════════════════════════════════════════════════════════════════════ */
+   --------------------------------------------------------------------------- */
 
-/* ── 1. Variable overrides ───────────────────────────────────────────────── */
+/* -- 1. Variable overrides ------------------------------------------------- */
 body[data-theme="light"]{
-	/* Backgrounds — warm parchment */
+	/* Backgrounds � warm parchment */
 	--bg:       #f4efe3;
 	--bg2:      #ede6d6;
 	--surface:  #f8f4ea;
 	--surface-2:#eee7d5;
 	--surface-3:#e6dece;
 
-	/* Text — espresso */
+	/* Text � espresso */
 	--text:  #2a2118;
 	--muted: rgba(74,62,48,.65);
 
 	/* Card surface */
 	--card: #f2ecde;
 
-	/* Gold — rich but legible on parchment */
+	/* Gold � rich but legible on parchment */
 	--gold:   #b8941a;
 	--gold-2: #9a7c14;
 
-	/* Amethyst — warmed for light bg */
+	/* Amethyst � warmed for light bg */
 	--amethyst:       #e8e0f0;
 	--amethyst-light: #d4c8e6;
 
 	/* Crimson */
 	--crimson: #7a1818;
 
-	/* Borders — sepia */
+	/* Borders � sepia */
 	--line:        rgba(120,100,60,.18);
 	--line-strong: rgba(160,125,21,.42);
 	--card-border: rgba(120,100,60,.12);
@@ -6509,16 +6754,16 @@ body[data-theme="light"]{
 	--screen-gold-border: rgba(184,148,26,.45);
 	--screen-gold-glow:   rgba(184,148,26,.12);
 
-	/* Muted purple — warm for light bg */
+	/* Muted purple � warm for light bg */
 	--muted-purple: #7b6b9e;
 
-	/* Shadows — warm sepia instead of black */
+	/* Shadows � warm sepia instead of black */
 	--shadow-sm: 0 2px 8px rgba(120,90,40,.07);
 	--shadow-md: 0 4px 16px rgba(120,90,40,.09);
 	--shadow-lg: 0 12px 36px rgba(120,90,40,.11);
 	--shadow-xl: 0 26px 70px rgba(120,90,40,.16);
 
-	/* Semantic colours — darkened for light bg */
+	/* Semantic colours � darkened for light bg */
 	--danger:       #c62828;
 	--danger-light: #e53935;
 	--warning:      #e65100;
@@ -6539,7 +6784,7 @@ body[data-theme="light"]{
 	background-attachment:fixed;
 }
 
-/* ── 2. Glassmorphism surfaces ───────────────────────────────────────────── */
+/* -- 2. Glassmorphism surfaces --------------------------------------------- */
 body[data-theme="light"] .topbar{
 	background:rgba(244,239,227,.92);
 	-webkit-backdrop-filter:blur(12px);
@@ -6588,7 +6833,7 @@ body[data-theme="light"] .ambience-bar__inner{
 	border-color:rgba(120,100,60,.14);
 }
 
-/* ── 3. Card & panel surfaces ────────────────────────────────────────────── */
+/* -- 3. Card & panel surfaces ---------------------------------------------- */
 body[data-theme="light"] .card,
 body[data-theme="light"] .panel,
 body[data-theme="light"] .player-list-dropdown__inner{
@@ -6705,7 +6950,7 @@ body[data-theme="light"] .socialMeta{
 	border-color:rgba(120,100,60,.16);
 }
 
-/* ── 4. Interactive elements ─────────────────────────────────────────────── */
+/* -- 4. Interactive elements ----------------------------------------------- */
 body[data-theme="light"] .btn--ghost,
 body[data-theme="light"] .input,
 body[data-theme="light"] .chip,
@@ -6884,7 +7129,7 @@ body[data-theme="light"] .bottom-bar__profile-ring{
 	background:rgba(230,222,206,.7);
 }
 
-/* ── 5. Text & placeholder hardcoded overrides ───────────────────────────── */
+/* -- 5. Text & placeholder hardcoded overrides ----------------------------- */
 body[data-theme="light"] .input::placeholder{color:rgba(120,100,60,.45)}
 body[data-theme="light"] h2,
 body[data-theme="light"] h3{color:#3d2e1a}
@@ -6905,7 +7150,7 @@ body[data-theme="light"] .settingsMenu .btn--ghost:hover{
 	background:rgba(238,231,213,.95);
 }
 body[data-theme="light"] .btn{
-	/* Light mode depth — slightly warm brown instead of dark gold-2 */
+	/* Light mode depth � slightly warm brown instead of dark gold-2 */
 	box-shadow:0 5px 0 #8a6a10, var(--gold-shadow);
 }
 body[data-theme="light"] .btn:hover:not(:disabled){
@@ -6962,9 +7207,58 @@ body[data-theme="light"] .imagePickerPanel__title,
 body[data-theme="light"] .portraitPlaceholder{color:rgba(74,62,48,.65);text-shadow:none}
 body[data-theme="light"] .profileStatItem__value{color:var(--text)}
 body[data-theme="light"] .onboardTooltip__text{color:var(--text)}
+
+/* Dynamic stats system — light mode */
+body[data-theme="light"] .commonStatsPicker.is-open{
+	border-color:rgba(120,100,60,.18);
+	background:rgba(248,244,234,.95);
+}
+body[data-theme="light"] .commonStatChip{
+	border-color:rgba(120,100,60,.30);
+	background:rgba(120,100,60,.06);
+	color:rgba(74,62,48,.65);
+}
+body[data-theme="light"] .commonStatChip:hover{
+	background:rgba(120,100,60,.12);
+	border-color:rgba(184,148,26,.40);
+	color:var(--text);
+}
+body[data-theme="light"] .commonStatChip.is-active{
+	background:rgba(184,148,26,.10);
+	border-color:rgba(184,148,26,.40);
+	color:var(--gold);
+}
+body[data-theme="light"] .statDynamicRow{
+	border-color:rgba(120,100,60,.18);
+	background:linear-gradient(180deg,rgba(248,244,234,.90),rgba(242,236,222,.85));
+}
+body[data-theme="light"] .statDynamicRow__nameInput{
+	color:var(--text);
+	border-bottom-color:rgba(184,148,26,.25);
+}
+body[data-theme="light"] .statDynamicRow__nameInput:focus{border-bottom-color:rgba(184,148,26,.50)}
+body[data-theme="light"] .statDynamicRow__nameInput::placeholder{color:rgba(74,62,48,.30)}
+body[data-theme="light"] .statDynamicRow__valueInput{
+	background:rgba(255,255,255,.50);
+	border-color:rgba(184,148,26,.25);
+	color:var(--text);
+}
+body[data-theme="light"] .statDynamicRow__valueInput:focus{border-color:rgba(184,148,26,.50)}
+body[data-theme="light"] .statDynamicRow__valueInput::placeholder{color:rgba(74,62,48,.30)}
+body[data-theme="light"] .statRemoveBtn{color:rgba(74,62,48,.40)}
+body[data-theme="light"] .statRemoveBtn:hover{color:#c0392b;background:rgba(192,57,43,.08)}
+body[data-theme="light"] .bonusTag{
+	background:rgba(184,148,26,.10);
+	border-color:rgba(184,148,26,.30);
+}
+body[data-theme="light"] .bonusAddDropdown{
+	background:rgba(248,244,234,.90);
+	border-color:rgba(120,100,60,.25);
+	color:var(--text);
+}
 body[data-theme="light"] .onboardTooltip__tapHint{color:#7a6210}
 
-/* ── 6. Specialty components ─────────────────────────────────────────────── */
+/* -- 6. Specialty components ----------------------------------------------- */
 body[data-theme="light"] .toast{
 	background:rgba(248,244,234,.97);
 	border-color:rgba(120,100,60,.20);
@@ -7170,18 +7464,18 @@ body[data-theme="light"] .dmPartyPanel__actions--bar .partyAction--invite:hover{
 	box-shadow:0 0 0 1px rgba(184,148,26,.30), 0 6px 20px rgba(184,148,26,.18);
 }
 
-/* ── 7. Scrollbar ────────────────────────────────────────────────────────── */
+/* -- 7. Scrollbar ---------------------------------------------------------- */
 body[data-theme="light"] ::-webkit-scrollbar-track{background:transparent}
 body[data-theme="light"] ::-webkit-scrollbar-thumb{background:rgba(160,130,70,.30);border-radius:8px}
 body[data-theme="light"] ::-webkit-scrollbar-thumb:hover{background:rgba(160,130,70,.50)}
 
-/* ── 8. Status tags ──────────────────────────────────────────────────────── */
+/* -- 8. Status tags -------------------------------------------------------- */
 body[data-theme="light"] .tag--npcFriendly{background:rgba(46,125,50,.12);color:#2e7d32}
 body[data-theme="light"] .tag--npcEnemy{background:rgba(198,40,40,.10);color:#c62828}
 body[data-theme="light"] .tag--npcNeutral{background:rgba(160,125,21,.10);color:#7a6210}
 body[data-theme="light"] .tag--npcUnknown{background:rgba(120,100,60,.10);color:rgba(74,62,48,.65)}
 
-/* ── 9. Desktop polish @media (960px+) ───────────────────────────────────── */
+/* -- 9. Desktop polish @media (960px+) ------------------------------------- */
 @media(min-width:960px){
 	body[data-theme="light"] .topbar{
 		border-color:rgba(160,125,21,.12);
