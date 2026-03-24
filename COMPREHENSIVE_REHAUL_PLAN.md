@@ -1,4 +1,4 @@
-# TomeVault App — Comprehensive Code Rehaul Plan
+﻿# TomeVault App â€” Comprehensive Code Rehaul Plan
 
 **Status:** Strategic analysis complete. Ready for implementation.  
 **Scope:** Complete optimization of HTML, CSS, and JavaScript with surgical UX/UI change capability.
@@ -29,7 +29,7 @@ This document outlines a **complete and detailed rehaul** of TomeVault App's thr
 - **Firebase Integration**: Auth (email, Google, anonymous), Firestore (sessions/handouts/players), Storage (maps/avatars)
 
 **Key Files & Roles:**
-- `index.html`: Structure, element IDs (API between HTML ↔ JS)
+- `index.html`: Structure, element IDs (API between HTML â†” JS)
 - `style.css`: Visual design, layout, animations, light/dark theme
 - `index.mjs`: Business logic, state, listeners, user flows
 
@@ -70,11 +70,11 @@ This document outlines a **complete and detailed rehaul** of TomeVault App's thr
 
 **Problem 2: Repetitive Structure**
 - Multiple `.btn` variants (`.btn--primary`, `.btn--ghost`, `.btn--small`) mixed with utility classes
-- Class combinations are verbose (`class="btn btn--ghost btn--small"`) → no reusable patterns
+- Class combinations are verbose (`class="btn btn--ghost btn--small"`) â†’ no reusable patterns
 - Color tokens hardcoded inline in some places (`style="--dot: #f5c82f"`)
 
 **Problem 3: Missing Component Documentation**
-- Modals, panels, cards follow similar patterns but no clear comments linking CSS ↔ HTML behavior
+- Modals, panels, cards follow similar patterns but no clear comments linking CSS â†” HTML behavior
 - Makes surgical changes risky (hard to know what depends on what)
 
 #### JavaScript Layer Issues
@@ -103,7 +103,7 @@ This document outlines a **complete and detailed rehaul** of TomeVault App's thr
 **Problem 5: Magic Numbers & Missing Constants**
 - Timer durations: `300`, `200`, `36`, `4000`, `7000` scattered throughout
 - Debounce delays: hardcoded `300` in suggestion engine
-- String constants for screen IDs: `"dmDash"`, `"plView"`, `"landing"` typed inline
+- String constants for screen IDs: `"gmDash"`, `"plView"`, `"landing"` typed inline
 
 ---
 
@@ -174,7 +174,7 @@ This document outlines a **complete and detailed rehaul** of TomeVault App's thr
    - For each component, add a block comment listing all breakpoints where it's modified
    - Example:
      ```css
-     /* .btn — variants at: base, @media >1100px, @media <540px */
+     /* .btn â€” variants at: base, @media >1100px, @media <540px */
      .btn { ... }
      
      @media (min-width: 1100px) {
@@ -218,13 +218,13 @@ This document outlines a **complete and detailed rehaul** of TomeVault App's thr
      ```html
      <!-- ===== SCREEN: GM DASHBOARD ===== -->
      <!-- Social Panel IDs -->
-     <div id="dmSocialPanel" class="panel">...
+     <div id="gmSocialPanel" class="panel">...
      
      <!-- Handout List IDs -->
-     <div id="dmHandoutList" class="list">...
+     <div id="gmHandoutList" class="list">...
      
      <!-- Party Panel IDs -->
-     <div id="dmPartyPanel" class="panel">...
+     <div id="gmPartyPanel" class="panel">...
      ```
 
 2. **Standardize Naming Convention**
@@ -278,7 +278,7 @@ This document outlines a **complete and detailed rehaul** of TomeVault App's thr
          PASSWORD_MIN: 12,
        },
        STRINGS: {
-         SCREEN_DM_DASH: "dmDash",
+         SCREEN_GM_DASH: "gmDash",
          SCREEN_PL_VIEW: "plView",
          SCREEN_LANDING: "landing",
        },
@@ -299,7 +299,7 @@ This document outlines a **complete and detailed rehaul** of TomeVault App's thr
      }
      
      // Usage:
-     delegateListener(dmColorRow, ".colorDot", (dot) => {
+     delegateListener(gmColorRow, ".colorDot", (dot) => {
        const color = dot.getAttribute("data-color");
        setCreateColor(color);
      });
@@ -327,9 +327,9 @@ This document outlines a **complete and detailed rehaul** of TomeVault App's thr
      ```javascript
      const state = {
        auth: { uid, isGuest, isSignedIn, email, displayName },
-       session: { sessionId, joinTag, dmPinPlain, dmUid, sessionName },
+       session: { sessionId, joinTag, gmPinPlain, gmUid, sessionName },
        ui: { currentScreenKey, role, battleActive },
-       cache: { dmHandoutsRaw, activePlayers, partyRoster },
+       cache: { gmHandoutsRaw, activePlayers, partyRoster },
      };
      ```
    - This makes it obvious where to find a piece of state and what affects it
@@ -341,9 +341,9 @@ This document outlines a **complete and detailed rehaul** of TomeVault App's thr
 **Principle:** After refactoring, changing a feature should be *obvious and contained*.
 
 **Example Surgery Path 1: "Change handout icon grid from 6 to 4 columns"**
-- Find: HTML `<div id="dmIconGrid">`
+- Find: HTML `<div id="gmIconGrid">`
 - Find: CSS `.iconPickerGrid` (base rule + responsive overrides)
-- Find: JS `setupCreateBuilderUI()` → icon tile listener
+- Find: JS `setupCreateBuilderUI()` â†’ icon tile listener
 - Change: CSS `grid-template-columns: repeat(4, 1fr)` instead of 6
 - Change: JS max-width if needed for layout
 - Done: No other code affected
@@ -366,7 +366,7 @@ This document outlines a **complete and detailed rehaul** of TomeVault App's thr
 
 ---
 
-## PART 3: IMPLEMENTATION ROADMAP
+## PART 3: IMPLEMENTATION ROAGMAP
 
 ### Phase 1: CSS Consolidation (Days 1-2, ~400 lines changed)
 1. Merge duplicate `@media >1100px` blocks into one
@@ -457,15 +457,15 @@ For components used at multiple breakpoints, follow this structure:
 - .btn, .btn--small, .btn--ghost (responsive sizing)
 - .input, textarea.input (responsive padding/font-size)
 - .modal, .modal__card (responsive width/max-height)
-- .iconPickerGrid, .dmPartyPanel, .landingSessionItem (responsive layout)
+- .iconPickerGrid, .gmPartyPanel, .landingSessionItem (responsive layout)
 
 1.4 Light Mode Consolidation:
 - Ensure ALL light mode overrides stay in dedicated \`body[data-theme="light"]\` section
 - For each component in Phase 1.3, verify light mode colors are defined
-- Pattern: dark rule → base, light rule → end of file, organized by component
+- Pattern: dark rule â†’ base, light rule â†’ end of file, organized by component
 
 1.5 Add Documentation Comments:
-- Above each component rule block, add: \`/* .componentName — breakpoints: base, >1100px, <540px */\`
+- Above each component rule block, add: \`/* .componentName â€” breakpoints: base, >1100px, <540px */\`
 - Makes cascade visibility explicit (prevents future "why isn't my change working?" bugs)
 
 Result: CSS file ~10-15% smaller, max 2-3 @media blocks total (one per major breakpoint).
@@ -503,9 +503,9 @@ const CONSTANTS = {
   // Screen identifiers
   SCREENS: {
     LANDING: "landing",
-    DM_CREATE: "dmCreate",
-    DM_DASH: "dmDash",
-    DM_DASH_SETTINGS: "dmSettings",
+    GM_CREATE: "gmCreate",
+    GM_DASH: "gmDash",
+    GM_DASH_SETTINGS: "gmSettings",
     PLAYER_JOIN: "plJoin",
     PLAYER_VIEW: "plView",
     PLAYER_INVENTORY: "plInventory",
@@ -533,7 +533,7 @@ const CONSTANTS = {
 
 2.2 Replace Magic Numbers:
 - Replace all hardcoded \`300\` debounce delays with \`CONSTANTS.TIMERS.DEBOUNCE_SUGGESTIONS\`
-- Replace all \`"dmDash"\`, \`"landing"\` with \`CONSTANTS.SCREENS.DM_DASH\`, etc.
+- Replace all \`"gmDash"\`, \`"landing"\` with \`CONSTANTS.SCREENS.GM_DASH\`, etc.
 - Replace all \`4000\`, \`7000\` with \`CONSTANTS.TIMERS.TOAST_SHORT\`, etc.
 - Replace all PIN/password limits with \`CONSTANTS.LIMITS.*\`
 
@@ -541,7 +541,7 @@ const CONSTANTS = {
 Replace:
 \`\`\`javascript
 const state = {
-  uid, isGuest, role, sessionId, joinTag, dmHandoutsRaw, 
+  uid, isGuest, role, sessionId, joinTag, gmHandoutsRaw, 
   playerInventoryRaw, partyRoster, ... (200 properties)
 };
 \`\`\`
@@ -564,8 +564,8 @@ const state = {
     sessionName: "",
     joinTag: null,
     joinLink: null,
-    dmUid: null,
-    dmPinPlain: null,
+    gmUid: null,
+    gmPinPlain: null,
     isOneShot: false,
   },
   
@@ -578,13 +578,13 @@ const state = {
     battleActive: false,
     turnRound: 1,
     currentTurnUid: null,
-    dmFilter: "all",
+    gmFilter: "all",
     theme: null,
   },
   
   // Real-time data (from Firestore listeners)
   data: {
-    dmHandoutsRaw: [],
+    gmHandoutsRaw: [],
     playerInventoryRaw: [],
     activePlayers: [],
     partyRoster: [],
@@ -609,9 +609,9 @@ const state = {
 2.4 Update State Access Patterns:
 Replace:
 \`\`\`javascript
-state.uid → state.auth.uid
-state.dmHandoutsRaw → state.data.dmHandoutsRaw
-state.battleActive → state.ui.battleActive
+state.uid â†’ state.auth.uid
+state.gmHandoutsRaw â†’ state.data.gmHandoutsRaw
+state.battleActive â†’ state.ui.battleActive
 \`\`\`
 
 Result: State structure is self-documenting. Easier to add new properties without polluting global namespace.
@@ -627,11 +627,11 @@ Above each \`<section id="screen*">\`, add:
   ============================================================
   SCREEN: GM DASHBOARD
   Rendered when: role === "dm" && sessionId is set
-  Key IDs: dmSocialPanel, dmHandoutList, dmPartyPanel
-  Related CSS: .dmDash*, .socialMeta, .dmPartyPanel
+  Key IDs: gmSocialPanel, gmHandoutList, gmPartyPanel
+  Related CSS: .gmDash*, .socialMeta, .gmPartyPanel
   ============================================================
 -->
-<section id="screenDMDash" class="card hidden">
+<section id="screenGMDash" class="card hidden">
 \`\`\`
 
 3.2 Document Complex Components:
@@ -641,8 +641,8 @@ For modals, panels, and forms, add comments explaining behavior:
   Create Handout Modal
   - Opens via: btnOpenCreateHandout click
   - Closes via: btnCloseCreateModal click OR Escape key
-  - State: icon, color, title, content, type, disposition kept in dmTitle, dmPublic, etc.
-  - Icon suggestions: renderIconSuggestions() on dmTitle/dmPublic input
+  - State: icon, color, title, content, type, disposition kept in gmTitle, gmPublic, etc.
+  - Icon suggestions: renderIconSuggestions() on gmTitle/gmPublic input
 -->
 <section id="createHandoutModal" class="modal hidden">
 \`\`\`
@@ -679,8 +679,8 @@ Add at top of index.html:
   - label* : labels (labelIcon)
   - modal* : modal containers (modalCreateHandout)
   - panel* : panels (panelSocial)
-  - screen* : screen sections (screenDMDash)
-  - dm* : GM-specific elements (dmSocialPanel)
+  - screen* : screen sections (screenGMDash)
+  - dm* : GM-specific elements (gmSocialPanel)
   - pl* : player-specific elements (plJoinForm)
   - When adding: keep prefix, use camelCase, be specific
 -->
@@ -707,8 +707,8 @@ function onDelegated(container, selector, handler) {
 }
 
 // Usage:
-onDelegated(dmColorRow, ".colorDot", (dot) => {
-  dmColorRow.querySelector(".colorDot--active")?.classList.remove("colorDot--active");
+onDelegated(gmColorRow, ".colorDot", (dot) => {
+  gmColorRow.querySelector(".colorDot--active")?.classList.remove("colorDot--active");
   dot.classList.add("colorDot--active");
 });
 \`\`\`
@@ -740,12 +740,12 @@ Before each major JS section, add:
 Instead of scattered `btn?.addEventListener()`, create init functions:
 \`\`\`javascript
 function initHandoutBuilderUI() {
-  dmType?.addEventListener("change", syncCreateTypeDependentUI);
+  gmType?.addEventListener("change", syncCreateTypeDependentUI);
   btnRandomHandout?.addEventListener("click", generateRandomFromTemplate);
   btnCreateClaimable?.addEventListener("click", toggleCreateClaimable);
   btnCreateRevealToggle?.addEventListener("click", toggleCreateReveal);
-  dmColorRow?.addEventListener("click", (e) => { /* delegate */ });
-  dmIconGrid?.addEventListener("click", (e) => { /* delegate */ });
+  gmColorRow?.addEventListener("click", (e) => { /* delegate */ });
+  gmIconGrid?.addEventListener("click", (e) => { /* delegate */ });
   emojiInput?.addEventListener("input", debounce(onEmojiInput, 300));
 }
 
@@ -775,7 +775,7 @@ After applying all changes:
 [ ] All ID references updated to use CONSTANTS.SCREENS where applicable
 [ ] Feature components have documentation comments linking to CSS/HTML/JS
 [ ] All 5 authentication flows still work (email, Google, anonymous, sign-out, token refresh)
-[ ] All 3 role flows still work (DM create → session, Player join → session, Guest one-shot)
+[ ] All 3 role flows still work (GM create â†’ session, Player join â†’ session, Guest one-shot)
 [ ] Responsive behavior tested at 480px, 540px, 1100px, desktop
 [ ] Light/dark theme toggling works as before
 [ ] All handout operations (create, edit, reveal, claim) still work
@@ -818,7 +818,7 @@ After refactoring, these should be trivial:
    - HTML: Move `<button>` element from list area to header
    - CSS: Adjust flex positioning if needed
    - JS: No change needed (listener still works)
-5. **Verify:** Handout create modal opens when clicked ✓
+5. **Verify:** Handout create modal opens when clicked âœ“
 
 ### Surgery 2: "Add a 'Duplication' feature (copy existing handout)"
 
@@ -826,7 +826,7 @@ After refactoring, these should be trivial:
 2. **Create CSS:** Copy styling from existing action buttons
 3. **Create JS:** Add handler that reads selected handout, clones document in Firestore
 4. **Wire:** Add to listener delegation in handout card click handler
-5. **Test:** Click duplicate → new handout appears with "_Copy" suffix ✓
+5. **Test:** Click duplicate â†’ new handout appears with "_Copy" suffix âœ“
 
 ### Surgery 3: "Change all modal animations from 200ms fade to 300ms slide-up"
 
@@ -836,7 +836,7 @@ After refactoring, these should be trivial:
    - CSS keyframes: Change `fade` to `transform: translateY()`
    - CSS duration: Change `--tv-dur-fast` to `--tv-dur-mid`
    - JS: Verify timing constants align
-4. **Test:** All modals (create, delete, join) animate with new behavior ✓
+4. **Test:** All modals (create, delete, join) animate with new behavior âœ“
 
 ---
 
@@ -848,8 +848,8 @@ After refactoring, these should be trivial:
 - After this rehaul, changes become **obvious and safe** (clear boundaries, documented patterns).
 
 **Maintenance Going Forward:**
-- When adding a new feature, follow the pattern: HTML structure → CSS styling (base + breakpoint overrides) → JS listeners (grouped with init function)
-- Always add component-level comments linking HTML ID ↔ CSS class ↔ JS function names
+- When adding a new feature, follow the pattern: HTML structure â†’ CSS styling (base + breakpoint overrides) â†’ JS listeners (grouped with init function)
+- Always add component-level comments linking HTML ID â†” CSS class â†” JS function names
 - Use CONSTANTS for timings, strings, limits (never hardcode)
 - Test on mobile (480px), tablet (800px), and desktop (1200px+)
 
@@ -862,3 +862,5 @@ After refactoring, these should be trivial:
 ---
 
 **This plan is ready for implementation. Use the prompt in Part 4 with your preferred code assistant.**
+
+

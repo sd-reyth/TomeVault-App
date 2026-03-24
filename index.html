@@ -16,14 +16,14 @@
     no full page reloads, and continuous state.
 
     IMPORTANT RULE FOR THIS FILE:
-    JavaScript uses many element IDs (for example "btnJoin", "screenDMDash").
+    JavaScript uses many element IDs (for example "btnJoin", "screenGMDash").
     Those IDs are part of the API between HTML and JS. If you rename an ID,
     the connected JS logic will stop finding that element.
 
     ID NAMING GUIDE:
     - btn*    : clickable button controls
     - screen* : full-page screen sections
-    - dm*     : DM-specific controls/containers
+    - dm*     : GM-specific controls/containers
     - pl*     : player-specific controls/containers
     - modal*  : modal wrappers and modal-specific controls
     Keep IDs stable and use classes for purely visual styling variants.
@@ -51,7 +51,7 @@
   <meta name="twitter:title" content="TomeVault - Live Handouts for Your Table">
   <meta name="twitter:description" content="Share session invites, PINs, and handouts in seconds.">
   <meta name="twitter:image" content="references/tomeVaultLogo1.png">
-  <link rel="stylesheet" href="style.css?v=20260314fix7">
+  <link rel="stylesheet" href="style.css?v=20260321fix12">
   <!-- fantasy fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
@@ -262,12 +262,12 @@
         </div>
 
         <div class="landing-home__actions">
-          <button id="btnGoDM" class="landing-action-card" type="button">
+          <button id="btnGoGM" class="landing-action-card" type="button">
             <span class="landing-action-card__icon" aria-hidden="true">
               <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 3L19 6V11C19 16.25 15.75 20.74 12 22C8.25 20.74 5 16.25 5 11V6L12 3Z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
             </span>
             <span class="landing-action-card__label">Create Session</span>
-            <span class="landing-action-card__sub muted small">Start a new campaign or one-shot as DM</span>
+            <span class="landing-action-card__sub muted small">Start a new campaign or one-shot as GM</span>
           </button>
           <button id="btnGoPlayer" class="landing-action-card" type="button">
             <span class="landing-action-card__icon" aria-hidden="true">
@@ -287,7 +287,7 @@
           <div id="landingSessionEmpty" class="emptyState">
             <span class="emptyState__icon" aria-hidden="true">📖</span>
             <span class="emptyState__title">No sessions yet</span>
-            <span class="emptyState__hint">Create a new session as DM or join one as a player to get started.</span>
+            <span class="emptyState__hint">Create a new session as GM or join one as a player to get started.</span>
           </div>
         </div>
       </div>
@@ -309,35 +309,35 @@
       Why it works:
       - Input IDs map to JS variables.
       - The create button triggers validation + database write.
-      - Message paragraph (`dmCreateMsg`) is used as inline feedback area.
+      - Message paragraph (`gmCreateMsg`) is used as inline feedback area.
     -->
     <!--
       ===================================================================
-      SCREEN: DM CREATE SESSION
+      SCREEN: GM CREATE SESSION
       Rendered when: user selects "Create Session" from landing home
-      Key IDs: dmSessionName, dmPin, btnCreateSession, dmCreateMsg
+      Key IDs: gmSessionName, gmPin, btnCreateSession, gmCreateMsg
       Related CSS: .card, .formGrid, .auth-form
-      Related JS: createSession(), btnDMBack
+      Related JS: createSession(), btnGMBack
       ===================================================================
     -->
-    <section id="screenDMCreate" class="card hidden">
-      <h2 id="dmCreateHeading">New Session</h2>
-      <p id="dmCreateGuestNotice" class="auth-info hidden">You're in one-shot mode. This session will expire in 24 hours. Sign up after creating to keep it.</p>
+    <section id="screenGMCreate" class="card hidden">
+      <h2 id="gmCreateHeading">New Session</h2>
+      <p id="gmCreateGuestNotice" class="auth-info hidden">You're in one-shot mode. This session will expire in 24 hours. Sign up after creating to keep it.</p>
 
       <label class="label">Session name</label>
-      <input id="dmSessionName" class="input" placeholder="e.g. The Lost Mine" minlength="2" maxlength="48">
+      <input id="gmSessionName" class="input" placeholder="e.g. The Lost Mine" minlength="2" maxlength="48">
 
       <label class="label">Pincode (4&middot;8 digits)</label>
-      <input id="dmPin" class="input" inputmode="numeric" placeholder="e.g. 1234">
+      <input id="gmPin" class="input" inputmode="numeric" placeholder="e.g. 1234">
 
       <div class="row">
         <!-- Secondary: return to role-selection screen -->
-        <button id="btnDMBack" class="btn btn--ghost"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" aria-hidden="true" style="width:16px;height:16px;flex-shrink:0;vertical-align:-2px;margin-right:4px"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5"/></svg>Back</button>
+        <button id="btnGMBack" class="btn btn--ghost"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" aria-hidden="true" style="width:16px;height:16px;flex-shrink:0;vertical-align:-2px;margin-right:4px"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5"/></svg>Back</button>
         <!-- Primary: validate + create session in Firebase -->
         <button id="btnCreateSession" class="btn">Create session</button>
       </div>
 
-      <p id="dmCreateMsg" class="muted"></p>
+      <p id="gmCreateMsg" class="muted"></p>
     </section>
 
     <!--
@@ -355,14 +355,14 @@
       ===================================================================
       SCREEN: GM DASHBOARD
       Rendered when: role === "dm" && sessionId is active
-      Key IDs: dmSplit, dmSocialPanel, dmHandoutsPanel, dmPartyPanel
-      Related CSS: .dmDash*, .socialMeta, .dmPartyPanel, .dmAtmospherePanel
-      Related JS: setDMSocialMode(), renderHandouts(), syncDMDashboardLayout()
+      Key IDs: gmSplit, gmSocialPanel, gmHandoutsPanel, gmPartyPanel
+      Related CSS: .gmDash*, .socialMeta, .gmPartyPanel, .gmAtmospherePanel
+      Related JS: setGMSocialMode(), renderHandouts(), syncGMDashboardLayout()
       ===================================================================
     -->
-    <section id="screenDMDash" class="card hidden">
+    <section id="screenGMDash" class="card hidden">
       <div class="dashHeader dashHeader--handouts">
-        <h2 id="dmDashTitle">Handouts</h2>
+        <h2 id="gmDashTitle">Handouts</h2>
         <div class="dashHeader__actions dashHeader__actions--handouts">
           <button id="btnCreateHandoutInline" class="btn btn--small" type="button" aria-label="Create handout" title="Create handout" style="display:none">
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" aria-hidden="true" style="width:16px;height:16px"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
@@ -370,11 +370,11 @@
         </div>
       </div>
 
-      <div id="dmSplit" class="split singlePane">
-        <div id="dmSocialPanel" class="panel hidden">
-          <div class="dmSocialHeader">
+      <div id="gmSplit" class="split singlePane">
+        <div id="gmSocialPanel" class="panel hidden">
+          <div class="gmSocialHeader">
             <h3 class="heading--natural">Session Info</h3>
-            <div class="dmSocialHeader__actions">
+            <div class="gmSocialHeader__actions">
               <button id="btnShareInviteSocial" class="iconBtn" type="button" aria-label="Share invite" title="Share invite">
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M7.217 10.907a2.25 2.25 0 1 0 0 2.186m0-2.186c.18.324.283.696.283 1.093s-.103.77-.283 1.093m0-2.186 9.566-5.314m-9.566 7.5 9.566 5.314m0-12.814a2.25 2.25 0 1 0 3.935-2.186 2.25 2.25 0 0 0-3.935 2.186Zm0 12.814a2.25 2.25 0 1 0 3.935 2.186 2.25 2.25 0 0 0-3.935-2.186Z" /></svg>
               </button>
@@ -384,9 +384,9 @@
             </div>
           </div>
           <div class="socialMeta">
-            <div class="socialMeta__row"><span class="muted small">Join Tag</span><strong id="dmSessionIdText">&middot;</strong></div>
-            <div class="socialMeta__row"><span class="muted small">Pincode</span><strong id="dmPinShown">&middot;</strong><button id="btnChangePin" class="btn btn--ghost btn--small" type="button">Change</button></div>
-            <div class="socialMeta__row"><span class="muted small">DM Transfer PIN</span><strong id="dmTransferPinShown">Not set</strong><button id="btnChangeTransferPin" class="btn btn--ghost btn--small" type="button">Set</button></div>
+            <div class="socialMeta__row"><span class="muted small">Join Tag</span><strong id="gmSessionIdText">&middot;</strong></div>
+            <div class="socialMeta__row"><span class="muted small">Pincode</span><strong id="gmPinShown">&middot;</strong><button id="btnChangePin" class="btn btn--ghost btn--small" type="button">Change</button></div>
+            <div class="socialMeta__row"><span class="muted small">GM Transfer PIN</span><strong id="gmTransferPinShown">Not set</strong><button id="btnChangeTransferPin" class="btn btn--ghost btn--small" type="button">Set</button></div>
           </div>
 
           <div class="socialQRActions">
@@ -401,12 +401,12 @@
           </div>
         </div>
 
-        <div id="dmHandoutsPanel" class="panel panel--main">
+        <div id="gmHandoutsPanel" class="panel panel--main">
           <h3>Handouts</h3>
 
           <div class="dashTools">
-            <input id="dmSearch" class="input" placeholder="Search handouts..." aria-label="Search handouts">
-            <button id="btnToggleFilters" class="btn btn--ghost btn--small filterToggleBtn" type="button" aria-expanded="false" aria-controls="dmFilterRow">
+            <input id="gmSearch" class="input" placeholder="Search handouts..." aria-label="Search handouts">
+            <button id="btnToggleFilters" class="btn btn--ghost btn--small filterToggleBtn" type="button" aria-expanded="false" aria-controls="gmFilterRow">
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="width:14px;height:14px;flex-shrink:0"><path d="M3 6h18M7 12h10M11 18h2"/></svg>
               Filter
               <span id="filterActiveBadge" class="filterActiveBadge hidden" aria-label="Filter active">●</span>
@@ -414,7 +414,7 @@
             </button>
           </div>
 
-          <div class="chipRow hidden" id="dmFilterRow">
+          <div class="chipRow hidden" id="gmFilterRow">
             <button class="chip chip--active" data-filter="all" type="button">All</button>
             <button class="chip" data-filter="loot" type="button">Loot</button>
             <button class="chip" data-filter="npc" type="button">Npc</button>
@@ -424,30 +424,30 @@
             <button class="chip" data-filter="map" type="button">Map</button>
           </div>
 
-          <div id="dmHandoutList" class="list"></div>
-          <div id="dmHandoutEmpty" class="emptyState">
+          <div id="gmHandoutList" class="list"></div>
+          <div id="gmHandoutEmpty" class="emptyState">
             <span class="emptyState__icon" aria-hidden="true">🔮</span>
             <span class="emptyState__title">No handouts yet</span>
             <span class="emptyState__hint">Use the + button to create your first handout.</span>
           </div>
         </div>
 
-        <div class="dmDashRail" aria-label="Session tools">
+        <div class="gmDashRail" aria-label="Session tools">
           <!-- Atmosphere panel removed &middot; use Music button in the bottom bar instead -->
           <!-- IDs kept hidden for JS compatibility -->
-          <span id="dmAtmosphereTrack" class="hidden"></span>
-          <span id="dmAtmosphereStatus" class="hidden"></span>
-          <span id="dmAtmosphereVolume" class="hidden"></span>
+          <span id="gmAtmosphereTrack" class="hidden"></span>
+          <span id="gmAtmosphereStatus" class="hidden"></span>
+          <span id="gmAtmosphereVolume" class="hidden"></span>
           <button id="btnOpenAtmospherePanel" class="hidden" type="button" aria-hidden="true"></button>
 
-          <aside id="dmPartyPanel" class="panel dmPartyPanel" aria-label="Party panel">
-            <div class="dmPartyPanel__head">
+          <aside id="gmPartyPanel" class="panel gmPartyPanel" aria-label="Party panel">
+            <div class="gmPartyPanel__head">
               <h3>The Party</h3>
               <button id="btnCollapseParty" class="partyCollapseBtn iconBtn" type="button" aria-expanded="false" aria-label="Expand party list" title="Expand / collapse player list">
                 <svg class="partyCollapseChevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true" style="width:16px;height:16px;transition:transform 300ms ease-in-out"><path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5"/></svg>
               </button>
             </div>
-            <div class="dmPartyPanel__actions dmPartyPanel__actions--bar">
+            <div class="gmPartyPanel__actions gmPartyPanel__actions--bar">
               <button id="btnRollInitiative" class="btn btn--small partyAction" type="button">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="width:15px;height:15px;flex-shrink:0"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8.5" cy="8.5" r="1.2" fill="currentColor"/><circle cx="15.5" cy="8.5" r="1.2" fill="currentColor"/><circle cx="8.5" cy="15.5" r="1.2" fill="currentColor"/><circle cx="15.5" cy="15.5" r="1.2" fill="currentColor"/><circle cx="12" cy="12" r="1.2" fill="currentColor"/></svg>
                 Roll
@@ -464,26 +464,26 @@
               <button id="btnAddNpc" class="hidden" type="button" aria-hidden="true"></button>
             </div>
             <!-- Turn navigator &middot; shown when initiative is active -->
-            <div id="dmTurnNav" class="dmTurnNav hidden" aria-label="Turn navigation">
-              <button id="btnTurnPrev" class="dmTurnNav__btn" type="button" aria-label="Previous turn">
+            <div id="gmTurnNav" class="gmTurnNav hidden" aria-label="Turn navigation">
+              <button id="btnTurnPrev" class="gmTurnNav__btn" type="button" aria-label="Previous turn">
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" aria-hidden="true" style="width:16px;height:16px"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 15.75 7.5-7.5 7.5 7.5"/></svg>
               </button>
-              <span id="dmTurnLabel" class="dmTurnNav__label">Round 1 &middot; Turn 1</span>
-              <button id="btnTurnNext" class="dmTurnNav__btn" type="button" aria-label="Next turn">
+              <span id="gmTurnLabel" class="gmTurnNav__label">Round 1 &middot; Turn 1</span>
+              <button id="btnTurnNext" class="gmTurnNav__btn" type="button" aria-label="Next turn">
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" aria-hidden="true" style="width:16px;height:16px"><path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5"/></svg>
               </button>
             </div>
             <button id="btnPartyBattle" class="btn btn--ghost partyAction partyAction--battle" type="button" aria-pressed="false" title="Toggle battle mode">
-              <span class="dmPartyPanel__battleEmoji" aria-hidden="true">💤</span>
+              <span class="gmPartyPanel__battleEmoji" aria-hidden="true">💤</span>
               <span>Battle: OFF</span>
             </button>
-            <div id="dmPartyRollOverlay" class="dmPartyPanel__overlay hidden" aria-hidden="true">
+            <div id="gmPartyRollOverlay" class="gmPartyPanel__overlay hidden" aria-hidden="true">
               <div class="authLoadingOverlay__spinner"></div>
               <span class="muted small">Rolling initiative...</span>
             </div>
             <div class="partyListWrap">
-            <div id="dmPartyInlineList" class="list dmPartyPanel__list"></div>
-            <div id="dmPartyInlineEmpty" class="emptyState dmPartyPanel__empty">
+            <div id="gmPartyInlineList" class="list gmPartyPanel__list"></div>
+            <div id="gmPartyInlineEmpty" class="emptyState gmPartyPanel__empty">
               <span class="emptyState__icon" aria-hidden="true">👥</span>
               <span class="emptyState__title">No players yet</span>
               <span class="emptyState__hint">Players appear here once they join. Create an NPC handout and use &ldquo;Add for Initiative&rdquo; to add enemies.</span>
@@ -499,7 +499,7 @@
       MODAL: CREATE HANDOUT
       Opened by: btnOpenCreateHandout / btnCreateHandoutInline
       Closed by: btnCloseCreateModal / Escape key
-      Key IDs: dmTitle, dmType, dmIconGrid, dmColorRow, dmContent
+      Key IDs: gmTitle, gmType, gmIconGrid, gmColorRow, gmContent
       Related CSS: .modal, .portraitFrame, .iconPickerGrid, .colorDot
       Related JS: openCreateModal(), saveHandout(), renderIconSuggestions()
       ===================================================================
@@ -521,7 +521,7 @@
         -->
         <div class="portraitHero">
           <div class="portraitFrame">
-            <img id="dmImagePreview" class="portraitPreview hidden" alt="Handout portrait preview">
+            <img id="gmImagePreview" class="portraitPreview hidden" alt="Handout portrait preview">
             <div id="portraitPlaceholder" class="portraitPlaceholder" aria-hidden="true">
               <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <path d="M20 21V19C20 17.8954 19.1046 17 18 17H6C4.89543 17 4 17.8954 4 19V21" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></path>
@@ -594,7 +594,7 @@
             </div>
             <span id="handoutImageStatus" class="muted small mapStatusText"></span>
           </div>
-          <p id="dmImageStatus" class="muted small">Portrait is selected from local placeholders using Title + Public Content only.</p>
+          <p id="gmImageStatus" class="muted small">Portrait is selected from local placeholders using Title + Public Content only.</p>
         </div>
 
         <div class="formGrid">
@@ -614,7 +614,7 @@
             Example: NPC-specific controls are shown only when type == "npc".
           -->
           <label class="label">Template Type</label>
-          <select id="dmType" class="input">
+          <select id="gmType" class="input">
             <option value="loot">Loot</option>
             <option value="npc">NPC</option>
             <option value="clue">Clue</option>
@@ -638,14 +638,14 @@
           </div>
 
           <label class="label">Title</label>
-          <input id="dmTitle" class="input" placeholder="Name..." required>
+          <input id="gmTitle" class="input" placeholder="Name..." required>
 
           <label class="label">Public Content</label>
-          <textarea id="dmPublic" class="input" rows="5" placeholder="Description visible to players..." required></textarea>
+          <textarea id="gmPublic" class="input" rows="5" placeholder="Description visible to players..." required></textarea>
 
           <div class="secretBlock">
             <label class="label">Secret content (optional)</label>
-            <textarea id="dmSecret" class="input" rows="4" placeholder="Hidden until revealed..."></textarea>
+            <textarea id="gmSecret" class="input" rows="4" placeholder="Hidden until revealed..."></textarea>
           </div>
 
           <label class="label">Visibility</label>
@@ -672,7 +672,7 @@
             <div id="iconSuggestTiles" class="iconSuggestTiles"></div>
           </div>
           <!-- Preset icon grid -->
-          <div id="dmIconGrid" class="iconPickerGrid" aria-label="Choose handout icon">
+          <div id="gmIconGrid" class="iconPickerGrid" aria-label="Choose handout icon">
             <button class="iconTile iconTile--active" type="button" data-icon="🎭" aria-label="Mask icon">🎭</button>
             <button class="iconTile" type="button" data-icon="📜" aria-label="Scroll icon">📜</button>
             <button class="iconTile" type="button" data-icon="🗺️" aria-label="Map icon">🗺️</button>
@@ -709,7 +709,7 @@
           </div>
 
           <label class="label">Accent Color <span class="labelSub">· handout card border</span></label>
-          <div id="dmColorRow" class="colorRow">
+          <div id="gmColorRow" class="colorRow">
             <button class="colorDot colorDot--active" data-color="#f5c82f" style="--dot:#f5c82f" type="button" aria-label="Gold"></button>
             <button class="colorDot" data-color="#94a9c7" style="--dot:#94a9c7" type="button" aria-label="Slate"></button>
             <button class="colorDot" data-color="#ff8b1a" style="--dot:#ff8b1a" type="button" aria-label="Orange"></button>
@@ -787,7 +787,7 @@
       <div id="qrReaderWrap" class="blockingModal hidden" role="dialog" aria-modal="true" aria-label="Scan QR code" aria-hidden="true">
         <div class="blockingModal__card qrReaderModalCard">
           <h2>Scan Session QR</h2>
-          <p class="muted small">Point your camera at the DM's QR code. Camera access is required.</p>
+          <p class="muted small">Point your camera at the GM's QR code. Camera access is required.</p>
           <div class="scannerFrame" role="img" aria-label="Live camera viewfinder">
             <!-- Native video feed &middot; src is set in JS via getUserMedia -->
             <video id="scannerVideo" class="scannerVideo" playsinline muted autoplay></video>
@@ -828,27 +828,32 @@
           <h2>Handouts</h2>
           <div class="muted small">You only see revealed handouts.</div>
         </div>
+        <div class="dashHeader__actions playerHandoutsHeader__actions">
+          <button id="btnTogglePlayerHandouts" class="iconBtn playerHandoutsToggleBtn" type="button" aria-expanded="true" aria-label="Collapse handouts list" title="Collapse handouts list">
+            <svg class="playerHandoutsChevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true" style="width:16px;height:16px;transition:transform 300ms ease-in-out"><path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5"/></svg>
+          </button>
+        </div>
       </div>
 
       <div class="playerViewLayout">
-        <div class="playerViewLayout__main">
+        <div id="playerHandoutsMain" class="playerViewLayout__main">
           <div id="plHandoutList" class="list"></div>
           <div id="plHandoutEmpty" class="emptyState">
             <span class="emptyState__icon" aria-hidden="true">📜</span>
             <span class="emptyState__title">Nothing revealed yet</span>
-            <span class="emptyState__hint">The DM will reveal handouts as your adventure unfolds.</span>
+            <span class="emptyState__hint">The GM will reveal handouts as your adventure unfolds.</span>
           </div>
         </div>
 
-        <aside id="playerPartyPanel" class="panel dmPartyPanel playerPartyPanel" aria-label="Party panel">
-          <div class="dmPartyPanel__head">
+        <aside id="playerPartyPanel" class="panel gmPartyPanel playerPartyPanel" aria-label="Party panel">
+          <div class="gmPartyPanel__head">
             <h3>The Party</h3>
             <span class="muted small">Initiative order</span>
             <button id="btnCollapsePlayerParty" class="partyCollapseBtn iconBtn" type="button" aria-expanded="false" aria-label="Expand party list" title="Expand / collapse party list">
               <svg class="partyCollapseChevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true" style="width:16px;height:16px;transition:transform 300ms ease-in-out"><path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5"/></svg>
             </button>
           </div>
-          <div class="dmPartyPanel__actions dmPartyPanel__actions--bar playerPartyPanel__actions">
+          <div class="gmPartyPanel__actions gmPartyPanel__actions--bar playerPartyPanel__actions">
             <button id="btnPlayerInitiativeEdit" class="btn btn--ghost btn--small partyAction" type="button" title="Edit your initiative">
               <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" aria-hidden="true" style="width:15px;height:15px;flex-shrink:0"><path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487a2.1 2.1 0 1 1 2.97 2.97L9.75 17.54l-3.75.78.78-3.75 10.082-10.083Z"/><path stroke-linecap="round" stroke-linejoin="round" d="M14.5 6.85l2.65 2.65"/></svg>
               Edit
@@ -858,9 +863,13 @@
               Roll
             </button>
           </div>
+          <!-- Turn indicator · read-only for players, shown when initiative is active -->
+          <div id="playerTurnNav" class="gmTurnNav hidden" aria-label="Current turn">
+            <span id="playerTurnLabel" class="gmTurnNav__label">Round 1 &middot; Turn 1</span>
+          </div>
           <div class="partyListWrap">
-          <div id="playerPartyInlineList" class="list dmPartyPanel__list"></div>
-          <div id="playerPartyInlineEmpty" class="emptyState dmPartyPanel__empty">
+          <div id="playerPartyInlineList" class="list gmPartyPanel__list"></div>
+          <div id="playerPartyInlineEmpty" class="emptyState gmPartyPanel__empty">
             <span class="emptyState__icon" aria-hidden="true">👥</span>
             <span class="emptyState__title">No party yet</span>
             <span class="emptyState__hint">Fellow players appear here once they join the session.</span>
@@ -906,7 +915,7 @@
       <div id="partyTreasurySection" class="coinSection">
         <div class="coinSection__head">
           <h3>Party Treasury</h3>
-          <span class="muted small">Managed by DM</span>
+          <span class="muted small">Managed by GM</span>
         </div>
         <div id="partyTreasuryCoins" class="coinRow">
           <div class="coinItem" data-coin="bronze">
@@ -1074,13 +1083,13 @@
         <div id="settingsRoleSection" class="settingsRoleSwitch hidden">
           <div class="label">Role</div>
           <button id="btnSwitchToPlayer" class="btn btn--ghost hidden" type="button"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" aria-hidden="true" style="width:16px;height:16px;flex-shrink:0;vertical-align:-2px;margin-right:6px"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z"/></svg>Switch to Player View</button>
-          <button id="btnSwitchToDM" class="btn btn--ghost hidden" type="button"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" aria-hidden="true" style="width:16px;height:16px;flex-shrink:0;vertical-align:-2px;margin-right:6px"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75m-3-7.036A11.959 11.959 0 0 1 3.598 6 11.99 11.99 0 0 0 3 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285Z"/></svg>Switch to DM</button>
+          <button id="btnSwitchToGM" class="btn btn--ghost hidden" type="button"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" aria-hidden="true" style="width:16px;height:16px;flex-shrink:0;vertical-align:-2px;margin-right:6px"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75m-3-7.036A11.959 11.959 0 0 1 3.598 6 11.99 11.99 0 0 0 3 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285Z"/></svg>Switch to GM</button>
           <p id="settingsIdentityHint" class="muted small hidden">Session invite details are kept in the Social tab to avoid duplicates.</p>
-          <div id="dmPinPrompt" class="dmPinPrompt hidden">
-            <input id="switchDMPinInput" class="input" inputmode="numeric" placeholder="Enter DM Transfer PIN">
+          <div id="gmPinPrompt" class="gmPinPrompt hidden">
+            <input id="switchGMPinInput" class="input" inputmode="numeric" placeholder="Enter GM Transfer PIN">
             <div class="row row--gap-sm">
-              <button id="btnCancelSwitchDM" class="btn btn--ghost btn--small" type="button">Cancel</button>
-              <button id="btnConfirmSwitchDM" class="btn btn--small" type="button">Confirm</button>
+              <button id="btnCancelSwitchGM" class="btn btn--ghost btn--small" type="button">Cancel</button>
+              <button id="btnConfirmSwitchGM" class="btn btn--small" type="button">Confirm</button>
             </div>
           </div>
         </div>
@@ -1095,7 +1104,7 @@
         <button id="btnCharacterProfiles" class="btn btn--ghost btn--gm hidden" type="button">Premade Profiles</button>
 
         <!-- GM-only: Transfer GM Role -->
-        <button id="btnTransferGMRole" class="btn btn--ghost btn--gm hidden" type="button">Transfer DM Role</button>
+        <button id="btnTransferGMRole" class="btn btn--ghost btn--gm hidden" type="button">Transfer GM Role</button>
 
         <!-- Desktop only: Keyboard Shortcuts reference -->
         <button id="btnShowShortcuts" class="btn btn--ghost hidden" type="button">Keyboard Shortcuts</button>
@@ -1327,15 +1336,15 @@
     <section id="screenInfo" class="card hidden">
       <div class="dashHeader">
         <div>
-          <h2>About TomeVault</h2>
-          <div class="muted small">Placeholder section for app information.</div>
+          <h2>Quick Help</h2>
+          <div class="muted small">Current flow guide for Game Masters and players.</div>
         </div>
         <div class="row">
           <button id="btnInfoBack" class="btn btn--ghost" type="button"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" aria-hidden="true" style="width:16px;height:16px;flex-shrink:0;vertical-align:-2px;margin-right:4px"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5"/></svg>Back</button>
         </div>
       </div>
       <div class="settingsCard">
-        <p class="muted" style="line-height:1.6">This section is reserved for your future content: mission, goals, roadmap, and usage guidance for players and Dungeon Masters.</p>
+        <p class="muted" style="line-height:1.6">Replay Tutorial from Settings any time to walk through the latest UI. Invite tools are in Social, ambience is on Music, and profile/inventory/notes are in the bottom bar.</p>
       </div>
     </section>
 
@@ -1376,7 +1385,7 @@
                 <circle cx="12" cy="9" r="4" fill="currentColor"/>
                 <path d="M4 20c0-3.314 3.582-6 8-6s8 2.686 8 6" fill="currentColor"/>
               </svg>
-              <img id="profileHeroImg" class="profile-hero__img hidden" alt="" />
+              <img id="profileHeroImg" class="profile-hero__img hidden" alt="" draggable="false" />
             </div>
           </div>
           <h3 id="profileHeroName" class="profile-hero__name">&middot;</h3>
@@ -1456,7 +1465,8 @@
         <div class="settingsMenu">
           <button id="btnGMProfileNotes" class="btn btn--ghost" type="button"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true" style="width:18px;height:18px;vertical-align:-3px;margin-right:6px"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z"/></svg>Campaign Notes</button>
           <button id="btnGMProfilePremades" class="btn btn--ghost hidden" type="button"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true" style="width:18px;height:18px;vertical-align:-3px;margin-right:6px"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 0 0 2.625.372 9.337 9.337 0 0 0 4.121-.952 4.125 4.125 0 0 0-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 0 1 8.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0 1 11.964-3.07M12 6.375a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0Zm8.25 2.25a2.625 2.625 0 1 1-5.25 0 2.625 2.625 0 0 1 5.25 0Z"/></svg>Premade Profiles</button>
-          <button id="btnGMProfileEdit" class="btn btn--ghost" type="button"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true" style="width:18px;height:18px;vertical-align:-3px;margin-right:6px"><path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10"/></svg>Edit DM Profile</button>
+          <button id="btnGMProfileEdit" class="btn btn--ghost" type="button"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true" style="width:18px;height:18px;vertical-align:-3px;margin-right:6px"><path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10"/></svg>Edit GM Profile</button>
+          <button id="btnClearPlayerProfile" class="btn btn--ghost btn--danger hidden" type="button"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true" style="width:18px;height:18px;vertical-align:-3px;margin-right:6px"><path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0"/></svg>Clear Player Profile</button>
         </div>
       </div>
 
@@ -1603,8 +1613,33 @@
           <button id="btnClaim" class="btn btn--primary hidden" type="button">Claim loot</button>
         </div>
 
+        <div id="modalMapUploadWrap" class="mapSection hidden">
+          <div id="modalMapDisplayFrame" class="mapDisplayFrame">
+            <img id="modalMapPreviewImg" class="mapPreviewImg hidden" alt="Map preview">
+            <div id="modalMapEmptyState" class="mapDisplayFrame__empty">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3" aria-hidden="true" style="width:48px;height:48px;opacity:.35"><path stroke-linecap="round" stroke-linejoin="round" d="M9 6.75V15m6-6v8.25m.503 3.498 4.875-2.437c.381-.19.622-.58.622-1.006V4.82c0-.836-.88-1.38-1.628-1.006l-3.869 1.934c-.317.159-.69.159-1.006 0L9.503 3.252a1.125 1.125 0 0 0-1.006 0L3.622 5.689C3.24 5.88 3 6.27 3 6.695V19.18c0 .836.88 1.38 1.628 1.006l3.869-1.934c.317-.159.69-.159 1.006 0l4.994 2.497c.317.158.69.158 1.006 0Z"/></svg>
+              <span class="muted small" style="margin-top:8px">No map image yet</span>
+            </div>
+            <div id="modalMapLoadingOverlay" class="mapDisplayFrame__loading hidden" aria-hidden="true">
+              <div class="authLoadingOverlay__spinner"></div>
+            </div>
+          </div>
+          <div class="mapBtnRow">
+            <input id="modalMapImageUpload" type="file" accept="image/*" class="hidden">
+            <button id="btnModalMapUpload" class="btn btn--ghost mapBtn" type="button">
+              <img class="nuggetIcon nuggetIcon--button" src="placeholders/nuggetPlaceholder1Small.png" alt="" aria-hidden="true">
+              Upload <span class="mapBtnCost">x1</span>
+            </button>
+            <button id="btnModalMapAIGenerate" class="btn btn--ghost mapBtn mapBtn--ai" type="button">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true" style="width:14px;height:14px;flex-shrink:0;margin-right:4px"><path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904 9 18.75l-.813-2.846a4.5 4.5 0 0 0-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 0 0 3.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 0 0 3.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 0 0-3.09 3.09ZM18.259 8.715 18 9.75l-.259-1.035a3.375 3.375 0 0 0-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 0 0 2.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 0 0 2.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 0 0-2.456 2.456Z"/></svg>
+              AI Generate <span class="mapBtnFree">Free</span>
+            </button>
+          </div>
+          <span id="modalMapUploadStatus" class="muted small mapStatusText"></span>
+        </div>
+
         <!-- GM-only moderation controls -->
-        <div id="modalDMControls" class="hidden">
+        <div id="modalGMControls" class="hidden">
           <hr class="hr">
           <div class="revealStarRow">
             <button id="btnToggleReveal" class="revealStarBtn" type="button" aria-pressed="false">
@@ -1622,32 +1657,7 @@
             </button>
           </div>
 
-          <div id="modalMapUploadWrap" class="mapSection hidden">
-            <div id="modalMapDisplayFrame" class="mapDisplayFrame">
-              <img id="modalMapPreviewImg" class="mapPreviewImg hidden" alt="Map preview">
-              <div id="modalMapEmptyState" class="mapDisplayFrame__empty">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3" aria-hidden="true" style="width:48px;height:48px;opacity:.35"><path stroke-linecap="round" stroke-linejoin="round" d="M9 6.75V15m6-6v8.25m.503 3.498 4.875-2.437c.381-.19.622-.58.622-1.006V4.82c0-.836-.88-1.38-1.628-1.006l-3.869 1.934c-.317.159-.69.159-1.006 0L9.503 3.252a1.125 1.125 0 0 0-1.006 0L3.622 5.689C3.24 5.88 3 6.27 3 6.695V19.18c0 .836.88 1.38 1.628 1.006l3.869-1.934c.317-.159.69-.159 1.006 0l4.994 2.497c.317.158.69.158 1.006 0Z"/></svg>
-                <span class="muted small" style="margin-top:8px">No map image yet</span>
-              </div>
-              <div id="modalMapLoadingOverlay" class="mapDisplayFrame__loading hidden" aria-hidden="true">
-                <div class="authLoadingOverlay__spinner"></div>
-              </div>
-            </div>
-            <div class="mapBtnRow">
-              <input id="modalMapImageUpload" type="file" accept="image/*" class="hidden">
-              <button id="btnModalMapUpload" class="btn btn--ghost mapBtn" type="button">
-                <img class="nuggetIcon nuggetIcon--button" src="placeholders/nuggetPlaceholder1Small.png" alt="" aria-hidden="true">
-                Upload <span class="mapBtnCost">x1</span>
-              </button>
-              <button id="btnModalMapAIGenerate" class="btn btn--ghost mapBtn mapBtn--ai" type="button">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true" style="width:14px;height:14px;flex-shrink:0;margin-right:4px"><path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904 9 18.75l-.813-2.846a4.5 4.5 0 0 0-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 0 0 3.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 0 0 3.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 0 0-3.09 3.09ZM18.259 8.715 18 9.75l-.259-1.035a3.375 3.375 0 0 0-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 0 0 2.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 0 0 2.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 0 0-2.456 2.456Z"/></svg>
-                AI Generate <span class="mapBtnFree">Free</span>
-              </button>
-            </div>
-            <span id="modalMapUploadStatus" class="muted small mapStatusText"></span>
-          </div>
-
-          <div id="modalDMClaimControls" class="hidden">
+          <div id="modalGMClaimControls" class="hidden">
             <hr class="hr">
             <div class="row">
               <button id="btnToggleClaimable" class="btn btn--ghost" type="button" aria-pressed="false">Claimable Off</button>
@@ -1656,13 +1666,13 @@
             </div>
 
             <div class="row assignRow">
-              <label class="label small" for="dmAssignPlayer">Assign to player</label>
-              <select id="dmAssignPlayer" class="input"></select>
+              <label class="label small" for="gmAssignPlayer">Assign to player</label>
+              <select id="gmAssignPlayer" class="input"></select>
               <button id="btnAssignClaim" class="btn btn--ghost" type="button">Assign selected player</button>
             </div>
           </div>
 
-          <!-- Icon editor — DM can change the handout's emoji icon -->
+          <!-- Icon editor — GM can change the handout's emoji icon -->
           <div id="modalIconWrap" class="emojiCustomRow" style="padding:4px 0 8px">
             <span id="modalIconPreview" class="emojiPreview" title="Click to change icon" aria-hidden="true">🎭</span>
             <div class="emojiCustomField">
@@ -1709,6 +1719,20 @@
         <h3 id="pcName" class="playerCard__name"></h3>
         <span id="pcRole" class="playerCard__role tag"></span>
         <span id="pcStatus" class="playerCard__statusText muted small"></span>
+        <div id="pcLoreSection" class="playerCard__detail hidden">
+          <div class="playerCard__detailHead">
+            <span id="pcLoreLabel" class="playerCard__detailLabel">Lore</span>
+            <button id="pcLoreToggle" class="playerCard__detailToggle hidden" type="button" aria-expanded="false" aria-controls="pcLoreText">Read more</button>
+          </div>
+          <p id="pcLoreText" class="playerCard__detailText"></p>
+        </div>
+        <div id="pcSecretSection" class="playerCard__detail playerCard__detail--secret hidden">
+          <div class="playerCard__detailHead">
+            <span id="pcSecretLabel" class="playerCard__detailLabel">Hidden Intel</span>
+            <button id="pcSecretToggle" class="playerCard__detailToggle hidden" type="button" aria-expanded="false" aria-controls="pcSecretText">Read more</button>
+          </div>
+          <p id="pcSecretText" class="playerCard__detailText"></p>
+        </div>
         <hr class="hr">
         <div class="playerCard__stats">
           <div class="playerCard__stat"><span id="pcItemsLabel" class="muted small">Items</span><strong id="pcItems">0</strong></div>
@@ -1730,6 +1754,8 @@
         </div>
         <div class="playerCard__actions">
           <button id="btnEditPlayerStats" class="btn btn--ghost btn--small hidden" type="button">Edit Stats</button>
+          <button id="btnClearInitiative" class="btn btn--ghost btn--small hidden" type="button">Clear Initiative</button>
+          <button id="btnReaddInitiative" class="btn btn--ghost btn--small hidden" type="button">Re-add Initiative</button>
           <button id="btnRemoveNpcProfile" class="btn btn--ghost btn--danger btn--small hidden" type="button">Remove NPC</button>
           <button id="btnKickPlayer" class="btn btn--ghost btn--danger btn--small hidden" type="button">Kick Player</button>
         </div>
@@ -1761,7 +1787,7 @@
             <circle cx="12" cy="9" r="4" fill="currentColor"/>
             <path d="M4 20c0-3.314 3.582-6 8-6s8 2.686 8 6" fill="currentColor"/>
           </svg>
-          <img id="bottomBarAvatarImg" class="bottom-bar__profile-img hidden" alt="" />
+          <img id="bottomBarAvatarImg" class="bottom-bar__profile-img hidden" alt="" draggable="false" />
         </div>
       </button>
       <!-- Inventory -->
@@ -1824,7 +1850,7 @@
 
       <!-- Track selector row -->
       <div class="ambience-row ambience-trackRow">
-        <select id="dmAmbience" class="input ambience-select" aria-label="Choose ambience track">
+        <select id="gmAmbience" class="input ambience-select" aria-label="Choose ambience track">
           <option value="tavern">🍺 Tavern</option>
           <option value="forest">🌲 Forest</option>
           <option value="dungeon">🗺 Dungeon</option>
@@ -1839,17 +1865,17 @@
 
       <!-- Playback controls + volume row -->
       <div class="ambience-row ambience-controlsRow">
-        <div class="dm-audio-controls">
+        <div class="gm-audio-controls">
           <!-- Animated gold bars shown when a track is playing -->
           <span id="ambienceAudioBars" class="audio-bars hidden" aria-label="Playing" aria-hidden="true">
             <span class="audio-bar"></span>
             <span class="audio-bar"></span>
             <span class="audio-bar"></span>
           </span>
-          <button id="btnDMPlay" class="iconBtnLarge" aria-label="Play">
+          <button id="btnGMPlay" class="iconBtnLarge" aria-label="Play">
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M5.25 5.653c0-.856.917-1.398 1.667-.986l11.54 6.347a1.125 1.125 0 010 1.972l-11.54 6.347c-.75.412-1.667-.13-1.667-.986V5.653z"></path></svg>
           </button>
-          <button id="btnDMPause" class="iconBtnLarge" aria-label="Pause">
+          <button id="btnGMPause" class="iconBtnLarge" aria-label="Pause">
             <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" style="width:60%;height:60%;">
               <path d="M6 4h4v16H6V4zm8 0h4v16h-4V4z"></path>
             </svg>
@@ -1860,7 +1886,7 @@
             <svg id="muteIconOn" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true" style="width:60%;height:60%"><path stroke-linecap="round" stroke-linejoin="round" d="M19.114 5.636a9 9 0 010 12.728M16.463 8.288a5.25 5.25 0 010 7.424M6.75 8.25l4.72-4.72a.75.75 0 011.28.53v15.88a.75.75 0 01-1.28.53l-4.72-4.72H4.51c-.88 0-1.704-.507-1.938-1.354A9.009 9.009 0 012.25 12c0-.83.112-1.633.322-2.396C2.806 8.756 3.63 8.25 4.51 8.25H6.75z"/></svg>
             <svg id="muteIconOff" class="hidden" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true" style="width:60%;height:60%"><path stroke-linecap="round" stroke-linejoin="round" d="M17.25 9.75 19.5 12m0 0 2.25 2.25M19.5 12l2.25-2.25M19.5 12l-2.25 2.25m-10.5-6 4.72-4.72a.75.75 0 0 1 1.28.53v15.88a.75.75 0 0 1-1.28.53l-4.72-4.72H4.51c-.88 0-1.704-.507-1.938-1.354A9.009 9.009 0 0 1 2.25 12c0-.83.112-1.633.322-2.396.234-.847 1.058-1.354 1.938-1.354H6.75Z"/></svg>
           </button>
-          <input id="dmVolume" type="range" min="0" max="1" step="0.05" value="0.6" aria-label="Volume">
+          <input id="gmVolume" type="range" min="0" max="1" step="0.05" value="0.6" aria-label="Volume">
         </div>
       </div>
 
@@ -1880,7 +1906,7 @@
     </div>
   </div>
 
-  <!-- Change PIN modal (DM only) -->
+  <!-- Change PIN modal (GM only) -->
   <div id="changePinModal" class="blockingModal hidden" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="changePinTitle">
     <div class="blockingModal__backdrop"></div>
     <div class="blockingModal__box card" style="max-width:340px">
@@ -1894,8 +1920,8 @@
   <div id="changeTransferPinModal" class="blockingModal hidden" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="changeTransferPinTitle">
     <div class="blockingModal__backdrop"></div>
     <div class="blockingModal__box card" style="max-width:340px">
-      <h3 id="changeTransferPinTitle">Set DM Transfer PIN</h3>
-      <p class="muted small">Players need this PIN to take over the DM role. Keep it separate from the session join PIN.</p>
+      <h3 id="changeTransferPinTitle">Set GM Transfer PIN</h3>
+      <p class="muted small">Players need this PIN to take over the GM role. Keep it separate from the session join PIN.</p>
       <input id="changeTransferPinInput" class="input" inputmode="numeric" maxlength="8" placeholder="4&middot;8 digits">
       <p id="changeTransferPinMsg" class="muted small modal-msg"></p>
       <div class="modal-actions">
@@ -1994,8 +2020,8 @@
   <!-- Transfer GM blocking modal (shown to target player) -->
   <div id="transferModal" class="blockingModal hidden" aria-hidden="true">
     <div class="blockingModal__card">
-      <h2>DM Role Transfer</h2>
-      <p id="transferModalMsg">The DM wants to transfer the DM role to you.</p>
+      <h2>GM Role Transfer</h2>
+      <p id="transferModalMsg">The GM wants to transfer the GM role to you.</p>
       <div class="auth-field">
         <label class="label" for="transferPinInput">Enter transfer PIN</label>
         <input id="transferPinInput" class="input" type="text" inputmode="numeric" placeholder="Enter PIN" maxlength="20">
@@ -2011,7 +2037,7 @@
   <div id="profileOfferModal" class="blockingModal hidden" aria-hidden="true">
     <div class="blockingModal__card">
       <h2>Character Profile Offer</h2>
-      <p id="profileOfferMsg">The DM has created a character for you.</p>
+      <p id="profileOfferMsg">The GM has created a character for you.</p>
       <div id="profileOfferPreview" class="profileOfferPreview"></div>
       <div class="modal-actions">
         <button id="btnRejectProfile" class="btn btn--ghost btn--danger" type="button">Reject</button>
@@ -2038,7 +2064,7 @@
   <div id="discardSessionModal" class="blockingModal hidden" aria-hidden="true">
     <div class="blockingModal__card">
       <h2 class="text--danger">Leave Permanently</h2>
-      <p class="muted" style="line-height:1.5">Your character profile will be transferred to the DM's premade profiles. Your wallet, inventory, and player data will be removed from this session.</p>
+      <p class="muted" style="line-height:1.5">Your character profile will be transferred to the GM's premade profiles. Your wallet, inventory, and player data will be removed from this session.</p>
       <label class="label" for="discardSessionConfirmInput">Type <strong>DISCARD</strong> to confirm</label>
       <input id="discardSessionConfirmInput" class="input" type="text" autocomplete="off" placeholder="DISCARD" style="text-align:center;letter-spacing:2px">
       <div class="modal-actions">
@@ -2271,6 +2297,8 @@
   <script src="https://www.google.com/recaptcha/api.js?render=6LeMT5EsAAAAABZpKrhXRvmiG2SLIrjUIq5mqeeK" async defer></script>
 
   <!-- App entry point -->
-  <script type="module" src="index.mjs?v=20260314fix7"></script>
+  <script type="module" src="index.mjs?v=20260322fix1"></script>
 </body>
 </html>
+
+
