@@ -445,6 +445,11 @@ const bottomBar = $("bottomBar");
 const btnBrandHome = $("btnBrandHome");
 const btnHamburger = $("btnHamburger");
 const hamburgerSpeedDial = $("hamburgerSpeedDial");
+const btnDialHandouts = $("btnDialHandouts");
+const btnDialSocial = $("btnDialSocial");
+const btnDialAtmosphere = $("btnDialAtmosphere");
+const btnDialInventory = $("btnDialInventory");
+const btnDialNotes = $("btnDialNotes");
 const btnDialSettings = $("btnDialSettings");
 const btnTopBarSocial = $("btnTopBarSocial");
 const btnShareInviteSocial = $("btnShareInviteSocial");
@@ -799,7 +804,13 @@ const chatStatus = $("chatStatus");
 const chatList = $("chatList");
 const chatEmpty = $("chatEmpty");
 const chatInput = $("chatInput");
+const btnChatJumpLatest = $("btnChatJumpLatest");
 const btnChatSend = $("btnChatSend");
+const gmMiniChatPanel = $("gmMiniChatPanel");
+const gmMiniChatStatus = $("gmMiniChatStatus");
+const gmMiniChatList = $("gmMiniChatList");
+const gmMiniChatEmpty = $("gmMiniChatEmpty");
+const btnOpenChatFromMini = $("btnOpenChatFromMini");
 const notesList = $("notesList");
 const notesEmpty = $("notesEmpty");
 const notesEmptyTitle = $("notesEmptyTitle");
@@ -895,6 +906,7 @@ const btnDeleteHandout = $("btnDeleteHandout");
 const modalClaimWrap = $("modalClaimWrap");
 const claimStatus = $("claimStatus");
 const btnClaim = $("btnClaim");
+const btnUnclaim = $("btnUnclaim");
 const modalGMClaimControls = $("modalGMClaimControls");
 const btnToggleClaimable = $("btnToggleClaimable");
 const btnResetClaim = $("btnResetClaim");
@@ -1629,7 +1641,7 @@ function showOnly(screenKey) {
   if (screenKey === SCREEN_KEYS.NOTES) {
     loadNotesForCurrentSession();
   }
-  if (screenKey === SCREEN_KEYS.CHAT) {
+  if (screenKey === SCREEN_KEYS.CHAT || (screenKey === SCREEN_KEYS.GM_DASH && state.role === "dm")) {
     subscribePartyChat();
   }
 }
@@ -1687,12 +1699,15 @@ function syncBottomBarActiveState(screenKey) {
   if (btnTopBarSocial) {
     btnTopBarSocial.classList.toggle("hidden", state.role !== "dm" || !hasSession);
   }
+
+  syncHamburgerQuickActions();
 }
 
 function setGMSocialMode(isOpen) {
   if (!gmSocialPanel || !gmHandoutsPanel || !gmSplit) return;
   if (isWideGMDashboard()) {
     syncGMDashboardLayout();
+    syncHamburgerQuickActions();
     if (isOpen) {
       gmSocialPanel.scrollIntoView({ behavior: "smooth", block: "start", inline: "nearest" });
     }
@@ -1722,6 +1737,8 @@ function setGMSocialMode(isOpen) {
     ambienceBar?.setAttribute("aria-hidden", "true");
     btnOpenAmbienceBar?.classList.remove("is-active");
   }
+
+  syncHamburgerQuickActions();
 }
 
 // ---- Settings drawer open/close ----
@@ -1851,6 +1868,69 @@ function setHamburgerTutorialLock(isLocked) {
   }
 }
 
+function setHamburgerDialButtonState(button, options = {}) {
+  if (!button) return;
+  const visible = !!options.visible;
+  button.classList.toggle("hidden", !visible);
+  button.setAttribute("aria-hidden", visible ? "false" : "true");
+  button.disabled = !visible || !!options.disabled;
+  button.classList.toggle("is-active", visible && !!options.active);
+  if (options.label) {
+    const textNode = button.querySelector(".speed-dial-btn__text");
+    if (textNode) textNode.textContent = options.label;
+    button.setAttribute("aria-label", options.label);
+    button.title = options.label;
+  }
+}
+
+function syncHamburgerQuickActions() {
+  if (!hamburgerSpeedDial) return;
+
+  const hasSession = !!state.sessionId;
+  const isGM = state.role === "dm";
+  const socialOpen = !!gmSplit?.classList.contains("social-mode");
+  const ambienceOpen = ambienceBar ? !ambienceBar.classList.contains("hidden") : false;
+  const onHandouts = currentScreenKey === SCREEN_KEYS.PLAYER_VIEW || (currentScreenKey === SCREEN_KEYS.GM_DASH && !socialOpen);
+  const onInventory = currentScreenKey === SCREEN_KEYS.PLAYER_INVENTORY;
+  const onNotes = currentScreenKey === SCREEN_KEYS.NOTES;
+
+  setHamburgerDialButtonState(btnDialHandouts, {
+    visible: hasSession,
+    active: onHandouts,
+    label: "Handouts",
+  });
+
+  setHamburgerDialButtonState(btnDialSocial, {
+    visible: hasSession && isGM,
+    active: currentScreenKey === SCREEN_KEYS.GM_DASH && socialOpen,
+    label: "Session",
+  });
+
+  setHamburgerDialButtonState(btnDialAtmosphere, {
+    visible: hasSession,
+    active: isGM ? ambienceOpen : !!soundEnabled,
+    label: isGM ? "Atmosphere" : soundEnabled ? "Sound On" : "Sound Off",
+  });
+
+  setHamburgerDialButtonState(btnDialInventory, {
+    visible: hasSession && !isGM,
+    active: onInventory,
+    label: "Inventory",
+  });
+
+  setHamburgerDialButtonState(btnDialNotes, {
+    visible: hasSession,
+    active: onNotes,
+    label: "Notes",
+  });
+
+  setHamburgerDialButtonState(btnDialSettings, {
+    visible: hasSession,
+    active: false,
+    label: "Settings",
+  });
+}
+
 function setModalVisibility(el, isOpen) {
   if (!el) return;
   // Before hiding, move focus away from any child element that might have focus
@@ -1938,6 +2018,7 @@ function syncGMDashboardLayout() {
 
 function openHamburgerSpeedDial() {
   if (!hamburgerSpeedDial) return;
+  syncHamburgerQuickActions();
   syncHamburgerSpeedDialPosition();
   if (speedDialHideTimer) {
     clearTimeout(speedDialHideTimer);
@@ -7769,10 +7850,9 @@ function getHeroIconSvg(iconName, className = "") {
     key: `<svg${cls} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="8" cy="12" r="4" stroke="currentColor" stroke-width="1.8"/><path d="M12 12H20" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M17 12V15" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M19 12V14" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>`,
     eye: `<svg${cls} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M2 12C3.8 8.5 7.4 6 12 6C16.6 6 20.2 8.5 22 12C20.2 15.5 16.6 18 12 18C7.4 18 3.8 15.5 2 12Z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="1.8"/></svg>`,
     photo: `<svg${cls} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M4 6C4 4.895 4.895 4 6 4H18C19.105 4 20 4.895 20 6V18C20 19.105 19.105 20 18 20H6C4.895 20 4 19.105 4 18V6Z" stroke="currentColor" stroke-width="1.8"/><path d="M8 15L10.5 12.5L13 15L16 11L19 15" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><circle cx="9" cy="9" r="1.2" fill="currentColor"/></svg>`,
-    // Bolt icon — Heroicons v2 outline (MIT, heroicons.com / tailwindlabs/heroicons)
-    claim: `<svg${cls} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="m3.75 13.5 10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75Z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
-    // Circle + diagonal slash — original simple design (no external library)
-    "claim-off": `<svg${cls} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="12" r="8.5" stroke="currentColor" stroke-width="1.8"/><path d="M6.5 6.5L17.5 17.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>`,
+    // Tabler Icons: hand-click (MIT) — https://tabler.io/icons/icon/hand-click
+    claim: `<svg${cls} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M8 13v-8.5a1.5 1.5 0 0 1 3 0v7.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M11 11.5v-2a1.5 1.5 0 0 1 3 0v2.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M14 10.5a1.5 1.5 0 0 1 3 0v1.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M17 11.5a1.5 1.5 0 0 1 3 0v4.5a6 6 0 0 1 -6 6h-2h.208a6 6 0 0 1 -5.012 -2.7l-.196 -.3c-.312 -.479 -1.407 -2.388 -3.286 -5.728a1.5 1.5 0 0 1 .536 -2.022a1.867 1.867 0 0 1 2.28 .28l1.47 1.47" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M5 3l-1 -1" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M4 7h-1" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M14 3l1 -1" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M15 6h1" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>`,
+    "claim-off": `<svg${cls} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M8 13v-8.5a1.5 1.5 0 0 1 3 0v7.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M11 11.5v-2a1.5 1.5 0 0 1 3 0v2.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M14 10.5a1.5 1.5 0 0 1 3 0v1.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M17 11.5a1.5 1.5 0 0 1 3 0v4.5a6 6 0 0 1 -6 6h-2h.208a6 6 0 0 1 -5.012 -2.7l-.196 -.3c-.312 -.479 -1.407 -2.388 -3.286 -5.728a1.5 1.5 0 0 1 .536 -2.022a1.867 1.867 0 0 1 2.28 .28l1.47 1.47" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M5 3l-1 -1" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M4 7h-1" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M14 3l1 -1" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M15 6h1" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M4 20L20 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>`,
   };
   return icons[iconName] || `<span${cls}>${escapeHtml(iconName)}</span>`;
 }
@@ -8511,7 +8591,7 @@ async function runOneTimeRoleDisplayNameMigration(user) {
 
 // Trial system: free campaign access for 30 days after account creation.
 // One-shots stay free forever.
-// TODO: 6-month archival � a Cloud Function on pubsub.schedule('every 24 hours')
+// TODO: 6-month archival - a Cloud Function on pubsub.schedule('every 24 hours')
 // should query sessions where ALL players' lastSeenAt > 6 months ago, move docs
 // to an 'archivedSessions' collection, and delete originals. This requires
 // Firebase Cloud Functions (server-side) and is out of scope for client code.
@@ -9305,6 +9385,18 @@ function isNearChatBottom() {
 
 function updateChatScrollIntent() {
   state.chat.shouldAutoScroll = isNearChatBottom();
+  syncChatScrollState();
+}
+
+function syncChatScrollState() {
+  if (!chatList) return;
+  const maxScrollTop = Math.max(0, chatList.scrollHeight - chatList.clientHeight);
+  const canScroll = maxScrollTop > 8;
+  const atTop = chatList.scrollTop <= 8;
+  const atBottom = (maxScrollTop - chatList.scrollTop) <= 56;
+  chatList.classList.toggle("chatList--can-up", canScroll && !atTop);
+  chatList.classList.toggle("chatList--can-down", canScroll && !atBottom);
+  btnChatJumpLatest?.classList.toggle("hidden", !canScroll || atBottom);
 }
 
 function setChatEmptyState(title, hint) {
@@ -9314,17 +9406,72 @@ function setChatEmptyState(title, hint) {
   chatEmpty.querySelector(".emptyState__hint")?.replaceChildren(document.createTextNode(hint));
 }
 
+function renderGMMiniChatPreview() {
+  if (!gmMiniChatPanel || !gmMiniChatStatus || !gmMiniChatList || !gmMiniChatEmpty) return;
+  const canShow = state.role === "dm" && !!state.sessionId;
+  gmMiniChatPanel.classList.toggle("hidden", !canShow);
+  if (!canShow) return;
+
+  const messages = sortChatMessagesAsc(state.chat.messages || []);
+  gmMiniChatList.innerHTML = "";
+  gmMiniChatEmpty.classList.add("hidden");
+
+  if (state.chat.isLoading && messages.length === 0) {
+    gmMiniChatStatus.textContent = "Loading recent chat...";
+    gmMiniChatEmpty.classList.remove("hidden");
+    return;
+  }
+
+  if (state.chat.error && messages.length === 0) {
+    gmMiniChatStatus.textContent = "Could not load chat preview.";
+    gmMiniChatEmpty.classList.remove("hidden");
+    return;
+  }
+
+  if (messages.length === 0) {
+    gmMiniChatStatus.textContent = "No messages yet.";
+    gmMiniChatEmpty.classList.remove("hidden");
+    return;
+  }
+
+  const latestMessages = messages.slice(-4);
+  const fragment = document.createDocumentFragment();
+  latestMessages.forEach((entry) => {
+    const row = document.createElement("article");
+    row.className = `gmMiniChatPanel__row${entry.uid && entry.uid === state.uid ? " gmMiniChatPanel__row--self" : ""}`;
+    const preview = String(entry.message || "").replace(/\s+/g, " ").trim();
+    const clipped = preview.length > 96 ? `${preview.slice(0, 96)}...` : preview;
+    row.innerHTML = `
+      <div class="gmMiniChatPanel__rowMeta">
+        <strong class="gmMiniChatPanel__name">${escapeHtml(entry.displayName || "Adventurer")}</strong>
+        <span class="gmMiniChatPanel__time">${escapeHtml(formatChatTimestamp(entry.createdAt))}</span>
+      </div>
+      <p class="gmMiniChatPanel__text">${escapeHtml(clipped || "(empty)")}</p>
+    `;
+    fragment.appendChild(row);
+  });
+  gmMiniChatList.appendChild(fragment);
+
+  if (state.chat.fromCache && state.chat.hasServerSnapshot) {
+    gmMiniChatStatus.textContent = "Showing last server-confirmed messages.";
+  } else {
+    gmMiniChatStatus.textContent = `Latest ${latestMessages.length} message${latestMessages.length === 1 ? "" : "s"}.`;
+  }
+}
+
 function syncChatComposerState() {
   const hasSession = !!state.sessionId;
   const trimmed = String(chatInput?.value || "").trim();
   if (chatInput) chatInput.disabled = !hasSession || state.chat.isSending || state.chat.isClearing;
   if (btnChatSend) btnChatSend.disabled = !hasSession || state.chat.isSending || state.chat.isClearing || !trimmed;
+  if (btnChatJumpLatest) btnChatJumpLatest.disabled = !hasSession || state.chat.isClearing;
   if (btnChatExport) btnChatExport.disabled = !hasSession || state.chat.isClearing;
   if (btnChatClear) btnChatClear.disabled = !hasSession || state.chat.isClearing;
 }
 
 function renderChatScreen() {
   if (!chatList || !chatEmpty || !chatStatus) return;
+  renderGMMiniChatPreview();
   const messages = sortChatMessagesAsc(state.chat.messages || []);
   const isGM = state.role === "dm";
   const shouldStickToBottom = state.chat.shouldAutoScroll || currentScreenKey === SCREEN_KEYS.CHAT;
@@ -9341,6 +9488,7 @@ function renderChatScreen() {
   if (state.chat.isLoading && messages.length === 0) {
     setChatEmptyState("Loading messages", "Fetching the latest party conversation.");
     chatStatus.textContent = "Loading messages...";
+    syncChatScrollState();
     syncChatComposerState();
     return;
   }
@@ -9348,6 +9496,7 @@ function renderChatScreen() {
   if (state.chat.error && messages.length === 0) {
     setChatEmptyState("Could not load chat", "Check your connection and try opening the chat again.");
     chatStatus.textContent = state.chat.error;
+    syncChatScrollState();
     syncChatComposerState();
     return;
   }
@@ -9355,6 +9504,7 @@ function renderChatScreen() {
   if (messages.length === 0) {
     setChatEmptyState("No messages yet", "Use this room to discuss the session, recap clues, or coordinate the next step.");
     chatStatus.textContent = state.chat.isSending ? "Sending message..." : "Start the party conversation.";
+    syncChatScrollState();
     syncChatComposerState();
     return;
   }
@@ -9401,7 +9551,10 @@ function renderChatScreen() {
   if (shouldStickToBottom || currentScreenKey === SCREEN_KEYS.CHAT) {
     requestAnimationFrame(() => {
       if (chatList) chatList.scrollTop = chatList.scrollHeight;
+      syncChatScrollState();
     });
+  } else {
+    syncChatScrollState();
   }
 }
 
@@ -9661,7 +9814,18 @@ chatList?.addEventListener("scroll", () => {
   updateChatScrollIntent();
 });
 
+btnChatJumpLatest?.addEventListener("click", () => {
+  if (!chatList) return;
+  state.chat.shouldAutoScroll = true;
+  chatList.scrollTo({ top: chatList.scrollHeight, behavior: "smooth" });
+  syncChatScrollState();
+});
+
 btnOpenChatFromParty?.addEventListener("click", () => {
+  openChatScreen();
+});
+
+btnOpenChatFromMini?.addEventListener("click", () => {
   openChatScreen();
 });
 
@@ -9705,6 +9869,8 @@ btnBrandHome && (btnBrandHome.onclick = () => {
 // Hamburger quick menu: click/tap toggles the dial, mouse drag repositions it,
 // and touch retains the existing hold-to-drag behavior.
 if (btnHamburger) {
+  syncHamburgerQuickActions();
+
   function clearHamburgerDragTimer() {
     if (!hamburgerDragState?.holdTimer) return;
     clearTimeout(hamburgerDragState.holdTimer);
@@ -9814,6 +9980,31 @@ settingsDrawerBackdrop && (settingsDrawerBackdrop.onclick = () => {
 btnDialSettings && (btnDialSettings.onclick = () => {
   closeHamburgerSpeedDial();
   openSettingsDrawer();
+});
+
+btnDialHandouts && (btnDialHandouts.onclick = () => {
+  closeHamburgerSpeedDial();
+  btnOpenHandouts?.click();
+});
+
+btnDialSocial && (btnDialSocial.onclick = () => {
+  closeHamburgerSpeedDial();
+  btnToggleSocial?.click();
+});
+
+btnDialAtmosphere && (btnDialAtmosphere.onclick = () => {
+  closeHamburgerSpeedDial();
+  btnOpenAmbienceBar?.click();
+});
+
+btnDialInventory && (btnDialInventory.onclick = () => {
+  closeHamburgerSpeedDial();
+  btnOpenInventory?.click();
+});
+
+btnDialNotes && (btnDialNotes.onclick = () => {
+  closeHamburgerSpeedDial();
+  btnOpenNotes?.click();
 });
 
 // Share invite button in social panel
@@ -13148,12 +13339,12 @@ if (playerListContent) {
 }
 
 // ---- 14) GM: ambience controls ----
-// TODO: SOUND REMINDER � User will provide additional sound files for the
+// TODO: SOUND REMINDER - User will provide additional sound files for the
 // sound/ambience system later. Currently only Forest.mp3 exists in audio/.
 // When new sounds are added, update the track selector options in index.html
 // and add corresponding URL mappings in the ambience track resolution code.
 //
-// BEGINNER NOTE � How ambience syncs across devices:
+// BEGINNER NOTE - How ambience syncs across devices:
 // The GM writes ambience state {track, volume, isPlaying} to Firestore.
 // Every player's onSnapshot listener picks up the change and calls
 // applyAmbience() locally. The track name maps to an audio file URL.
@@ -13489,6 +13680,9 @@ state.unsubHandouts = onSnapshot(handoutsRef, (snap) => {
   const visibleItems = hydratePlayerHandoutSearchIndex(getPlayerVisibleHandouts());
   state.playerVisibleHandoutsCache = visibleItems;
   renderPlayerHandouts(visibleItems);
+  if (currentScreenKey === SCREEN_KEYS.PLAYER_INVENTORY) {
+    renderInventoryScreen();
+  }
 }, (err) => {
   console.error("Player handouts listener error:", err);
 });
@@ -14701,7 +14895,7 @@ function renderInventoryScreen() {
       claimedDiv.innerHTML = `<h4>Claimed Handouts</h4>`;
       claimed.forEach((h, claimedIndex) => {
         const row = document.createElement("div");
-        row.className = "inventoryCard list-stagger-item";
+        row.className = "inventoryCard inventoryCard--claimed list-stagger-item";
         row.style.setProperty("--stagger-index", String(items.length + claimedIndex));
         const frameStyle = buildImageFrameInlineStyle(h.imageFrame);
         const thumbHtml = h.imageUrl
@@ -14713,8 +14907,17 @@ function renderInventoryScreen() {
             <div class="inventoryCard__name">${escapeHtml(h.title)}</div>
             <div class="inventoryCard__desc">${escapeHtml((h.type ?? "handout").toUpperCase())}</div>
           </div>
+          ${isMe ? `<div class="inventoryClaimedCard__right"><button class="btn btn--ghost btn--small inventoryClaimedCard__unclaim" type="button">Unclaim</button></div>` : ""}
         `;
         row.style.cursor = "pointer";
+        const unclaimBtn = row.querySelector(".inventoryClaimedCard__unclaim");
+        if (unclaimBtn instanceof HTMLButtonElement) {
+          unclaimBtn.addEventListener("click", (event) => {
+            event.preventDefault();
+            event.stopPropagation();
+            unclaimHandout(h.id, unclaimBtn, { closeModalOnSuccess: false });
+          });
+        }
         row.onclick = () => openModal({ ...h, id: h.id }, state.role === "dm" ? "dm" : "player");
         claimedDiv.appendChild(row);
       });
@@ -15469,7 +15672,7 @@ function setupClaimUI(handout, role) {
   // This setup function only decides what the user can SEE/CLICK right now.
   // -------------------------------------------------------------------------
   const isLoot = String(handout.type || "").toLowerCase() === "loot";
-  if (!isLoot || !modalClaimWrap || !btnClaim || !claimStatus) return;
+  if (!isLoot || !modalClaimWrap || !btnClaim || !btnUnclaim || !claimStatus) return;
 
   const claimable = !!handout.claimable;
   const claimedByNick = String(handout.claimedByNick || "").trim();
@@ -15488,6 +15691,11 @@ function setupClaimUI(handout, role) {
   btnClaim.classList.add("hidden");
   btnClaim.disabled = false;
   btnClaim.textContent = "Claim loot";
+  btnClaim.onclick = null;
+  btnUnclaim.classList.add("hidden");
+  btnUnclaim.disabled = false;
+  btnUnclaim.textContent = "Unclaim";
+  btnUnclaim.onclick = null;
 
   if (!claimable) {
     claimStatus.textContent = role === "dm"
@@ -15498,8 +15706,12 @@ function setupClaimUI(handout, role) {
 
   if (isClaimed) {
     claimStatus.textContent = isMine
-      ? "You already claimed this loot."
+      ? "You claimed this loot. Unclaiming returns it to the revealed handouts overview."
       : `Claimed by ${claimedByNick || "another player"}.`;
+    if (isMine && role === "player") {
+      btnUnclaim.classList.remove("hidden");
+      btnUnclaim.onclick = () => unclaimHandout(modalCtx.handoutId, btnUnclaim, { closeModalOnSuccess: true });
+    }
     return;
   }
 
@@ -15520,6 +15732,73 @@ function setupClaimUI(handout, role) {
     }
 
     btnClaim.onclick = () => claimCurrentHandout();
+  }
+}
+
+async function unclaimHandout(handoutId, triggerBtn, { closeModalOnSuccess = false } = {}) {
+  if (!state.uid || !state.sessionId || !handoutId) {
+    showToast("Missing unclaim context.", "error");
+    return false;
+  }
+  if (!navigator.onLine) {
+    showToast("Reconnect to unclaim right now.", "error");
+    return false;
+  }
+
+  if (triggerBtn) triggerBtn.disabled = true;
+  const handoutRef = doc(db, "sessions", state.sessionId, "handouts", handoutId);
+
+  try {
+    const result = await runTransaction(db, async (tx) => {
+      const snap = await tx.get(handoutRef);
+      if (!snap.exists()) return { ok: false, reason: "missing" };
+
+      const data = snap.data();
+      const isLoot = String(data.type || "").toLowerCase() === "loot";
+      if (!isLoot) return { ok: false, reason: "not-loot" };
+
+      const claimedByUid = String(data.claimedByUid || "").trim();
+      const claimedByNick = String(data.claimedByNick || "").trim();
+      if (!claimedByUid) return { ok: false, reason: "already-open" };
+      if (claimedByUid !== state.uid) {
+        return { ok: false, reason: "not-yours", by: claimedByNick || "another player" };
+      }
+
+      tx.update(handoutRef, {
+        claimedByUid: null,
+        claimedByNick: null,
+        mapVisibleToUid: null,
+        claimedAt: null,
+        updatedAt: serverTimestamp(),
+      });
+      return { ok: true };
+    });
+
+    if (result?.ok) {
+      if (currentScreenKey === SCREEN_KEYS.PLAYER_INVENTORY) {
+        renderInventoryScreen();
+      }
+      if (closeModalOnSuccess) closeModalDiscardChanges();
+      showToast("Loot returned to revealed handouts.", "success");
+      return true;
+    }
+    if (result?.reason === "already-open") {
+      showToast("This loot is already unclaimed.", "info");
+      return false;
+    }
+    if (result?.reason === "not-yours") {
+      showToast(`Only ${result.by} can unclaim this loot.`, "error");
+      return false;
+    }
+
+    showToast("Could not unclaim this loot right now.", "error");
+    return false;
+  } catch (e) {
+    console.error("[TV] Unclaim transaction failed:", e);
+    showToast("Unclaim failed. Check your connection and try again.", "error");
+    return false;
+  } finally {
+    if (triggerBtn) triggerBtn.disabled = false;
   }
 }
 
@@ -15883,6 +16162,7 @@ function syncSoundToggleUI() {
   const muteIconOff = document.getElementById("muteIconOff");
   if (muteIconOn) muteIconOn.classList.toggle("hidden", !soundEnabled);
   if (muteIconOff) muteIconOff.classList.toggle("hidden", soundEnabled);
+  syncHamburgerQuickActions();
 }
 
 if (btnToggleSound) {

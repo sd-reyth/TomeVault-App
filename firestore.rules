@@ -1,6 +1,6 @@
 // Firestore Security Rules for TomeVault.
 // These rules control who can read/write data in the database.
-// BEGINNER NOTE: Rules run server-side â€” even if someone modifies the client
+// BEGINNER NOTE: Rules run server-side - even if someone modifies the client
 // code, these rules still protect the data. Each match block specifies a
 // document path and the conditions under which reads/writes are allowed.
 // Private replication glossary is intentionally kept in local-only notes at
@@ -10,13 +10,13 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // â”€â”€ Helper: fetch the GM's UID (User ID) from the parent session â”€â”€
+    // Helper: fetch the GM UID from the parent session
     function isGM(sessionId) {
       return request.auth != null
           && get(/databases/$(database)/documents/sessions/$(sessionId)).data.gmUid == request.auth.uid;
     }
 
-    // â”€â”€ User profiles â”€â”€
+    // User profiles
     match /users/{userId} {
       allow read:   if request.auth != null;
       allow write:  if request.auth != null && request.auth.uid == userId;
@@ -27,7 +27,7 @@ service cloud.firestore {
       }
     }
 
-    // â”€â”€ Sessions â”€â”€
+    // Sessions
     match /sessions/{sessionId} {
       allow read:  if request.auth != null;
 
@@ -61,7 +61,7 @@ service cloud.firestore {
                       || exists(/databases/$(database)/documents/sessions/$(sessionId)/pendingTransfer/current)
                     );
 
-      // â”€â”€ Wallets  (party treasury + per-player) â”€â”€
+      // Wallets (party treasury + per-player)
       match /wallets/{walletId} {
         allow read: if request.auth != null;
 
@@ -72,10 +72,49 @@ service cloud.firestore {
                      || (request.auth != null && walletId == request.auth.uid);
       }
 
-      // â”€â”€ Handouts â”€â”€
+      // Handouts
       match /handouts/{handoutId} {
         allow read: if request.auth != null;
-        allow write: if isGM(sessionId);
+
+        // GM retains full control over handouts.
+        allow create, delete: if isGM(sessionId);
+
+        // Player self-claim: tightly scoped update so only claim metadata can
+        // be written, and only when the loot is currently unclaimed + claimable,
+        // or when the current owner is returning it back to the shared pool.
+        allow update: if isGM(sessionId) || (
+          request.auth != null
+          && resource.data.claimable == true
+          && (
+            resource.data.type == 'loot'
+            || resource.data.type == 'Loot'
+            || resource.data.type == 'LOOT'
+          )
+          && request.resource.data
+              .diff(resource.data)
+              .affectedKeys()
+              .hasOnly(['claimedByUid', 'claimedByNick', 'mapVisibleToUid', 'claimedAt', 'updatedAt'])
+          && (
+            (
+              (
+                !(resource.data.claimedByUid is string)
+                || resource.data.claimedByUid.size() == 0
+              )
+              && request.resource.data.claimedByUid == request.auth.uid
+              && request.resource.data.claimedByNick is string
+              && request.resource.data.mapVisibleToUid == null
+            )
+            ||
+            (
+              resource.data.claimedByUid is string
+              && resource.data.claimedByUid == request.auth.uid
+              && request.resource.data.claimedByUid == null
+              && request.resource.data.claimedByNick == null
+              && request.resource.data.mapVisibleToUid == null
+              && request.resource.data.claimedAt == null
+            )
+          )
+        );
       }
 
       // Notes (per-player, synced across devices)
@@ -107,7 +146,7 @@ service cloud.firestore {
                      || (request.auth != null && playerId == request.auth.uid);
       }
 
-      // â”€â”€ Inventory items â”€â”€
+      // Inventory items
       match /inventory/{itemId} {
         allow read: if request.auth != null;
 
@@ -123,7 +162,7 @@ service cloud.firestore {
                               && resource.data.ownerUid == request.auth.uid;
       }
 
-      // â”€â”€ Notifications (per-player, in-app) â”€â”€
+      // Notifications (per-player, in-app)
       match /notifications/{notifId} {
         allow read: if request.auth != null;
 
@@ -159,10 +198,10 @@ service cloud.firestore {
                       && request.resource.data.createdAt is timestamp
                       && request.resource.data.expireAt is timestamp;
 
-                    allow delete: if isGM(sessionId);
+                  allow delete: if isGM(sessionId);
       }
 
-      // â”€â”€ Character templates (GM-managed) â”€â”€
+      // Character templates (GM-managed)
       match /characterTemplates/{templateId} {
         allow read: if request.auth != null;
         allow create, delete: if isGM(sessionId);
@@ -173,7 +212,7 @@ service cloud.firestore {
                           && resource.data.assignedToUid == request.auth.uid);
       }
 
-      // â”€â”€ Pending GM role transfer â”€â”€
+      // Pending GM role transfer
       match /pendingTransfer/{transferId} {
         allow read: if request.auth != null;
         allow create: if isGM(sessionId);

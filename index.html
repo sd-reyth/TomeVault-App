@@ -51,7 +51,7 @@
   <meta name="twitter:title" content="TomeVault - Live Handouts for Your Table">
   <meta name="twitter:description" content="Share session invites, PINs, and handouts in seconds.">
   <meta name="twitter:image" content="references/tomeVaultLogo1.png">
-  <link rel="stylesheet" href="style.css?v=20260325menu1">
+  <link rel="stylesheet" href="style.css?v=20260325menu3">
   <!-- fantasy fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
@@ -499,6 +499,22 @@
               <span class="emptyState__hint">Players appear here once they join. Create an NPC handout and use &ldquo;Add for Initiative&rdquo; to add enemies.</span>
             </div>
             </div><!-- end partyListWrap -->
+          </aside>
+
+          <aside id="gmMiniChatPanel" class="panel gmMiniChatPanel" aria-label="Party chat preview">
+            <div class="gmMiniChatPanel__head">
+              <h3>Party Chat</h3>
+              <button id="btnOpenChatFromMini" class="btn btn--small gmMiniChatPanel__open" type="button" title="Open full chat">
+                Chat
+              </button>
+            </div>
+            <p id="gmMiniChatStatus" class="muted small" aria-live="polite">Open chat to load messages.</p>
+            <div id="gmMiniChatList" class="gmMiniChatPanel__list"></div>
+            <div id="gmMiniChatEmpty" class="emptyState gmMiniChatPanel__empty hidden">
+              <span class="emptyState__icon" aria-hidden="true">💬</span>
+              <span class="emptyState__title">No messages yet</span>
+              <span class="emptyState__hint">Use Chat to open the full conversation.</span>
+            </div>
           </aside>
         </div>
       </div>
@@ -1507,6 +1523,7 @@
           <textarea id="chatInput" class="input chatComposer__input" rows="4" maxlength="500" placeholder="Write a message to the party..."></textarea>
           <div class="chatComposer__actions">
             <p class="muted small">Press Enter to send. Use Shift + Enter for a new line.</p>
+            <button id="btnChatJumpLatest" class="btn btn--ghost btn--small hidden" type="button">Jump to latest</button>
             <button id="btnChatSend" class="btn" type="button">Send</button>
           </div>
         </div>
@@ -1793,8 +1810,13 @@
         -->
         <div id="modalClaimWrap" class="hidden">
           <hr class="hr">
-          <p id="claimStatus" class="muted small"></p>
-          <button id="btnClaim" class="btn btn--primary hidden" type="button">Claim loot</button>
+          <div class="modalClaimPanel">
+            <p id="claimStatus" class="muted small modalClaimStatus"></p>
+            <div class="modalClaimActions">
+              <button id="btnUnclaim" class="btn btn--ghost hidden" type="button">Unclaim</button>
+              <button id="btnClaim" class="btn btn--primary hidden" type="button">Claim loot</button>
+            </div>
+          </div>
         </div>
 
         <div id="modalMapUploadWrap" class="mapSection hidden">
@@ -2007,9 +2029,29 @@
   </button>
 
   <div id="hamburgerSpeedDial" class="hamburger-speed-dial hidden" aria-hidden="true">
+    <button id="btnDialHandouts" class="speed-dial-btn hidden" type="button" aria-label="Open Handouts" title="Handouts" aria-hidden="true">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25"/></svg>
+      <span class="speed-dial-btn__text">Handouts</span>
+    </button>
+    <button id="btnDialSocial" class="speed-dial-btn hidden" type="button" aria-label="Open Session Panel" title="Session" aria-hidden="true">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 0 0 2.625.372 9.337 9.337 0 0 0 4.121-.952 4.125 4.125 0 0 0-2.062-7.846h-.343M15 19.128v-.003c0-1.113-.285-2.16-.786-3.072M15 19.128a9.34 9.34 0 0 1-5.625 0m0 0A9.34 9.34 0 0 1 5.25 16.053m4.125 3.075c0-1.113.285-2.16.786-3.072m0 0a4.125 4.125 0 1 0-5.744 0m5.744 0a4.125 4.125 0 1 1 5.744 0M12 12.75a4.125 4.125 0 1 0 0-8.25 4.125 4.125 0 0 0 0 8.25Z"/></svg>
+      <span class="speed-dial-btn__text">Session</span>
+    </button>
+    <button id="btnDialAtmosphere" class="speed-dial-btn hidden" type="button" aria-label="Open Atmosphere Controls" title="Atmosphere" aria-hidden="true">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="m9 9 10.5-3m0 6.553v3.75a2.25 2.25 0 0 1-1.632 2.163l-1.32.377a1.803 1.803 0 1 1-.99-3.467l2.31-.66a2.25 2.25 0 0 0 1.632-2.163Zm0 0V4.5l-10.5 3v6.553m0 0v3.75a2.25 2.25 0 0 1-1.632 2.163l-1.32.377a1.803 1.803 0 0 1-.99-3.467l2.31-.66A2.25 2.25 0 0 0 9 13.053Z"/></svg>
+      <span class="speed-dial-btn__text">Atmosphere</span>
+    </button>
+    <button id="btnDialInventory" class="speed-dial-btn hidden" type="button" aria-label="Open Inventory" title="Inventory" aria-hidden="true">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M9 6.75V6a3 3 0 0 1 6 0v.75"/><path stroke-linecap="round" stroke-linejoin="round" d="M6.75 9h10.5a2.25 2.25 0 0 1 2.25 2.25v7.5A2.25 2.25 0 0 1 17.25 21H6.75a2.25 2.25 0 0 1-2.25-2.25v-7.5A2.25 2.25 0 0 1 6.75 9Z"/><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 12h7.5"/><path stroke-linecap="round" stroke-linejoin="round" d="M10.5 15.75h3"/></svg>
+      <span class="speed-dial-btn__text">Inventory</span>
+    </button>
+    <button id="btnDialNotes" class="speed-dial-btn hidden" type="button" aria-label="Open Notes" title="Notes" aria-hidden="true">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M16.5 3.75v2.25m-9-2.25v2.25m11.25 0H5.25A2.25 2.25 0 0 0 3 8.25v10.5A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V8.25A2.25 2.25 0 0 0 18.75 6Zm-12 6.75h10.5"/></svg>
+      <span class="speed-dial-btn__text">Notes</span>
+    </button>
     <button id="btnDialSettings" class="speed-dial-btn speed-dial-btn--settings" type="button" aria-label="Open Settings" title="Settings">
       <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.592c.55 0 1.02.398 1.11.94l.213 1.277c.075.446.367.826.777 1.02.402.191.87.178 1.26-.03l1.122-.6a1.125 1.125 0 011.53.41l1.296 2.244a1.125 1.125 0 01-.41 1.53l-1.122.6a1.125 1.125 0 00-.546 1.23c.078.44.078.89 0 1.33a1.125 1.125 0 00.546 1.23l1.122.6c.54.288.739.96.41 1.53l-1.296 2.244a1.125 1.125 0 01-1.53.41l-1.122-.6a1.125 1.125 0 00-1.26-.03c-.41.194-.702.574-.777 1.02l-.213 1.277c-.09.542-.56.94-1.11.94h-2.592c-.55 0-1.02-.398-1.11-.94l-.213-1.277a1.125 1.125 0 00-.777-1.02 1.125 1.125 0 00-1.26.03l-1.122.6a1.125 1.125 0 01-1.53-.41L2.9 17.6a1.125 1.125 0 01.41-1.53l1.122-.6c.39-.208.602-.638.546-1.08a8.54 8.54 0 010-1.63c.056-.442-.156-.872-.546-1.08l-1.122-.6a1.125 1.125 0 01-.41-1.53L4.196 5.306a1.125 1.125 0 011.53-.41l1.122.6c.39.208.858.221 1.26.03.41-.194.702-.574.777-1.02l.213-1.277z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-      <span>Settings</span>
+      <span class="speed-dial-btn__text">Settings</span>
     </button>
   </div>
 
@@ -2484,7 +2526,7 @@
   <script src="https://www.google.com/recaptcha/api.js?render=6LeMT5EsAAAAABZpKrhXRvmiG2SLIrjUIq5mqeeK" async defer></script>
 
   <!-- App entry point -->
-  <script type="module" src="index.mjs?v=20260325menu1"></script>
+  <script type="module" src="index.mjs?v=20260325menu3"></script>
 </body>
 </html>
 
