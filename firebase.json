@@ -10,6 +10,10 @@
     "public": ".",
     "ignore": [
       "firebase.json",
+      "*.log",
+      "**/*.log",
+      "deploy_log.txt",
+      "firebase-debug.log*",
       "**/.*",
       "functions/**",
       "**/node_modules/**"

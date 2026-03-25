@@ -10,27 +10,27 @@
 		These variables act like a design system. Reuse avoids hard-coded colors
 		spread all over the stylesheet.
 	*/
-	/* Deep void backgrounds � merged from NextJS TomeVault design */
+	/* Deep void backgrounds ? merged from NextJS TomeVault design */
 	--bg:#0e0614;
 	--bg2:#160c2a;
 	--surface:#1e1040;
 	--surface-2:#271454;
 	--surface-3:#130a28;
-	/* Warm parchment text � medieval D&D feel */
+	/* Warm parchment text ? medieval D&D feel */
 	--text:#f4e4bc;
 	--muted:rgba(196,180,148,.7);
 	/* Antique gold accent */
 	--gold:#d4af37;
 	--gold-2:#a68521;
-	/* Amethyst + crimson � from NextJS TomeVault app */
+	/* Amethyst + crimson ? from NextJS TomeVault app */
 	--amethyst:#3b1b5e;
 	--amethyst-light:#5c2c91;
 	--crimson:#8a1c1c;
-	/* Line/border tokens � amethyst-tinted */
+	/* Line/border tokens ? amethyst-tinted */
 	--line:rgba(92,44,145,.28);
 	--line-strong:rgba(212,175,55,.5);
 	--danger:#dc2f2f;
-	/* Cinzel for headings � the defining vibe shift */
+	/* Cinzel for headings ? the defining vibe shift */
 	--font-heading: 'Cinzel', 'Georgia', serif;
 	--font-ui: 'Open Sans', system-ui, sans-serif;
 	--text-xs: 12px;
@@ -75,12 +75,12 @@
 	--gold-hover: rgba(212,175,55,.28);
 	--gold-strong: rgba(212,175,55,.42);
 	--text-on-gold: #1a1206;
-	/* Warning (orange) � leave/cautionary actions */
+	/* Warning (orange) ? leave/cautionary actions */
 	--warning: #ff8b1a;
 	--warning-light: #ffb870;
-	/* Danger light � softer danger for headings on dark surfaces */
+	/* Danger light ? softer danger for headings on dark surfaces */
 	--danger-light: #ff7b7b;
-	/* Steel � cool-blue inventory accent */
+	/* Steel ? cool-blue inventory accent */
 	--steel: #94a9c7;
 	/* Elevation border - white glass highlight for lifted surfaces */
 	--card-border: rgba(255,255,255,0.08);
@@ -106,11 +106,11 @@ html,body{min-height:100dvh}
 	  shorter durations ? snappy/techy, longer ? smooth/premium.
 */
 :root{
-	--tv-ease:cubic-bezier(.22,1,.36,1);      /* smooth deceleration � feels natural */
-	--tv-ease-bounce:cubic-bezier(.34,1.56,.64,1); /* slight overshoot � playful pop */
-	--tv-dur-fast:.2s;    /* Micro tier � 200ms per UX contract (hover, press, toggle) */
-	--tv-dur-mid:.3s;     /* Standard tier � 300ms per UX contract (screen swaps, panels) */
-	--tv-dur-slow:.36s;   /* Dramatic tier � modal/drawer entrance (modal, onboarding hero) */
+	--tv-ease:cubic-bezier(.22,1,.36,1);      /* smooth deceleration ? feels natural */
+	--tv-ease-bounce:cubic-bezier(.34,1.56,.64,1); /* slight overshoot ? playful pop */
+	--tv-dur-fast:.2s;    /* Micro tier ? 200ms per UX contract (hover, press, toggle) */
+	--tv-dur-mid:.3s;     /* Standard tier ? 300ms per UX contract (screen swaps, panels) */
+	--tv-dur-slow:.36s;   /* Dramatic tier ? modal/drawer entrance (modal, onboarding hero) */
 
 	/*
 		LEARNING NOTE:
@@ -194,8 +194,8 @@ body::after{
 .app-shell{
 	/* Normalize screen widths across routes and keep readable margins */
 	width:min(1320px, 96vw);
-	margin:14px auto 0;
-	min-height:calc(100dvh - 14px);
+	margin:0 auto;
+	min-height:100dvh;
 }
 
 /* Accessibility: skip-to-content link, hidden until focused */
@@ -227,24 +227,36 @@ body::after{
   Top app bar (only shown on non-GM dashboard screens in current UX).
 */
 .topbar{
+	position:sticky;
+	top:0;
+	z-index:60;
+	width:100%;
+	border:none;
+	border-bottom:1px solid rgba(212,175,55,.15);
+	border-radius:0;
+	background:rgba(10,6,20,.92);
+	-webkit-backdrop-filter:blur(16px);
+	backdrop-filter:blur(16px);
+	box-shadow:0 4px 24px rgba(0,0,0,.4), inset 0 1px 0 rgba(255,255,255,.06);
+}
+
+.topbar__inner{
+	max-width:min(1320px, 96vw);
+	margin:0 auto;
 	display:flex;
+	align-items:center;
 	justify-content:space-between;
-	align-items:flex-start;
 	gap:20px;
 	padding:12px 24px;
-	border:1px solid var(--card-border);
-	border-radius:var(--radius-md);
-	background:rgba(14,8,26,.88);
-	-webkit-backdrop-filter:blur(12px);
-	backdrop-filter:blur(12px);
 }
 
 .brand{display:flex;align-items:center;gap:10px}
 
-/* Brand home button � transparent wrapper around brand title */
+/* Brand home button � transparent flex wrapper around logo + title */
 .brand__homeBtn{
 	background:none;border:none;padding:0;margin:0;cursor:pointer;
 	font:inherit;color:inherit;text-align:left;
+	display:flex;align-items:center;gap:8px;
 }
 
 .brand__title{
@@ -254,9 +266,50 @@ body::after{
 	letter-spacing:.02em;
 	font-weight:700;
 	text-transform:none;
+	position:relative;
+	overflow:hidden;
+	display:inline-block;
 }
 
-.brand__accent{color:var(--gold)}
+.brand__accent{color:var(--gold);text-shadow:0 0 14px rgba(212,175,55,.32)}
+
+/* Logo mark next to brand title */
+.brand__logoMark{
+	width:26px;
+	height:26px;
+	object-fit:contain;
+	flex-shrink:0;
+	filter:brightness(1.1) drop-shadow(0 0 4px rgba(212,175,55,.25));
+	transition:filter 200ms ease-in-out;
+}
+.brand__homeBtn:hover .brand__logoMark,
+.brand__homeBtn:focus-visible .brand__logoMark{
+	filter:brightness(1.25) drop-shadow(0 0 8px rgba(212,175,55,.5));
+}
+
+/* Gold shimmer sweep on brand title hover */
+@keyframes brandShimmer{
+	from{left:-70%}
+	to{left:120%}
+}
+.brand__title::after{
+	content:'';
+	position:absolute;
+	top:0;
+	left:-70%;
+	width:55%;
+	height:100%;
+	background:linear-gradient(90deg, transparent, rgba(245,200,47,.22), transparent);
+	pointer-events:none;
+	animation:none;
+}
+.brand__homeBtn:hover .brand__title::after,
+.brand__homeBtn:focus-visible .brand__title::after{
+	animation:brandShimmer 550ms cubic-bezier(0.4,0,0.2,1) forwards;
+}
+@media(prefers-reduced-motion:reduce){
+	.brand__title::after{display:none}
+}
 
 .brand__sub{
 	margin-top:8px;
@@ -279,46 +332,63 @@ body::after{
 .topbar__iconBtn:hover{color:var(--text);background:rgba(255,255,255,.06)}
 .topbar__iconBtn svg{width:22px;height:22px}
 
-/* Floating hamburger FAB (bottom-right) � animated ? ? X */
+/* Floating hamburger FAB (bottom-right) ? animated ? ? X */
 .settings-fab{
 	position:fixed;
 	bottom:calc(60px + env(safe-area-inset-bottom));
 	right:20px;
-	width:56px;height:56px;
-	border-radius:50%;
+	min-width:96px;
+	height:48px;
+	padding:0 16px;
+	border-radius:var(--radius-md);
 	border:1px solid var(--line);
 	background:rgba(57,47,82,.82);
 	color:var(--text);
-	box-shadow:0 10px 24px rgba(7,5,14,.4), inset 0 0 0 1px rgba(245,200,47,.06);
-	display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;
+	box-shadow:0 4px 0 rgba(0,0,0,.55), 0 10px 24px rgba(7,5,14,.4), inset 0 0 0 1px rgba(245,200,47,.06);
+	display:inline-flex;align-items:center;justify-content:center;gap:12px;
 	cursor:pointer;
 	z-index:61;
-	transition:transform var(--tv-dur-fast) ease-in-out, color var(--tv-dur-fast) ease-in-out, background var(--tv-dur-fast) ease-in-out, box-shadow var(--tv-dur-mid) ease-in-out, border-color var(--tv-dur-fast) ease-in-out;
+	font-family:var(--font-ui);
+	font-size:var(--text-sm);
+	font-weight:700;
+	transition:transform var(--tv-dur-fast) ease-in-out, color var(--tv-dur-fast) ease-in-out, background var(--tv-dur-fast) ease-in-out, box-shadow var(--tv-dur-mid) ease-in-out, border-color var(--tv-dur-fast) ease-in-out, filter var(--tv-dur-fast) ease-in-out;
 	-webkit-user-select:none;user-select:none;
 	touch-action:none;
 }
-.settings-fab:hover{color:var(--gold);border-color:var(--gold-border);background:rgba(67,56,96,.9)}
-.settings-fab:active{transform:scale(.96);box-shadow:0 4px 12px rgba(7,5,14,.22), inset 0 0 0 1px rgba(245,200,47,.04)}
+.settings-fab:hover{color:var(--gold);border-color:var(--gold-border);background:rgba(67,56,96,.9);filter:brightness(1.04)}
+.settings-fab:active{transform:translateY(3px);box-shadow:0 1px 0 rgba(0,0,0,.55), 0 4px 12px rgba(7,5,14,.22), inset 0 0 0 1px rgba(245,200,47,.04)}
+
+.settings-fab__icon{
+	display:grid;
+	gap:4px;
+	flex-shrink:0;
+}
+
+.settings-fab__label{
+	line-height:1;
+	letter-spacing:.02em;
+}
 
 /* Three hamburger lines */
 .settings-fab .hamburger-line{
 	display:block;
-	width:22px;height:2px;
+	width:18px;height:2px;
 	background:currentColor;
 	border-radius:var(--radius-full);
 	transition:transform var(--tv-dur-fast) ease-in-out, opacity var(--tv-dur-fast) ease-in-out;
 	pointer-events:none;
 }
 /* Hamburger ? X morph when .is-open */
-.settings-fab.is-open .hamburger-line:nth-child(1){transform:translateY(7px) rotate(45deg)}
+.settings-fab.is-open .hamburger-line:nth-child(1){transform:translateY(6px) rotate(45deg)}
 .settings-fab.is-open .hamburger-line:nth-child(2){opacity:0}
-.settings-fab.is-open .hamburger-line:nth-child(3){transform:translateY(-7px) rotate(-45deg)}
-.settings-fab.is-open{color:var(--gold);border-color:var(--gold-border);box-shadow:0 12px 28px rgba(10,7,16,.46), inset 0 0 0 1px rgba(245,200,47,.22)}
+.settings-fab.is-open .hamburger-line:nth-child(3){transform:translateY(-6px) rotate(-45deg)}
+.settings-fab.is-open{color:var(--gold);border-color:var(--gold-border);box-shadow:0 4px 0 rgba(0,0,0,.55), 0 12px 28px rgba(10,7,16,.46), inset 0 0 0 1px rgba(245,200,47,.22)}
+.settings-fab.is-tutorial-locked{cursor:pointer}
 
 /* Drag mode visual feedback */
 .settings-fab.is-dragging{
 	box-shadow:0 0 0 3px var(--gold), 0 4px 24px rgba(245,200,47,.3);
-	transform:scale(1.08);
+	transform:scale(1.03);
 }
 
 /* Hamburger speed-dial menu (vertical floating actions above hamburger FAB) */
@@ -329,6 +399,7 @@ body::after{
 	z-index:62;
 	display:grid;
 	gap:8px;
+	justify-items:end;
 	pointer-events:none;
 }
 
@@ -479,8 +550,9 @@ body::after{
 
 .pill--nugget{
 	color:var(--gold);
-	border-color:var(--gold-hover);
+	border-color:var(--gold-strong);
 	background:linear-gradient(180deg,rgba(57,47,82,.82),rgba(50,42,72,.76));
+	box-shadow:0 0 0 1px rgba(212,175,55,.12) inset;
 	cursor:default;
 	font-weight:600;
 }
@@ -684,7 +756,7 @@ body::after{
 	==========================================================================
 	BUTTON PRESS FEEDBACK
 	==========================================================================
-	A tiny scale-down on :active mimics a physical press � satisfying on touch
+	A tiny scale-down on :active mimics a physical press ? satisfying on touch
 	and helpful as an instant visual cue that the tap registered.
 	Duolingo, Discord, and most native apps use this pattern.
 */
@@ -729,7 +801,7 @@ button:active:not(:disabled):not(.btn):not(.iconBtn):not(.iconBtnLarge):not(.clo
 	COIN VALUE PULSE
 	==========================================================================
 	When JS adds `.coin-pulse` after a wallet update, the coin badge briefly
-	glows gold � drawing the eye so the player notices their balance changed.
+	glows gold ? drawing the eye so the player notices their balance changed.
 */
 @keyframes coinRipple{
 	0%{transform:scale(.7);opacity:.85}
@@ -807,14 +879,14 @@ button:active:not(:disabled):not(.btn):not(.iconBtn):not(.iconBtnLarge):not(.clo
 */
 html{overscroll-behavior:contain;scroll-behavior:smooth}
 
-/* Custom scrollbar � amethyst track, gold on hover (matches NextJS app) */
+/* Custom scrollbar ? amethyst track, gold on hover (matches NextJS app) */
 ::-webkit-scrollbar{width:6px;height:6px}
 ::-webkit-scrollbar-track{background:var(--bg)}
 ::-webkit-scrollbar-thumb{background:var(--amethyst);border-radius:var(--radius-md)}
 ::-webkit-scrollbar-thumb:hover{background:var(--amethyst-light)}
 html{scrollbar-width:thin;scrollbar-color:var(--amethyst) var(--bg)}
 
-/* Apply Cinzel to brand elements that aren't h1�h4 tags */
+/* Apply Cinzel to brand elements that aren't h1?h4 tags */
 .brand__title,
 .brand-wordmark,
 .tavern-overlay__title{
@@ -846,7 +918,7 @@ html{scrollbar-width:thin;scrollbar-color:var(--amethyst) var(--bg)}
 	SKELETON LOADING PLACEHOLDER
 	==========================================================================
 	A shimmer card shown while Firestore data is loading.
-	Uses a repeating CSS gradient animation � no JS needed for the shimmer.
+	Uses a repeating CSS gradient animation ? no JS needed for the shimmer.
 */
 @keyframes shimmer{
 	from{background-position:-400px 0}
@@ -873,7 +945,7 @@ html{scrollbar-width:thin;scrollbar-color:var(--amethyst) var(--bg)}
 
 /*
 	--- Standardized modal / form action footer --------------------------------------------
-	HTML order: [Cancel / Secondary] � [Primary CTA].
+	HTML order: [Cancel / Secondary] ? [Primary CTA].
 	Primary button is always the RIGHTMOST child.
 	On mobile: buttons stack full-width, primary wins top position via column-reverse.
 */
@@ -939,14 +1011,14 @@ h3{font-size: var(--text-2xl)}
 	BUTTON SYSTEM
 	==========================================================================
 	Two button variants:
-	.btn          � Primary gold (call-to-action): "Create Session", "Join", "Save"
-	.btn--ghost   � Secondary transparent: "Cancel", "Back", navigation
+	.btn          ? Primary gold (call-to-action): "Create Session", "Join", "Save"
+	.btn--ghost   ? Secondary transparent: "Cancel", "Back", navigation
 
-	BEGINNER NOTE � min-height:44px:
+	BEGINNER NOTE ? min-height:44px:
 	Apple's Human Interface Guidelines recommend 44px minimum touch targets.
 	This ensures buttons are easy to tap on phones, even for thick fingers.
 
-	BEGINNER NOTE � var(--gold-gradient):
+	BEGINNER NOTE ? var(--gold-gradient):
 	Using a CSS variable for the gradient means we can change the gold color
 	in one place (:root) and every button updates automatically.
 */
@@ -961,7 +1033,7 @@ h3{font-size: var(--text-2xl)}
 	cursor:pointer;
 	background:var(--gold-gradient);
 	color:var(--text-on-gold);
-	/* 3D depth shadow � dark amber so it reads as genuine depth, not a decorative stripe */
+	/* 3D depth shadow ? dark amber so it reads as genuine depth, not a decorative stripe */
 	box-shadow:0 4px 0 rgba(20,12,1,.88), 0 8px 20px rgba(10,8,18,.34);
 	transition:transform .1s ease-out, box-shadow .1s ease-out, filter .1s ease-out;
 	position:relative;
@@ -975,7 +1047,7 @@ h3{font-size: var(--text-2xl)}
 	background:rgba(57,47,82,.7);
 	color:var(--text);
 	border-color:var(--line);
-	/* Subtle depth � dark void shadow so ghost buttons still feel 3D */
+	/* Subtle depth ? dark void shadow so ghost buttons still feel 3D */
 	box-shadow:0 4px 0 rgba(0,0,0,.55);
 	transition:transform .1s ease-out, box-shadow .1s ease-out, border-color .1s ease-out, filter .1s ease-out;
 }
@@ -1002,7 +1074,7 @@ button:hover:not(:disabled):not(.btn):not(.iconBtn):not(.iconBtnLarge):not(.clos
 
 /*
 	Focus-visible rings for keyboard navigation.
-	Gold ring matching the brand � consistent across all interactive elements.
+	Gold ring matching the brand ? consistent across all interactive elements.
 */
 .iconBtn:focus-visible,
 .chip:focus-visible,
@@ -1136,6 +1208,41 @@ textarea.input{resize:vertical;min-height:120px}
 }
 
 .playerViewLayout__main{min-width:0;min-height:80px}
+
+.playerHandoutsPanel{
+	display:grid;
+	gap:12px;
+	align-content:start;
+	background:linear-gradient(180deg, rgba(33,20,56,.9), rgba(23,12,42,.9));
+	border:1px solid var(--line);
+	box-shadow:0 12px 24px rgba(8,6,18,.24);
+}
+
+.playerHandoutsPanel__head{
+	display:flex;
+	align-items:flex-start;
+	justify-content:space-between;
+	gap:12px;
+	padding-bottom:8px;
+	border-bottom:1px solid var(--line);
+}
+
+.playerHandoutsPanel__head h3{
+	margin:0;
+	font-size:var(--text-2xl);
+	color:var(--gold);
+}
+
+.playerHandoutsPanel.is-collapsed{
+	gap:0;
+}
+
+.playerHandoutsPanel.is-collapsed .playerHandoutSearchRow,
+.playerHandoutsPanel.is-collapsed #playerHandoutsMain{
+	display:none;
+}
+
+#playerHandoutsMain{min-height:80px}
 
 /* Desktop layout rules for GM/Player are consolidated later in a single @media block. */
 
@@ -1528,6 +1635,42 @@ textarea.input{resize:vertical;min-height:120px}
 /* Add/search tools row above handout list. */
 .dashTools{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center;margin-bottom:14px}
 
+.searchField{
+	position:relative;
+	display:block;
+	width:100%;
+}
+
+.searchField__icon{
+	position:absolute;
+	left:12px;
+	top:50%;
+	transform:translateY(-50%);
+	display:inline-flex;
+	align-items:center;
+	justify-content:center;
+	color:var(--muted);
+	pointer-events:none;
+	z-index:1;
+}
+
+.searchField__icon svg{
+	width:16px;
+	height:16px;
+}
+
+.searchField__input{
+	padding-left:40px;
+}
+
+.playerHandoutSearchRow{
+	margin:0;
+}
+
+.playerHandoutSearchRow .input{
+	width:100%;
+}
+
 /* Filter chip row (All/Loot/Npc/etc.). */
 .chipRow{display:flex;gap:8px;flex-wrap:wrap;margin:4px 0 16px;min-width:0}
 
@@ -1592,6 +1735,10 @@ textarea.input{resize:vertical;min-height:120px}
 	transition:border-color var(--tv-dur-fast) ease-in-out, box-shadow var(--tv-dur-fast) ease-in-out, transform var(--tv-dur-fast) ease-in-out;
 }
 
+/* Handout cards: force uniform height so all cards read as a consistent grid. */
+#plHandoutList .item,
+#gmHandoutList .item{min-height:176px}
+
 .item:hover{border-color:var(--gold-strong); transform:translateY(-1px)}
 .item:active{transform:scale(.98)}
 .item--clickable{cursor:pointer;}
@@ -1620,8 +1767,8 @@ textarea.input{resize:vertical;min-height:120px}
 	-webkit-box-orient:vertical;
 	-webkit-line-clamp:3;
 	line-clamp:3;
+	min-height:64px;
 }
-
 .item__preview--expanded{
 	display:block;
 	-webkit-line-clamp:unset;
@@ -1712,7 +1859,7 @@ textarea.input{resize:vertical;min-height:120px}
 .tag--npcNeutral{color:#f7dfa0;border-color:rgba(245,200,47,.56);background:rgba(87,70,22,.34)}
 .tag--npcUnknown{color:#c8bfd9;border-color:rgba(143,135,159,.48);background:rgba(56,45,78,.44)}
 
-/* QR container � base style used in both inline and modal contexts. */
+/* QR container ? base style used in both inline and modal contexts. */
 .qr{
 	display:grid;
 	place-items:center;
@@ -1835,7 +1982,7 @@ textarea.input{resize:vertical;min-height:120px}
 	object-fit:cover;
 }
 
-/* The decode canvas is invisible � only used for jsQR pixel reads */
+/* The decode canvas is invisible ? only used for jsQR pixel reads */
 .scannerCanvas{
 	display:none;
 }
@@ -1950,7 +2097,7 @@ textarea.input{resize:vertical;min-height:120px}
 
 /*
 	Modal backdrop and card treatment for dialogs/overlays.
-	BEGINNER NOTE � position:fixed + inset:0 creates a full-viewport overlay.
+	BEGINNER NOTE ? position:fixed + inset:0 creates a full-viewport overlay.
 	z-index:90 ensures the modal sits above all other content.
 	display:grid + place-items centers the card both horizontally and vertically.
 	overflow-y:auto lets the user scroll long handout details within the modal.
@@ -2107,17 +2254,6 @@ textarea.input{resize:vertical;min-height:120px}
 }
 .handoutModalImageRow .handoutModalImageWrap{
 	margin:0;
-}
-.btnPlayerClaim{
-	display:flex;
-	align-items:center;
-	gap:6px;
-	white-space:nowrap;
-	font-size:var(--text-base);
-	padding:8px 14px;
-	border-radius:var(--radius-sm);
-	margin-top:auto;
-	margin-bottom:auto;
 }
 .handoutModalImageWrap{
 	width:min(168px, 46vw);
@@ -2451,7 +2587,7 @@ textarea.input{resize:vertical;min-height:120px}
 
 /*
 	Non-blocking toast notifications.
-	BEGINNER NOTE � pointer-events:none:
+	BEGINNER NOTE ? pointer-events:none:
 	The toast container covers part of the screen but is invisible.
 	pointer-events:none means clicks pass through it to the content behind.
 	Individual toast items re-enable pointer-events so they can be interacted with.
@@ -2490,7 +2626,7 @@ textarea.input{resize:vertical;min-height:120px}
 	to{opacity:1;transform:translateY(0)}
 }
 
-/* Audio unlock prompt � fixed banner at bottom center */
+/* Audio unlock prompt ? fixed banner at bottom center */
 .audioUnlockPrompt{
 	position:fixed;
 	left:50%;
@@ -2553,7 +2689,7 @@ textarea.input{resize:vertical;min-height:120px}
 	background:rgba(70,57,92,.7);
 }
 
-/* Suggestion strip � appears above the grid once title/content is typed */
+/* Suggestion strip ? appears above the grid once title/content is typed */
 .iconSuggestSection{
 	display:flex;
 	align-items:center;
@@ -2586,7 +2722,7 @@ textarea.input{resize:vertical;min-height:120px}
 	background:rgba(245,200,47,.16) !important;
 }
 
-/* Custom emoji row � lives below the icon grid */
+/* Custom emoji row ? lives below the icon grid */
 .emojiCustomRow{
 	display:flex;
 	align-items:center;
@@ -2627,7 +2763,7 @@ textarea.input{resize:vertical;min-height:120px}
 }
 .emojiInput::placeholder{color:var(--muted);font-size:13px}
 
-/* Label sub-text for context hints (e.g. "Accent Color � card border") */
+/* Label sub-text for context hints (e.g. "Accent Color ? card border") */
 .labelSub{
 	font-size:11px;
 	font-weight:400;
@@ -2656,7 +2792,7 @@ textarea.input{resize:vertical;min-height:120px}
 	border-color:#fff;
 }
 
-/* Claimable row � visually separated from the color picker above it */
+/* Claimable row ? visually separated from the color picker above it */
 .claimableRow{
 	padding-top:12px;
 	border-top:1px solid var(--line);
@@ -2857,6 +2993,73 @@ textarea.input{resize:vertical;min-height:120px}
 	display:block;
 }
 
+/* ---- Right column: thumb + claim button stacked ---- */
+.item__right{
+	display:flex;
+	flex-direction:column;
+	align-items:center;
+	gap:8px;
+	flex-shrink:0;
+	margin-left:6px;
+}
+.item__right .item__thumb{
+	margin-left:0;
+}
+
+/* ---- Card-level claim indicator button ---- */
+.cardClaimBtn{
+	width:40px;
+	height:40px;
+	min-width:40px;
+	min-height:40px;
+	padding:0;
+	display:inline-flex;
+	align-items:center;
+	justify-content:center;
+	flex-shrink:0;
+	border:1px solid var(--line);
+	border-radius:var(--radius-sm);
+	background:rgba(57,47,82,.5);
+	color:var(--muted);
+	cursor:default;
+	box-shadow:0 4px 0 rgba(0,0,0,.55);
+	transition:transform .1s ease-out,box-shadow .1s ease-out,border-color .1s ease-out,filter .1s ease-out;
+}
+.cardClaimBtn.is-claimable{
+	color:var(--gold);
+	border-color:var(--gold-border);
+	background:rgba(212,175,55,.10);
+	cursor:pointer;
+}
+.cardClaimBtn.is-claimable:hover{
+	border-color:var(--gold-strong);
+	filter:brightness(1.1);
+	box-shadow:0 4px 0 rgba(0,0,0,.55),0 0 0 1px var(--gold-border),0 6px 16px var(--gold-tint);
+}
+.cardClaimBtn.is-claimable:active{
+	transform:translateY(4px);
+	box-shadow:0 0 0 rgba(0,0,0,.55);
+}
+.cardClaimBtn.is-mine{
+	color:var(--gold);
+	border-color:var(--gold-border);
+	background:rgba(212,175,55,.07);
+	opacity:.6;
+	cursor:default;
+}
+.cardClaimBtn:disabled{
+	opacity:.45;
+	cursor:not-allowed;
+}
+.cardClaimBtn.is-mine:disabled{
+	cursor:default;
+}
+.cardClaimBtnIcon{
+	width:18px;
+	height:18px;
+	flex-shrink:0;
+}
+
 /* Floating players dropdown (triggered by player count pill). */
 .player-list-dropdown{
 	position:fixed;
@@ -2933,7 +3136,7 @@ textarea.input{resize:vertical;min-height:120px}
 .playerCard-mini__initials{line-height:1}
 .playerCard-mini__name{flex:1;font-size:var(--text-base);font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 
-/* Status dots � online/away/offline indicators */
+/* Status dots ? online/away/offline indicators */
 .status-dot{
 	width:10px;height:10px;
 	border-radius:50%;
@@ -2974,6 +3177,7 @@ textarea.input{resize:vertical;min-height:120px}
 .playerCard__banner{
 	height:60px;
 	background:linear-gradient(135deg, #5b4d8a 0%, #7e5bef 100%);
+	transition:background 300ms ease-in-out;
 }
 .playerCard__avatarRing{
 	width:72px;height:72px;
@@ -3170,7 +3374,7 @@ textarea.input{resize:vertical;min-height:120px}
 
 /*
 	==========================================================================
-	BOTTOM BAR � App-style navigation strip
+	BOTTOM BAR ? App-style navigation strip
 	==========================================================================
 	Fixed to the bottom of the viewport like a native mobile app tab bar.
 	Contains role-aware buttons: Ambience, Social (GM only), Handouts,
@@ -3242,7 +3446,7 @@ textarea.input{resize:vertical;min-height:120px}
 	display:none;
 }
 
-/* Golden center profile button � "rising sun" effect */
+/* Golden center profile button ? "rising sun" effect */
 .bottom-bar__profile{
 	background:none;border:none;padding:0;
 	display:flex;flex-direction:column;align-items:center;
@@ -3447,7 +3651,7 @@ body.tv-avatar-strict .profile-hero__img{
 	pointer-events:none;
 }
 
-/* GM-only button marker � small gold bar on the left edge */
+/* GM-only button marker ? small gold bar on the left edge */
 .btn--gm{
 	position:relative;
 	padding-left:18px;
@@ -3690,7 +3894,7 @@ body.tv-avatar-strict .profile-hero__img{
 /* Browser native range color for volume track thumb/active segment. */
 #gmVolume{accent-color:var(--gold)}
 
-/* Info button next to the track selector � square, matches .btn style */
+/* Info button next to the track selector ? square, matches .btn style */
 .ambience-info-btn{
 	flex-shrink:0;
 	display:inline-flex;
@@ -4136,10 +4340,10 @@ body.tv-avatar-strict .profile-hero__img{
 	INVENTORY SYSTEM STYLES
 	==========================================================================
 	The inventory screen displays:
-	- Party Treasury (GM only) � shared coin pool with distribute/grant controls
-	- Per-player sections � each player's items + personal coin pouch
-	- Coin controls � +/- buttons for each denomination (platinum/gold/silver/bronze)
-	- Item cards � individual inventory items with edit/delete actions
+	- Party Treasury (GM only) ? shared coin pool with distribute/grant controls
+	- Per-player sections ? each player's items + personal coin pouch
+	- Coin controls ? +/- buttons for each denomination (platinum/gold/silver/bronze)
+	- Item cards ? individual inventory items with edit/delete actions
 
 	LAYOUT NOTE:
 	Coins use a 4-column grid (one column per denomination).
@@ -4582,13 +4786,13 @@ body.tv-avatar-strict .profile-hero__img{
 	==========================================================================
 	Auth-first design with hero title + auth card / signed-in home section.
 
-	BEGINNER NOTE � clamp(min, preferred, max):
+	BEGINNER NOTE ? clamp(min, preferred, max):
 	clamp() is a CSS function that constrains a value between a minimum and
 	maximum. Example: clamp(32px, 7vw, 72px) means "use 7% of viewport width,
 	but never go below 32px or above 72px." This creates responsive padding
 	that adapts to screen size without needing a media query.
 
-	BEGINNER NOTE � dvh (dynamic viewport height):
+	BEGINNER NOTE ? dvh (dynamic viewport height):
 	100dvh is the actual visible height on mobile browsers, accounting for
 	the browser's address bar that shrinks/grows when you scroll.
 	Regular vh includes the hidden area behind the address bar.
@@ -4755,7 +4959,7 @@ body.tv-avatar-strict .profile-hero__img{
 .auth-method-btn + .auth-method-btn{margin-top:12px}
 .auth-method-btn svg{flex-shrink:0}
 
-/* Primary (Email) — gold fill */
+/* Primary (Email) � gold fill */
 .auth-method-btn--primary{
 	background:var(--gold-gradient);
 	border-color:transparent;
@@ -4771,7 +4975,7 @@ body.tv-avatar-strict .profile-hero__img{
 	box-shadow:0 1px 0 rgba(20,12,1,.88);
 }
 
-/* Ghost (Google) — transparent fill */
+/* Ghost (Google) � transparent fill */
 .auth-method-btn--ghost{
 	background:rgba(255,255,255,.05);
 	color:var(--text);
@@ -5187,22 +5391,22 @@ body.tv-avatar-strict .profile-hero__img{
 .formGrid{display:grid;gap:12px;min-width:0}
 
 /* -- Semantic button and text variants -- */
-/* Ghost danger variant � destructive actions */
+/* Ghost danger variant ? destructive actions */
 .btn--danger{border-color:var(--danger);color:var(--danger);box-shadow:0 4px 0 rgba(100,15,15,.7);transition:transform .1s ease-out, box-shadow .1s ease-out, background .1s ease-out;}
 .btn--danger:hover:not(:disabled){background:rgba(220,47,47,.1);border-color:var(--danger);box-shadow:0 4px 0 rgba(100,15,15,.7), 0 0 0 1px rgba(220,47,47,.28), 0 6px 18px rgba(220,47,47,.12)}
 .btn--danger:active:not(:disabled){transform:translateY(4px);box-shadow:0 0 0 rgba(100,15,15,.7)}
-/* Filled danger variant � final destructive confirm */
+/* Filled danger variant ? final destructive confirm */
 .btn--danger-fill{background:var(--danger);border-color:var(--danger);color:#fff;box-shadow:0 5px 0 #7a1010;transition:transform .1s ease-out, box-shadow .1s ease-out, filter .1s ease-out;}
 .btn--danger-fill:hover:not(:disabled){filter:brightness(1.1);box-shadow:0 5px 0 #7a1010, 0 0 0 1px rgba(220,47,47,.36), 0 6px 22px rgba(220,47,47,.18)}
 .btn--danger-fill:active:not(:disabled){transform:translateY(4px);box-shadow:0 1px 0 #7a1010}
-/* Warning ghost variant � cautionary reversible actions */
+/* Warning ghost variant ? cautionary reversible actions */
 .btn--warning{border-color:var(--warning);color:var(--warning-light);box-shadow:0 4px 0 rgba(140,70,0,.6);transition:transform .1s ease-out, box-shadow .1s ease-out, background .1s ease-out;}
 .btn--warning:hover:not(:disabled){background:rgba(255,139,26,.1);border-color:var(--warning);box-shadow:0 4px 0 rgba(140,70,0,.6), 0 0 0 1px rgba(255,139,26,.28), 0 6px 18px rgba(255,139,26,.12)}
 .btn--warning:active:not(:disabled){transform:translateY(4px);box-shadow:0 0 0 rgba(140,70,0,.6)}
 
-/* Semantic aliases � identical to .btn (gold primary CTA).
+/* Semantic aliases ? identical to .btn (gold primary CTA).
    Use btn--primary or btn--gold when the semantic name improves readability. */
-/* .btn--primary and .btn--gold are semantic aliases for .btn � inherit all 3D rules above */
+/* .btn--primary and .btn--gold are semantic aliases for .btn ? inherit all 3D rules above */
 .btn--primary,.btn--gold{
 	background:var(--gold-gradient);
 	color:var(--text-on-gold);
@@ -5646,7 +5850,615 @@ body.tv-avatar-strict .profile-hero__img{
 	text-transform:uppercase;
 }
 
-.notesEditor{min-height:320px;line-height:1.5;resize:vertical}
+.notesWorkspace{
+	display:grid;
+	grid-template-columns:minmax(280px, 360px) minmax(0, 1fr);
+	gap:16px;
+	align-items:start;
+}
+
+.sr-only{
+	position:absolute;
+	width:1px;
+	height:1px;
+	padding:0;
+	margin:-1px;
+	overflow:hidden;
+	clip:rect(0, 0, 0, 0);
+	white-space:nowrap;
+	border:0;
+}
+
+.notesLibraryPanel,
+.notesEditorPanel{
+	border:1px solid var(--card-border);
+	border-radius:var(--radius-md);
+	background:linear-gradient(180deg, rgba(30,16,64,.96), rgba(19,10,40,.94));
+	box-shadow:0 4px 24px rgba(0,0,0,.4);
+	padding:16px;
+}
+
+.notesLibraryPanel{
+	display:grid;
+	gap:16px;
+	align-content:start;
+	min-width:0;
+}
+
+.notesLibraryPanel__hero,
+.notesEditorPanel__header{
+	display:flex;
+	align-items:flex-start;
+	justify-content:space-between;
+	gap:16px;
+}
+
+.notesLibraryPanel__eyebrow,
+.notesEditorPanel__eyebrow,
+.notesStatCard__label{
+	font-size:var(--text-xs);
+	letter-spacing:.08em;
+	text-transform:uppercase;
+	color:var(--muted);
+	font-weight:700;
+}
+
+.notesLibraryPanel__hero h3,
+.notesEditorPanel__header h3{
+	margin:4px 0 8px;
+	color:var(--gold);
+	font-size:var(--text-2xl);
+}
+
+.notesLibraryPanel__hero p{
+	margin:0;
+	max-width:28ch;
+	line-height:1.5;
+}
+
+.notesCreateBtn{
+	display:flex;
+	flex-direction:row;
+	align-items:center;
+	justify-content:center;
+	gap:8px;
+	min-width:152px;
+	min-height:56px;
+	padding:12px 20px;
+	border:1px solid transparent;
+	border-radius:var(--radius-md);
+	background:var(--gold-gradient);
+	color:var(--text-on-gold);
+	font-family:var(--font-ui);
+	font-size:var(--text-sm);
+	font-weight:700;
+	box-shadow:0 4px 0 rgba(20,12,1,.88), 0 8px 20px rgba(10,8,18,.34);
+	cursor:pointer;
+	transition:transform var(--tv-dur-fast) ease-in-out, box-shadow var(--tv-dur-fast) ease-in-out, filter var(--tv-dur-fast) ease-in-out;
+}
+
+.notesCreateBtn:hover{
+	filter:brightness(1.05);
+	box-shadow:0 4px 0 rgba(20,12,1,.88), 0 12px 24px rgba(10,8,18,.42);
+}
+
+.notesCreateBtn:active{
+	transform:translateY(4px);
+	box-shadow:0 0 0 rgba(20,12,1,.88), 0 4px 10px rgba(10,8,18,.24);
+}
+
+.notesCreateBtn__icon{
+	display:inline-flex;
+	align-items:center;
+	justify-content:center;
+	line-height:1;
+}
+
+.notesCreateBtn__icon svg{
+	width:18px;
+	height:18px;
+	flex-shrink:0;
+}
+
+.notesCreateBtn__label{
+	font-size:var(--text-sm);
+	font-weight:700;
+}
+
+.notesStatsRow{
+	display:grid;
+	grid-template-columns:repeat(2, minmax(0, 1fr));
+	gap:8px;
+}
+
+.notesStatCard{
+	display:grid;
+	gap:8px;
+	padding:12px;
+	border:1px solid var(--line);
+	border-radius:var(--radius-md);
+	background:rgba(255,255,255,.03);
+	min-width:0;
+}
+
+.notesStatCard__value{
+	font-size:var(--text-2xl);
+	line-height:1;
+	color:var(--text);
+}
+
+.notesFilterPanel{
+	display:grid;
+	gap:12px;
+}
+
+.notesScopeRow{
+	display:flex;
+	gap:4px;
+	padding:4px;
+	border:1px solid var(--line);
+	border-radius:var(--radius-md);
+	background:rgba(255,255,255,.03);
+}
+
+.notesScopeRow .btn{
+	flex:1 1 0;
+	min-width:0;
+	justify-content:center;
+	box-shadow:none;
+}
+
+.notesScopeLabel{
+	font-weight:700;
+}
+
+.notesTagFilter{
+	display:flex;
+	align-items:center;
+	gap:8px;
+	flex-wrap:wrap;
+	padding:12px;
+	border:1px solid var(--line);
+	border-radius:var(--radius-md);
+	background:rgba(255,255,255,.03);
+}
+
+.notesTagFilter__label{
+	font-size:var(--text-sm);
+	color:var(--muted);
+	font-weight:700;
+}
+
+.notesTagFilter__chip,
+.notesTagChip,
+.notesListItem__tag{
+	cursor:pointer;
+}
+
+.notesList{
+	display:grid;
+	gap:12px;
+	max-height:calc(100dvh - 320px);
+	overflow:auto;
+	padding-right:4px;
+}
+
+.notesListItem{
+	min-height:unset !important;
+	padding:16px;
+	gap:16px;
+	align-items:stretch;
+	border-color:var(--line);
+	transition:border-color var(--tv-dur-fast) ease-in-out, transform var(--tv-dur-fast) ease-in-out, box-shadow var(--tv-dur-fast) ease-in-out;
+}
+
+.notesListItem .item__meta{
+	align-items:stretch;
+}
+
+.notesListItem .item__body{
+	display:grid;
+	gap:8px;
+}
+
+.notesListItem .item__preview{
+	min-height:0;
+}
+
+.notesListItem--active{
+	border-color:var(--gold-border);
+	box-shadow:0 0 0 1px var(--gold-border), 0 8px 20px rgba(10,8,18,.26);
+}
+
+.notesListItem__metaRow{
+	justify-content:space-between;
+	gap:8px;
+}
+
+.notesListItem__date,
+.notesListItem__updated{
+	font-size:var(--text-xs);
+	color:var(--muted);
+	white-space:nowrap;
+}
+
+.notesListItem__footer{
+	display:grid;
+	gap:4px;
+	margin-top:4px;
+}
+
+.notesListItem__tags{
+	display:flex;
+	gap:8px;
+	flex-wrap:wrap;
+}
+
+.notesListItem__actions{
+	gap:8px;
+	margin-left:0;
+}
+
+.notesActionBtn{
+	width:40px;
+	height:40px;
+	min-width:40px;
+	min-height:40px;
+	padding:0;
+	line-height:1;
+	font-family:var(--font-ui);
+}
+
+.notesActionBtn svg,
+.notesCreateBtn svg,
+.notesEditorPanel__actions .btn svg,
+.notesIconOnlyBtn svg,
+.notesMorePopover__item svg{
+	width:16px;
+	height:16px;
+	flex-shrink:0;
+}
+
+.notesActionBtn--danger{
+	color:var(--danger);
+	border-color:rgba(220,47,47,.32);
+}
+
+.notesEditorPanel{
+	display:grid;
+	gap:16px;
+	min-width:0;
+}
+
+.notesEditorMobileBack{
+	display:none;
+}
+
+.notesEditorPanel__actions{
+	display:flex;
+	gap:8px;
+	flex-wrap:wrap;
+	justify-content:flex-end;
+	align-items:flex-start;
+}
+
+.notesEditorPanel__actions .btn{
+	font-family:var(--font-ui);
+	font-weight:700;
+}
+
+.notesEditorPanel__actions.hidden{
+	display:none;
+}
+
+.notesEditorFields{
+	display:grid;
+	gap:12px;
+}
+
+.notesEditorFields__meta{
+	display:grid;
+	grid-template-columns:repeat(2, minmax(0, 1fr));
+	gap:12px;
+}
+
+
+.notesEditorEmptyState{
+	display:flex;
+	flex-direction:column;
+	align-items:center;
+	justify-content:center;
+	gap:12px;
+	min-height:360px;
+	padding:24px;
+	border:1px dashed var(--line);
+	border-radius:var(--radius-md);
+	background:rgba(255,255,255,.02);
+	text-align:center;
+}
+
+.notesTagSuggestions{
+	display:flex;
+	gap:8px;
+	flex-wrap:wrap;
+	padding:8px 0 4px;
+	animation:fadeIn .3s ease-in-out;
+}
+
+.notesTagSuggestionChip{
+	display:inline-flex;
+	align-items:center;
+	gap:4px;
+	border:1px solid var(--line);
+	background:rgba(255,255,255,.04);
+	font-family:var(--font-ui);
+	transition:background var(--tv-dur-fast) ease-in-out, border-color var(--tv-dur-fast) ease-in-out, color var(--tv-dur-fast) ease-in-out;
+}
+
+.notesTagSuggestionChip:hover{
+	background:rgba(255,255,255,.08);
+	border-color:var(--gold-border);
+	color:var(--gold);
+}
+
+.notesTagSuggestionChip span{
+	font-weight:700;
+	color:var(--gold);
+}
+
+.notesIconOnlyLabelBtn,
+.notesIconOnlyBtn{
+	display:inline-flex;
+	align-items:center;
+	justify-content:center;
+	gap:8px;
+	font-family:var(--font-ui);
+}
+
+.notesIconOnlyLabelBtn{
+	width:auto;
+	min-width:0;
+	padding:8px 16px;
+}
+
+.notesIconOnlyBtn{
+	width:40px;
+	min-width:40px;
+	padding:8px;
+}
+
+.notesMoreMenuWrap{
+	position:relative;
+}
+
+.notesMorePopover{
+	position:absolute;
+	top:calc(100% + 8px);
+	right:0;
+	min-width:168px;
+	display:grid;
+	gap:4px;
+	padding:8px;
+	border:1px solid var(--line);
+	border-radius:var(--radius-md);
+	background:rgba(19,10,40,.96);
+	box-shadow:0 4px 24px rgba(0,0,0,.4);
+	backdrop-filter:blur(16px);
+	z-index:5;
+}
+
+.notesMorePopover__item{
+	display:flex;
+	align-items:center;
+	gap:8px;
+	width:100%;
+	padding:8px 12px;
+	border:1px solid transparent;
+	border-radius:var(--radius-md);
+	background:transparent;
+	color:var(--text);
+	font:inherit;
+	font-family:var(--font-ui);
+	font-size:var(--text-sm);
+	font-weight:600;
+	cursor:pointer;
+	text-align:left;
+	transition:background var(--tv-dur-fast) ease-in-out, border-color var(--tv-dur-fast) ease-in-out, color var(--tv-dur-fast) ease-in-out;
+}
+
+.notesMorePopover__item:hover{
+	background:rgba(255,255,255,.05);
+	border-color:var(--line);
+	color:var(--gold);
+}
+
+.notesTagPreview{
+	display:flex;
+	gap:8px;
+	flex-wrap:wrap;
+}
+
+.notesEditor{
+	min-height:360px;
+	line-height:1.6;
+	resize:vertical;
+	font-family:var(--font-ui);
+}
+
+.notesEditor:disabled,
+.notesEditorPanel .input:disabled{
+	opacity:.7;
+	cursor:not-allowed;
+}
+
+.notesConfirmModal__card{
+	max-width:400px;
+	margin:0 auto;
+	padding:24px;
+	border:1px solid rgba(255,255,255,.08);
+	box-shadow:0 4px 24px rgba(0,0,0,.4);
+	backdrop-filter:blur(16px);
+}
+
+.chatPanel{
+	display:grid;
+	gap:16px;
+	padding:16px;
+	border:1px solid var(--card-border);
+	border-radius:var(--radius-md);
+	background:linear-gradient(180deg, rgba(30,16,64,.96), rgba(19,10,40,.94));
+	box-shadow:0 4px 24px rgba(0,0,0,.4);
+	min-width:0;
+}
+
+.chatPanel__meta{
+	display:flex;
+	align-items:flex-start;
+	justify-content:space-between;
+	gap:16px;
+	flex-wrap:wrap;
+}
+
+.chatRetentionNote{
+	margin:0;
+	max-width:64ch;
+	line-height:1.5;
+	color:var(--muted);
+}
+
+.chatList{
+	display:grid;
+	gap:12px;
+	min-height:240px;
+	max-height:calc(100dvh - 360px);
+	overflow:auto;
+	padding-right:4px;
+	align-content:start;
+}
+
+.chatEmpty{
+	min-height:240px;
+}
+
+.chatMessage{
+	display:grid;
+	grid-template-columns:40px minmax(0, 1fr);
+	gap:12px;
+	padding:16px;
+	border:1px solid var(--line);
+	border-radius:var(--radius-md);
+	background:rgba(255,255,255,.03);
+	animation:fadeIn .3s ease-in-out;
+}
+
+.chatMessage--self{
+	border-color:var(--gold-border);
+	background:rgba(212,175,55,.08);
+	box-shadow:0 0 0 1px rgba(212,175,55,.12) inset;
+}
+
+.chatMessage--grouped{
+	grid-template-columns:40px minmax(0, 1fr);
+	padding-top:8px;
+	margin-top:-4px;
+	border-top-color:transparent;
+	background:rgba(255,255,255,.02);
+}
+
+.chatMessage--grouped .chatMessage__avatarWrap{
+	visibility:hidden;
+}
+
+.chatMessage--grouped .chatMessage__meta{
+	display:none;
+}
+
+.chatMessage__avatarWrap{
+	width:40px;
+	height:40px;
+	border-radius:999px;
+	overflow:hidden;
+	border:1px solid var(--line);
+	background:rgba(255,255,255,.05);
+	flex-shrink:0;
+}
+
+.chatMessage__avatar{
+	width:100%;
+	height:100%;
+	object-fit:cover;
+	display:block;
+	transform:scale(var(--tv-image-zoom));
+	transform-origin:center;
+}
+
+.chatMessage__body{
+	display:grid;
+	gap:8px;
+	min-width:0;
+}
+
+.chatMessage__meta{
+	display:flex;
+	align-items:baseline;
+	justify-content:space-between;
+	gap:12px;
+	flex-wrap:wrap;
+}
+
+.chatMessage__name{
+	font-size:var(--text-base);
+	color:var(--text);
+	font-weight:700;
+}
+
+.chatMessage__time{
+	font-size:var(--text-xs);
+	color:var(--muted);
+	white-space:nowrap;
+}
+
+.chatMessage__text{
+	margin:0;
+	line-height:1.6;
+	color:var(--text);
+	word-break:break-word;
+}
+
+.chatComposer{
+	display:grid;
+	gap:12px;
+	padding-top:16px;
+	border-top:1px solid var(--line);
+	min-width:0;
+}
+
+.chatComposer__input{
+	min-height:120px;
+	resize:vertical;
+	font-family:var(--font-ui);
+	line-height:1.6;
+}
+
+.chatComposer__actions{
+	display:flex;
+	align-items:center;
+	justify-content:space-between;
+	gap:12px;
+	flex-wrap:wrap;
+}
+
+.chatComposer__actions .btn{
+	min-width:120px;
+}
+
+.modal-actions{
+	display:flex;
+	justify-content:flex-end;
+	gap:12px;
+	flex-wrap:wrap;
+	margin-top:24px;
+}
 
 /* -- Nugget Shop Modal -- */
 .nuggetShopCard{max-width:380px;margin:0 auto}
@@ -5705,7 +6517,7 @@ body.tv-avatar-strict .profile-hero__img{
 }
 .templateCard:hover{border-color:var(--gold-strong)}
 
-/* Avatar � square with soft rounded corners */
+/* Avatar ? square with soft rounded corners */
 .templateCard__avatar{
 	width:56px;height:56px;border-radius:var(--radius-md);
 	border:1px solid var(--line);flex-shrink:0;background:rgba(92,44,145,.18);
@@ -5725,13 +6537,13 @@ body.tv-avatar-strict .profile-hero__img{
 	background:rgba(92,44,145,.22);
 }
 
-/* Body � name + badge + bio */
+/* Body ? name + badge + bio */
 .templateCard__body{flex:1;min-width:0}
 .templateCard__titleRow{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:4px}
 .templateCard__name{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .templateCard__bio{margin:0;overflow:hidden;display:-webkit-box;line-clamp:2;-webkit-line-clamp:2;-webkit-box-orient:vertical}
 
-/* Status badges � pill shaped, color-coded */
+/* Status badges ? pill shaped, color-coded */
 .templateCard__badge{
 	display:inline-flex;align-items:center;gap:4px;
 	padding:3px 8px;border-radius:999px;
@@ -5743,7 +6555,7 @@ body.tv-avatar-strict .profile-hero__img{
 .templateCard__badge--accepted{color:#4caf50;border-color:rgba(76,175,80,.4);background:rgba(76,175,80,.12)}
 .templateCard__badge--rejected{color:#e53935;border-color:rgba(229,57,53,.4);background:rgba(229,57,53,.12)}
 
-/* Action buttons � equal-size icon-only */
+/* Action buttons ? equal-size icon-only */
 .templateActions{display:flex;gap:6px;flex-shrink:0}
 .templateActionBtn{
 	width:40px;height:40px;min-height:40px;padding:0;
@@ -5754,7 +6566,7 @@ body.tv-avatar-strict .profile-hero__img{
 
 /* ============================
    "ENTER THE TAVERN" OVERLAY
-   Player entry gate � browser autoplay policy workaround + atmosphere
+   Player entry gate ? browser autoplay policy workaround + atmosphere
    Mirrors app/player/[sessionId]/SessionEntryPrompt.tsx from NextJS build
    ============================ */
 .tavern-overlay{
@@ -5885,7 +6697,7 @@ body.tv-avatar-strict .profile-hero__img{
 
 /* ============================
    AUDIO BARS ANIMATION
-   Active track indicator � 3 pulsing gold bars (matches NextJS GMAudioControls)
+   Active track indicator ? 3 pulsing gold bars (matches NextJS GMAudioControls)
    ============================ */
 .audio-bars{
 	display:inline-flex;
@@ -6018,6 +6830,18 @@ body.tv-avatar-strict .profile-hero__img{
 	Screen-based visibility tweaks:
 	JS sets `body[data-screen=...]` and CSS conditionally hides shell regions.
 */
+/* Topbar entrance animation � Standard tier (300ms) */
+@keyframes topbarReveal{
+	from{opacity:0;transform:translateY(-10px)}
+	to{opacity:1;transform:none}
+}
+.topbar--entering{
+	animation:topbarReveal 300ms cubic-bezier(0.4,0,0.2,1) both;
+}
+@media(prefers-reduced-motion:reduce){
+	.topbar--entering{animation:none}
+}
+
 body[data-screen="landing"] .topbar,
 body[data-screen="landing"] .bottom-bar,
 body[data-screen="landing"] .ambience-bar{display:none !important}
@@ -6028,9 +6852,9 @@ body[data-screen="landing"] .ambience-bar{display:none !important}
 	==========================================================================
 	STRATEGY FOR BEGINNERS:
 	We use three "mobile-first stacked" breakpoints:
-	  1200px � Tablet: reduce font sizes, narrow controls
-	   800px � Mobile: stack layouts vertically, full-width buttons
-	   480px � Small phone: aggressive compaction for tiny screens
+	  1200px ? Tablet: reduce font sizes, narrow controls
+	   800px ? Mobile: stack layouts vertically, full-width buttons
+	   480px ? Small phone: aggressive compaction for tiny screens
 
 	HOW @media WORKS:
 	`@media (max-width: 800px)` means "apply these rules ONLY when the
@@ -6039,7 +6863,7 @@ body[data-screen="landing"] .ambience-bar{display:none !important}
 
 	WHY NOT USE min-width (mobile-first)?
 	Our default styles target desktop. Mobile overrides are additive corrections.
-	This is called "desktop-first" responsive design � equally valid as
+	This is called "desktop-first" responsive design ? equally valid as
 	mobile-first, and easier when your initial design was built for desktop.
 */
 
@@ -6217,7 +7041,7 @@ body[data-screen="landing"] .ambience-bar{display:none !important}
 
 	.iconPickerGrid{grid-template-columns:repeat(4,minmax(0,1fr))}
 
-	/* Inventory "Add Item" modal � phone-friendly layout */
+	/* Inventory "Add Item" modal ? phone-friendly layout */
 	.createInventoryCard{max-height:calc(100dvh - 16px)}
 	.inventoryAvatarPicker__top{flex-wrap:wrap;gap:10px}
 	.inventoryAvatarFrame{width:64px;height:64px}
@@ -6226,6 +7050,161 @@ body[data-screen="landing"] .ambience-bar{display:none !important}
 	.inventoryAvatarUploadRow{width:100%}
 	.inventoryAvatarUploadRow .btn{width:auto}
 	.invGalleryGrid{grid-template-columns:repeat(3,minmax(0,1fr))}
+
+	/* Player view: stack panels vertically on mobile instead of side-by-side. */
+	#screenPlayerView .playerViewLayout{
+		grid-template-columns:1fr;
+		align-items:stretch;
+	}
+	#screenPlayerView .playerPartyPanel{
+		margin-top:0;
+	}
+
+	.notesWorkspace{
+		grid-template-columns:1fr;
+	}
+
+	.notesList{
+		max-height:none;
+	}
+
+	.notesListItem{
+		padding:12px;
+		gap:12px;
+		flex-direction:column;
+	}
+
+	.notesListItem .item__right{
+		width:100%;
+		flex-direction:row;
+		justify-content:flex-end;
+		margin-left:0;
+	}
+
+	.notesLibraryPanel__hero,
+	.notesEditorPanel__header{
+		flex-direction:column;
+	}
+
+	.notesCreateBtn{
+		width:100%;
+		min-height:56px;
+	}
+
+	.notesEditorFields__meta{
+		grid-template-columns:1fr;
+	}
+
+	.notesScopeRow{
+		display:grid;
+		grid-template-columns:repeat(2, minmax(0, 1fr));
+	}
+
+	.notesScopeRow .btn{
+		width:100%;
+	}
+
+	.notesEditorPanel__actions{
+		display:grid;
+		grid-template-columns:repeat(2, minmax(0, 1fr));
+		align-items:stretch;
+	}
+
+	.notesEditorPanel__actions .btn,
+	.notesEditorPanel__actions .notesMoreMenuWrap{
+		width:100%;
+	}
+
+	.notesEditorPanel__actions .notesMoreMenuWrap{
+		grid-column:1 / -1;
+	}
+
+	.chatPanel__meta{
+		flex-direction:column;
+	}
+
+	.chatList{
+		max-height:none;
+	}
+
+	.chatComposer__actions{
+		align-items:stretch;
+	}
+
+	.chatComposer__actions .btn{
+		width:100%;
+	}
+
+	.notesMoreMenuWrap{
+		width:100%;
+	}
+
+	.notesMorePopover{
+		left:0;
+		right:auto;
+		width:100%;
+	}
+}
+
+@media (max-width:700px){
+	.notesWorkspace{
+		position:relative;
+		overflow:hidden;
+	}
+
+	.notesLibraryPanel,
+	.notesEditorPanel{
+		grid-column:1;
+		grid-row:1;
+	}
+
+	.notesEditorPanel{
+		display:none;
+	}
+
+	.notesWorkspace--editorOpen .notesLibraryPanel{
+		display:none;
+	}
+
+	.notesWorkspace--editorOpen .notesEditorPanel{
+		display:grid;
+		animation:fadeIn .3s cubic-bezier(0.4, 0, 0.2, 1);
+	}
+
+	.notesEditorMobileBack{
+		display:inline-flex;
+	}
+
+	.notesEditorPanel__header{
+		align-items:stretch;
+	}
+
+	.notesEditorEmptyState{
+		min-height:280px;
+	}
+
+	.chatMessage{
+		grid-template-columns:1fr;
+	}
+
+	.chatMessage__avatarWrap{
+		width:36px;
+		height:36px;
+	}
+
+	.chatMessage__meta{
+		flex-direction:column;
+		align-items:flex-start;
+		gap:4px;
+	}
+}
+
+@media (prefers-reduced-motion:reduce){
+	.notesTagSuggestions,
+	.notesWorkspace--editorOpen .notesEditorPanel,
+	.chatMessage{
+		animation:none;
+	}
 }
 
 /*
@@ -6310,14 +7289,14 @@ body[data-screen="landing"] .ambience-bar{display:none !important}
 	#createHandoutModal .chip{font-size:var(--text-sm);padding:6px 9px}
 	#createHandoutModal .colorDot{width:30px;height:30px}
 
-	/* Inventory modal � extra-small phone tightening */
+	/* Inventory modal ? extra-small phone tightening */
 	.inventoryAvatarFrame{width:56px;height:56px;border-radius:var(--radius-md)}
 	.inventoryAvatarNav .imageNavBtn{width:42px;height:42px}
 	.invGalleryGrid{grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
 	/* Modal action footers: stack full-width on phones, primary button rises to top */
 	.modal-actions{flex-direction:column-reverse}
 	.modal-actions .btn{width:100%;flex:none}
-	/* Map generate card � merged from orphan @media(max-width:480px) block */
+	/* Map generate card ? merged from orphan @media(max-width:480px) block */
 	.mapGenerateCard{padding:16px 14px}
 	.mapGenActions{justify-content:stretch}
 	.mapGenActions .btn{flex:1;min-width:0}
@@ -6512,7 +7491,7 @@ body[data-screen="landing"] .ambience-bar{display:none !important}
 }
 
 /* ==========================================================================
-   COMPONENT-LEVEL LAYOUT FIXES � removes reliance on inline styles
+   COMPONENT-LEVEL LAYOUT FIXES ? removes reliance on inline styles
    ==========================================================================
 
    Session social panel: session info heading
@@ -6708,6 +7687,10 @@ grid-template-columns:minmax(0, 1fr) minmax(300px, 360px);
 align-items:start;
 }
 
+#screenPlayerView .playerPartyPanel{
+margin-top:0;
+}
+
 #gmHandoutEmpty .emptyState__icon{
 font-size:54px;
 opacity:.46;
@@ -6727,16 +7710,16 @@ max-width:340px;
    ============================ */
 @media (min-width: 960px){
 .topbar{
-align-items:center;
+/* Full-bleed blade � stronger shadow on desktop */
+box-shadow:0 18px 38px rgba(9,7,18,.28), inset 0 1px 0 rgba(255,255,255,.07);
+}
+
+.topbar__inner{
 padding:14px 24px;
-border-radius:var(--radius-md);
-border-color:rgba(245,200,47,.12);
-box-shadow:0 18px 38px rgba(9,7,18,.24), 0 0 0 1px rgba(245,200,47,.05) inset;
 }
 
 .brand__title{
 letter-spacing:.045em;
-text-shadow:0 1px 0 rgba(255,255,255,.04), 0 12px 24px rgba(0,0,0,.18);
 }
 
 .topbar__right{
@@ -6744,19 +7727,23 @@ gap:10px;
 padding-left:16px;
 }
 
+/* Pills get the raised 3-D look; bell icon-button stays ghost */
 .topbar__right > .pill,
-.topbar__right > .topbar__iconBtn,
 .topbar__right > .sessionPeekWrap > .pill{
 min-height:44px;
 border-radius:var(--radius-md);
 box-shadow:0 3px 0 rgba(0,0,0,.60), 0 8px 16px rgba(8,6,18,.18);
 transition:transform .1s ease-out, box-shadow .1s ease-out, filter .1s ease-out;
 }
+.topbar__right > .topbar__iconBtn{
+min-height:44px;
+border-radius:var(--radius-md);
+transition:transform .1s ease-out, filter .1s ease-out;
+}
 
 .topbar__right > .pill--clickable,
 .topbar__right > .pill--nugget,
-.topbar__right > .sessionPeekWrap > .pill--clickable,
-.topbar__right > .topbar__iconBtn{
+.topbar__right > .sessionPeekWrap > .pill--clickable{
 background:linear-gradient(180deg, rgba(61,50,89,.88), rgba(48,40,71,.84));
 border-color:rgba(245,200,47,.12);
 box-shadow:0 3px 0 rgba(0,0,0,.60), 0 10px 18px rgba(8,6,18,.18);
@@ -6765,15 +7752,13 @@ box-shadow:0 3px 0 rgba(0,0,0,.60), 0 10px 18px rgba(8,6,18,.18);
 .topbar__right > .pill--nugget{cursor:pointer}
 .topbar__right > .pill--clickable:hover,
 .topbar__right > .pill--nugget:hover,
-.topbar__right > .sessionPeekWrap > .pill--clickable:hover,
-.topbar__right > .topbar__iconBtn:hover{
+.topbar__right > .sessionPeekWrap > .pill--clickable:hover{
 filter:brightness(1.1);
 box-shadow:0 3px 0 rgba(0,0,0,.60), 0 14px 24px rgba(8,6,18,.28);
 }
 .topbar__right > .pill--clickable:active:not(:disabled),
 .topbar__right > .pill--nugget:active:not(:disabled),
-.topbar__right > .sessionPeekWrap > .pill--clickable:active:not(:disabled),
-.topbar__right > .topbar__iconBtn:active:not(:disabled){
+.topbar__right > .sessionPeekWrap > .pill--clickable:active:not(:disabled){
 transform:translateY(3px);
 box-shadow:0 0 0 rgba(0,0,0,.60), 0 4px 8px rgba(8,6,18,.10);
 }
@@ -7066,7 +8051,7 @@ grid-template-columns:1fr;
 }
 
 /* ---------------------------------------------------------------------------
-   LIGHT MODE � Illuminated Manuscript
+   LIGHT MODE ? Illuminated Manuscript
    ---------------------------------------------------------------------------
    Design: warm parchment backgrounds, dark espresso text, deepened gold
    accents, sepia borders.  The daylight face of TomeVault's fantasy coin.
@@ -7078,32 +8063,32 @@ grid-template-columns:1fr;
 
 /* -- 1. Variable overrides ------------------------------------------------- */
 body[data-theme="light"]{
-	/* Backgrounds � warm parchment */
+	/* Backgrounds ? warm parchment */
 	--bg:       #f4efe3;
 	--bg2:      #ede6d6;
 	--surface:  #f8f4ea;
 	--surface-2:#eee7d5;
 	--surface-3:#e6dece;
 
-	/* Text � espresso */
+	/* Text ? espresso */
 	--text:  #2a2118;
 	--muted: rgba(74,62,48,.65);
 
 	/* Card surface */
 	--card: #f2ecde;
 
-	/* Gold � rich but legible on parchment */
+	/* Gold ? rich but legible on parchment */
 	--gold:   #b8941a;
 	--gold-2: #9a7c14;
 
-	/* Amethyst � warmed for light bg */
+	/* Amethyst ? warmed for light bg */
 	--amethyst:       #e8e0f0;
 	--amethyst-light: #d4c8e6;
 
 	/* Crimson */
 	--crimson: #7a1818;
 
-	/* Borders � sepia */
+	/* Borders ? sepia */
 	--line:        rgba(120,100,60,.18);
 	--line-strong: rgba(160,125,21,.42);
 	--card-border: rgba(120,100,60,.12);
@@ -7121,16 +8106,16 @@ body[data-theme="light"]{
 	--screen-gold-border: rgba(184,148,26,.45);
 	--screen-gold-glow:   rgba(184,148,26,.12);
 
-	/* Muted purple � warm for light bg */
+	/* Muted purple ? warm for light bg */
 	--muted-purple: #7b6b9e;
 
-	/* Shadows � warm sepia instead of black */
+	/* Shadows ? warm sepia instead of black */
 	--shadow-sm: 0 2px 8px rgba(120,90,40,.07);
 	--shadow-md: 0 4px 16px rgba(120,90,40,.09);
 	--shadow-lg: 0 12px 36px rgba(120,90,40,.11);
 	--shadow-xl: 0 26px 70px rgba(120,90,40,.16);
 
-	/* Semantic colours � darkened for light bg */
+	/* Semantic colours ? darkened for light bg */
 	--danger:       #c62828;
 	--danger-light: #e53935;
 	--warning:      #e65100;
@@ -7153,11 +8138,20 @@ body[data-theme="light"]{
 
 /* -- 2. Glassmorphism surfaces --------------------------------------------- */
 body[data-theme="light"] .topbar{
-	background:rgba(244,239,227,.92);
-	-webkit-backdrop-filter:blur(12px);
-	backdrop-filter:blur(12px);
-	border-color:rgba(160,125,21,.14);
-	box-shadow:0 4px 16px rgba(120,90,40,.06);
+	background:rgba(244,239,227,.94);
+	-webkit-backdrop-filter:blur(16px);
+	backdrop-filter:blur(16px);
+	border-bottom-color:rgba(120,100,60,.22);
+	box-shadow:0 4px 16px rgba(120,90,40,.09), inset 0 1px 0 rgba(255,255,255,.55);
+}
+body[data-theme="light"] .brand__accent{
+	text-shadow:0 0 10px rgba(184,148,26,.25);
+}
+body[data-theme="light"] .notifBell--unread{
+	background:linear-gradient(180deg,rgba(255,245,210,.9),rgba(248,235,180,.85));
+	color:#7a5900;
+	border-color:rgba(180,135,0,.55);
+	box-shadow:0 0 0 1px rgba(180,135,0,.22) inset;
 }
 body[data-theme="light"] .bottom-bar{
 	background:linear-gradient(180deg,rgba(244,239,227,.96),rgba(237,230,214,.98));
@@ -7172,7 +8166,7 @@ body[data-theme="light"] .settings-fab{
 	background:rgba(242,236,222,.92);
 	border-color:rgba(184,148,26,.28);
 	color:var(--gold);
-	box-shadow:0 8px 20px rgba(120,90,40,.12),inset 0 0 0 1px rgba(184,148,26,.10);
+	box-shadow:0 4px 0 rgba(120,90,40,.24), 0 8px 20px rgba(120,90,40,.12), inset 0 0 0 1px rgba(184,148,26,.10);
 }
 body[data-theme="light"] .settings-fab:hover{
 	background:rgba(248,244,234,.96);
@@ -7183,7 +8177,7 @@ body[data-theme="light"] .settings-fab.is-open{
 	background:rgba(248,244,234,.98);
 	border-color:var(--gold);
 	color:var(--gold);
-	box-shadow:0 12px 28px rgba(120,90,40,.16),inset 0 0 0 1px rgba(184,148,26,.18);
+	box-shadow:0 4px 0 rgba(120,90,40,.24), 0 12px 28px rgba(120,90,40,.16), inset 0 0 0 1px rgba(184,148,26,.18);
 }
 body[data-theme="light"] .modal{
 	background:rgba(120,100,60,.28);
@@ -7357,6 +8351,69 @@ body[data-theme="light"] .item{
 	background:linear-gradient(180deg,rgba(248,244,234,.94),rgba(242,236,222,.92));
 	border-color:rgba(120,100,60,.12);
 }
+body[data-theme="light"] .notesLibraryPanel,
+body[data-theme="light"] .notesEditorPanel{
+	background:linear-gradient(180deg,rgba(248,244,234,.97),rgba(242,236,222,.95));
+	border-color:rgba(120,100,60,.12);
+	box-shadow:0 4px 16px rgba(120,90,40,.09);
+}
+body[data-theme="light"] .notesStatCard,
+body[data-theme="light"] .notesTagFilter,
+body[data-theme="light"] .notesScopeRow,
+body[data-theme="light"] .notesEditorEmptyState,
+body[data-theme="light"] .notesTagSuggestionChip,
+body[data-theme="light"] .notesMorePopover{
+	background:rgba(242,236,222,.72);
+	border-color:rgba(120,100,60,.16);
+}
+body[data-theme="light"] .notesLibraryPanel__hero h3,
+body[data-theme="light"] .notesEditorPanel__header h3{
+	color:var(--gold);
+}
+body[data-theme="light"] .notesCreateBtn{
+	box-shadow:0 5px 0 #8a6a10, var(--gold-shadow);
+}
+body[data-theme="light"] .notesListItem--active{
+	box-shadow:0 0 0 1px rgba(184,148,26,.24), 0 6px 18px rgba(120,90,40,.12);
+}
+body[data-theme="light"] .notesActionBtn{
+	background:rgba(238,231,213,.92);
+	border-color:rgba(120,100,60,.16);
+	color:var(--text);
+}
+body[data-theme="light"] .notesActionBtn--danger{
+	color:var(--danger);
+	border-color:rgba(198,40,40,.24);
+}
+body[data-theme="light"] .notesActionBtn:hover{
+	border-color:rgba(184,148,26,.40);
+}
+body[data-theme="light"] .notesMorePopover__item:hover{
+	background:rgba(238,231,213,.95);
+	border-color:rgba(184,148,26,.24);
+}
+body[data-theme="light"] .notesConfirmModal__card{
+	border-color:rgba(120,100,60,.12);
+	box-shadow:0 4px 16px rgba(120,90,40,.09);
+}
+body[data-theme="light"] .chatPanel{
+	background:linear-gradient(180deg,rgba(248,244,234,.97),rgba(242,236,222,.95));
+	border-color:rgba(120,100,60,.12);
+	box-shadow:0 4px 16px rgba(120,90,40,.09);
+}
+body[data-theme="light"] .chatMessage{
+	background:rgba(242,236,222,.78);
+	border-color:rgba(120,100,60,.16);
+}
+body[data-theme="light"] .chatMessage--self{
+	background:rgba(184,148,26,.10);
+	border-color:rgba(184,148,26,.28);
+	box-shadow:0 0 0 1px rgba(184,148,26,.14) inset;
+}
+body[data-theme="light"] .chatMessage__avatarWrap{
+	background:rgba(238,231,213,.92);
+	border-color:rgba(120,100,60,.16);
+}
 body[data-theme="light"] .item:hover{border-color:rgba(160,125,21,.40)}
 body[data-theme="light"] .pill{
 	background:rgba(238,231,213,.85);
@@ -7379,6 +8436,25 @@ body[data-theme="light"] .iconBtnLarge{
 }
 body[data-theme="light"] .iconBtn:hover,
 body[data-theme="light"] .iconBtnLarge:hover{border-color:rgba(160,125,21,.40)}
+body[data-theme="light"] .cardClaimBtn{
+	background:rgba(238,231,213,.7);
+	border-color:rgba(120,100,60,.16);
+	color:rgba(74,62,48,.45);
+	box-shadow:0 4px 0 rgba(120,90,40,.24);
+}
+body[data-theme="light"] .cardClaimBtn.is-claimable{
+	color:var(--gold);
+	border-color:rgba(160,125,21,.32);
+	background:rgba(160,125,21,.10);
+}
+body[data-theme="light"] .cardClaimBtn.is-claimable:hover{
+	border-color:rgba(160,125,21,.55);
+}
+body[data-theme="light"] .cardClaimBtn.is-mine{
+	color:var(--gold);
+	border-color:rgba(160,125,21,.28);
+	background:rgba(160,125,21,.07);
+}
 body[data-theme="light"] .inventoryCard{
 	background:rgba(242,236,222,.88);
 	border-color:rgba(120,100,60,.14);
@@ -7542,7 +8618,7 @@ body[data-theme="light"] .settingsMenu .btn--ghost:hover{
 	background:rgba(238,231,213,.95);
 }
 body[data-theme="light"] .btn{
-	/* Light mode depth � slightly warm brown instead of dark gold-2 */
+	/* Light mode depth ? slightly warm brown instead of dark gold-2 */
 	box-shadow:0 5px 0 #8a6a10, var(--gold-shadow);
 }
 body[data-theme="light"] .btn:hover:not(:disabled){
@@ -7600,7 +8676,7 @@ body[data-theme="light"] .portraitPlaceholder{color:rgba(74,62,48,.65);text-shad
 body[data-theme="light"] .profileStatItem__value{color:var(--text)}
 body[data-theme="light"] .onboardTooltip__text{color:var(--text)}
 
-/* Dynamic stats system — light mode */
+/* Dynamic stats system � light mode */
 body[data-theme="light"] .commonStatsPicker.is-open{
 	border-color:rgba(120,100,60,.18);
 	background:rgba(248,244,234,.95);

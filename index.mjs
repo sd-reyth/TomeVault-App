@@ -33,13 +33,13 @@ import {
 import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-storage.js";
 import {
   initializeFirestore,
-  enableIndexedDbPersistence,
   collection,
   doc,
   addDoc,
   setDoc,
   getDoc,
   getDocs,
+  getDocsFromServer,
   updateDoc,
   deleteDoc,
   onSnapshot,
@@ -48,6 +48,7 @@ import {
   limit,
   where,
   serverTimestamp,
+  waitForPendingWrites,
   writeBatch,
   runTransaction,
   increment,
@@ -110,6 +111,7 @@ const LIMITS = {
   NICKNAME_MAX: 30,
   IGN_MIN: 2,
   IGN_MAX: 30,
+  CHAT_MESSAGE_MAX: 500,
 };
 
 // Firestore collection path constants
@@ -122,6 +124,7 @@ const FIREBASE_PATHS = {
   USERS: "users",
   NUGGETS: "nuggets",
   NOTIFICATIONS: "notifications",
+  CHAT_MESSAGES: "chatMessages",
   TEMPLATES: "templates",
   TEMPLATE_ASSIGNMENTS: "templateAssignments",
 };
@@ -131,6 +134,7 @@ const SCREEN_KEYS = {
   GM_DASH: "gmDash",
   PLAYER_VIEW: "plView",
   PLAYER_INVENTORY: "plInventory",
+  CHAT: "chat",
   NOTES: "notes",
   PROFILE: "profile",
   SETTINGS: "settings",
@@ -248,9 +252,6 @@ const googleProvider = new GoogleAuthProvider();
 // const msProvider     = new OAuthProvider('microsoft.com');
 
 const db = initializeFirestore(app, {});
-enableIndexedDbPersistence(db).catch((err) => {
-  console.warn("[TomeVault] Offline persistence error:", err.code);
-});
 const storage = getStorage(app);
 
 // ---- Emulator wiring (dev only) ----
@@ -429,6 +430,7 @@ const screens = {
   plJoin: $("screenPlayerJoin"),
   plView: $("screenPlayerView"),
   plInventory: $("screenPlayerInventory"),
+  chat: $("screenChat"),
   notes: $("screenNotes"),
   settings: $("screenSettings"),
   info: $("screenInfo"),
@@ -666,6 +668,7 @@ const btnPartyBattle = $("btnPartyBattle");
 const btnAddNpc = $("btnAddNpc");
 const gmPartyRollOverlay = $("gmPartyRollOverlay");
 const btnOpenSocialFromParty = $("btnOpenSocialFromParty");
+const btnOpenChatFromParty = $("btnOpenChatFromParty");
 const gmTurnNav = $("gmTurnNav");
 const gmTurnLabel = $("gmTurnLabel");
 const btnTurnPrev = $("btnTurnPrev");
@@ -697,7 +700,9 @@ const plTitle = $("plTitle");
 const btnLeave = $("btnLeave");
 const btnEnableSound = $("btnEnableSound");
 const btnTogglePlayerHandouts = $("btnTogglePlayerHandouts");
+const playerHandoutsPanel = $("playerHandoutsPanel");
 const playerHandoutsMain = $("playerHandoutsMain");
+const plHandoutSearch = $("plHandoutSearch");
 const plHandoutList = $("plHandoutList");
 const plHandoutEmpty = $("plHandoutEmpty");
 const playerPartyInlineList = $("playerPartyInlineList");
@@ -706,6 +711,7 @@ const playerTurnNav = $("playerTurnNav");
 const playerTurnLabel = $("playerTurnLabel");
 const btnPlayerInitiativeEdit = $("btnPlayerInitiativeEdit");
 const btnPlayerInitiativeRoll = $("btnPlayerInitiativeRoll");
+const btnPlayerOpenChatFromParty = $("btnPlayerOpenChatFromParty");
 const playerSessionRef = $("playerSessionRef");
 const plSessionBadge = $("plSessionBadge");
 const plSessionBadgeText = $("plSessionBadgeText");
@@ -785,10 +791,58 @@ const profileAvatarStatus = $("profileAvatarStatus");
 const profileDisplayName = $("profileDisplayName");
 
 // ---- Session notes ----
+const btnChatBack = $("btnChatBack");
+const btnChatClear = $("btnChatClear");
+const btnChatExport = $("btnChatExport");
+const chatRetentionNote = $("chatRetentionNote");
+const chatStatus = $("chatStatus");
+const chatList = $("chatList");
+const chatEmpty = $("chatEmpty");
+const chatInput = $("chatInput");
+const btnChatSend = $("btnChatSend");
+const notesList = $("notesList");
+const notesEmpty = $("notesEmpty");
+const notesEmptyTitle = $("notesEmptyTitle");
+const notesEmptyHint = $("notesEmptyHint");
+const btnNotesEmptyCreate = $("btnNotesEmptyCreate");
+const btnNotesEmptyEditorCreate = $("btnNotesEmptyEditorCreate");
+const notesStatActive = $("notesStatActive");
+const notesStatArchived = $("notesStatArchived");
+const notesSearch = $("notesSearch");
+const notesWorkspace = $("notesWorkspace");
+const btnNotesScopeActive = $("btnNotesScopeActive");
+const btnNotesScopeBin = $("btnNotesScopeBin");
+const notesTagFilterWrap = $("notesTagFilterWrap");
+const btnNotesTagFilter = $("btnNotesTagFilter");
+const btnNotesClearTagFilter = $("btnNotesClearTagFilter");
+const btnNotesNew = $("btnNotesNew");
+const btnNotesAutoSave = $("btnNotesAutoSave");
+const btnNotesEditorBack = $("btnNotesEditorBack");
+const notesEditorHeading = $("notesEditorHeading");
+const notesEditorEmptyState = $("notesEditorEmptyState");
+const notesEditorActions = $("notesEditorActions");
+const notesEditorFields = $("notesEditorFields");
+const noteTitleInput = $("noteTitleInput");
+const noteSessionDateInput = $("noteSessionDateInput");
+const noteTagsInput = $("noteTagsInput");
+const notesTagSuggestions = $("notesTagSuggestions");
+const notesTagPreview = $("notesTagPreview");
+const btnNotesMore = $("btnNotesMore");
+const notesMorePopover = $("notesMorePopover");
+const btnNotesCopyAll = $("btnNotesCopyAll");
+const btnNotesExportTxt = $("btnNotesExportTxt");
+const btnNotesExportMd = $("btnNotesExportMd");
+const btnNotesArchive = $("btnNotesArchive");
+const btnNotesRestore = $("btnNotesRestore");
 const notesEditor = $("notesEditor");
 const notesStatus = $("notesStatus");
-const btnNotesUndo = $("btnNotesUndo");
 const btnNotesBack = $("btnNotesBack");
+const notesConfirmModal = $("notesConfirmModal");
+const notesConfirmTitle = $("notesConfirmTitle");
+const notesConfirmBody = $("notesConfirmBody");
+const btnNotesConfirmCancel = $("btnNotesConfirmCancel");
+const btnNotesConfirmSecondary = $("btnNotesConfirmSecondary");
+const btnNotesConfirmOk = $("btnNotesConfirmOk");
 const btnInfoBack = $("btnInfoBack");
 const profileBio = $("profileBio");
 const profileStatLevel = $("profileStatLevel");
@@ -841,7 +895,6 @@ const btnDeleteHandout = $("btnDeleteHandout");
 const modalClaimWrap = $("modalClaimWrap");
 const claimStatus = $("claimStatus");
 const btnClaim = $("btnClaim");
-const btnPlayerClaim = $("btnPlayerClaim");
 const modalGMClaimControls = $("modalGMClaimControls");
 const btnToggleClaimable = $("btnToggleClaimable");
 const btnResetClaim = $("btnResetClaim");
@@ -995,6 +1048,8 @@ function debounce(fn, ms) {
 // One-shot sessions expire after 24 hours. These constants control
 // the "recent one-shot" quick-rejoin list stored in localStorage.
 const ONE_SHOT_TTL_MS = 24 * 60 * 60 * 1000;
+const CHAT_RETENTION_MS = 30 * 24 * 60 * 60 * 1000;
+const CHAT_INITIAL_LIMIT = 50;
 const RECENT_ONE_SHOT_KEY = "tv_recentOneShotJoins";
 const RECENT_ONE_SHOT_MAX = 8;
 const JOINED_SESSION_LIST_KEY = "tv_joinedSessions";
@@ -1033,6 +1088,8 @@ const state = {
   turnRound: 1,         // current combat round
   gmFilter: "all",
   gmSearchQuery: "",
+  playerHandoutSearchQuery: "",
+  playerVisibleHandoutsCache: null,
   gmHandoutsRaw: [],
   playerInventoryRaw: [],
   playerNick: "",
@@ -1045,6 +1102,29 @@ const state = {
   isSignedIn: false,
   displayName: null,
   email: null,
+  chat: {
+    messages: [],
+    isLoading: false,
+    isSending: false,
+    isClearing: false,
+    hasServerSnapshot: false,
+    fromCache: false,
+    error: "",
+    sessionId: null,
+    shouldAutoScroll: true,
+  },
+  notes: {
+    items: [],
+    activeId: null,
+    scope: "active",
+    searchQuery: "",
+    tagFilter: "",
+    autoSave: false,
+    isLoading: false,
+    dirty: false,
+    saveTimer: null,
+    didAttemptLegacyMigration: false,
+  },
 
   // unsubscribers
   unsubSession: null,
@@ -1056,6 +1136,8 @@ const state = {
   unsubTransfer: null,
   unsubNuggets: null,
   unsubTemplateAssignments: null,
+  unsubChat: null,
+  unsubNotes: null,
 };
 
 // ---- 6) Utilities ----
@@ -1420,13 +1502,20 @@ function showOnly(screenKey) {
   currentScreenKey = screenKey;
   // Clear lingering toasts on screen transition so they don't persist across views.
   if (toastStack) toastStack.innerHTML = "";
-  const isSessionScreen = screenKey === SCREEN_KEYS.GM_DASH || screenKey === SCREEN_KEYS.PLAYER_VIEW || screenKey === SCREEN_KEYS.PLAYER_INVENTORY || screenKey === SCREEN_KEYS.NOTES || screenKey === SCREEN_KEYS.SETTINGS || screenKey === SCREEN_KEYS.INFO || screenKey === SCREEN_KEYS.SETTINGS_PROFILE || screenKey === SCREEN_KEYS.CHARACTER_TEMPLATES || screenKey === SCREEN_KEYS.PROFILE;
+  const isSessionScreen = screenKey === SCREEN_KEYS.GM_DASH || screenKey === SCREEN_KEYS.PLAYER_VIEW || screenKey === SCREEN_KEYS.PLAYER_INVENTORY || screenKey === SCREEN_KEYS.CHAT || screenKey === SCREEN_KEYS.NOTES || screenKey === SCREEN_KEYS.SETTINGS || screenKey === SCREEN_KEYS.INFO || screenKey === SCREEN_KEYS.SETTINGS_PROFILE || screenKey === SCREEN_KEYS.CHARACTER_TEMPLATES || screenKey === SCREEN_KEYS.PROFILE;
   const hasSession = !!state.sessionId;
 
   // Keep top shell UI minimal until a session is active.
   try {
     if (topBar) {
+      const _wasHidden = topBar.classList.contains("hidden");
       topBar.classList.toggle("hidden", !(hasSession && isSessionScreen));
+      if (_wasHidden && !topBar.classList.contains("hidden")) {
+        requestAnimationFrame(() => {
+          topBar.classList.add("topbar--entering");
+          setTimeout(() => topBar.classList.remove("topbar--entering"), 350);
+        });
+      }
     }
     if (nuggetCounter) {
       nuggetCounter.classList.toggle("hidden", !hasSession);
@@ -1539,6 +1628,9 @@ function showOnly(screenKey) {
 
   if (screenKey === SCREEN_KEYS.NOTES) {
     loadNotesForCurrentSession();
+  }
+  if (screenKey === SCREEN_KEYS.CHAT) {
+    subscribePartyChat();
   }
 }
 
@@ -1661,6 +1753,103 @@ function closeSettingsDrawer() {
 }
 
 let speedDialHideTimer = 0;
+const HAMBURGER_POS_STORAGE_KEY = "tv_fabPos";
+const HAMBURGER_DEFAULT_POS = Object.freeze({ right: 20, bottom: 60 });
+const HAMBURGER_EDGE_MARGIN = 12;
+const HAMBURGER_MOUSE_DRAG_THRESHOLD = 4;
+const HAMBURGER_TOUCH_CANCEL_THRESHOLD = 8;
+const HAMBURGER_DIAL_GAP = 12;
+let hamburgerDragState = null;
+let hamburgerDragEnabled = true;
+
+function getHamburgerCurrentPosition() {
+  if (!btnHamburger) return { ...HAMBURGER_DEFAULT_POS };
+  const rect = btnHamburger.getBoundingClientRect();
+  if (rect.width < 8 || rect.height < 8) {
+    return { ...HAMBURGER_DEFAULT_POS };
+  }
+  return {
+    right: Math.max(HAMBURGER_EDGE_MARGIN, Math.round(window.innerWidth - rect.right)),
+    bottom: Math.max(HAMBURGER_EDGE_MARGIN, Math.round(window.innerHeight - rect.bottom)),
+  };
+}
+
+function getHamburgerViewportBounds() {
+  const topInset = HAMBURGER_EDGE_MARGIN + (topBar && !topBar.classList.contains("hidden") ? topBar.offsetHeight : 0);
+  const bottomInset = HAMBURGER_EDGE_MARGIN + (bottomBar && !bottomBar.classList.contains("hidden") ? bottomBar.offsetHeight : 0);
+  return {
+    minLeft: HAMBURGER_EDGE_MARGIN,
+    maxRight: window.innerWidth - HAMBURGER_EDGE_MARGIN,
+    minTop: topInset,
+    maxBottom: window.innerHeight - bottomInset,
+  };
+}
+
+function clampHamburgerPosition(position = {}) {
+  if (!btnHamburger) return { ...HAMBURGER_DEFAULT_POS };
+  const width = btnHamburger.offsetWidth || 96;
+  const height = btnHamburger.offsetHeight || 48;
+  const bounds = getHamburgerViewportBounds();
+  const requestedRight = Number.isFinite(Number(position.right)) ? Number(position.right) : HAMBURGER_DEFAULT_POS.right;
+  const requestedBottom = Number.isFinite(Number(position.bottom)) ? Number(position.bottom) : HAMBURGER_DEFAULT_POS.bottom;
+  const nextLeft = Math.min(
+    Math.max(bounds.minLeft, window.innerWidth - requestedRight - width),
+    Math.max(bounds.minLeft, bounds.maxRight - width)
+  );
+  const nextTop = Math.min(
+    Math.max(bounds.minTop, window.innerHeight - requestedBottom - height),
+    Math.max(bounds.minTop, bounds.maxBottom - height)
+  );
+  return {
+    right: Math.round(window.innerWidth - nextLeft - width),
+    bottom: Math.round(window.innerHeight - nextTop - height),
+  };
+}
+
+function syncHamburgerSpeedDialPosition() {
+  if (!btnHamburger || !hamburgerSpeedDial) return;
+  const rect = btnHamburger.getBoundingClientRect();
+  if (rect.width < 8 || rect.height < 8) return;
+  hamburgerSpeedDial.style.right = `${Math.max(HAMBURGER_EDGE_MARGIN, Math.round(window.innerWidth - rect.right))}px`;
+  hamburgerSpeedDial.style.bottom = `${Math.max(HAMBURGER_EDGE_MARGIN, Math.round(window.innerHeight - rect.top + HAMBURGER_DIAL_GAP))}px`;
+}
+
+function persistHamburgerPosition(position) {
+  try {
+    localStorage.setItem(HAMBURGER_POS_STORAGE_KEY, JSON.stringify(position));
+  } catch (_) {}
+}
+
+function applyHamburgerPosition(position = {}, options = {}) {
+  if (!btnHamburger) return { ...HAMBURGER_DEFAULT_POS };
+  const next = clampHamburgerPosition(position);
+  btnHamburger.style.right = `${next.right}px`;
+  btnHamburger.style.bottom = `${next.bottom}px`;
+  syncHamburgerSpeedDialPosition();
+  if (options.persist) persistHamburgerPosition(next);
+  return next;
+}
+
+function loadHamburgerPosition() {
+  let saved = null;
+  try {
+    saved = JSON.parse(localStorage.getItem(HAMBURGER_POS_STORAGE_KEY) || "null");
+  } catch (_) {
+    saved = null;
+  }
+  return applyHamburgerPosition(saved || HAMBURGER_DEFAULT_POS);
+}
+
+function setHamburgerTutorialLock(isLocked) {
+  hamburgerDragEnabled = !isLocked;
+  if (!btnHamburger) return;
+  btnHamburger.classList.toggle("is-tutorial-locked", !!isLocked);
+  if (isLocked) {
+    btnHamburger.classList.remove("is-dragging");
+    applyHamburgerPosition(getHamburgerCurrentPosition());
+    closeHamburgerSpeedDial();
+  }
+}
 
 function setModalVisibility(el, isOpen) {
   if (!el) return;
@@ -1749,6 +1938,7 @@ function syncGMDashboardLayout() {
 
 function openHamburgerSpeedDial() {
   if (!hamburgerSpeedDial) return;
+  syncHamburgerSpeedDialPosition();
   if (speedDialHideTimer) {
     clearTimeout(speedDialHideTimer);
     speedDialHideTimer = 0;
@@ -1954,6 +2144,145 @@ function resolveDisplayAvatar(url, uid) {
   if (!EMPTY_PROFILE_PLACEHOLDER_URLS || !EMPTY_PROFILE_PLACEHOLDER_URLS.length) return "";
   const hash = String(uid || "").split("").reduce((acc, c) => acc + c.charCodeAt(0), 0);
   return EMPTY_PROFILE_PLACEHOLDER_URLS[hash % EMPTY_PROFILE_PLACEHOLDER_URLS.length];
+}
+
+// ─── Dominant colour extraction ──────────────────────────────────────────────
+// Draws an image onto a tiny canvas and picks the most-frequent vivid pixel
+// colour. Used to tint party-row left borders and player-card banners with a
+// hue derived from the player's or NPC's portrait.
+const _dominantColorCache = new Map();
+const AVATAR_COLOR_VIVID_MULTIPLIER = 1.2;
+
+function brightenRgbColorString(rgbString, mix = 0.28) {
+  const match = String(rgbString || "").match(/^rgb\((\d+),(\d+),(\d+)\)$/);
+  if (!match) return null;
+  const r = Number(match[1]);
+  const g = Number(match[2]);
+  const b = Number(match[3]);
+  const brighten = (v) => Math.max(108, Math.min(255, Math.round(v + (255 - v) * mix)));
+  return `rgb(${brighten(r)},${brighten(g)},${brighten(b)})`;
+}
+
+function rgbToHsl(r, g, b) {
+  const rn = r / 255;
+  const gn = g / 255;
+  const bn = b / 255;
+  const max = Math.max(rn, gn, bn);
+  const min = Math.min(rn, gn, bn);
+  const l = (max + min) / 2;
+  if (max === min) return { h: 0, s: 0, l };
+  const d = max - min;
+  const s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+  let h = 0;
+  switch (max) {
+    case rn: h = (gn - bn) / d + (gn < bn ? 6 : 0); break;
+    case gn: h = (bn - rn) / d + 2; break;
+    default: h = (rn - gn) / d + 4; break;
+  }
+  h /= 6;
+  return { h, s, l };
+}
+
+function hue2rgb(p, q, t) {
+  let tt = t;
+  if (tt < 0) tt += 1;
+  if (tt > 1) tt -= 1;
+  if (tt < 1 / 6) return p + (q - p) * 6 * tt;
+  if (tt < 1 / 2) return q;
+  if (tt < 2 / 3) return p + (q - p) * (2 / 3 - tt) * 6;
+  return p;
+}
+
+function hslToRgb(h, s, l) {
+  if (s === 0) {
+    const v = Math.round(l * 255);
+    return { r: v, g: v, b: v };
+  }
+  const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+  const p = 2 * l - q;
+  const r = Math.round(hue2rgb(p, q, h + 1 / 3) * 255);
+  const g = Math.round(hue2rgb(p, q, h) * 255);
+  const b = Math.round(hue2rgb(p, q, h - 1 / 3) * 255);
+  return { r, g, b };
+}
+
+function makeRgbString(r, g, b) {
+  const clamp = (v) => Math.max(0, Math.min(255, Math.round(v)));
+  return `rgb(${clamp(r)},${clamp(g)},${clamp(b)})`;
+}
+
+function scaleWithVividMode(value, cap = 1) {
+  return Math.min(cap, Number(value) * AVATAR_COLOR_VIVID_MULTIPLIER);
+}
+
+function vibrantizeRgbColorString(rgbString, options = {}) {
+  const match = String(rgbString || "").match(/^rgb\((\d+),(\d+),(\d+)\)$/);
+  if (!match) return null;
+  const r = Number(match[1]);
+  const g = Number(match[2]);
+  const b = Number(match[3]);
+  const { h, s, l } = rgbToHsl(r, g, b);
+  const minSat = scaleWithVividMode(Number(options.minSat ?? 0.62), 0.95);
+  const satBoost = scaleWithVividMode(Number(options.satBoost ?? 0.28), 0.45);
+  const minLight = scaleWithVividMode(Number(options.minLight ?? 0.5), 0.82);
+  const lightBoost = scaleWithVividMode(Number(options.lightBoost ?? 0.2), 0.34);
+  const nextS = Math.min(0.96, Math.max(minSat, s + satBoost));
+  const nextL = Math.min(0.84, Math.max(minLight, l + lightBoost));
+  const next = hslToRgb(h, nextS, nextL);
+  return makeRgbString(next.r, next.g, next.b);
+}
+
+function extractDominantColor(imgSrc) {
+  if (!imgSrc) return Promise.resolve(null);
+  if (_dominantColorCache.has(imgSrc)) return Promise.resolve(_dominantColorCache.get(imgSrc));
+  return new Promise((resolve) => {
+    const img = new Image();
+    img.crossOrigin = "anonymous";
+    img.onload = () => {
+      try {
+        const SIZE = 24;
+        const canvas = document.createElement("canvas");
+        canvas.width = SIZE;
+        canvas.height = SIZE;
+        const ctx = canvas.getContext("2d");
+        ctx.drawImage(img, 0, 0, SIZE, SIZE);
+        const data = ctx.getImageData(0, 0, SIZE, SIZE).data;
+        const buckets = {};
+        for (let i = 0; i < data.length; i += 4) {
+          const r = data[i], g = data[i + 1], b = data[i + 2], a = data[i + 3];
+          if (a < 128) continue;
+          const max = Math.max(r, g, b), min = Math.min(r, g, b);
+          const brightness = max / 255;
+          const saturation = max === 0 ? 0 : (max - min) / max;
+          if (brightness < 0.2 || brightness > 0.98) continue;
+          if (saturation < 0.2) continue;
+          const qr = Math.round(r / 20) * 20;
+          const qg = Math.round(g / 20) * 20;
+          const qb = Math.round(b / 20) * 20;
+          const key = `${qr},${qg},${qb}`;
+          buckets[key] = (buckets[key] || 0) + 1;
+        }
+        let bestKey = null, bestScore = 0;
+        for (const [key, count] of Object.entries(buckets)) {
+          if (count > bestScore) { bestScore = count; bestKey = key; }
+        }
+        const baseColor = bestKey ? `rgb(${bestKey})` : null;
+        const color = baseColor
+          ? (vibrantizeRgbColorString(baseColor) || brightenRgbColorString(baseColor, 0.18) || baseColor)
+          : null;
+        _dominantColorCache.set(imgSrc, color);
+        resolve(color);
+      } catch {
+        _dominantColorCache.set(imgSrc, null);
+        resolve(null);
+      }
+    };
+    img.onerror = () => {
+      _dominantColorCache.set(imgSrc, null);
+      resolve(null);
+    };
+    img.src = imgSrc;
+  });
 }
 
 // For live surfaces (bottom bar + profile hero), avoid image placeholder files
@@ -3087,8 +3416,12 @@ document.addEventListener("keydown", (event) => {
   }
   // Ctrl+F � focus handout search
   if (key === "f") {
-    const search = $("gmSearch");
-    if (search) { event.preventDefault(); search.focus(); }
+    const search = state.role === "dm" ? $("gmSearch") : $("plHandoutSearch");
+    if (search) {
+      event.preventDefault();
+      search.focus();
+      search.select?.();
+    }
     return;
   }
   // Ctrl+1-5 � bottom bar buttons
@@ -3992,6 +4325,10 @@ btnAcceptProfile?.addEventListener("click", async () => {
     if (Object.keys(quickStats).length > 0) writePayload.quickStats = quickStats;
 
     await setDoc(doc(db, "users", state.uid), writePayload, { merge: true });
+    if (p.name) {
+      applyResolvedNicknameState(p.name, { overwriteInput: true });
+      await syncNicknameToProfile(p.name);
+    }
 
     // Refresh profile cache so the editor shows updated stats immediately
     try {
@@ -4060,117 +4397,1167 @@ inventorySearch?.addEventListener("input", debounce(() => {
   renderInventoryScreen();
 }, 250));
 
-// -- Session notes (local autosave + Firestore sync + manual undo) --
-const NOTES_HISTORY_LIMIT = 60;
-let notesHistory = [];
-let notesAutosaveTimer = null;
-let notesLastValue = "";
-let _notesFirestoreSaveTimer = null;
-let _notesFirestoreUnsubscribe = null;
+// -- Session notes (multi-file notes library + local cache + Firestore sync) --
+const NOTES_SAVE_DEBOUNCE_MS = 1200;
+const NOTES_DEFAULT_TITLE = "Untitled Note";
+const NOTES_LEGACY_TITLE = "Legacy Notes";
+const NOTES_TAG_STOP_WORDS = new Set(["about", "after", "again", "also", "been", "before", "being", "both", "campaign", "clues", "could", "from", "have", "into", "just", "lore", "more", "most", "note", "notes", "over", "plan", "session", "some", "that", "their", "them", "then", "there", "these", "this", "those", "through", "very", "what", "when", "with", "will", "your"]);
+let notesConfirmCallbacks = { onConfirm: null, onSecondary: null };
 
-function getNotesStorageKey() {
+function getNotesAutoSaveKey() {
+  const uid = String(state.uid || "").trim();
+  return uid ? `tv_note_files_autosave_${uid}` : "tv_note_files_autosave";
+}
+
+function setNotesEditorOpen(isOpen) {
+  if (!notesWorkspace) return;
+  notesWorkspace.classList.toggle("notesWorkspace--editorOpen", !!isOpen);
+}
+
+function closeNotesMorePopover() {
+  if (!notesMorePopover || !btnNotesMore) return;
+  notesMorePopover.classList.add("hidden");
+  btnNotesMore.setAttribute("aria-expanded", "false");
+}
+
+function toggleNotesMorePopover() {
+  if (!notesMorePopover || !btnNotesMore || btnNotesMore.disabled) return;
+  const shouldOpen = notesMorePopover.classList.contains("hidden");
+  notesMorePopover.classList.toggle("hidden", !shouldOpen);
+  btnNotesMore.setAttribute("aria-expanded", shouldOpen ? "true" : "false");
+  if (shouldOpen) {
+    window.setTimeout(() => notesMorePopover.querySelector(".notesMorePopover__item")?.focus(), 0);
+  } else {
+    btnNotesMore.focus();
+  }
+}
+
+function getNoteActionIcon(kind) {
+  if (kind === "restore") {
+    return '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12a7.5 7.5 0 1 0 2.2-5.3"/><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 4.5v5.25h5.25"/></svg>';
+  }
+  return '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 7.5h15"/><path stroke-linecap="round" stroke-linejoin="round" d="M9.75 3.75h4.5"/><path stroke-linecap="round" stroke-linejoin="round" d="M6.75 7.5l.9 10.12A1.5 1.5 0 0 0 9.14 19h5.72a1.5 1.5 0 0 0 1.49-1.38l.9-10.12"/><path stroke-linecap="round" stroke-linejoin="round" d="M10 11.25v4.5M14 11.25v4.5"/></svg>';
+}
+
+function getNotesCollectionRef() {
+  const sid = String(state.sessionId || "").trim();
+  if (!sid) return null;
+  return collection(db, "sessions", sid, "noteFiles");
+}
+
+function getNoteDocRef(noteId) {
+  const sid = String(state.sessionId || "").trim();
+  const normalizedId = String(noteId || "").trim();
+  if (!sid || !normalizedId) return null;
+  return doc(db, "sessions", sid, "noteFiles", normalizedId);
+}
+
+function getLegacyNotesStorageKey() {
   const sid = String(state.sessionId || "").trim();
   const uid = String(state.uid || "").trim();
   return (sid && uid) ? `tv_notes_${sid}_${uid}` : "";
 }
 
-function getNotesDocRef() {
+function getLegacyNotesDocRef() {
   const sid = String(state.sessionId || "").trim();
   const uid = String(state.uid || "").trim();
   if (!sid || !uid) return null;
   return doc(db, "sessions", sid, "notes", uid);
 }
 
-async function loadNotesForCurrentSession() {
-  const key = getNotesStorageKey();
-  if (!notesEditor) return;
+function getTodayDateInputValue() {
+  const now = new Date();
+  const pad = (value) => String(value).padStart(2, "0");
+  return `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`;
+}
 
-  // Start with localStorage for instant display
-  const localValue = key ? (localStorage.getItem(key) || "") : "";
-  notesEditor.value = localValue;
-  notesHistory = [];
-  notesLastValue = localValue;
-  btnNotesUndo && (btnNotesUndo.disabled = true);
-  if (notesStatus) notesStatus.textContent = key ? "Loading notes..." : "Join a session to save notes.";
+function normalizeNoteTitle(value) {
+  const normalized = String(value || "").trim();
+  return normalized || NOTES_DEFAULT_TITLE;
+}
 
-  // Then load from Firestore (source of truth)
-  const notesRef = getNotesDocRef();
-  if (notesRef) {
-    try {
-      const snap = await getDoc(notesRef);
-      if (snap.exists()) {
-        const firestoreValue = snap.data().content || "";
-        notesEditor.value = firestoreValue;
-        notesLastValue = firestoreValue;
-        // Update local cache
-        if (key) localStorage.setItem(key, firestoreValue);
-      } else if (localValue) {
-        // One-time migration: localStorage has notes but Firestore doesn't
-        await setDoc(notesRef, { content: localValue, updatedAt: serverTimestamp() });
+function normalizeNoteTags(value) {
+  if (Array.isArray(value)) {
+    return Array.from(new Set(value.map((entry) => String(entry || "").trim().toLowerCase()).filter(Boolean))).slice(0, 8);
+  }
+  return Array.from(
+    new Set(
+      String(value || "")
+        .split(",")
+        .map((entry) => String(entry || "").trim().toLowerCase())
+        .filter(Boolean)
+    )
+  ).slice(0, 8);
+}
+
+function normalizeNoteDate(value) {
+  const normalized = String(value || "").trim();
+  return /^\d{4}-\d{2}-\d{2}$/.test(normalized) ? normalized : getTodayDateInputValue();
+}
+
+function getCurrentTagDraftFragment() {
+  const rawValue = String(noteTagsInput?.value || "");
+  const parts = rawValue.split(",");
+  return String(parts[parts.length - 1] || "").trim().toLowerCase();
+}
+
+function extractNoteKeywords(text) {
+  const counts = new Map();
+  String(text || "")
+    .toLowerCase()
+    .replace(/[^a-z0-9\s-]+/g, " ")
+    .split(/\s+/)
+    .map((entry) => entry.trim())
+    .filter((entry) => entry.length >= 4 && !NOTES_TAG_STOP_WORDS.has(entry))
+    .forEach((entry) => counts.set(entry, (counts.get(entry) || 0) + 1));
+  return [...counts.entries()]
+    .sort((left, right) => (right[1] - left[1]) || (right[0].length - left[0].length) || left[0].localeCompare(right[0]))
+    .map(([entry]) => entry)
+    .slice(0, 15);
+}
+
+function getTagSuggestions(note) {
+  if (!note) return [];
+  const usedCounts = new Map();
+  (state.notes.items || []).forEach((entry) => {
+    normalizeNoteTags(entry.tags).forEach((tag) => usedCounts.set(tag, (usedCounts.get(tag) || 0) + 1));
+  });
+  const frequentTags = [...usedCounts.entries()]
+    .sort((left, right) => (right[1] - left[1]) || left[0].localeCompare(right[0]))
+    .map(([tag]) => tag);
+  const contentKeywords = extractNoteKeywords(`${note.title || ""} ${note.content || ""}`);
+  const currentTags = new Set(normalizeNoteTags(noteTagsInput?.value || note.tags || []));
+  const fragment = getCurrentTagDraftFragment();
+  return [...new Set([...frequentTags, ...contentKeywords])]
+    .filter((tag) => !currentTags.has(tag))
+    .filter((tag) => !fragment || tag.includes(fragment))
+    .slice(0, 10);
+}
+
+function renderTagSuggestions(note = getActiveNote()) {
+  if (!notesTagSuggestions) return;
+  const shouldShow = !!note && document.activeElement === noteTagsInput;
+  const suggestions = shouldShow ? getTagSuggestions(note) : [];
+  notesTagSuggestions.innerHTML = "";
+  notesTagSuggestions.classList.toggle("hidden", suggestions.length === 0);
+  if (suggestions.length === 0) return;
+  const fragment = document.createDocumentFragment();
+  suggestions.forEach((tag) => {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "tag notesTagSuggestionChip";
+    button.innerHTML = `<span aria-hidden="true">+</span>${escapeHtml(tag)}`;
+    button.addEventListener("click", (event) => {
+      event.preventDefault();
+      const mergedTags = normalizeNoteTags([...(getActiveNote()?.tags || []), tag]);
+      if (noteTagsInput) noteTagsInput.value = mergedTags.join(", ");
+      updateActiveNoteDraft({ tags: mergedTags });
+      noteTagsInput?.focus();
+    });
+    fragment.appendChild(button);
+  });
+  notesTagSuggestions.appendChild(fragment);
+}
+
+function openNotesConfirmModal({ title = "Are you sure?", body = "", okLabel = "Confirm", okStyle = "danger", secondaryLabel = "", onConfirm = null, onSecondary = null } = {}) {
+  if (!notesConfirmModal || !notesConfirmTitle || !notesConfirmBody || !btnNotesConfirmOk || !btnNotesConfirmSecondary) return;
+  notesConfirmCallbacks = { onConfirm, onSecondary };
+  notesConfirmTitle.textContent = title;
+  notesConfirmBody.textContent = body;
+  btnNotesConfirmOk.textContent = okLabel;
+  btnNotesConfirmOk.className = okStyle === "danger" ? "btn btn--danger" : "btn";
+  btnNotesConfirmSecondary.textContent = secondaryLabel || "";
+  btnNotesConfirmSecondary.className = secondaryLabel ? "btn" : "btn hidden";
+  btnNotesConfirmSecondary.classList.toggle("hidden", !secondaryLabel);
+  animateModalIn(notesConfirmModal);
+  window.setTimeout(() => (btnNotesConfirmSecondary.classList.contains("hidden") ? btnNotesConfirmCancel : btnNotesConfirmSecondary)?.focus(), 0);
+}
+
+function closeNotesConfirmModal() {
+  notesConfirmCallbacks = { onConfirm: null, onSecondary: null };
+  if (notesConfirmModal) animateModalOut(notesConfirmModal);
+}
+
+function goBackFromNotes() {
+  setNotesEditorOpen(false);
+  closeNotesMorePopover();
+  const backScreen = state.role === "dm" ? "gmDash" : "plView";
+  showOnly(backScreen);
+}
+
+function serializeNoteDateValue(value) {
+  if (!value) return null;
+  if (value instanceof Date) return value.getTime();
+  if (typeof value?.toDate === "function") return value.toDate().getTime();
+  if (typeof value === "number" && Number.isFinite(value)) return value;
+  const parsed = new Date(value);
+  return Number.isNaN(parsed.getTime()) ? null : parsed.getTime();
+}
+
+function parseSerializedNoteDate(value) {
+  if (typeof value?.toDate === "function") return value.toDate();
+  if (typeof value === "number" && Number.isFinite(value)) return new Date(value);
+  if (value instanceof Date) return value;
+  return null;
+}
+
+function normalizeNoteRecord(note, fallbackId = "") {
+  if (!note || typeof note !== "object") return null;
+  const normalizedId = String(note.id || fallbackId || "").trim();
+  if (!normalizedId) return null;
+  return {
+    id: normalizedId,
+    ownerUid: String(note.ownerUid || state.uid || "").trim(),
+    title: normalizeNoteTitle(note.title),
+    content: String(note.content || ""),
+    sessionDate: normalizeNoteDate(note.sessionDate),
+    tags: normalizeNoteTags(note.tags),
+    status: String(note.status || "active").trim() === "archived" ? "archived" : "active",
+    createdAt: parseSerializedNoteDate(note.createdAt) || new Date(),
+    updatedAt: parseSerializedNoteDate(note.updatedAt) || new Date(),
+    deletedAt: parseSerializedNoteDate(note.deletedAt),
+  };
+}
+
+function sortNoteItems(items) {
+  return [...(items || [])].sort((left, right) => {
+    const leftUpdated = serializeNoteDateValue(left.updatedAt) || 0;
+    const rightUpdated = serializeNoteDateValue(right.updatedAt) || 0;
+    return rightUpdated - leftUpdated;
+  });
+}
+
+function getActiveNote() {
+  const activeId = String(state.notes.activeId || "").trim();
+  return (state.notes.items || []).find((note) => note.id === activeId) || null;
+}
+
+function isNoteVisibleInCurrentView(note, options = {}) {
+  if (!note) return false;
+  const scope = options.scope === "archived" ? "archived" : "active";
+  const search = String(options.searchQuery ?? state.notes.searchQuery ?? "").trim().toLowerCase();
+  const tagFilter = String(options.tagFilter ?? state.notes.tagFilter ?? "").trim().toLowerCase();
+  if (note.status !== scope) return false;
+  if (tagFilter && !(note.tags || []).includes(tagFilter)) return false;
+  if (!search) return true;
+  return buildNoteSearchText(note).includes(search);
+}
+
+function getRenderedActiveNote() {
+  const activeNote = getActiveNote();
+  return isNoteVisibleInCurrentView(activeNote) ? activeNote : null;
+}
+
+function getNextVisibleNoteId(options = {}) {
+  const excludingId = String(options.excludingId || "").trim();
+  return getFilteredNotes().find((note) => note.id !== excludingId)?.id || null;
+}
+
+function focusNotesScopeControl(scope = state.notes.scope) {
+  const target = scope === "archived" ? btnNotesScopeBin : btnNotesScopeActive;
+  target?.focus();
+}
+
+function clearActiveNoteSelection(options = {}) {
+  state.notes.activeId = null;
+  state.notes.dirty = false;
+  closeNotesMorePopover();
+  if (options.closeEditor !== false) setNotesEditorOpen(false);
+}
+
+function changeNotesScope(nextScope) {
+  const normalizedScope = nextScope === "archived" ? "archived" : "active";
+  if (normalizedScope === state.notes.scope) return;
+  const activeNote = getActiveNote();
+  const activeWouldRemainVisible = isNoteVisibleInCurrentView(activeNote, {
+    scope: normalizedScope,
+    searchQuery: state.notes.searchQuery,
+    tagFilter: state.notes.tagFilter,
+  });
+
+  const applyScopeChange = () => {
+    state.notes.scope = normalizedScope;
+    if (state.notes.activeId && !activeWouldRemainVisible) {
+      clearActiveNoteSelection();
+    }
+    renderNotesUI();
+    if (!activeWouldRemainVisible) {
+      requestAnimationFrame(() => focusNotesScopeControl(normalizedScope));
+    }
+  };
+
+  if (state.notes.dirty && state.notes.activeId && !activeWouldRemainVisible) {
+    openNotesConfirmModal({
+      title: "Unsaved changes",
+      body: "Save your current note before changing views?",
+      okLabel: "Discard & Switch",
+      okStyle: "danger",
+      secondaryLabel: "Save & Switch",
+      onConfirm: applyScopeChange,
+      onSecondary: async () => {
+        const saved = await saveNotesNow(false);
+        if (saved !== false) applyScopeChange();
+      },
+    });
+    return;
+  }
+
+  applyScopeChange();
+}
+
+function focusNotesFilterControl(kind = "search") {
+  if (kind === "search") {
+    notesSearch?.focus();
+    const valueLength = String(notesSearch?.value || "").length;
+    notesSearch?.setSelectionRange?.(valueLength, valueLength);
+    return;
+  }
+  if (state.notes.tagFilter) {
+    btnNotesTagFilter?.focus();
+    return;
+  }
+  notesSearch?.focus();
+}
+
+function applyNotesViewFilters(nextFilters = {}, options = {}) {
+  const nextSearchQuery = String(nextFilters.searchQuery ?? state.notes.searchQuery ?? "").trim();
+  const nextTagFilter = String(nextFilters.tagFilter ?? state.notes.tagFilter ?? "").trim().toLowerCase();
+  const focusKind = options.focusKind === "filter" ? "filter" : "search";
+  const tagFilterChanged = nextTagFilter !== state.notes.tagFilter;
+
+  if (nextSearchQuery === state.notes.searchQuery && nextTagFilter === state.notes.tagFilter) {
+    if (focusKind === "search" && notesSearch && notesSearch.value !== state.notes.searchQuery) {
+      notesSearch.value = state.notes.searchQuery;
+    }
+    return;
+  }
+
+  const activeNote = getActiveNote();
+  const activeWouldRemainVisible = isNoteVisibleInCurrentView(activeNote, {
+    scope: state.notes.scope,
+    searchQuery: nextSearchQuery,
+    tagFilter: nextTagFilter,
+  });
+
+  const applyFilterChange = () => {
+    state.notes.searchQuery = nextSearchQuery;
+    state.notes.tagFilter = nextTagFilter;
+    if (state.notes.activeId && !activeWouldRemainVisible) {
+      clearActiveNoteSelection();
+    }
+    renderNotesUI();
+    if (focusKind === "search") {
+      requestAnimationFrame(() => focusNotesFilterControl("search"));
+      return;
+    }
+    if (!activeWouldRemainVisible || tagFilterChanged) {
+      requestAnimationFrame(() => focusNotesFilterControl("filter"));
+    }
+  };
+
+  if (state.notes.dirty && state.notes.activeId && !activeWouldRemainVisible) {
+    if (focusKind === "search" && notesSearch) {
+      notesSearch.value = state.notes.searchQuery;
+    }
+    openNotesConfirmModal({
+      title: "Unsaved changes",
+      body: "Save your current note before changing filters?",
+      okLabel: "Discard & Filter",
+      okStyle: "danger",
+      secondaryLabel: "Save & Filter",
+      onConfirm: applyFilterChange,
+      onSecondary: async () => {
+        const saved = await saveNotesNow(false);
+        if (saved !== false) applyFilterChange();
+      },
+    });
+    return;
+  }
+
+  applyFilterChange();
+}
+
+function setNotesStatus(message) {
+  if (notesStatus) notesStatus.textContent = String(message || "").trim();
+}
+
+function formatNoteTimestamp(value, fallback = "-") {
+  const date = value instanceof Date ? value : (typeof value?.toDate === "function" ? value.toDate() : null);
+  if (!(date instanceof Date) || Number.isNaN(date.getTime())) return fallback;
+  return formatLastSeenDate(date);
+}
+
+function formatNoteSessionDate(value) {
+  const normalized = normalizeNoteDate(value);
+  const parsed = new Date(`${normalized}T00:00:00`);
+  return Number.isNaN(parsed.getTime()) ? normalized : parsed.toLocaleDateString();
+}
+
+function buildNoteSearchText(note) {
+  return [note.title, note.content, ...(note.tags || [])].join("\n").toLowerCase();
+}
+
+function renderNotesStats() {
+  const items = state.notes.items || [];
+  if (notesStatActive) notesStatActive.textContent = String(items.filter((note) => note.status === "active").length);
+  if (notesStatArchived) notesStatArchived.textContent = String(items.filter((note) => note.status === "archived").length);
+}
+
+function renderNotesTagPreview(note) {
+  if (!notesTagPreview) return;
+  const tags = note?.tags || [];
+  notesTagPreview.innerHTML = "";
+  notesTagPreview.classList.toggle("hidden", tags.length === 0);
+  if (tags.length === 0) return;
+  const fragment = document.createDocumentFragment();
+  tags.forEach((tag) => {
+    const chip = document.createElement("button");
+    chip.type = "button";
+    chip.className = "tag notesTagChip";
+    chip.textContent = `#${tag}`;
+    chip.addEventListener("click", () => {
+      applyNotesViewFilters({ tagFilter: tag }, { focusKind: "filter" });
+    });
+    fragment.appendChild(chip);
+  });
+  notesTagPreview.appendChild(fragment);
+}
+
+function renderNotesEmptyState(filteredCount, totalCount) {
+  if (!notesEmpty) return;
+  const show = filteredCount === 0;
+  notesEmpty.classList.toggle("hidden", !show);
+  if (!show) return;
+  if (notesEmptyTitle) {
+    notesEmptyTitle.textContent = totalCount === 0
+      ? "No notes yet"
+      : (state.notes.scope === "archived" ? "No notes in the bin" : "No notes match this search");
+  }
+  if (notesEmptyHint) {
+    notesEmptyHint.textContent = totalCount === 0
+      ? "Create a note for this session, a subject, or a plan."
+      : (state.notes.scope === "archived"
+        ? "Move notes to the bin from the editor when you want to archive them."
+        : "Try a different search term or clear the current tag filter.");
+  }
+  btnNotesEmptyCreate?.classList.toggle("hidden", state.notes.scope === "archived");
+}
+
+function getFilteredNotes() {
+  const search = String(state.notes.searchQuery || "").trim().toLowerCase();
+  const scope = state.notes.scope === "archived" ? "archived" : "active";
+  const tagFilter = String(state.notes.tagFilter || "").trim().toLowerCase();
+  return sortNoteItems(
+    (state.notes.items || []).filter((note) => {
+      if (note.status !== scope) return false;
+      if (tagFilter && !(note.tags || []).includes(tagFilter)) return false;
+      if (!search) return true;
+      return buildNoteSearchText(note).includes(search);
+    })
+  );
+}
+
+function renderNotesList() {
+  if (!notesList) return;
+  const filtered = getFilteredNotes();
+  const renderedActiveId = getRenderedActiveNote()?.id || "";
+  const totalInScope = (state.notes.items || []).filter((note) => note.status === state.notes.scope).length;
+  notesList.innerHTML = "";
+  renderNotesEmptyState(filtered.length, totalInScope);
+  if (filtered.length === 0) return;
+
+  const fragment = document.createDocumentFragment();
+  filtered.forEach((note) => {
+    const isArchived = note.status === "archived";
+    const row = document.createElement("div");
+    row.className = `item notesListItem${note.id === renderedActiveId ? " notesListItem--active" : ""}`;
+    row.setAttribute("role", "button");
+    row.setAttribute("tabindex", "0");
+    row.innerHTML = `
+      <div class="item__meta">
+        <div class="item__body">
+          <div class="handoutMetaRow notesListItem__metaRow">
+            <span class="tag">NOTE</span>
+            <span class="notesListItem__date">${escapeHtml(formatNoteSessionDate(note.sessionDate))}</span>
+          </div>
+          <div class="item__title"><strong>${escapeHtml(note.title)}</strong></div>
+          <p class="item__preview">${escapeHtml(String(note.content || "").trim() || "No content yet.")}</p>
+          <div class="notesListItem__footer">
+            <span class="notesListItem__updated">Updated ${escapeHtml(formatNoteTimestamp(note.updatedAt))}</span>
+            <div class="notesListItem__tags">${(note.tags || []).map((tag) => `<button type="button" class="tag notesListItem__tag">#${escapeHtml(tag)}</button>`).join("")}</div>
+          </div>
+        </div>
+      </div>
+      <div class="item__right notesListItem__actions">
+        ${isArchived
+          ? `<button type="button" class="iconBtn notesActionBtn" data-action="restore" aria-label="Restore note" title="Restore note">${getNoteActionIcon("restore")}</button>
+             <button type="button" class="iconBtn notesActionBtn notesActionBtn--danger" data-action="delete" aria-label="Delete note forever" title="Delete forever">${getNoteActionIcon("delete")}</button>`
+          : `<button type="button" class="iconBtn notesActionBtn" data-action="archive" aria-label="Move note to bin" title="Move note to bin">${getNoteActionIcon("delete")}</button>`}
+      </div>
+    `;
+    row.addEventListener("click", () => setActiveNote(note.id));
+    row.addEventListener("keydown", (event) => {
+      if (event.key === "Enter" || event.key === " ") {
+        event.preventDefault();
+        setActiveNote(note.id);
       }
-    } catch (e) {
-      console.warn("Firestore notes load failed, using local:", e);
-    }
-  }
-  if (notesStatus) notesStatus.textContent = key ? "Tap Save to store your notes." : "Join a session to save notes.";
+    });
+    row.querySelectorAll(".notesListItem__tag").forEach((tagButton, index) => {
+      tagButton.addEventListener("click", (event) => {
+        event.stopPropagation();
+        applyNotesViewFilters({ tagFilter: note.tags[index] || "" }, { focusKind: "filter" });
+      });
+    });
+    row.querySelectorAll(".notesActionBtn").forEach((actionButton) => {
+      actionButton.addEventListener("click", async (event) => {
+        event.stopPropagation();
+        const action = actionButton.getAttribute("data-action");
+        if (action === "archive") await archiveNote(note.id);
+        if (action === "restore") await restoreNote(note.id);
+        if (action === "delete") await deleteNoteForever(note.id);
+      });
+    });
+    fragment.appendChild(row);
+  });
+  notesList.appendChild(fragment);
 }
 
-function saveNotesNow(showSavedState = false) {
-  const key = getNotesStorageKey();
-  if (!notesEditor || !key) return;
-  const text = notesEditor.value || "";
+function renderActiveNote() {
+  const note = getRenderedActiveNote();
+  const hasNote = !!note;
+  const isTitleFocused = document.activeElement === noteTitleInput;
+  const isTagsFocused = document.activeElement === noteTagsInput;
+  const isEditorFocused = document.activeElement === notesEditor;
+  if (notesEditorHeading) notesEditorHeading.textContent = hasNote ? (isTitleFocused ? (String(noteTitleInput?.value || "").trim() || NOTES_DEFAULT_TITLE) : note.title) : "Select a note";
+  notesEditorEmptyState?.classList.toggle("hidden", hasNote);
+  notesEditorActions?.classList.toggle("hidden", !hasNote);
+  notesEditorFields?.classList.toggle("hidden", !hasNote);
+  notesEditor?.classList.toggle("hidden", !hasNote);
+  notesStatus?.classList.toggle("hidden", !hasNote);
+  if (noteTitleInput) {
+    if (!isTitleFocused) noteTitleInput.value = hasNote ? (note.title === NOTES_DEFAULT_TITLE ? "" : note.title) : "";
+    noteTitleInput.disabled = !hasNote;
+  }
+  if (noteSessionDateInput) {
+    noteSessionDateInput.value = hasNote ? normalizeNoteDate(note.sessionDate) : "";
+    noteSessionDateInput.disabled = !hasNote;
+  }
+  if (noteTagsInput) {
+    if (!isTagsFocused) noteTagsInput.value = hasNote ? (note.tags || []).join(", ") : "";
+    noteTagsInput.disabled = !hasNote;
+  }
+  if (notesEditor) {
+    if (!isEditorFocused) notesEditor.value = hasNote ? note.content : "";
+    notesEditor.disabled = !hasNote;
+  }
+  btnNotesMore?.toggleAttribute("disabled", !hasNote);
+  if (!hasNote) closeNotesMorePopover();
+  btnNotesArchive?.classList.toggle("hidden", !hasNote || note.status === "archived");
+  btnNotesArchive?.toggleAttribute("disabled", !hasNote || note.status === "archived");
+  btnNotesRestore?.classList.toggle("hidden", !hasNote || note.status !== "archived");
+  btnNotesRestore?.toggleAttribute("disabled", !hasNote || note.status !== "archived");
+  btnNotesSave?.toggleAttribute("disabled", !hasNote);
+  btnNotesSave?.classList.toggle("btn--active", !!(hasNote && state.notes.dirty));
+  if (btnNotesSave) {
+    btnNotesSave.setAttribute("aria-label", hasNote && state.notes.dirty ? "Save note with unsaved changes" : "Save note");
+    btnNotesSave.title = hasNote && state.notes.dirty ? "Save unsaved changes" : "Save note";
+  }
+  renderNotesTagPreview(note);
+  renderTagSuggestions(note);
+  if (!hasNote) {
+    setNotesStatus(state.notes.isLoading ? "Loading notes..." : "Select a note to begin.");
+    return;
+  }
+  if (state.notes.dirty && note.id === state.notes.activeId) {
+    setNotesStatus("Unsaved changes");
+    return;
+  }
+  setNotesStatus(`Saved ${formatNoteTimestamp(note.updatedAt)}`);
+}
 
-  // Instant local save
-  localStorage.setItem(key, text);
-  notesLastValue = text;
-
-  // Debounced Firestore save
-  if (_notesFirestoreSaveTimer) clearTimeout(_notesFirestoreSaveTimer);
-  _notesFirestoreSaveTimer = setTimeout(() => {
-    const ref = getNotesDocRef();
-    if (ref) {
-      setDoc(ref, { content: text, updatedAt: serverTimestamp() }).catch(e =>
-        console.warn("Firestore notes save failed:", e)
-      );
-    }
-  }, 3000);
-
-  if (showSavedState && notesStatus) {
-    notesStatus.textContent = "Saved \u2714";
-    setTimeout(() => {
-      if (notesStatus) notesStatus.textContent = "Tap Save to store your notes.";
-    }, 1500);
+function renderNotesFilterState() {
+  if (btnNotesScopeActive) {
+    const isActive = state.notes.scope !== "archived";
+    btnNotesScopeActive.classList.toggle("btn--active", isActive);
+    btnNotesScopeActive.setAttribute("aria-pressed", isActive ? "true" : "false");
+  }
+  if (btnNotesScopeBin) {
+    const isArchived = state.notes.scope === "archived";
+    btnNotesScopeBin.classList.toggle("btn--active", isArchived);
+    btnNotesScopeBin.setAttribute("aria-pressed", isArchived ? "true" : "false");
+  }
+  if (notesTagFilterWrap) notesTagFilterWrap.classList.toggle("hidden", !state.notes.tagFilter);
+  if (btnNotesTagFilter) btnNotesTagFilter.textContent = state.notes.tagFilter ? `#${state.notes.tagFilter}` : "";
+  if (btnNotesAutoSave) {
+    btnNotesAutoSave.classList.toggle("btn--active", !!state.notes.autoSave);
+    btnNotesAutoSave.setAttribute("aria-pressed", state.notes.autoSave ? "true" : "false");
+    btnNotesAutoSave.setAttribute("aria-label", state.notes.autoSave ? "Auto-save is on" : "Auto-save is off");
+    btnNotesAutoSave.title = state.notes.autoSave ? "Auto-save is on" : "Auto-save is off";
   }
 }
 
-notesEditor?.addEventListener("input", () => {
-  const current = notesEditor.value || "";
-  if (current !== notesLastValue) {
-    notesHistory.push(notesLastValue);
-    if (notesHistory.length > NOTES_HISTORY_LIMIT) notesHistory.shift();
-    btnNotesUndo && (btnNotesUndo.disabled = notesHistory.length === 0);
+function renderNotesUI() {
+  if (notesSearch && notesSearch.value !== state.notes.searchQuery) notesSearch.value = state.notes.searchQuery;
+  renderNotesStats();
+  renderNotesFilterState();
+  renderNotesList();
+  renderActiveNote();
+}
+
+function setActiveNote(noteId) {
+  const normalizedId = String(noteId || "").trim();
+  if (!normalizedId) return;
+  if (!(state.notes.items || []).some((note) => note.id === normalizedId)) return;
+  const finishSelection = () => {
+    state.notes.activeId = normalizedId;
+    state.notes.dirty = false;
+    renderNotesUI();
+    setNotesEditorOpen(true);
+  };
+  if (state.notes.dirty && state.notes.activeId && normalizedId !== state.notes.activeId) {
+    openNotesConfirmModal({
+      title: "Unsaved changes",
+      body: "Save your current note before switching to another one?",
+      okLabel: "Discard & Switch",
+      okStyle: "danger",
+      secondaryLabel: "Save & Switch",
+      onConfirm: finishSelection,
+      onSecondary: async () => {
+        const saved = await saveNotesNow(false);
+        if (saved !== false) finishSelection();
+      },
+    });
+    return;
   }
-  if (notesStatus) notesStatus.textContent = "Unsaved changes";
+  finishSelection();
+}
+
+function buildNewNoteRecord(overrides = {}) {
+  const now = new Date();
+  return normalizeNoteRecord({
+    id: overrides.id || "draft",
+    ownerUid: state.uid,
+    title: overrides.title || NOTES_DEFAULT_TITLE,
+    content: overrides.content || "",
+    sessionDate: overrides.sessionDate || getTodayDateInputValue(),
+    tags: overrides.tags || [],
+    status: overrides.status || "active",
+    createdAt: overrides.createdAt || now,
+    updatedAt: overrides.updatedAt || now,
+    deletedAt: overrides.deletedAt || null,
+  }, overrides.id || "draft");
+}
+
+async function migrateLegacyNotesIfNeeded(existingCount = 0) {
+  if (existingCount > 0) return false;
+  const legacyRef = getLegacyNotesDocRef();
+  const legacyKey = getLegacyNotesStorageKey();
+  let legacyContent = String(legacyKey ? (localStorage.getItem(legacyKey) || "") : "").trim();
+  if (legacyRef) {
+    try {
+      const legacySnap = await getDoc(legacyRef);
+      if (legacySnap.exists()) {
+        legacyContent = String(legacySnap.data()?.content || legacyContent || "").trim();
+      }
+    } catch (err) {
+      console.warn("Legacy notes migration read failed:", err);
+    }
+  }
+  if (!legacyContent) return false;
+  const notesRef = getNotesCollectionRef();
+  if (!notesRef) return false;
+  await addDoc(notesRef, {
+    ownerUid: state.uid,
+    title: NOTES_LEGACY_TITLE,
+    content: legacyContent,
+    sessionDate: getTodayDateInputValue(),
+    tags: ["legacy"],
+    status: "active",
+    deletedAt: null,
+    createdAt: serverTimestamp(),
+    updatedAt: serverTimestamp(),
+  });
+  return true;
+}
+
+async function loadNotesForCurrentSession() {
+  if (state.unsubNotes) {
+    state.unsubNotes();
+    state.unsubNotes = null;
+  }
+  state.notes.isLoading = true;
+  state.notes.dirty = false;
+  state.notes.didAttemptLegacyMigration = false;
+  if (!notesEditor) {
+    state.notes.isLoading = false;
+    return;
+  }
+  state.notes.items = [];
+  state.notes.activeId = null;
+  renderNotesUI();
+
+  const notesRef = getNotesCollectionRef();
+  const uid = String(state.uid || "").trim();
+  if (!notesRef || !uid) {
+    state.notes.items = [];
+    state.notes.activeId = null;
+    state.notes.isLoading = false;
+    renderNotesUI();
+    setNotesStatus("Join a session to save notes.");
+    return;
+  }
+
+  const notesQuery = query(notesRef, where("ownerUid", "==", uid), orderBy("updatedAt", "desc"));
+  state.unsubNotes = onSnapshot(notesQuery, async (snap) => {
+    if (snap.empty && !state.notes.didAttemptLegacyMigration) {
+      state.notes.didAttemptLegacyMigration = true;
+      try {
+        const migrated = await migrateLegacyNotesIfNeeded(0);
+        if (migrated) return;
+      } catch (err) {
+        console.warn("Legacy notes migration failed:", err);
+      }
+    }
+
+    const dirtyActiveNote = state.notes.dirty ? getActiveNote() : null;
+    let nextItems = sortNoteItems(
+      snap.docs
+        .map((docSnap) => normalizeNoteRecord({ id: docSnap.id, ...docSnap.data() }, docSnap.id))
+        .filter(Boolean)
+    );
+
+    if (dirtyActiveNote?.id) {
+      const preservedDraft = normalizeNoteRecord(dirtyActiveNote, dirtyActiveNote.id);
+      const existingIndex = nextItems.findIndex((note) => note.id === preservedDraft.id);
+      if (existingIndex >= 0) nextItems[existingIndex] = preservedDraft;
+      else nextItems.unshift(preservedDraft);
+      nextItems = sortNoteItems(nextItems);
+    }
+
+    state.notes.items = nextItems;
+    if (!state.notes.activeId || !nextItems.some((note) => note.id === state.notes.activeId)) {
+      state.notes.activeId = nextItems[0]?.id || null;
+    }
+    state.notes.isLoading = false;
+    renderNotesUI();
+    if (nextItems.length === 0) setNotesStatus("Create your first note to start journaling this session.");
+  }, (err) => {
+    state.notes.isLoading = false;
+    console.warn("Notes sync failed:", err);
+    renderNotesUI();
+    setNotesStatus("Could not sync notes from the cloud.");
+  });
+}
+
+async function createNoteFile(initial = {}) {
+  const notesRef = getNotesCollectionRef();
+  if (!notesRef || !state.uid) {
+    showToast("Join a session before creating notes.", "error");
+    return null;
+  }
+  const draft = buildNewNoteRecord(initial);
+  try {
+    const created = await addDoc(notesRef, {
+      ownerUid: state.uid,
+      title: draft.title,
+      content: draft.content,
+      sessionDate: draft.sessionDate,
+      tags: draft.tags,
+      status: draft.status,
+      deletedAt: null,
+      createdAt: serverTimestamp(),
+      updatedAt: serverTimestamp(),
+    });
+    const localDraft = buildNewNoteRecord({ ...draft, id: created.id });
+    state.notes.items = sortNoteItems([localDraft, ...(state.notes.items || [])]);
+    state.notes.scope = "active";
+    state.notes.searchQuery = "";
+    state.notes.tagFilter = "";
+    state.notes.activeId = created.id;
+    state.notes.dirty = false;
+    renderNotesUI();
+    setNotesEditorOpen(true);
+    setNotesStatus("New note created.");
+    showToast("New note created.", "success");
+    return created.id;
+  } catch (err) {
+    console.error("Create note failed:", err);
+    showToast("Could not create note.", "error");
+    return null;
+  }
+}
+
+function requestCreateNoteFile(initial = {}) {
+  if (state.notes.dirty && state.notes.activeId) {
+    openNotesConfirmModal({
+      title: "Unsaved changes",
+      body: "Save your current note before creating a new one?",
+      okLabel: "Discard & Create",
+      okStyle: "danger",
+      secondaryLabel: "Save & Create",
+      onConfirm: () => {
+        createNoteFile(initial);
+      },
+      onSecondary: async () => {
+        const saved = await saveNotesNow(false);
+        if (saved !== false) await createNoteFile(initial);
+      },
+    });
+    return;
+  }
+  createNoteFile(initial);
+}
+
+function updateActiveNoteDraft(changes, options = {}) {
+  const activeNote = getActiveNote();
+  if (!activeNote) return;
+  const scheduleSave = options.scheduleSave !== false;
+  state.notes.items = sortNoteItems(
+    (state.notes.items || []).map((note) => note.id === activeNote.id
+      ? normalizeNoteRecord({
+          ...note,
+          ...changes,
+          updatedAt: new Date(),
+        }, note.id)
+      : note)
+  );
+  state.notes.dirty = true;
+  renderNotesUI();
+  setNotesStatus("Unsaved changes");
+  if (scheduleSave && state.notes.autoSave) queueActiveNoteSave();
+}
+
+function queueActiveNoteSave() {
+  if (state.notes.saveTimer) clearTimeout(state.notes.saveTimer);
+  const noteId = state.notes.activeId;
+  if (!noteId) return;
+  state.notes.saveTimer = setTimeout(() => {
+    state.notes.saveTimer = null;
+    saveNoteById(noteId);
+  }, NOTES_SAVE_DEBOUNCE_MS);
+}
+
+async function saveNoteById(noteId, options = {}) {
+  const note = (state.notes.items || []).find((entry) => entry.id === noteId);
+  const noteRef = getNoteDocRef(noteId);
+  if (!note || !noteRef) return false;
+  try {
+    await updateDoc(noteRef, {
+      title: normalizeNoteTitle(note.title),
+      content: String(note.content || ""),
+      sessionDate: normalizeNoteDate(note.sessionDate),
+      tags: normalizeNoteTags(note.tags),
+      status: note.status === "archived" ? "archived" : "active",
+      deletedAt: note.status === "archived" ? (note.deletedAt || serverTimestamp()) : null,
+      updatedAt: serverTimestamp(),
+    });
+    const savedAt = new Date();
+    state.notes.items = sortNoteItems(
+      (state.notes.items || []).map((entry) => entry.id === noteId
+        ? {
+            ...entry,
+            updatedAt: savedAt,
+            deletedAt: entry.status === "archived" ? (entry.deletedAt || savedAt) : null,
+          }
+        : entry)
+    );
+    if (state.notes.activeId === noteId) state.notes.dirty = false;
+    renderNotesUI();
+    setNotesStatus(`Saved ${formatNoteTimestamp(savedAt)}`);
+    if (options.showToast) showToast("Note saved.", "success");
+    return true;
+  } catch (err) {
+    console.error("Save note failed:", err);
+    setNotesStatus("Save failed. Keep this note open and try again.");
+    if (options.showToast !== false) showToast("Could not save note.", "error");
+    return false;
+  }
+}
+
+async function saveNotesNow(showSavedState = false) {
+  if (state.notes.saveTimer) {
+    clearTimeout(state.notes.saveTimer);
+    state.notes.saveTimer = null;
+  }
+  const activeId = state.notes.activeId;
+  if (!activeId) return false;
+  return saveNoteById(activeId, { showToast: showSavedState });
+}
+
+async function archiveNote(noteId = state.notes.activeId) {
+  const note = (state.notes.items || []).find((entry) => entry.id === noteId);
+  if (!note) return;
+  state.notes.items = sortNoteItems(
+    (state.notes.items || []).map((entry) => entry.id === noteId
+      ? { ...entry, status: "archived", deletedAt: new Date(), updatedAt: new Date() }
+      : entry)
+  );
+  if (state.notes.activeId === noteId) state.notes.activeId = getNextVisibleNoteId({ excludingId: noteId });
+  if (!state.notes.activeId) setNotesEditorOpen(false);
+  renderNotesUI();
+  await saveNoteById(noteId, { showToast: false });
+  showToast("Note moved to bin.", "info");
+}
+
+async function restoreNote(noteId = state.notes.activeId) {
+  const note = (state.notes.items || []).find((entry) => entry.id === noteId);
+  if (!note) return;
+  state.notes.items = sortNoteItems(
+    (state.notes.items || []).map((entry) => entry.id === noteId
+      ? { ...entry, status: "active", deletedAt: null, updatedAt: new Date() }
+      : entry)
+  );
+  if (state.notes.scope === "archived") {
+    state.notes.activeId = getNextVisibleNoteId({ excludingId: noteId });
+  } else {
+    state.notes.activeId = noteId;
+  }
+  if (!state.notes.activeId) setNotesEditorOpen(false);
+  renderNotesUI();
+  await saveNoteById(noteId, { showToast: false });
+  showToast("Note restored.", "success");
+}
+
+async function deleteNoteForever(noteId = state.notes.activeId) {
+  const note = (state.notes.items || []).find((entry) => entry.id === noteId);
+  const noteRef = getNoteDocRef(noteId);
+  if (!note || !noteRef) return;
+  openNotesConfirmModal({
+    title: "Delete note forever?",
+    body: `"${note.title}" will be removed permanently. This cannot be undone.`,
+    okLabel: "Delete",
+    okStyle: "danger",
+    onConfirm: async () => {
+      try {
+        await deleteDoc(noteRef);
+        state.notes.items = (state.notes.items || []).filter((entry) => entry.id !== noteId);
+        if (state.notes.activeId === noteId) {
+          state.notes.activeId = getNextVisibleNoteId({ excludingId: noteId });
+          if (!state.notes.activeId) setNotesEditorOpen(false);
+        }
+        state.notes.dirty = false;
+        renderNotesUI();
+        showToast("Note deleted forever.", "success");
+      } catch (err) {
+        console.error("Delete note failed:", err);
+        showToast("Could not delete note.", "error");
+      }
+    },
+  });
+}
+
+function buildNoteExportPayload(note, format = "txt") {
+  const title = normalizeNoteTitle(note?.title);
+  const safeTitle = title.replace(/[\\/:*?"<>|]+/g, "-").replace(/\s+/g, " ").trim();
+  const sessionDate = normalizeNoteDate(note?.sessionDate || getTodayDateInputValue());
+  const tags = normalizeNoteTags(note?.tags);
+  if (format === "md") {
+    return {
+      fileName: `${safeTitle || "note"}-${sessionDate}.md`,
+      mimeType: "text/markdown;charset=utf-8",
+      content: [
+        `# ${title}`,
+        "",
+        `- Session date: ${sessionDate}`,
+        `- Updated: ${formatNoteTimestamp(note?.updatedAt)}`,
+        tags.length ? `- Tags: ${tags.map((tag) => `#${tag}`).join(" ")}` : "- Tags: -",
+        "",
+        String(note?.content || ""),
+      ].join("\n"),
+    };
+  }
+  return {
+    fileName: `${safeTitle || "note"}-${sessionDate}.txt`,
+    mimeType: "text/plain;charset=utf-8",
+    content: [
+      title,
+      `Session date: ${sessionDate}`,
+      `Updated: ${formatNoteTimestamp(note?.updatedAt)}`,
+      tags.length ? `Tags: ${tags.join(", ")}` : "Tags: -",
+      "",
+      String(note?.content || ""),
+    ].join("\n"),
+  };
+}
+
+function exportActiveNote(format = "txt") {
+  const note = getRenderedActiveNote();
+  if (!note) return;
+  const payload = buildNoteExportPayload(note, format);
+  const blob = new Blob([payload.content], { type: payload.mimeType });
+  const href = URL.createObjectURL(blob);
+  const anchor = document.createElement("a");
+  anchor.href = href;
+  anchor.download = payload.fileName;
+  document.body.appendChild(anchor);
+  anchor.click();
+  anchor.remove();
+  setTimeout(() => URL.revokeObjectURL(href), 0);
+  showToast(`Exported ${format.toUpperCase()} file.`, "success");
+}
+
+notesSearch?.addEventListener("input", () => {
+  applyNotesViewFilters({ searchQuery: String(notesSearch.value || "") }, { focusKind: "search" });
 });
 
-btnNotesUndo?.addEventListener("click", () => {
-  if (!notesEditor || notesHistory.length === 0) return;
-  const previous = notesHistory.pop();
-  notesEditor.value = previous || "";
-  btnNotesUndo && (btnNotesUndo.disabled = notesHistory.length === 0);
-  if (notesStatus) notesStatus.textContent = "Unsaved changes";
+btnNotesScopeActive?.addEventListener("click", () => {
+  changeNotesScope("active");
+});
+
+btnNotesScopeBin?.addEventListener("click", () => {
+  changeNotesScope("archived");
+});
+
+btnNotesClearTagFilter?.addEventListener("click", () => {
+  applyNotesViewFilters({ tagFilter: "" }, { focusKind: "filter" });
+});
+
+btnNotesNew?.addEventListener("click", () => {
+  requestCreateNoteFile();
+});
+
+btnNotesEmptyCreate?.addEventListener("click", () => {
+  requestCreateNoteFile();
+});
+
+btnNotesEmptyEditorCreate?.addEventListener("click", () => {
+  requestCreateNoteFile();
+});
+
+noteTitleInput?.addEventListener("input", () => {
+  updateActiveNoteDraft({ title: noteTitleInput.value || "" });
+});
+
+noteSessionDateInput?.addEventListener("input", () => {
+  updateActiveNoteDraft({ sessionDate: noteSessionDateInput.value || getTodayDateInputValue() });
+});
+
+noteTagsInput?.addEventListener("input", () => {
+  updateActiveNoteDraft({ tags: normalizeNoteTags(noteTagsInput.value || "") });
+});
+
+noteTagsInput?.addEventListener("focus", () => {
+  renderTagSuggestions();
+});
+
+noteTagsInput?.addEventListener("blur", () => {
+  window.setTimeout(() => notesTagSuggestions?.classList.add("hidden"), 200);
+});
+
+notesEditor?.addEventListener("input", () => {
+  updateActiveNoteDraft({ content: notesEditor.value || "" });
+});
+
+btnNotesArchive?.addEventListener("click", () => {
+  archiveNote();
+});
+
+btnNotesRestore?.addEventListener("click", () => {
+  restoreNote();
+});
+
+btnNotesCopyAll?.addEventListener("click", async () => {
+  const note = getActiveNote();
+  if (!note) return;
+  await copyToClipboard(String(note.content || ""));
+  closeNotesMorePopover();
+  showToast("Copied note text.", "success");
+});
+
+btnNotesExportTxt?.addEventListener("click", () => {
+  exportActiveNote("txt");
+  closeNotesMorePopover();
+});
+
+btnNotesExportMd?.addEventListener("click", () => {
+  exportActiveNote("md");
+  closeNotesMorePopover();
+});
+
+btnNotesMore?.addEventListener("click", (event) => {
+  event.stopPropagation();
+  toggleNotesMorePopover();
+});
+
+btnNotesAutoSave?.addEventListener("click", () => {
+  state.notes.autoSave = !state.notes.autoSave;
+  localStorage.setItem(getNotesAutoSaveKey(), state.notes.autoSave ? "1" : "0");
+  if (!state.notes.autoSave && state.notes.saveTimer) {
+    clearTimeout(state.notes.saveTimer);
+    state.notes.saveTimer = null;
+  }
+  renderNotesFilterState();
+  showToast(state.notes.autoSave ? "Auto-save enabled." : "Auto-save disabled.", "info");
+});
+
+btnNotesEditorBack?.addEventListener("click", () => {
+  setNotesEditorOpen(false);
+  closeNotesMorePopover();
+});
+
+btnNotesConfirmCancel?.addEventListener("click", () => {
+  closeNotesConfirmModal();
+});
+
+btnNotesConfirmSecondary?.addEventListener("click", async () => {
+  const callback = notesConfirmCallbacks.onSecondary;
+  closeNotesConfirmModal();
+  if (typeof callback === "function") await callback();
+});
+
+btnNotesConfirmOk?.addEventListener("click", async () => {
+  const callback = notesConfirmCallbacks.onConfirm;
+  closeNotesConfirmModal();
+  if (typeof callback === "function") await callback();
+});
+
+notesConfirmModal?.addEventListener("click", (event) => {
+  if (event.target === notesConfirmModal) closeNotesConfirmModal();
+});
+
+document.addEventListener("keydown", (event) => {
+  if (event.key !== "Escape") return;
+  if (notesConfirmModal && !notesConfirmModal.classList.contains("hidden")) {
+    closeNotesConfirmModal();
+    return;
+  }
+  if (notesMorePopover && !notesMorePopover.classList.contains("hidden")) {
+    closeNotesMorePopover();
+    btnNotesMore?.focus();
+  }
+});
+
+document.addEventListener("click", (event) => {
+  if (!notesMorePopover || !btnNotesMore) return;
+  const target = event.target;
+  if (!(target instanceof Node)) return;
+  if (notesMorePopover.contains(target) || btnNotesMore.contains(target)) return;
+  closeNotesMorePopover();
 });
 
 // Manual save button
 const btnNotesSave = $("btnNotesSave");
-btnNotesSave?.addEventListener("click", () => {
-  saveNotesNow(true);
-  setTimeout(() => showOnly(getDefaultRoleScreen()), 400);
+btnNotesSave?.addEventListener("click", async () => {
+  await saveNotesNow(true);
 });
 
 btnNotesBack && (btnNotesBack.onclick = () => {
-  const backScreen = state.role === "dm" ? "gmDash" : "plView";
-  showOnly(backScreen);
+  if (state.notes.dirty) {
+    openNotesConfirmModal({
+      title: "Unsaved changes",
+      body: "Leave notes without saving your latest changes?",
+      okLabel: "Leave",
+      okStyle: "danger",
+      secondaryLabel: "Save & Leave",
+      onConfirm: goBackFromNotes,
+      onSecondary: async () => {
+        await saveNotesNow(false);
+        goBackFromNotes();
+      },
+    });
+    return;
+  }
+  goBackFromNotes();
 });
 
 btnInfoBack && (btnInfoBack.onclick = () => {
@@ -4351,16 +5738,9 @@ function startOnboarding(options = {}) {
   overlay.className = "onboardOverlay";
   let activeTarget = null;
   let targetCleanup = null;
-  const originalFabPos = {
-    right: btnHamburger?.style.right || "",
-    bottom: btnHamburger?.style.bottom || "",
-  };
+  const tapVerb = window.matchMedia?.("(pointer: coarse)")?.matches ? "Tap" : "Click";
 
-  if (btnHamburger) {
-    // Keep FAB stable during tutorial so spotlight doesn't jump to user-saved drag positions.
-    btnHamburger.style.right = "20px";
-    btnHamburger.style.bottom = "92px";
-  }
+  setHamburgerTutorialLock(true);
 
   function clearActiveTarget() {
     if (activeTarget) {
@@ -4369,6 +5749,13 @@ function startOnboarding(options = {}) {
     }
     if (targetCleanup) { targetCleanup(); targetCleanup = null; }
     activeTarget = null;
+  }
+
+  function cleanupOnboarding() {
+    clearActiveTarget();
+    window.removeEventListener("resize", showStep);
+    setHamburgerTutorialLock(false);
+    overlay.remove();
   }
 
   function advance() {
@@ -4384,16 +5771,12 @@ function startOnboarding(options = {}) {
 
   function showStep() {
     if (step >= STEPS.length) {
-      clearActiveTarget();
-      if (btnHamburger) {
-        btnHamburger.style.right = originalFabPos.right;
-        btnHamburger.style.bottom = originalFabPos.bottom;
-      }
-      overlay.remove();
+      cleanupOnboarding();
       completeOnboarding();
       return;
     }
     const s = STEPS[step];
+    syncHamburgerSpeedDialPosition();
 
     if (s?.returnTo) {
       if (s.returnTo === SCREEN_KEYS.GM_DASH) {
@@ -4433,7 +5816,7 @@ function startOnboarding(options = {}) {
     tip.innerHTML = `
       ${s.title ? `<div class="onboardTooltip__title">${escapeHtml(s.title)}</div>` : ""}
       <div class="onboardTooltip__text">${escapeHtml(s.text)}</div>
-      ${isTap ? `<div class="onboardTooltip__tapHint"><span>👆</span><span>Tap the highlighted button to continue</span></div>` : ""}
+      ${isTap ? `<div class="onboardTooltip__tapHint"><span>👆</span><span>${escapeHtml(tapVerb)} the highlighted button to continue</span></div>` : ""}
       <div class="onboardTooltip__actions">
         <button class="onboard-skip" type="button" aria-label="Skip tutorial">Skip</button>
         ${!isTap ? `<button class="btn btn--small onboard-next" type="button">${isLast ? "Done" : "Next →"}</button>` : ""}
@@ -4441,12 +5824,7 @@ function startOnboarding(options = {}) {
       <div class="onboardTooltip__step">${step + 1} / ${STEPS.length}</div>
     `;
     tip.querySelector(".onboard-skip")?.addEventListener("click", () => {
-      clearActiveTarget();
-      if (btnHamburger) {
-        btnHamburger.style.right = originalFabPos.right;
-        btnHamburger.style.bottom = originalFabPos.bottom;
-      }
-      overlay.remove();
+      cleanupOnboarding();
       completeOnboarding();
     });
     tip.querySelector(".onboard-next")?.addEventListener("click", () => advance());
@@ -4512,6 +5890,7 @@ function startOnboarding(options = {}) {
   }
 
   document.body.appendChild(overlay);
+  window.addEventListener("resize", showStep);
   showStep();
 }
 
@@ -4519,24 +5898,49 @@ function startOnboarding(options = {}) {
 // Activates only when a list container has > 50 children. Uses IntersectionObserver
 // to hide off-screen items and reserve their space, reducing DOM paint cost.
 function initVirtualScroll(container, itemHeight = 72) {
-  if (!container || container.children.length <= 50) return;
-  const observer = new IntersectionObserver((entries) => {
-    entries.forEach(entry => {
-      const el = entry.target;
-      if (entry.isIntersecting) {
-        el.style.visibility = "visible";
-        el.style.contentVisibility = "visible";
-      } else {
-        el.style.visibility = "hidden";
-        el.style.contentVisibility = "hidden";
-      }
+  if (!container) return;
+  const childCount = container.children.length;
+
+  if (container._virtualSetupRaf) {
+    cancelAnimationFrame(container._virtualSetupRaf);
+    container._virtualSetupRaf = 0;
+  }
+
+  if (childCount <= 50) {
+    if (container._virtualObserver) {
+      container._virtualObserver.disconnect();
+      container._virtualObserver = null;
+    }
+    return;
+  }
+
+  container._virtualSetupRaf = requestAnimationFrame(() => {
+    container._virtualSetupRaf = 0;
+    if (container._virtualObserver) {
+      container._virtualObserver.disconnect();
+      container._virtualObserver = null;
+    }
+
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        const el = entry.target;
+        if (entry.isIntersecting) {
+          el.style.visibility = "visible";
+          el.style.contentVisibility = "visible";
+        } else {
+          el.style.visibility = "hidden";
+          el.style.contentVisibility = "hidden";
+        }
+      });
+    }, { root: container, rootMargin: "64px 0px" });
+
+    Array.from(container.children).forEach(child => {
+      child.style.minHeight = `${itemHeight}px`;
+      observer.observe(child);
     });
-  }, { root: container, rootMargin: "200px 0px" });
-  Array.from(container.children).forEach(child => {
-    child.style.minHeight = `${itemHeight}px`;
-    observer.observe(child);
+
+    container._virtualObserver = observer;
   });
-  container._virtualObserver = observer;
 }
 
 // -- Drag-and-drop with Sortable.js --
@@ -4613,6 +6017,8 @@ function cleanupListeners() {
   if (state.unsubTransfer) state.unsubTransfer();
   if (state.unsubNuggets) state.unsubNuggets();
   if (state.unsubTemplateAssignments) state.unsubTemplateAssignments();
+  if (state.unsubChat) state.unsubChat();
+  if (state.unsubNotes) state.unsubNotes();
   state.unsubSession = null;
   state.unsubHandouts = null;
   state.unsubPlayers = null;
@@ -4622,7 +6028,18 @@ function cleanupListeners() {
   state.unsubTransfer = null;
   state.unsubNuggets = null;
   state.unsubTemplateAssignments = null;
+  state.unsubChat = null;
+  state.unsubNotes = null;
   notifItems = [];
+  state.chat.messages = [];
+  state.chat.isLoading = false;
+  state.chat.isSending = false;
+  state.chat.isClearing = false;
+  state.chat.hasServerSnapshot = false;
+  state.chat.fromCache = false;
+  state.chat.error = "";
+  state.chat.sessionId = null;
+  state.chat.shouldAutoScroll = true;
   updateNotifBadge();
   if (notifPanel) {
     notifPanel.classList.add("hidden");
@@ -4644,6 +6061,7 @@ function leaveCurrentSessionLocally(message, tone = "info") {
   state.joinLink = null;
   state.gmHandoutsRaw = [];
   state.playerInventoryRaw = [];
+  if (chatInput) chatInput.value = "";
   state.activePlayers = [];
   state.partyRoster = [];
   state.battleActive = false;
@@ -5151,6 +6569,8 @@ const PLACEHOLDER_CATALOG = (() => {
 })();
 
 const createImageHistoryBySeed = new Map();
+const placeholderSelectionCache = new Map();
+const PLACEHOLDER_SELECTION_CACHE_MAX = 400;
 // BEGINNER NOTE:
 // This map remembers which image URLs we already showed for a specific handout
 // context, so "Change image" can rotate through alternatives before repeating.
@@ -5300,6 +6720,32 @@ function buildImageSelectionSeed({ title, publicContent, type, npcDisposition })
   ].join("|");
 }
 
+function getPlaceholderSelectionCacheKey({ title, publicContent, type, npcDisposition }) {
+  return buildImageSelectionSeed({ title, publicContent, type, npcDisposition });
+}
+
+function getCachedPlaceholderSelection(context) {
+  const key = getPlaceholderSelectionCacheKey(context);
+  if (!key) return null;
+  const cached = placeholderSelectionCache.get(key);
+  if (!cached) return null;
+  // Refresh insertion order for simple LRU behavior.
+  placeholderSelectionCache.delete(key);
+  placeholderSelectionCache.set(key, cached);
+  return cached;
+}
+
+function setCachedPlaceholderSelection(context, value) {
+  const key = getPlaceholderSelectionCacheKey(context);
+  if (!key) return;
+  if (placeholderSelectionCache.has(key)) placeholderSelectionCache.delete(key);
+  placeholderSelectionCache.set(key, value);
+  if (placeholderSelectionCache.size > PLACEHOLDER_SELECTION_CACHE_MAX) {
+    const oldestKey = placeholderSelectionCache.keys().next().value;
+    if (oldestKey) placeholderSelectionCache.delete(oldestKey);
+  }
+}
+
 function rankPlaceholderImages({ title, publicContent, type, npcDisposition }) {
   // BEGINNER NOTE:
   // This function scores ALL catalog images, then sorts best -> worst.
@@ -5375,8 +6821,10 @@ function selectBestPlaceholderImage({ title, publicContent, type, npcDisposition
   // Convenience helper: returns top-ranked image only.
   // We keep this because other flows (e.g. auto-fill on create) may only need
   // the single best option.
-  const ranked = rankPlaceholderImages({ title, publicContent, type, npcDisposition });
-  const best = ranked[0] || null;
+  const context = { title, publicContent, type, npcDisposition };
+  const cachedBest = getCachedPlaceholderSelection(context);
+  const best = cachedBest || (rankPlaceholderImages(context)[0] || null);
+  if (best && !cachedBest) setCachedPlaceholderSelection(context, best);
 
   if (!best) return null;
   const reason = best.matchedTags.length
@@ -6321,6 +7769,10 @@ function getHeroIconSvg(iconName, className = "") {
     key: `<svg${cls} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="8" cy="12" r="4" stroke="currentColor" stroke-width="1.8"/><path d="M12 12H20" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M17 12V15" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M19 12V14" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>`,
     eye: `<svg${cls} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M2 12C3.8 8.5 7.4 6 12 6C16.6 6 20.2 8.5 22 12C20.2 15.5 16.6 18 12 18C7.4 18 3.8 15.5 2 12Z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="1.8"/></svg>`,
     photo: `<svg${cls} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M4 6C4 4.895 4.895 4 6 4H18C19.105 4 20 4.895 20 6V18C20 19.105 19.105 20 18 20H6C4.895 20 4 19.105 4 18V6Z" stroke="currentColor" stroke-width="1.8"/><path d="M8 15L10.5 12.5L13 15L16 11L19 15" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><circle cx="9" cy="9" r="1.2" fill="currentColor"/></svg>`,
+    // Bolt icon — Heroicons v2 outline (MIT, heroicons.com / tailwindlabs/heroicons)
+    claim: `<svg${cls} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="m3.75 13.5 10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75Z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
+    // Circle + diagonal slash — original simple design (no external library)
+    "claim-off": `<svg${cls} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="12" r="8.5" stroke="currentColor" stroke-width="1.8"/><path d="M6.5 6.5L17.5 17.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>`,
   };
   return icons[iconName] || `<span${cls}>${escapeHtml(iconName)}</span>`;
 }
@@ -6764,9 +8216,17 @@ async function processRedirectAuthResult() {
     state.displayName = user.displayName || "";
     state.email = user.email || "";
 
+    const hadProfile = await hasExistingUserProfile(user.uid);
     await ensureFirestoreProfile(user);
+    if (hadProfile) {
+      const preferredName = await resolvePreferredDisplayName(user);
+      if (preferredName) applyResolvedNicknameState(preferredName);
+    }
     await convertOneShotSessions(user.uid);
-    const nick = await requireNickname();
+    if (!hadProfile) {
+      showToast("First time here - choose your player name.", "info", UI_TIMERS.TOAST_MEDIUM);
+    }
+    const nick = await requireNickname({ forcePrompt: !hadProfile });
     if (nick) state.displayName = nick;
     updateLandingAuthState();
     showToast("Welcome, " + (state.displayName || "Adventurer") + "!", "success");
@@ -6945,6 +8405,60 @@ async function ensureFirestoreProfile(user, extraData = {}) {
   }
 }
 
+async function hasExistingUserProfile(uid) {
+  const normalizedUid = String(uid || "").trim();
+  if (!normalizedUid) return false;
+  try {
+    const snap = await getDoc(getUserProfileRef(normalizedUid));
+    return snap.exists();
+  } catch (_) {
+    return false;
+  }
+}
+
+async function resolvePreferredDisplayName(user) {
+  const uid = String(user?.uid || state.uid || "").trim();
+  let profileDisplayName = "";
+  if (uid) {
+    try {
+      const playerProfile = await loadUserProfile(uid, { role: "player", force: true });
+      const dmProfile = await loadUserProfile(uid, { role: "dm", force: true });
+      profileDisplayName = String(playerProfile?.displayName || dmProfile?.displayName || "").trim();
+    } catch (err) {
+      if (!isPermissionDenied(err)) {
+        console.warn("Preferred displayName lookup failed:", err);
+      }
+    }
+  }
+
+  return String(
+    profileDisplayName
+    || state.playerNick
+    || state.nickname
+    || plNick?.value
+    || localStorage.getItem("tv_nick")
+    || localStorage.getItem("tv_nickname")
+    || state.displayName
+    || user?.displayName
+    || ""
+  ).trim();
+}
+
+function applyResolvedNicknameState(name, options = {}) {
+  const overwriteInput = options?.overwriteInput === true;
+  const normalized = String(name || "").trim();
+  if (!normalized) return "";
+  state.displayName = normalized;
+  state.nickname = normalized;
+  state.playerNick = normalized;
+  localStorage.setItem("tv_nick", normalized);
+  localStorage.setItem("tv_nickname", normalized);
+  if (plNick && (overwriteInput || !String(plNick.value || "").trim())) {
+    plNick.value = normalized;
+  }
+  return normalized;
+}
+
 // One-time migration:
 // Keep displayName consistent across legacy top-level field and roleProfiles.{player,dm}.
 async function runOneTimeRoleDisplayNameMigration(user) {
@@ -6954,13 +8468,7 @@ async function runOneTimeRoleDisplayNameMigration(user) {
   const migrationKey = `tv:role-name-migrated:v1:${uid}`;
   if (localStorage.getItem(migrationKey) === "1") return;
 
-  const preferredName = String(
-    localStorage.getItem("tv_nickname")
-    || localStorage.getItem("tv_nick")
-    || state.displayName
-    || user.displayName
-    || ""
-  ).trim();
+  const preferredName = await resolvePreferredDisplayName(user);
 
   if (!preferredName) {
     localStorage.setItem(migrationKey, "1");
@@ -6990,9 +8498,7 @@ async function runOneTimeRoleDisplayNameMigration(user) {
       }
     }
 
-    state.displayName = preferredName;
-    localStorage.setItem("tv_nickname", preferredName);
-    localStorage.setItem("tv_nick", preferredName);
+    applyResolvedNicknameState(preferredName);
     localStorage.setItem(migrationKey, "1");
   } catch (err) {
     if (isPermissionDenied(err)) {
@@ -7231,6 +8737,8 @@ async function signInWithEmailFn() {
     state.displayName = result.user.displayName || "";
     state.email = result.user.email || "";
     await ensureFirestoreProfile(result.user);
+    const preferredName = await resolvePreferredDisplayName(result.user);
+    if (preferredName) applyResolvedNicknameState(preferredName);
     const nick = await requireNickname();
     if (nick) state.displayName = nick;
     updateLandingAuthState();
@@ -7290,9 +8798,17 @@ async function signInWithGoogleFn() {
     state.displayName = user.displayName || "";
     state.email = user.email || "";
 
+    const hadProfile = await hasExistingUserProfile(user.uid);
     await ensureFirestoreProfile(user);
+    if (hadProfile) {
+      const preferredName = await resolvePreferredDisplayName(user);
+      if (preferredName) applyResolvedNicknameState(preferredName);
+    }
     await convertOneShotSessions(user.uid);
-    const nick = await requireNickname();
+    if (!hadProfile) {
+      showToast("First time here - choose your player name.", "info", UI_TIMERS.TOAST_MEDIUM);
+    }
+    const nick = await requireNickname({ forcePrompt: !hadProfile });
     if (nick) state.displayName = nick;
 
     updateLandingAuthState();
@@ -7735,7 +9251,331 @@ function openInventoryScreen() {
 
 function openNotesScreen() {
   showOnly(SCREEN_KEYS.NOTES);
+  state.notes.autoSave = localStorage.getItem(getNotesAutoSaveKey()) === "1";
+  renderNotesFilterState();
+  setNotesEditorOpen(false);
+  closeNotesMorePopover();
+  closeNotesConfirmModal();
   loadNotesForCurrentSession();
+}
+
+function getChatCollectionRef() {
+  const sid = String(state.sessionId || "").trim();
+  if (!sid) return null;
+  return collection(db, FIREBASE_PATHS.SESSIONS, sid, FIREBASE_PATHS.CHAT_MESSAGES);
+}
+
+function normalizeChatMessageRecord(record, fallbackId = "") {
+  if (!record || typeof record !== "object") return null;
+  const id = String(record.id || fallbackId || "").trim();
+  if (!id) return null;
+  return {
+    id,
+    uid: String(record.uid || "").trim(),
+    displayName: String(record.displayName || "Adventurer").trim().slice(0, 60) || "Adventurer",
+    avatarUrl: String(record.avatarUrl || "").trim(),
+    message: String(record.message || "").slice(0, LIMITS.CHAT_MESSAGE_MAX),
+    createdAt: record.createdAt || null,
+    expireAt: record.expireAt || null,
+  };
+}
+
+function sortChatMessagesAsc(messages) {
+  return [...(messages || [])].sort((left, right) => {
+    const delta = toMillisSafe(left?.createdAt) - toMillisSafe(right?.createdAt);
+    if (delta !== 0) return delta;
+    return String(left?.id || "").localeCompare(String(right?.id || ""));
+  });
+}
+
+function formatChatTimestamp(value) {
+  const millis = toMillisSafe(value);
+  if (!millis) return "Sending...";
+  return formatLastSeenDate(new Date(millis));
+}
+
+function isSameChatAuthor(left, right) {
+  return !!left && !!right && String(left.uid || "") === String(right.uid || "");
+}
+
+function isNearChatBottom() {
+  if (!chatList) return true;
+  return (chatList.scrollHeight - chatList.scrollTop - chatList.clientHeight) < 96;
+}
+
+function updateChatScrollIntent() {
+  state.chat.shouldAutoScroll = isNearChatBottom();
+}
+
+function setChatEmptyState(title, hint) {
+  if (!chatEmpty) return;
+  chatEmpty.classList.remove("hidden");
+  chatEmpty.querySelector(".emptyState__title")?.replaceChildren(document.createTextNode(title));
+  chatEmpty.querySelector(".emptyState__hint")?.replaceChildren(document.createTextNode(hint));
+}
+
+function syncChatComposerState() {
+  const hasSession = !!state.sessionId;
+  const trimmed = String(chatInput?.value || "").trim();
+  if (chatInput) chatInput.disabled = !hasSession || state.chat.isSending || state.chat.isClearing;
+  if (btnChatSend) btnChatSend.disabled = !hasSession || state.chat.isSending || state.chat.isClearing || !trimmed;
+  if (btnChatExport) btnChatExport.disabled = !hasSession || state.chat.isClearing;
+  if (btnChatClear) btnChatClear.disabled = !hasSession || state.chat.isClearing;
+}
+
+function renderChatScreen() {
+  if (!chatList || !chatEmpty || !chatStatus) return;
+  const messages = sortChatMessagesAsc(state.chat.messages || []);
+  const isGM = state.role === "dm";
+  const shouldStickToBottom = state.chat.shouldAutoScroll || currentScreenKey === SCREEN_KEYS.CHAT;
+
+  btnChatExport?.classList.toggle("hidden", !isGM || !state.sessionId);
+  btnChatClear?.classList.toggle("hidden", !isGM || !state.sessionId);
+  if (chatRetentionNote) {
+    chatRetentionNote.textContent = "Messages are visible to everyone in this session, written under your signed-in account, and automatically removed after 30 days.";
+  }
+
+  chatList.innerHTML = "";
+  chatEmpty.classList.add("hidden");
+
+  if (state.chat.isLoading && messages.length === 0) {
+    setChatEmptyState("Loading messages", "Fetching the latest party conversation.");
+    chatStatus.textContent = "Loading messages...";
+    syncChatComposerState();
+    return;
+  }
+
+  if (state.chat.error && messages.length === 0) {
+    setChatEmptyState("Could not load chat", "Check your connection and try opening the chat again.");
+    chatStatus.textContent = state.chat.error;
+    syncChatComposerState();
+    return;
+  }
+
+  if (messages.length === 0) {
+    setChatEmptyState("No messages yet", "Use this room to discuss the session, recap clues, or coordinate the next step.");
+    chatStatus.textContent = state.chat.isSending ? "Sending message..." : "Start the party conversation.";
+    syncChatComposerState();
+    return;
+  }
+
+  const fragment = document.createDocumentFragment();
+  messages.forEach((entry, index) => {
+    const prev = messages[index - 1] || null;
+    const isGrouped = isSameChatAuthor(prev, entry);
+    const card = document.createElement("article");
+    card.className = `chatMessage${entry.uid && entry.uid === state.uid ? " chatMessage--self" : ""}${isGrouped ? " chatMessage--grouped" : ""}`;
+    const avatarSrc = resolveDisplayAvatar(entry.avatarUrl, entry.uid);
+    const safeMessage = escapeHtml(entry.message).replace(/\n/g, "<br>");
+    card.innerHTML = `
+      <div class="chatMessage__avatarWrap">
+        <img class="chatMessage__avatar" src="${escapeHtml(avatarSrc)}" alt="${escapeHtml(entry.displayName)} avatar">
+      </div>
+      <div class="chatMessage__body">
+        <div class="chatMessage__meta">
+          <strong class="chatMessage__name">${escapeHtml(entry.displayName)}</strong>
+          <span class="chatMessage__time">${escapeHtml(formatChatTimestamp(entry.createdAt))}</span>
+        </div>
+        <p class="chatMessage__text">${safeMessage}</p>
+      </div>
+    `;
+    fragment.appendChild(card);
+  });
+  chatList.appendChild(fragment);
+
+  if (state.chat.error) {
+    chatStatus.textContent = state.chat.error;
+  } else if (state.chat.isClearing) {
+    chatStatus.textContent = "Clearing chat...";
+  } else if (state.chat.isSending) {
+    chatStatus.textContent = "Sending message...";
+  } else if (state.chat.isLoading && !state.chat.hasServerSnapshot) {
+    chatStatus.textContent = "Connecting to live chat...";
+  } else if (state.chat.fromCache && state.chat.hasServerSnapshot) {
+    chatStatus.textContent = "Connection interrupted. Showing the last server-confirmed chat state.";
+  } else {
+    chatStatus.textContent = `Live sync active. ${messages.length} message${messages.length === 1 ? "" : "s"} loaded.`;
+  }
+
+  syncChatComposerState();
+  if (shouldStickToBottom || currentScreenKey === SCREEN_KEYS.CHAT) {
+    requestAnimationFrame(() => {
+      if (chatList) chatList.scrollTop = chatList.scrollHeight;
+    });
+  }
+}
+
+function subscribePartyChat(force = false) {
+  const chatRef = getChatCollectionRef();
+  if (!chatRef || !state.sessionId) return;
+  if (!force && state.chat.sessionId === state.sessionId && state.unsubChat) {
+    renderChatScreen();
+    return;
+  }
+  if (state.unsubChat) state.unsubChat();
+  state.chat.sessionId = state.sessionId;
+  const subscribedSessionId = state.sessionId;
+  state.chat.messages = [];
+  state.chat.isLoading = true;
+  state.chat.isClearing = false;
+  state.chat.hasServerSnapshot = false;
+  state.chat.fromCache = false;
+  state.chat.error = "";
+  renderChatScreen();
+  const chatQuery = query(chatRef, orderBy("createdAt", "desc"), limit(CHAT_INITIAL_LIMIT));
+  state.unsubChat = onSnapshot(chatQuery, { includeMetadataChanges: true }, (snap) => {
+    if (state.chat.sessionId !== subscribedSessionId) return;
+    const isFromCache = !!snap.metadata?.fromCache;
+    if (!state.chat.hasServerSnapshot && isFromCache) return;
+    state.chat.messages = sortChatMessagesAsc(
+      snap.docs
+        .map((docSnap) => normalizeChatMessageRecord({ id: docSnap.id, ...docSnap.data() }, docSnap.id))
+        .filter(Boolean)
+    );
+    state.chat.isLoading = false;
+    state.chat.fromCache = isFromCache;
+    state.chat.hasServerSnapshot = state.chat.hasServerSnapshot || !isFromCache;
+    state.chat.error = "";
+    renderChatScreen();
+  }, (err) => {
+    if (state.chat.sessionId !== subscribedSessionId) return;
+    console.warn("Party chat listener error:", err);
+    state.chat.isLoading = false;
+    state.chat.error = "Failed to load chat.";
+    renderChatScreen();
+  });
+  getDocsFromServer(chatQuery).then((snap) => {
+    if (state.chat.sessionId !== subscribedSessionId) return;
+    state.chat.messages = sortChatMessagesAsc(
+      snap.docs
+        .map((docSnap) => normalizeChatMessageRecord({ id: docSnap.id, ...docSnap.data() }, docSnap.id))
+        .filter(Boolean)
+    );
+    state.chat.isLoading = false;
+    state.chat.fromCache = false;
+    state.chat.hasServerSnapshot = true;
+    state.chat.error = "";
+    renderChatScreen();
+  }).catch(() => {
+    // Keep the realtime listener active; it will render once the server responds.
+  });
+}
+
+async function sendPartyChatMessage() {
+  const chatRef = getChatCollectionRef();
+  const text = String(chatInput?.value || "").trim().slice(0, LIMITS.CHAT_MESSAGE_MAX);
+  if (!chatRef || !text || state.chat.isSending || state.chat.isClearing || !state.uid) return;
+  state.chat.isSending = true;
+  state.chat.error = "";
+  state.chat.shouldAutoScroll = true;
+  renderChatScreen();
+  try {
+    const profile = await loadUserProfile(state.uid).catch(() => null);
+    const displayName = String(state.displayName || profile?.displayName || state.playerNick || "Adventurer").trim().slice(0, 60) || "Adventurer";
+    const avatarUrl = String(profile?.avatarUrl || "").trim();
+    await addDoc(chatRef, {
+      uid: state.uid,
+      displayName,
+      avatarUrl,
+      message: text,
+      createdAt: serverTimestamp(),
+      expireAt: new Date(Date.now() + CHAT_RETENTION_MS),
+    });
+    if (chatInput) chatInput.value = "";
+    await waitForPendingWrites(db);
+    state.chat.isSending = false;
+    state.chat.error = "";
+    renderChatScreen();
+  } catch (err) {
+    console.error("sendPartyChatMessage:", err);
+    state.chat.isSending = false;
+    state.chat.error = "Could not send message.";
+    renderChatScreen();
+    showToast("Could not send message.", "error");
+  }
+}
+
+async function clearPartyChat() {
+  if (state.role !== "dm" || !state.sessionId || state.chat.isClearing) return;
+  const chatRef = getChatCollectionRef();
+  if (!chatRef) return;
+  const confirmed = window.confirm("Clear all messages from this session chat? This cannot be undone.");
+  if (!confirmed) return;
+  state.chat.isClearing = true;
+  state.chat.error = "";
+  renderChatScreen();
+  try {
+    while (true) {
+      const snap = await getDocs(query(chatRef, limit(200)));
+      if (snap.empty) break;
+      const batch = writeBatch(db);
+      snap.docs.forEach((docSnap) => batch.delete(docSnap.ref));
+      await batch.commit();
+      if (snap.size < 200) break;
+    }
+    state.chat.messages = [];
+    state.chat.isClearing = false;
+    state.chat.shouldAutoScroll = true;
+    renderChatScreen();
+    showToast("Chat cleared.", "success");
+  } catch (err) {
+    console.error("clearPartyChat:", err);
+    state.chat.isClearing = false;
+    state.chat.error = "Could not clear chat.";
+    renderChatScreen();
+    showToast("Could not clear chat.", "error");
+  }
+}
+
+function buildChatExportPayload(messages) {
+  const safeSession = String(state.sessionName || state.joinTag || state.sessionId || "session").trim().replace(/[\\/:*?"<>|]+/g, "-").replace(/\s+/g, " ");
+  const content = [
+    `TomeVault Party Chat`,
+    `Session: ${String(state.sessionName || state.joinTag || state.sessionId || "Session").trim() || "Session"}`,
+    `Exported: ${formatChatTimestamp(new Date())}`,
+    `Retention: 30 days`,
+    "",
+    ...messages.map((entry) => `[${formatChatTimestamp(entry.createdAt)}] ${entry.displayName}: ${String(entry.message || "")}`),
+  ].join("\n");
+  return {
+    fileName: `${safeSession || "session"}-party-chat.txt`,
+    content,
+  };
+}
+
+async function exportPartyChat() {
+  if (state.role !== "dm" || !state.sessionId) return;
+  const chatRef = getChatCollectionRef();
+  if (!chatRef) return;
+  try {
+    chatStatus.textContent = "Exporting chat...";
+    const snap = await getDocs(query(chatRef, orderBy("createdAt", "asc")));
+    const messages = snap.docs
+      .map((docSnap) => normalizeChatMessageRecord({ id: docSnap.id, ...docSnap.data() }, docSnap.id))
+      .filter(Boolean);
+    const payload = buildChatExportPayload(messages);
+    const blob = new Blob([payload.content], { type: "text/plain;charset=utf-8" });
+    const href = URL.createObjectURL(blob);
+    const anchor = document.createElement("a");
+    anchor.href = href;
+    anchor.download = payload.fileName;
+    document.body.appendChild(anchor);
+    anchor.click();
+    anchor.remove();
+    setTimeout(() => URL.revokeObjectURL(href), 0);
+    chatStatus.textContent = "Chat exported.";
+    showToast("Chat exported.", "success");
+  } catch (err) {
+    console.error("exportPartyChat:", err);
+    chatStatus.textContent = "Could not export chat.";
+    showToast("Could not export chat.", "error");
+  }
+}
+
+function openChatScreen() {
+  showOnly(SCREEN_KEYS.CHAT);
+  subscribePartyChat();
+  renderChatScreen();
 }
 
 function openHandoutsHomeScreen() {
@@ -7754,11 +9594,12 @@ function setPartyPanelCollapsed(panel, toggleButton, collapsed) {
 
 function setPlayerHandoutsCollapsed(collapsed) {
   const isCollapsed = !!collapsed;
+  if (playerHandoutsPanel) playerHandoutsPanel.classList.toggle("is-collapsed", isCollapsed);
   if (playerHandoutsMain) playerHandoutsMain.classList.toggle("hidden", isCollapsed);
   if (btnTogglePlayerHandouts) {
     btnTogglePlayerHandouts.setAttribute("aria-expanded", isCollapsed ? "false" : "true");
-    btnTogglePlayerHandouts.setAttribute("aria-label", isCollapsed ? "Expand handouts list" : "Collapse handouts list");
-    btnTogglePlayerHandouts.title = isCollapsed ? "Expand handouts list" : "Collapse handouts list";
+    btnTogglePlayerHandouts.setAttribute("aria-label", isCollapsed ? "Expand handouts section" : "Collapse handouts section");
+    btnTogglePlayerHandouts.title = isCollapsed ? "Expand handouts section" : "Collapse handouts section";
     btnTogglePlayerHandouts.classList.toggle("is-collapsed", isCollapsed);
   }
 }
@@ -7816,6 +9657,44 @@ function wireDashboardFallbackControls() {
 
 wireDashboardFallbackControls();
 
+chatList?.addEventListener("scroll", () => {
+  updateChatScrollIntent();
+});
+
+btnOpenChatFromParty?.addEventListener("click", () => {
+  openChatScreen();
+});
+
+btnPlayerOpenChatFromParty?.addEventListener("click", () => {
+  openChatScreen();
+});
+
+btnChatBack?.addEventListener("click", () => {
+  openHandoutsHomeScreen();
+});
+
+btnChatClear?.addEventListener("click", () => {
+  clearPartyChat();
+});
+
+btnChatExport?.addEventListener("click", () => {
+  exportPartyChat();
+});
+
+chatInput?.addEventListener("input", () => {
+  syncChatComposerState();
+});
+
+chatInput?.addEventListener("keydown", (event) => {
+  if (event.key !== "Enter" || event.shiftKey) return;
+  event.preventDefault();
+  sendPartyChatMessage();
+});
+
+btnChatSend?.addEventListener("click", () => {
+  sendPartyChatMessage();
+});
+
 // ---- New navigation wiring ----
 
 // Brand home button in top bar ? navigate to session home
@@ -7823,94 +9702,108 @@ btnBrandHome && (btnBrandHome.onclick = () => {
   showOnly(getDefaultRoleScreen());
 });
 
-// Hamburger FAB � toggle speed-dial on tap, draggable on long-press (3s hold)
+// Hamburger quick menu: click/tap toggles the dial, mouse drag repositions it,
+// and touch retains the existing hold-to-drag behavior.
 if (btnHamburger) {
-  let fabDragTimer = 0;
-  let fabDragging = false;
-  let fabStartX = 0, fabStartY = 0;
+  function clearHamburgerDragTimer() {
+    if (!hamburgerDragState?.holdTimer) return;
+    clearTimeout(hamburgerDragState.holdTimer);
+    hamburgerDragState.holdTimer = 0;
+  }
 
-  // Restore saved position from localStorage
-  try {
-    const saved = JSON.parse(localStorage.getItem("tv_fabPos") || "null");
-    if (saved && typeof saved.right === "number" && typeof saved.bottom === "number") {
-      btnHamburger.style.right = saved.right + "px";
-      btnHamburger.style.bottom = saved.bottom + "px";
-      // Also reposition speed-dial above the FAB
-      if (hamburgerSpeedDial) {
-        hamburgerSpeedDial.style.right = saved.right + "px";
-        hamburgerSpeedDial.style.bottom = (saved.bottom + 80) + "px";
-      }
-    }
-  } catch (_) {}
-
-  function startFabDrag(e) {
-    fabStartX = e.clientX ?? e.touches?.[0]?.clientX ?? 0;
-    fabStartY = e.clientY ?? e.touches?.[0]?.clientY ?? 0;
-    fabDragTimer = setTimeout(() => {
-      fabDragging = true;
-      btnHamburger.classList.add("is-dragging");
-      btnHamburger.setPointerCapture?.(e.pointerId);
+  function startHamburgerDrag(state, event) {
+    if (!state || state.dragging || !hamburgerDragEnabled) return;
+    state.dragging = true;
+    state.didDrag = true;
+    btnHamburger.classList.add("is-dragging");
+    btnHamburger.setPointerCapture?.(event.pointerId);
+    closeHamburgerSpeedDial();
+    if (state.pointerType !== "mouse") {
       navigator.vibrate?.(50);
       showToast("Drag to reposition", "info", UI_TIMERS.FAB_DRAG_TOAST_MS);
-    }, UI_TIMERS.FAB_HOLD_MS);
-  }
-
-  function moveFab(e) {
-    if (!fabDragging) {
-      // Cancel hold if user moves finger before timer fires
-      const dx = (e.clientX ?? 0) - fabStartX;
-      const dy = (e.clientY ?? 0) - fabStartY;
-      if (Math.abs(dx) > 8 || Math.abs(dy) > 8) {
-        clearTimeout(fabDragTimer);
-        fabDragTimer = 0;
-      }
-      return;
-    }
-    e.preventDefault();
-    const vw = window.innerWidth;
-    const vh = window.innerHeight;
-    const cx = e.clientX ?? e.touches?.[0]?.clientX ?? vw / 2;
-    const cy = e.clientY ?? e.touches?.[0]?.clientY ?? vh / 2;
-    // Constrain to bottom-right quadrant
-    const newRight = Math.max(10, Math.min(vw * 0.5, vw - cx - 28));
-    const newBottom = Math.max(10, Math.min(vh * 0.5, vh - cy - 28));
-    btnHamburger.style.right = newRight + "px";
-    btnHamburger.style.bottom = newBottom + "px";
-    if (hamburgerSpeedDial) {
-      hamburgerSpeedDial.style.right = newRight + "px";
-      hamburgerSpeedDial.style.bottom = (newBottom + 80) + "px";
     }
   }
 
-  function endFabDrag() {
-    clearTimeout(fabDragTimer);
-    fabDragTimer = 0;
-    if (fabDragging) {
-      fabDragging = false;
+  function resetHamburgerDragState(pointerId, options = {}) {
+    if (!hamburgerDragState || (pointerId != null && hamburgerDragState.pointerId !== pointerId)) return;
+    clearHamburgerDragTimer();
+    const wasDragging = hamburgerDragState.dragging;
+    if (wasDragging) {
       btnHamburger.classList.remove("is-dragging");
-      // Save position
-      try {
-        localStorage.setItem("tv_fabPos", JSON.stringify({
-          right: parseFloat(btnHamburger.style.right) || 20,
-          bottom: parseFloat(btnHamburger.style.bottom) || 60,
-        }));
-      } catch (_) {}
+      applyHamburgerPosition(getHamburgerCurrentPosition(), { persist: true });
+    }
+    if (pointerId != null) {
+      btnHamburger.releasePointerCapture?.(pointerId);
+    }
+    const shouldToggle = !!options.toggleSpeedDial && !wasDragging && !hamburgerDragState.didDrag;
+    hamburgerDragState = null;
+    if (shouldToggle) toggleHamburgerSpeedDial();
+  }
+
+  function handleHamburgerPointerDown(event) {
+    if (!hamburgerDragEnabled) return;
+    if (event.button != null && event.button !== 0) return;
+    hamburgerDragState = {
+      pointerId: event.pointerId,
+      pointerType: event.pointerType || "mouse",
+      startX: event.clientX,
+      startY: event.clientY,
+      origin: getHamburgerCurrentPosition(),
+      holdTimer: 0,
+      dragging: false,
+      didDrag: false,
+    };
+    if (hamburgerDragState.pointerType !== "mouse") {
+      hamburgerDragState.holdTimer = setTimeout(() => {
+        if (!hamburgerDragState || hamburgerDragState.pointerId !== event.pointerId) return;
+        startHamburgerDrag(hamburgerDragState, event);
+      }, UI_TIMERS.FAB_HOLD_MS);
     }
   }
 
-  btnHamburger.addEventListener("pointerdown", startFabDrag);
-  btnHamburger.addEventListener("pointermove", moveFab);
-  btnHamburger.addEventListener("pointerup", (e) => {
-    if (fabDragging) {
-      endFabDrag();
-      return;
+  function handleHamburgerPointerMove(event) {
+    if (!hamburgerDragState || hamburgerDragState.pointerId !== event.pointerId) return;
+    const dx = event.clientX - hamburgerDragState.startX;
+    const dy = event.clientY - hamburgerDragState.startY;
+
+    if (!hamburgerDragState.dragging) {
+      if (hamburgerDragState.pointerType === "mouse") {
+        if (Math.abs(dx) >= HAMBURGER_MOUSE_DRAG_THRESHOLD || Math.abs(dy) >= HAMBURGER_MOUSE_DRAG_THRESHOLD) {
+          startHamburgerDrag(hamburgerDragState, event);
+        }
+      } else if (Math.abs(dx) > HAMBURGER_TOUCH_CANCEL_THRESHOLD || Math.abs(dy) > HAMBURGER_TOUCH_CANCEL_THRESHOLD) {
+        clearHamburgerDragTimer();
+      }
+      if (!hamburgerDragState.dragging) return;
     }
-    clearTimeout(fabDragTimer);
-    fabDragTimer = 0;
-    // Normal click � toggle speed-dial
-    toggleHamburgerSpeedDial();
+
+    event.preventDefault();
+    applyHamburgerPosition({
+      right: hamburgerDragState.origin.right - dx,
+      bottom: hamburgerDragState.origin.bottom - dy,
+    });
+  }
+
+  function handleHamburgerPointerUp(event) {
+    if (!hamburgerDragState || hamburgerDragState.pointerId !== event.pointerId) return;
+    resetHamburgerDragState(event.pointerId, { toggleSpeedDial: true });
+  }
+
+  function handleHamburgerPointerCancel(event) {
+    resetHamburgerDragState(event.pointerId, { toggleSpeedDial: false });
+  }
+
+  loadHamburgerPosition();
+  btnHamburger.addEventListener("dragstart", (event) => event.preventDefault());
+  btnHamburger.addEventListener("pointerdown", handleHamburgerPointerDown);
+  btnHamburger.addEventListener("pointermove", handleHamburgerPointerMove);
+  btnHamburger.addEventListener("pointerup", handleHamburgerPointerUp);
+  btnHamburger.addEventListener("pointercancel", handleHamburgerPointerCancel);
+  btnHamburger.addEventListener("lostpointercapture", handleHamburgerPointerCancel);
+  window.addEventListener("resize", () => {
+    if (hamburgerDragState?.dragging) return;
+    applyHamburgerPosition(getHamburgerCurrentPosition());
   });
-  btnHamburger.addEventListener("pointercancel", endFabDrag);
 }
 
 // Settings drawer backdrop click closes
@@ -9696,6 +11589,38 @@ if (createHandoutModal) {
 setupCreateBuilderUI();
 // setupInventoryAvatarNav() moved after inventory variable declarations (see below)
 
+function getCardClaimState(h, role) {
+  // Computes the visual + interaction state for the compact card-level claim button.
+  // Returns: { isActive, icon, label, title }
+  // isActive=true means the button is interactive and triggers an immediate claim.
+  const isLoot = String(h.type || "").toLowerCase() === "loot";
+  const claimable = !!h.claimable;
+  const claimedByUid = String(h.claimedByUid || "").trim();
+  const claimedByNick = String(h.claimedByNick || "").trim();
+  const isClaimed = Boolean(claimedByUid);
+  const isMine = isClaimed && claimedByUid === state.uid;
+
+  if (!isLoot) {
+    return { isActive: false, icon: "claim-off", label: "Not claimable", title: "Not claimable" };
+  }
+  if (!claimable) {
+    return { isActive: false, icon: "claim-off", label: "Claiming disabled", title: "Claiming is disabled for this loot" };
+  }
+  if (isMine) {
+    return { isActive: false, icon: "claim", label: "Claimed by you", title: "You claimed this loot" };
+  }
+  if (isClaimed) {
+    const by = claimedByNick || "another player";
+    return { isActive: false, icon: "claim-off", label: `Claimed by ${by}`, title: `Claimed by ${by}` };
+  }
+  // Unclaimed + claimable
+  if (role === "dm") {
+    return { isActive: false, icon: "claim", label: "Unclaimed loot", title: "Unclaimed — open to manage" };
+  }
+  // Player: can claim
+  return { isActive: true, icon: "claim", label: "Claim this loot", title: "Claim this loot" };
+}
+
 function renderGMHandouts(items) {
   // Render pipeline:
   // filter list -> build row HTML -> wire row click -> append to DOM.
@@ -9745,11 +11670,11 @@ function renderGMHandouts(items) {
     return "tag--npcUnknown";
   };
 
-  filtered.forEach((h, index) => {
+  const fragment = document.createDocumentFragment();
+  filtered.forEach((h) => {
     const row = document.createElement("div");
-    row.className = `item list-stagger-item ${h.revealed ? "item--revealed" : ""}`.trim();
+    row.className = `item ${h.revealed ? "item--revealed" : ""}`.trim();
     row.dataset.id = h.id;
-    row.style.setProperty("--stagger-index", String(index));
     row.style.borderLeft = `4px solid ${h.accentColor || "#f5c82f"}`;
     const visibleImageUrl = getHandoutAvatarImageUrl(h);
     const frameStyle = buildImageFrameInlineStyle(h.imageFrame);
@@ -9763,6 +11688,14 @@ function renderGMHandouts(items) {
     const typeTag = isNpc
       ? `<span class="tag tag--npc ${npcDispositionClass(h.npcDisposition)}">NPC</span>`
       : `<span class="tag">${escapeHtml((h.type ?? "handout").toUpperCase())}</span>`;
+    const isLootCard = String(h.type || "").toLowerCase() === "loot";
+    const claimState = isLootCard ? getCardClaimState(h, "dm") : null;
+    const claimBtnHtml = claimState
+      ? `<button class="cardClaimBtn${claimState.icon === "claim" ? " is-mine" : ""}" type="button" disabled aria-label="${escapeHtml(claimState.label)}" title="${escapeHtml(claimState.title)}">${getHeroIconSvg(claimState.icon, "cardClaimBtnIcon")}</button>`
+      : "";
+    const rightColHtml = claimBtnHtml
+      ? `<div class="item__right">${thumbHtml}${claimBtnHtml}</div>`
+      : thumbHtml;
     row.innerHTML = `
       <div class="item__meta">
         <span class="itemEmoji">${iconMarkup}</span>
@@ -9775,19 +11708,60 @@ function renderGMHandouts(items) {
           <div><strong>${escapeHtml(displayTitle)}</strong></div>
         </div>
       </div>
-      ${thumbHtml}
+      ${rightColHtml}
     `;
     row.onclick = () => openModal({ ...h, id: h.id }, "dm");
-    gmHandoutList.appendChild(row);
+    fragment.appendChild(row);
   });
+  gmHandoutList.appendChild(fragment);
   initVirtualScroll(gmHandoutList);
 }
 
+function logHandoutSearchPerf({ scope, trigger, query, totalItems, shownItems, elapsedMs }) {
+  const normalizedScope = scope === "gm" ? "GM" : "Player";
+  const normalizedTrigger = String(trigger || "input").toLowerCase();
+  const safeQuery = String(query || "").trim();
+  const total = Number.isFinite(totalItems) ? totalItems : 0;
+  const shown = Number.isFinite(shownItems) ? shownItems : 0;
+  const ms = Number(elapsedMs || 0).toFixed(1);
+  console.debug(
+    `[TV][SearchPerf][${normalizedScope}] ${ms}ms | trigger=${normalizedTrigger} | shown=${shown}/${total} | query="${safeQuery}"`
+  );
+}
+
 if (gmSearch) {
-  gmSearch.addEventListener("input", debounce(() => {
+  const runGMSearch = (trigger = "input") => {
+    const startedAt = performance.now();
     state.gmSearchQuery = gmSearch.value || "";
     renderGMHandouts(state.gmHandoutsRaw);
-  }, UI_TIMERS.GM_SEARCH_DEBOUNCE_MS));
+    logHandoutSearchPerf({
+      scope: "gm",
+      trigger,
+      query: state.gmSearchQuery,
+      totalItems: (state.gmHandoutsRaw || []).length,
+      shownItems: gmHandoutList?.childElementCount || 0,
+      elapsedMs: performance.now() - startedAt,
+    });
+  };
+  let gmSearchFrame = 0;
+  const scheduleGMSearch = (trigger = "input") => {
+    if (gmSearchFrame) cancelAnimationFrame(gmSearchFrame);
+    gmSearchFrame = requestAnimationFrame(() => {
+      gmSearchFrame = 0;
+      runGMSearch(trigger);
+    });
+  };
+  gmSearch.addEventListener("input", () => scheduleGMSearch("input"));
+  gmSearch.addEventListener("search", () => scheduleGMSearch("search"));
+  gmSearch.addEventListener("keydown", (event) => {
+    if (event.key !== "Enter") return;
+    event.preventDefault();
+    if (gmSearchFrame) {
+      cancelAnimationFrame(gmSearchFrame);
+      gmSearchFrame = 0;
+    }
+    runGMSearch("enter");
+  });
 }
 
 if (gmFilterRow) {
@@ -10196,7 +12170,15 @@ function renderPartyPanel(players, listEl, emptyEl) {
       if (_accent) row.style.borderLeft = `4px solid ${_accent}`;
       else row.style.borderLeft = "";
     } else {
-      row.style.borderLeft = "";
+      const _playerAvatar = resolveDisplayAvatar(avatarUrl, uid);
+      if (_playerAvatar) {
+        extractDominantColor(_playerAvatar).then((color) => {
+          if (color && row.isConnected) row.style.borderLeft = `4px solid ${color}`;
+          else if (row.isConnected) row.style.borderLeft = "";
+        });
+      } else {
+        row.style.borderLeft = "";
+      }
     }
     row.setAttribute("role", "button");
     row.setAttribute("tabindex", "0");
@@ -10879,6 +12861,21 @@ function openPlayerCard(uid, options = {}) {
       pcBanner.style.background = `linear-gradient(135deg, ${accent}cc 0%, ${accent} 100%)`;
     } else {
       pcBanner.style.background = "";
+      const _bannerAvatarSrc = resolveDisplayAvatar(avatarUrl, uid);
+      if (_bannerAvatarSrc) {
+        const _capturedUid = uid;
+        extractDominantColor(_bannerAvatarSrc).then((color) => {
+          if (color && playerCardOverlay._viewingUid === _capturedUid) {
+            const m = color.match(/^rgb\((\d+),(\d+),(\d+)\)$/);
+            if (m) {
+              const [, r, g, b] = m;
+              const start = vibrantizeRgbColorString(color, { minSat: 0.74, satBoost: 0.32, minLight: 0.58, lightBoost: 0.22 }) || color;
+              const end = vibrantizeRgbColorString(color, { minSat: 0.66, satBoost: 0.22, minLight: 0.5, lightBoost: 0.1 }) || color;
+              pcBanner.style.background = `linear-gradient(135deg, ${start} 0%, ${end} 100%)`;
+            }
+          }
+        });
+      }
     }
   }
 
@@ -11489,8 +13486,9 @@ state.unsubHandouts = onSnapshot(handoutsRef, (snap) => {
 
   const all = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
   state.gmHandoutsRaw = all;
-
-  renderPlayerHandouts(getPlayerVisibleHandouts());
+  const visibleItems = hydratePlayerHandoutSearchIndex(getPlayerVisibleHandouts());
+  state.playerVisibleHandoutsCache = visibleItems;
+  renderPlayerHandouts(visibleItems);
 }, (err) => {
   console.error("Player handouts listener error:", err);
 });
@@ -11536,7 +13534,11 @@ state.unsubHandouts = onSnapshot(handoutsRef, (snap) => {
     hydrateActivePlayerProfiles(state.activePlayers).catch(() => {});
     renderPlayerPartyPanel(roster);
     // Re-filter handouts: NPC handouts in initiative should be hidden from players
-    if (state.gmHandoutsRaw) renderPlayerHandouts(getPlayerVisibleHandouts());
+    if (state.gmHandoutsRaw) {
+      const visibleItems = hydratePlayerHandoutSearchIndex(getPlayerVisibleHandouts());
+      state.playerVisibleHandoutsCache = visibleItems;
+      renderPlayerHandouts(visibleItems);
+    }
   });
 
   // Subscribe to inventory & wallet data for the inventory screen.
@@ -11601,6 +13603,10 @@ state.unsubHandouts = onSnapshot(handoutsRef, (snap) => {
         if (Object.keys(profileData).length > 0) {
           await setDoc(doc(db, "users", state.uid), profileData, { merge: true });
         }
+        if (t.name) {
+          applyResolvedNicknameState(t.name, { overwriteInput: true });
+          await syncNicknameToProfile(t.name);
+        }
         await updateDoc(doc(db, "sessions", state.sessionId, "characterTemplates", tid), {
           assignedToUid: state.uid,
           assignmentStatus: "accepted"
@@ -11620,6 +13626,36 @@ state.unsubHandouts = onSnapshot(handoutsRef, (snap) => {
 // innerHTML is perfectly fine at TomeVault's scale.
 
 const playerHandoutExpandedIds = new Set();
+let playerHandoutRenderToken = 0;
+const PLAYER_HANDOUT_RENDER_CHUNK_SIZE = 18;
+
+function scheduleIdleWork(task) {
+  if (typeof requestIdleCallback === "function") {
+    requestIdleCallback(task, { timeout: 180 });
+    return;
+  }
+  setTimeout(task, 0);
+}
+
+function queuePlayerPlaceholderRefinement({ handout, imgEl, renderToken, fallbackUrl }) {
+  if (!imgEl || !handout) return;
+  const context = {
+    title: String(handout.title || ""),
+    publicContent: String(handout.publicContent || ""),
+    type: String(handout.type || "").toLowerCase(),
+    npcDisposition: String(handout.npcDisposition || "").toLowerCase(),
+  };
+
+  scheduleIdleWork(() => {
+    if (!imgEl.isConnected) return;
+    if (String(imgEl.dataset.renderToken || "") !== String(renderToken)) return;
+    const best = selectBestPlaceholderImage(context);
+    const resolved = String(best?.url || fallbackUrl || "placeholders/Prompt1image1_1.png").trim();
+    if (!resolved) return;
+    if (imgEl.src.endsWith(resolved)) return;
+    imgEl.src = resolved;
+  });
+}
 
 function getPlayerHandoutPreviewText(handout) {
   return String(handout?.publicContent || "").trim();
@@ -11641,193 +13677,320 @@ function setPlayerHandoutPreviewExpanded(handoutId, isExpanded) {
   else playerHandoutExpandedIds.delete(normalizedId);
 }
 
+function hydratePlayerHandoutSearchIndex(items) {
+  if (!Array.isArray(items)) return [];
+  items.forEach((handout) => {
+    if (!handout || typeof handout !== "object") return;
+    const title = String(handout.title || "").toLowerCase();
+    const description = String(handout.publicContent || "").toLowerCase();
+    handout._playerSearchText = `${title}\n${description}`;
+  });
+  return items;
+}
+
+function getCurrentPlayerVisibleHandouts({ forceRebuild = false } = {}) {
+  if (!forceRebuild && Array.isArray(state.playerVisibleHandoutsCache)) {
+    return state.playerVisibleHandoutsCache;
+  }
+  const visibleItems = hydratePlayerHandoutSearchIndex(getPlayerVisibleHandouts());
+  state.playerVisibleHandoutsCache = visibleItems;
+  return visibleItems;
+}
+
 function renderPlayerHandouts(items) {
   // Player list intentionally mirrors GM rendering for a consistent visual model.
   // Player list renderer mirrors GM renderer style for consistency.
+  const queryText = String(state.playerHandoutSearchQuery || "").trim().toLowerCase();
+  const renderToken = ++playerHandoutRenderToken;
+  const sourceItems = Array.isArray(items) ? items : [];
+  const filteredItems = queryText
+    ? sourceItems.filter((handout) => {
+        const indexedText = String(handout?._playerSearchText || "");
+        return indexedText.includes(queryText);
+      })
+    : sourceItems;
+
+  if (plHandoutList._playerRenderRaf) {
+    cancelAnimationFrame(plHandoutList._playerRenderRaf);
+    plHandoutList._playerRenderRaf = 0;
+  }
+
   plHandoutList.innerHTML = "";
-  plHandoutEmpty.classList.toggle("hidden", items.length > 0);
+  plHandoutEmpty.classList.toggle("hidden", filteredItems.length > 0);
 
   // Reset empty-state hint to the standard player-facing copy.
   const emptyHint = plHandoutEmpty.querySelector(".emptyState__hint");
-  if (emptyHint && items.length === 0) {
-    emptyHint.textContent = "The GM will reveal handouts as your adventure unfolds.";
+  if (emptyHint && filteredItems.length === 0) {
+    emptyHint.textContent = sourceItems.length === 0
+      ? "The GM will reveal handouts as your adventure unfolds."
+      : "No handouts match your search.";
   }
 
   let renderedCount = 0;
-  items.forEach((h, index) => {
-    try {
-      const row = document.createElement("div");
-      row.className = "item list-stagger-item";
-      row.style.setProperty("--stagger-index", String(index));
-      row.style.borderLeft = `4px solid ${h.accentColor || "#f5c82f"}`;
-      const thumbFallbackUrl = String(selectBestPlaceholderImage({
-        title: String(h.title || ""),
-        publicContent: String(h.publicContent || ""),
-        type: String(h.type || "").toLowerCase(),
-        npcDisposition: String(h.npcDisposition || "").toLowerCase(),
-      })?.url || "placeholders/Prompt1image1_1.png").trim();
-      const visibleImageUrl = (() => {
-        const primary = String(getVisibleHandoutImageUrl(h, "player", state.uid) || "").trim();
-        if (primary) return primary;
-        const avatar = String(getHandoutAvatarImageUrl(h) || "").trim();
-        if (avatar) return avatar;
-        return thumbFallbackUrl;
-      })();
-      const displayTitle = getSafeHandoutTitle(h);
-      // Same compatibility strategy as GM list.
-      let iconMarkup = '<span class="itemIconSvg" aria-hidden="true">📜</span>';
-      try {
-        const normalizedIcon = normalizeIconKey(h.iconKey || h.iconEmoji);
-        if (/\p{Extended_Pictographic}/u.test(String(normalizedIcon || ""))) {
-          iconMarkup = `<span class="itemIconSvg" aria-hidden="true">${escapeHtml(normalizedIcon)}</span>`;
-        } else {
-          iconMarkup = getHeroIconSvg(normalizedIcon, "itemIconSvg");
-        }
-      } catch (_) {
-        iconMarkup = getHeroIconSvg("document", "itemIconSvg");
-      }
-      const visibilityMeta = `<span class="handoutMetaIcon handoutMetaIcon--visible" title="Visible" aria-label="Visible"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1.5 12s3.8-6 10.5-6 10.5 6 10.5 6-3.8 6-10.5 6S1.5 12 1.5 12z"></path><circle cx="12" cy="12" r="3.2"></circle></svg></span>`;
-      const secretMeta = h.secretRevealed
-        ? `<span class="handoutMetaIcon handoutMetaIcon--secret" title="Secret revealed" aria-label="Secret revealed"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="8.5" cy="15.5" r="3.5"></circle><path d="M12 15.5h8"></path><path d="M17 12.5v6"></path><path d="M20 13.5v4"></path></svg></span>`
-        : `<span class="handoutMetaIcon handoutMetaIcon--secretOff" title="Secret hidden" aria-label="Secret hidden"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="8.5" cy="15.5" r="3.5"></circle><path d="M12 15.5h8"></path><path d="M17 12.5v6"></path><path d="M20 13.5v4"></path><path d="M4 20 20 4"></path></svg></span>`;
-      const typeTag = `<span class="tag">${escapeHtml((h.type ?? "handout").toUpperCase())}</span>`;
-      const previewText = getPlayerHandoutPreviewText(h);
-      const hasPreview = previewText.length > 0;
-      const previewCanExpand = hasPreview && playerHandoutPreviewCanExpand(previewText);
-      if (!previewCanExpand) setPlayerHandoutPreviewExpanded(h.id, false);
-      const previewExpanded = previewCanExpand && isPlayerHandoutPreviewExpanded(h.id);
-      const previewId = `playerHandoutPreview-${String(h.id || "handout")}`;
-      const previewHtml = hasPreview
-        ? `<p id="${escapeHtml(previewId)}" class="item__preview${previewExpanded ? " item__preview--expanded" : ""}">${escapeHtml(previewText)}</p>`
-        : "";
-      const previewToggleHtml = previewCanExpand
-        ? `<button type="button" class="item__previewToggle" aria-expanded="${previewExpanded ? "true" : "false"}" aria-controls="${escapeHtml(previewId)}">${previewExpanded ? "Show less" : "Read more"}</button>`
-        : "";
-      // Set meta/text content via innerHTML, then attach the thumbnail using
-      // DOM APIs so it cannot be dropped by the HTML parser under any circumstances.
-      row.innerHTML = `
-        <div class="item__meta">
-          <span class="itemEmoji">${iconMarkup}</span>
-          <div class="item__body">
-            <div class="handoutMetaRow">
-              ${typeTag}
-              ${visibilityMeta}
-              ${secretMeta}
-            </div>
-            <div class="item__title"><strong>${escapeHtml(displayTitle)}</strong></div>
-            ${previewHtml}
-            ${previewToggleHtml}
-          </div>
-        </div>
-      `;
-      // Thumbnail is built entirely with DOM APIs — never template strings — so
-      // no innerHTML parser quirk on any mobile browser can strip or misplace it.
-      const thumbDiv = document.createElement("div");
-      thumbDiv.className = "item__thumb";
-      const thumbImg = document.createElement("img");
-      const resolvedThumbSrc = visibleImageUrl || thumbFallbackUrl;
-      thumbImg.src = resolvedThumbSrc;
-      thumbImg.alt = `${displayTitle} portrait`;
-      thumbImg.addEventListener("error", () => {
-        if (thumbImg.src !== thumbFallbackUrl) {
-          thumbImg.src = thumbFallbackUrl;
-        } else if (!thumbImg.src.endsWith("Prompt1image1_1.png")) {
-          thumbImg.src = "placeholders/Prompt1image1_1.png";
-        }
-      }, { once: true });
-      thumbDiv.appendChild(thumbImg);
-      row.appendChild(thumbDiv);
-      row.onclick = () => openModal({ ...h, id: h.id }, "player");
-      const previewToggle = row.querySelector(".item__previewToggle");
-      if (previewToggle) {
-        previewToggle.addEventListener("click", (event) => {
-          event.preventDefault();
-          event.stopPropagation();
-          setPlayerHandoutPreviewExpanded(h.id, !isPlayerHandoutPreviewExpanded(h.id));
-          renderPlayerHandouts(getPlayerVisibleHandouts());
-        });
-      }
-      plHandoutList.appendChild(row);
-      renderedCount += 1;
-    } catch (renderErr) {
-      console.error("[TV] renderPlayerHandouts item skipped:", {
-        handoutId: h?.id || null,
-        title: h?.title || null,
-        error: renderErr,
-      });
-
-      // Render a robust fallback row so malformed fields cannot blank the list.
-      // Use DOM APIs (not template HTML) to avoid parser edge-cases on mobile.
-      try {
-        const fallbackRow = document.createElement("div");
-        fallbackRow.className = "item";
-        fallbackRow.style.borderLeft = `4px solid ${h?.accentColor || "#f5c82f"}`;
-
-        const fallbackMeta = document.createElement("div");
-        fallbackMeta.className = "item__meta";
-
-        const fallbackBody = document.createElement("div");
-        fallbackBody.className = "item__body";
-
-        const fallbackMetaRow = document.createElement("div");
-        fallbackMetaRow.className = "handoutMetaRow";
-
-        const fallbackTag = document.createElement("span");
-        fallbackTag.className = "tag";
-        fallbackTag.textContent = String(h?.type ?? "handout").toUpperCase();
-        fallbackMetaRow.appendChild(fallbackTag);
-
-        const fallbackTitleWrap = document.createElement("div");
-        fallbackTitleWrap.className = "item__title";
-        const fallbackStrong = document.createElement("strong");
-        fallbackStrong.textContent = getSafeHandoutTitle(h);
-        fallbackTitleWrap.appendChild(fallbackStrong);
-
-        fallbackBody.appendChild(fallbackMetaRow);
-        fallbackBody.appendChild(fallbackTitleWrap);
-        fallbackMeta.appendChild(fallbackBody);
-
-        const fallbackThumb = document.createElement("div");
-        fallbackThumb.className = "item__thumb";
-        const fallbackImg = document.createElement("img");
-        const fallbackThumbUrl = String(
-          getVisibleHandoutImageUrl(h, "player", state.uid)
-          || getHandoutAvatarImageUrl(h)
-          || selectBestPlaceholderImage({
-            title: String(h?.title || ""),
-            publicContent: String(h?.publicContent || ""),
-            type: String(h?.type || "").toLowerCase(),
-            npcDisposition: String(h?.npcDisposition || "").toLowerCase(),
-          })?.url
-          || "placeholders/Prompt1image1_1.png"
-        ).trim();
-        fallbackImg.src = fallbackThumbUrl;
-        fallbackImg.alt = `${getSafeHandoutTitle(h)} portrait`;
-        fallbackImg.addEventListener("error", () => {
-          fallbackImg.src = "placeholders/Prompt1image1_1.png";
-        }, { once: true });
-        fallbackThumb.appendChild(fallbackImg);
-
-        fallbackRow.appendChild(fallbackMeta);
-        fallbackRow.appendChild(fallbackThumb);
-        fallbackRow.onclick = () => openModal({ ...h, id: h.id }, "player");
-        plHandoutList.appendChild(fallbackRow);
-        renderedCount += 1;
-      } catch (fallbackErr) {
-        console.error("[TV] renderPlayerHandouts fallback failed:", fallbackErr);
+  const finalizePlayerHandoutRender = () => {
+    // Safety net: if items existed but every one failed to render, show empty state.
+    if (filteredItems.length > 0 && renderedCount === 0) {
+      plHandoutEmpty.classList.remove("hidden");
+      if (emptyHint) {
+        emptyHint.textContent = "Some handouts could not be rendered on this device.";
       }
     }
-  });
-
-  // Safety net: if items existed but every one failed to render, show empty state.
-  if (items.length > 0 && renderedCount === 0) {
-    plHandoutEmpty.classList.remove("hidden");
-    if (emptyHint) {
-      emptyHint.textContent = "Some handouts could not be rendered on this device.";
+    if (queryText) {
+      if (plHandoutList._virtualSetupRaf) {
+        cancelAnimationFrame(plHandoutList._virtualSetupRaf);
+        plHandoutList._virtualSetupRaf = 0;
+      }
+      if (plHandoutList._virtualObserver) {
+        plHandoutList._virtualObserver.disconnect();
+        plHandoutList._virtualObserver = null;
+      }
+    } else {
+      initVirtualScroll(plHandoutList);
     }
+  };
+
+  if (filteredItems.length === 0) {
+    finalizePlayerHandoutRender();
+    return;
   }
 
-  initVirtualScroll(plHandoutList);
+  let cursor = 0;
+  const renderChunk = () => {
+    if (renderToken !== playerHandoutRenderToken) return;
+    const fragment = document.createDocumentFragment();
+    const limit = Math.min(cursor + PLAYER_HANDOUT_RENDER_CHUNK_SIZE, filteredItems.length);
+
+    for (; cursor < limit; cursor += 1) {
+      const h = filteredItems[cursor];
+      try {
+        const row = document.createElement("div");
+        row.className = "item";
+        row.style.borderLeft = `4px solid ${h.accentColor || "#f5c82f"}`;
+        const primaryImageUrl = String(getVisibleHandoutImageUrl(h, "player", state.uid) || "").trim();
+        const avatarImageUrl = String(getHandoutAvatarImageUrl(h) || "").trim();
+        const fallbackUrl = "placeholders/Prompt1image1_1.png";
+        const visibleImageUrl = primaryImageUrl || avatarImageUrl || fallbackUrl;
+        const displayTitle = getSafeHandoutTitle(h);
+        // Same compatibility strategy as GM list.
+        let iconMarkup = '<span class="itemIconSvg" aria-hidden="true">📜</span>';
+        try {
+          const normalizedIcon = normalizeIconKey(h.iconKey || h.iconEmoji);
+          if (/\p{Extended_Pictographic}/u.test(String(normalizedIcon || ""))) {
+            iconMarkup = `<span class="itemIconSvg" aria-hidden="true">${escapeHtml(normalizedIcon)}</span>`;
+          } else {
+            iconMarkup = getHeroIconSvg(normalizedIcon, "itemIconSvg");
+          }
+        } catch (_) {
+          iconMarkup = getHeroIconSvg("document", "itemIconSvg");
+        }
+        const visibilityMeta = `<span class="handoutMetaIcon handoutMetaIcon--visible" title="Visible" aria-label="Visible"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1.5 12s3.8-6 10.5-6 10.5 6 10.5 6-3.8 6-10.5 6S1.5 12 1.5 12z"></path><circle cx="12" cy="12" r="3.2"></circle></svg></span>`;
+        const secretMeta = h.secretRevealed
+          ? `<span class="handoutMetaIcon handoutMetaIcon--secret" title="Secret revealed" aria-label="Secret revealed"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="8.5" cy="15.5" r="3.5"></circle><path d="M12 15.5h8"></path><path d="M17 12.5v6"></path><path d="M20 13.5v4"></path></svg></span>`
+          : `<span class="handoutMetaIcon handoutMetaIcon--secretOff" title="Secret hidden" aria-label="Secret hidden"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="8.5" cy="15.5" r="3.5"></circle><path d="M12 15.5h8"></path><path d="M17 12.5v6"></path><path d="M20 13.5v4"></path><path d="M4 20 20 4"></path></svg></span>`;
+        const typeTag = `<span class="tag">${escapeHtml((h.type ?? "handout").toUpperCase())}</span>`;
+        const previewText = getPlayerHandoutPreviewText(h);
+        const hasPreview = previewText.length > 0;
+        const previewCanExpand = hasPreview && playerHandoutPreviewCanExpand(previewText);
+        if (!previewCanExpand) setPlayerHandoutPreviewExpanded(h.id, false);
+        const previewExpanded = previewCanExpand && isPlayerHandoutPreviewExpanded(h.id);
+        const previewId = `playerHandoutPreview-${String(h.id || "handout")}`;
+        const previewHtml = hasPreview
+          ? `<p id="${escapeHtml(previewId)}" class="item__preview${previewExpanded ? " item__preview--expanded" : ""}">${escapeHtml(previewText)}</p>`
+          : "";
+        const previewToggleHtml = previewCanExpand
+          ? `<button type="button" class="item__previewToggle" aria-expanded="${previewExpanded ? "true" : "false"}" aria-controls="${escapeHtml(previewId)}">${previewExpanded ? "Show less" : "Read more"}</button>`
+          : "";
+        // Set meta/text content via innerHTML, then attach the thumbnail using
+        // DOM APIs so it cannot be dropped by the HTML parser under any circumstances.
+        row.innerHTML = `
+          <div class="item__meta">
+            <span class="itemEmoji">${iconMarkup}</span>
+            <div class="item__body">
+              <div class="handoutMetaRow">
+                ${typeTag}
+                ${visibilityMeta}
+                ${secretMeta}
+              </div>
+              <div class="item__title"><strong>${escapeHtml(displayTitle)}</strong></div>
+              ${previewHtml}
+              ${previewToggleHtml}
+            </div>
+          </div>
+        `;
+        // Claim button + thumb: grouped in a right-column container using DOM APIs.
+        const claimStateCard = getCardClaimState(h, "player");
+        const claimBtnEl = document.createElement("button");
+        claimBtnEl.type = "button";
+        claimBtnEl.className = `cardClaimBtn${claimStateCard.isActive ? " is-claimable" : (claimStateCard.icon === "claim" ? " is-mine" : "")}`;
+        claimBtnEl.disabled = !claimStateCard.isActive;
+        claimBtnEl.setAttribute("aria-label", claimStateCard.label);
+        claimBtnEl.title = claimStateCard.title;
+        claimBtnEl.innerHTML = getHeroIconSvg(claimStateCard.icon, "cardClaimBtnIcon");
+        if (claimStateCard.isActive) {
+          claimBtnEl.addEventListener("click", (e) => {
+            e.stopPropagation();
+            claimHandoutByCard(h.id, claimBtnEl);
+          });
+        }
+        // Thumbnail + claim button are wrapped together in a right column so
+        // the button always appears anchored below the thumb, never floating mid-card.
+        const rightCol = document.createElement("div");
+        rightCol.className = "item__right";
+        const thumbDiv = document.createElement("div");
+        thumbDiv.className = "item__thumb";
+        const thumbImg = document.createElement("img");
+        thumbImg.src = visibleImageUrl;
+        thumbImg.dataset.renderToken = String(renderToken);
+        thumbImg.alt = `${displayTitle} portrait`;
+        thumbImg.addEventListener("error", () => {
+          if (!thumbImg.src.endsWith("Prompt1image1_1.png")) {
+            thumbImg.src = "placeholders/Prompt1image1_1.png";
+          }
+        }, { once: true });
+        if (!primaryImageUrl && !avatarImageUrl) {
+          queuePlayerPlaceholderRefinement({
+            handout: h,
+            imgEl: thumbImg,
+            renderToken,
+            fallbackUrl,
+          });
+        }
+        thumbDiv.appendChild(thumbImg);
+        rightCol.appendChild(thumbDiv);
+        rightCol.appendChild(claimBtnEl);
+        row.appendChild(rightCol);
+        row.onclick = () => openModal({ ...h, id: h.id }, "player");
+        const previewToggle = row.querySelector(".item__previewToggle");
+        if (previewToggle) {
+          previewToggle.addEventListener("click", (event) => {
+            event.preventDefault();
+            event.stopPropagation();
+            setPlayerHandoutPreviewExpanded(h.id, !isPlayerHandoutPreviewExpanded(h.id));
+            renderPlayerHandouts(getCurrentPlayerVisibleHandouts());
+          });
+        }
+        fragment.appendChild(row);
+        renderedCount += 1;
+      } catch (renderErr) {
+        console.error("[TV] renderPlayerHandouts item skipped:", {
+          handoutId: h?.id || null,
+          title: h?.title || null,
+          error: renderErr,
+        });
+
+        // Render a robust fallback row so malformed fields cannot blank the list.
+        // Use DOM APIs (not template HTML) to avoid parser edge-cases on mobile.
+        try {
+          const fallbackRow = document.createElement("div");
+          fallbackRow.className = "item";
+          fallbackRow.style.borderLeft = `4px solid ${h?.accentColor || "#f5c82f"}`;
+
+          const fallbackMeta = document.createElement("div");
+          fallbackMeta.className = "item__meta";
+
+          const fallbackBody = document.createElement("div");
+          fallbackBody.className = "item__body";
+
+          const fallbackMetaRow = document.createElement("div");
+          fallbackMetaRow.className = "handoutMetaRow";
+
+          const fallbackTag = document.createElement("span");
+          fallbackTag.className = "tag";
+          fallbackTag.textContent = String(h?.type ?? "handout").toUpperCase();
+          fallbackMetaRow.appendChild(fallbackTag);
+
+          const fallbackTitleWrap = document.createElement("div");
+          fallbackTitleWrap.className = "item__title";
+          const fallbackStrong = document.createElement("strong");
+          fallbackStrong.textContent = getSafeHandoutTitle(h);
+          fallbackTitleWrap.appendChild(fallbackStrong);
+
+          fallbackBody.appendChild(fallbackMetaRow);
+          fallbackBody.appendChild(fallbackTitleWrap);
+          fallbackMeta.appendChild(fallbackBody);
+
+          const fallbackThumb = document.createElement("div");
+          fallbackThumb.className = "item__thumb";
+          const fallbackImg = document.createElement("img");
+          const fallbackThumbUrl = String(
+            getVisibleHandoutImageUrl(h, "player", state.uid)
+            || getHandoutAvatarImageUrl(h)
+            || selectBestPlaceholderImage({
+              title: String(h?.title || ""),
+              publicContent: String(h?.publicContent || ""),
+              type: String(h?.type || "").toLowerCase(),
+              npcDisposition: String(h?.npcDisposition || "").toLowerCase(),
+            })?.url
+            || "placeholders/Prompt1image1_1.png"
+          ).trim();
+          fallbackImg.src = fallbackThumbUrl;
+          fallbackImg.alt = `${getSafeHandoutTitle(h)} portrait`;
+          fallbackImg.addEventListener("error", () => {
+            fallbackImg.src = "placeholders/Prompt1image1_1.png";
+          }, { once: true });
+          fallbackThumb.appendChild(fallbackImg);
+
+          fallbackRow.appendChild(fallbackMeta);
+          fallbackRow.appendChild(fallbackThumb);
+          fallbackRow.onclick = () => openModal({ ...h, id: h.id }, "player");
+          fragment.appendChild(fallbackRow);
+          renderedCount += 1;
+        } catch (fallbackErr) {
+          console.error("[TV] renderPlayerHandouts fallback failed:", fallbackErr);
+        }
+      }
+    }
+
+    if (fragment.childNodes.length > 0) {
+      plHandoutList.appendChild(fragment);
+    }
+
+    if (cursor < filteredItems.length) {
+      plHandoutList._playerRenderRaf = requestAnimationFrame(renderChunk);
+      return;
+    }
+
+    plHandoutList._playerRenderRaf = 0;
+    finalizePlayerHandoutRender();
+  };
+
+  renderChunk();
+}
+
+if (plHandoutSearch) {
+  const runPlayerHandoutSearch = (trigger = "input") => {
+    const startedAt = performance.now();
+    state.playerHandoutSearchQuery = plHandoutSearch.value || "";
+    const visibleItems = getCurrentPlayerVisibleHandouts();
+    renderPlayerHandouts(visibleItems);
+    logHandoutSearchPerf({
+      scope: "player",
+      trigger,
+      query: state.playerHandoutSearchQuery,
+      totalItems: visibleItems.length,
+      shownItems: plHandoutList?.childElementCount || 0,
+      elapsedMs: performance.now() - startedAt,
+    });
+  };
+  let playerSearchFrame = 0;
+  const schedulePlayerSearch = (trigger = "input") => {
+    if (playerSearchFrame) cancelAnimationFrame(playerSearchFrame);
+    playerSearchFrame = requestAnimationFrame(() => {
+      playerSearchFrame = 0;
+      runPlayerHandoutSearch(trigger);
+    });
+  };
+  plHandoutSearch.addEventListener("input", () => schedulePlayerSearch("input"));
+  plHandoutSearch.addEventListener("search", () => schedulePlayerSearch("search"));
+  plHandoutSearch.addEventListener("keydown", (event) => {
+    if (event.key !== "Enter") return;
+    event.preventDefault();
+    if (playerSearchFrame) {
+      cancelAnimationFrame(playerSearchFrame);
+      playerSearchFrame = 0;
+    }
+    runPlayerHandoutSearch("enter");
+  });
 }
 
 // Old renderPlayerInventory removed � replaced by the new inventory system below.
@@ -13325,7 +15488,6 @@ function setupClaimUI(handout, role) {
   btnClaim.classList.add("hidden");
   btnClaim.disabled = false;
   btnClaim.textContent = "Claim loot";
-  if (btnPlayerClaim) btnPlayerClaim.classList.add("hidden");
 
   if (!claimable) {
     claimStatus.textContent = role === "dm"
@@ -13347,20 +15509,17 @@ function setupClaimUI(handout, role) {
 
   if (role === "player") {
     btnClaim.classList.remove("hidden");
-    if (btnPlayerClaim) btnPlayerClaim.classList.remove("hidden");
 
     // Offline rule for fairness:
     // We intentionally disable claiming while offline.
     // Reason: offline queued writes cannot guarantee true first-come-first-serve.
     if (!navigator.onLine) {
       btnClaim.disabled = true;
-      if (btnPlayerClaim) btnPlayerClaim.disabled = true;
       claimStatus.textContent = "Reconnect to claim fairly (claiming is disabled while offline).";
       return;
     }
 
     btnClaim.onclick = () => claimCurrentHandout();
-    if (btnPlayerClaim) btnPlayerClaim.onclick = () => claimCurrentHandout();
   }
 }
 
@@ -13517,20 +15676,17 @@ async function claimCurrentHandout() {
     if (result?.ok) {
       claimStatus.textContent = "Claim successful. This loot is now yours.";
       btnClaim?.classList.add("hidden");
-      btnPlayerClaim?.classList.add("hidden");
       return;
     }
 
     if (result?.reason === "taken") {
       claimStatus.textContent = `Too late � claimed by ${result.by}.`;
       btnClaim?.classList.add("hidden");
-      btnPlayerClaim?.classList.add("hidden");
       return;
     }
     if (result?.reason === "already-mine") {
       claimStatus.textContent = "You already claimed this loot.";
       btnClaim?.classList.add("hidden");
-      btnPlayerClaim?.classList.add("hidden");
       return;
     }
     if (result?.reason === "not-claimable") {
@@ -13544,6 +15700,52 @@ async function claimCurrentHandout() {
     console.error("Claim transaction failed:", e);
     claimStatus.textContent = "Claim failed due to connection/state conflict. Try again.";
   }
+}
+
+async function claimHandoutByCard(handoutId, cardBtn) {
+  // Card-level immediate claim: same fairness transaction as claimCurrentHandout
+  // but uses toast feedback instead of the modal's claimStatus element.
+  if (!state.uid || !state.sessionId || !handoutId) {
+    showToast("Missing claim context.", "error");
+    return;
+  }
+  if (!navigator.onLine) {
+    showToast("You are offline. Reconnect to claim fairly.", "error");
+    return;
+  }
+  if (cardBtn) cardBtn.disabled = true;
+  const handoutRef = doc(db, "sessions", state.sessionId, "handouts", handoutId);
+  const nickname = getPlayerNickname();
+  try {
+    const result = await runTransaction(db, async (tx) => {
+      const snap = await tx.get(handoutRef);
+      if (!snap.exists()) return { ok: false, reason: "missing" };
+      const data = snap.data();
+      const isLootType = String(data.type || "").toLowerCase() === "loot";
+      if (!isLootType) return { ok: false, reason: "not-loot" };
+      if (!data.claimable) return { ok: false, reason: "not-claimable" };
+      const claimedByUid = String(data.claimedByUid || "").trim();
+      if (claimedByUid === state.uid) return { ok: false, reason: "already-mine" };
+      if (claimedByUid) return { ok: false, reason: "taken", by: data.claimedByNick || "another player" };
+      tx.update(handoutRef, {
+        claimedByUid: state.uid,
+        claimedByNick: nickname,
+        mapVisibleToUid: isLootType ? null : state.uid,
+        claimedAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
+      });
+      return { ok: true };
+    });
+    if (result?.ok) { showToast("Loot claimed!", "success"); return; }
+    if (result?.reason === "taken") { showToast(`Too late — claimed by ${result.by}.`, "error"); return; }
+    if (result?.reason === "already-mine") { showToast("You already claimed this loot.", "info"); return; }
+    if (result?.reason === "not-claimable") { showToast("Claiming is disabled for this loot.", "error"); return; }
+    showToast("Could not claim this loot right now.", "error");
+  } catch (e) {
+    console.error("[TV] Card claim transaction failed:", e);
+    showToast("Claim failed. Check your connection and try again.", "error");
+  }
+  // Card state updates automatically via onSnapshot re-render — no manual re-enable needed.
 }
 
 // ---- 18) Leave / end session ----

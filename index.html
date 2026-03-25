@@ -51,7 +51,7 @@
   <meta name="twitter:title" content="TomeVault - Live Handouts for Your Table">
   <meta name="twitter:description" content="Share session invites, PINs, and handouts in seconds.">
   <meta name="twitter:image" content="references/tomeVaultLogo1.png">
-  <link rel="stylesheet" href="style.css?v=20260321fix12">
+  <link rel="stylesheet" href="style.css?v=20260325menu1">
   <!-- fantasy fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
@@ -59,31 +59,32 @@
  </head>
 
 <body>
-  <div class="app-shell">
   <a href="#main" class="skip-link">Skip to content</a>
   <header id="topBar" class="topbar hidden">
-    <div class="brand">
-      <button id="btnBrandHome" class="brand__homeBtn" type="button" aria-label="Home">
-        <span class="brand__title"><span class="brand__accent">T</span>ome<span class="brand__accent">V</span>ault</span>
-      </button>
-    </div>
-    <div class="topbar__right">
-      <button id="nuggetCounter" class="pill pill--nugget hidden" type="button" aria-label="Nugget balance">
+    <div class="topbar__inner">
+      <div class="brand">
+        <button id="btnBrandHome" class="brand__homeBtn" type="button" aria-label="Home">
+          <img src="references/tomeVaultLogo1.png" class="brand__logoMark" alt="" aria-hidden="true">
+          <span class="brand__title"><span class="brand__accent">T</span>ome<span class="brand__accent">V</span>ault</span>
+        </button>
+      </div>
+      <div class="topbar__right">
+        <button id="nuggetCounter" class="pill pill--nugget hidden" type="button" aria-label="Nugget balance">
           <img class="nuggetIcon nuggetIcon--counter" src="placeholders/nuggetPlaceholder1Small.png" alt="" aria-hidden="true">
-        <span id="nuggetBalance">0</span>
-      </button>
-
-      <button id="btnNotifBell" class="pill pill--clickable notifBell hidden" type="button" aria-label="Notifications">
-        <svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" style="width:18px;height:18px">
-          <path d="M12 2a7 7 0 00-7 7v3.528a1 1 0 01-.293.707L3.293 14.65A1 1 0 004 16h16a1 1 0 00.707-1.35l-1.414-1.415A1 1 0 0119 12.528V9a7 7 0 00-7-7z"/>
-          <path d="M10 18a2 2 0 104 0h-4z"/>
-        </svg>
-        <span id="notifBadge" class="notifBell__badge hidden"></span>
-      </button>
-
-      <!-- Social button removed per UX request -->
+          <span id="nuggetBalance">0</span>
+        </button>
+        <button id="btnNotifBell" class="topbar__iconBtn notifBell hidden" type="button" aria-label="Notifications">
+          <svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" style="width:18px;height:18px">
+            <path d="M12 2a7 7 0 00-7 7v3.528a1 1 0 01-.293.707L3.293 14.65A1 1 0 004 16h16a1 1 0 00.707-1.35l-1.414-1.415A1 1 0 0119 12.528V9a7 7 0 00-7-7z"/>
+            <path d="M10 18a2 2 0 104 0h-4z"/>
+          </svg>
+          <span id="notifBadge" class="notifBell__badge hidden"></span>
+        </button>
+        <!-- Social button removed per UX request -->
+      </div>
     </div>
   </header>
+  <div class="app-shell">
 
   <!--
     Main content region.
@@ -405,7 +406,12 @@
           <h3>Handouts</h3>
 
           <div class="dashTools">
-            <input id="gmSearch" class="input" placeholder="Search handouts..." aria-label="Search handouts">
+            <label class="searchField" aria-label="Search handouts">
+              <span class="searchField__icon" aria-hidden="true">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"></circle><path d="m20 20-3.5-3.5"></path></svg>
+              </span>
+              <input id="gmSearch" class="input searchField__input" type="search" placeholder="Search handouts..." aria-label="Search handouts">
+            </label>
             <button id="btnToggleFilters" class="btn btn--ghost btn--small filterToggleBtn" type="button" aria-expanded="false" aria-controls="gmFilterRow">
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="width:14px;height:14px;flex-shrink:0"><path d="M3 6h18M7 12h10M11 18h2"/></svg>
               Filter
@@ -459,6 +465,10 @@
               <button id="btnOpenSocialFromParty" class="btn btn--ghost btn--small partyAction partyAction--invite" type="button">
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" aria-hidden="true" style="width:15px;height:15px;flex-shrink:0"><path stroke-linecap="round" stroke-linejoin="round" d="M7.217 10.907a2.25 2.25 0 1 0 0 2.186m0-2.186c.18.324.283.696.283 1.093s-.103.77-.283 1.093m0-2.186 9.566-5.314m-9.566 7.5 9.566 5.314m0-12.814a2.25 2.25 0 1 0 3.935-2.186 2.25 2.25 0 0 0-3.935 2.186Zm0 12.814a2.25 2.25 0 1 0 3.935 2.186 2.25 2.25 0 0 0-3.935-2.186Z" /></svg>
                 Invite
+              </button>
+              <button id="btnOpenChatFromParty" class="btn btn--ghost btn--small partyAction" type="button">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" aria-hidden="true" style="width:15px;height:15px;flex-shrink:0"><path stroke-linecap="round" stroke-linejoin="round" d="M8.625 9.75h6.75M8.625 13.5h4.5M6.75 18.75h7.734a3 3 0 0 0 2.122-.879l1.787-1.787a3 3 0 0 0 .879-2.121V8.25a3 3 0 0 0-3-3H6.75a3 3 0 0 0-3 3v7.5a3 3 0 0 0 3 3Z" /></svg>
+                Chat
               </button>
               <!-- btnAddNpc hidden &middot; NPC initiative added via handout creation instead -->
               <button id="btnAddNpc" class="hidden" type="button" aria-hidden="true"></button>
@@ -825,23 +835,39 @@
     <section id="screenPlayerView" class="card hidden">
       <div class="dashHeader">
         <div>
-          <h2>Handouts</h2>
-          <div class="muted small">You only see revealed handouts.</div>
-        </div>
-        <div class="dashHeader__actions playerHandoutsHeader__actions">
-          <button id="btnTogglePlayerHandouts" class="iconBtn playerHandoutsToggleBtn" type="button" aria-expanded="true" aria-label="Collapse handouts list" title="Collapse handouts list">
-            <svg class="playerHandoutsChevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true" style="width:16px;height:16px;transition:transform 300ms ease-in-out"><path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5"/></svg>
-          </button>
+          <h2>Session</h2>
+          <div class="muted small">Browse revealed handouts and track party initiative.</div>
         </div>
       </div>
 
       <div class="playerViewLayout">
-        <div id="playerHandoutsMain" class="playerViewLayout__main">
-          <div id="plHandoutList" class="list"></div>
-          <div id="plHandoutEmpty" class="emptyState">
-            <span class="emptyState__icon" aria-hidden="true">📜</span>
-            <span class="emptyState__title">Nothing revealed yet</span>
-            <span class="emptyState__hint">The GM will reveal handouts as your adventure unfolds.</span>
+        <div id="playerHandoutsPanel" class="panel playerHandoutsPanel playerViewLayout__main" aria-label="Handouts panel">
+          <div class="playerHandoutsPanel__head">
+            <div>
+              <h3>Revealed Handouts</h3>
+              <div class="muted small">Search and open handouts shared by your GM.</div>
+            </div>
+            <button id="btnTogglePlayerHandouts" class="iconBtn playerHandoutsToggleBtn" type="button" aria-expanded="true" aria-label="Collapse handouts section" title="Collapse handouts section">
+              <svg class="playerHandoutsChevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true" style="width:16px;height:16px;transition:transform 300ms ease-in-out"><path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5"/></svg>
+            </button>
+          </div>
+
+          <div class="playerHandoutSearchRow">
+            <label class="searchField" aria-label="Search revealed handouts by title or description">
+              <span class="searchField__icon" aria-hidden="true">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"></circle><path d="m20 20-3.5-3.5"></path></svg>
+              </span>
+              <input id="plHandoutSearch" class="input searchField__input" type="search" placeholder="Search revealed handouts..." aria-label="Search revealed handouts by title or description">
+            </label>
+          </div>
+
+          <div id="playerHandoutsMain">
+            <div id="plHandoutList" class="list"></div>
+            <div id="plHandoutEmpty" class="emptyState">
+              <span class="emptyState__icon" aria-hidden="true">📜</span>
+              <span class="emptyState__title">Nothing revealed yet</span>
+              <span class="emptyState__hint">The GM will reveal handouts as your adventure unfolds.</span>
+            </div>
           </div>
         </div>
 
@@ -861,6 +887,10 @@
             <button id="btnPlayerInitiativeRoll" class="btn btn--small partyAction" type="button" title="Roll and set your initiative">
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="width:15px;height:15px;flex-shrink:0"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8.5" cy="8.5" r="1.2" fill="currentColor"/><circle cx="15.5" cy="8.5" r="1.2" fill="currentColor"/><circle cx="8.5" cy="15.5" r="1.2" fill="currentColor"/><circle cx="15.5" cy="15.5" r="1.2" fill="currentColor"/><circle cx="12" cy="12" r="1.2" fill="currentColor"/></svg>
               Roll
+            </button>
+            <button id="btnPlayerOpenChatFromParty" class="btn btn--ghost btn--small partyAction" type="button" title="Open session chat">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" aria-hidden="true" style="width:15px;height:15px;flex-shrink:0"><path stroke-linecap="round" stroke-linejoin="round" d="M8.625 9.75h6.75M8.625 13.5h4.5M6.75 18.75h7.734a3 3 0 0 0 2.122-.879l1.787-1.787a3 3 0 0 0 .879-2.121V8.25a3 3 0 0 0-3-3H6.75a3 3 0 0 0-3 3v7.5a3 3 0 0 0 3 3Z" /></svg>
+              Chat
             </button>
           </div>
           <!-- Turn indicator · read-only for players, shown when initiative is active -->
@@ -1312,17 +1342,175 @@
     <section id="screenNotes" class="card hidden">
       <div class="dashHeader">
         <div>
-          <h2>Session Notes</h2>
-          <div class="muted small">Private notes for this session.</div>
+          <h2>Notes Library</h2>
+          <div class="muted small">Private note files for this session.</div>
         </div>
         <div class="row row--gap-sm">
-          <button id="btnNotesBack" class="btn btn--ghost btn--small" type="button"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" aria-hidden="true" style="width:15px;height:15px;flex-shrink:0;vertical-align:-2px;margin-right:4px"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5"/></svg>Back</button>
-          <button id="btnNotesUndo" class="btn btn--ghost btn--small" type="button" aria-label="Undo note change" title="Undo last change">Undo</button>
-          <button id="btnNotesSave" class="btn btn--small" type="button">Save</button>
+          <button id="btnNotesBack" class="btn btn--ghost btn--small" type="button"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" aria-hidden="true" style="width:15px;height:15px;flex-shrink:0;vertical-align:-2px;margin-right:4px"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5"/></svg>Back</button>
+            <button id="btnNotesAutoSave" class="btn btn--ghost btn--small notesIconOnlyBtn" type="button" aria-pressed="false" aria-label="Auto-save is off" title="Auto-save is off"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M13 3 4 14h6l-1 7 9-11h-6l1-7Z"/></svg><span class="sr-only">Auto-save</span></button>
+            <button id="btnNotesSave" class="btn btn--small" type="button"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" aria-hidden="true" style="width:15px;height:15px;flex-shrink:0;vertical-align:-2px;margin-right:4px"><path stroke-linecap="round" stroke-linejoin="round" d="M5 4.5h11.25L19.5 7.75V19.5a1.5 1.5 0 0 1-1.5 1.5h-12a1.5 1.5 0 0 1-1.5-1.5V6A1.5 1.5 0 0 1 6 4.5Z"/><path stroke-linecap="round" stroke-linejoin="round" d="M8 4.5v5h7v-4"/><path stroke-linecap="round" stroke-linejoin="round" d="M8 16h8"/></svg>Save</button>
         </div>
       </div>
-      <textarea id="notesEditor" class="input notesEditor" rows="14" placeholder="Write your session notes here..."></textarea>
-      <p id="notesStatus" class="muted small" aria-live="polite">Tap Save to store your notes.</p>
+
+        <div id="notesWorkspace" class="notesWorkspace">
+        <aside class="notesLibraryPanel" aria-label="Notes library">
+          <div class="notesLibraryPanel__hero">
+            <div class="notesLibraryPanel__copy">
+              <div class="notesLibraryPanel__eyebrow">Session Journal</div>
+              <h3>Your note files</h3>
+              <p class="muted">Create separate notes for sessions, subjects, clues, and planning.</p>
+            </div>
+            <button id="btnNotesNew" class="notesCreateBtn" type="button" aria-label="Create note" title="Create note">
+              <span class="notesCreateBtn__icon" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15"/><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12h15"/></svg></span>
+              <span class="notesCreateBtn__label">Create note</span>
+            </button>
+          </div>
+
+          <div class="notesStatsRow" aria-label="Notes overview">
+            <div class="notesStatCard">
+              <span class="notesStatCard__label">Active</span>
+              <strong id="notesStatActive" class="notesStatCard__value">0</strong>
+            </div>
+            <div class="notesStatCard">
+              <span class="notesStatCard__label">Bin</span>
+              <strong id="notesStatArchived" class="notesStatCard__value">0</strong>
+            </div>
+          </div>
+
+          <div class="notesFilterPanel">
+            <label class="searchField" aria-label="Search notes">
+              <span class="searchField__icon" aria-hidden="true">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"></circle><path d="m20 20-3.5-3.5"></path></svg>
+              </span>
+              <input id="notesSearch" class="input searchField__input" type="search" placeholder="Search titles, tags, or content..." aria-label="Search notes by title, tags, or content">
+            </label>
+
+            <div class="notesScopeRow" role="tablist" aria-label="Notes scope">
+              <button id="btnNotesScopeActive" class="btn btn--ghost btn--small btn--active" type="button" aria-pressed="true">Active</button>
+              <button id="btnNotesScopeBin" class="btn btn--ghost btn--small notesIconOnlyLabelBtn" type="button" aria-pressed="false"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 7.5h15"/><path stroke-linecap="round" stroke-linejoin="round" d="M9.75 3.75h4.5"/><path stroke-linecap="round" stroke-linejoin="round" d="M6.75 7.5l.9 10.12A1.5 1.5 0 0 0 9.14 19h5.72a1.5 1.5 0 0 0 1.49-1.38l.9-10.12"/><path stroke-linecap="round" stroke-linejoin="round" d="M10 11.25v4.5M14 11.25v4.5"/></svg><span class="notesScopeLabel">Bin</span></button>
+            </div>
+
+            <div id="notesTagFilterWrap" class="notesTagFilter hidden" aria-live="polite">
+              <span class="notesTagFilter__label">Filtered by</span>
+              <button id="btnNotesTagFilter" class="tag notesTagFilter__chip" type="button"></button>
+              <button id="btnNotesClearTagFilter" class="btn btn--ghost btn--small" type="button">Clear</button>
+            </div>
+          </div>
+
+          <div id="notesList" class="list notesList" aria-live="polite"></div>
+
+          <div id="notesEmpty" class="emptyState hidden">
+            <span class="emptyState__icon" aria-hidden="true">📝</span>
+            <span id="notesEmptyTitle" class="emptyState__title">No notes yet</span>
+            <span id="notesEmptyHint" class="emptyState__hint">Create a note for this session, a subject, or a plan.</span>
+            <button id="btnNotesEmptyCreate" class="btn" type="button">Create note</button>
+          </div>
+        </aside>
+
+        <section class="notesEditorPanel" aria-label="Note editor">
+          <div class="notesEditorPanel__header">
+            <div>
+              <button id="btnNotesEditorBack" class="btn btn--ghost btn--small notesEditorMobileBack" type="button"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" aria-hidden="true" style="width:15px;height:15px;flex-shrink:0;vertical-align:-2px;margin-right:4px"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5"/></svg>Notes</button>
+              <div class="notesEditorPanel__eyebrow">Current Note</div>
+              <h3 id="notesEditorHeading">Select a note</h3>
+            </div>
+            <div id="notesEditorActions" class="notesEditorPanel__actions">
+              <button id="btnNotesArchive" class="btn btn--ghost btn--small" type="button"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 7.5h15"/><path stroke-linecap="round" stroke-linejoin="round" d="M9.75 3.75h4.5"/><path stroke-linecap="round" stroke-linejoin="round" d="M6.75 7.5l.9 10.12A1.5 1.5 0 0 0 9.14 19h5.72a1.5 1.5 0 0 0 1.49-1.38l.9-10.12"/><path stroke-linecap="round" stroke-linejoin="round" d="M10 11.25v4.5M14 11.25v4.5"/></svg>Move to bin</button>
+              <button id="btnNotesRestore" class="btn btn--ghost btn--small hidden" type="button"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12a7.5 7.5 0 1 0 2.2-5.3"/><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 4.5v5.25h5.25"/></svg>Restore</button>
+              <div class="notesMoreMenuWrap">
+                <button id="btnNotesMore" class="btn btn--ghost btn--small notesIconOnlyBtn" type="button" aria-haspopup="true" aria-expanded="false" aria-label="More note actions" title="More note actions"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M12 5.25h.008v.008H12V5.25Zm0 6.75h.008v.008H12V12Zm0 6.75h.008v.008H12v-.008Z"/></svg><span class="sr-only">More actions</span></button>
+                <div id="notesMorePopover" class="notesMorePopover hidden" role="menu" aria-label="More note actions">
+                  <button id="btnNotesCopyAll" class="notesMorePopover__item" type="button" role="menuitem"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" aria-hidden="true"><rect x="9" y="9" width="10.5" height="10.5" rx="1.5"/><path stroke-linecap="round" stroke-linejoin="round" d="M6 15V6.75A1.5 1.5 0 0 1 7.5 5.25H15"/></svg>Copy text</button>
+                  <button id="btnNotesExportTxt" class="notesMorePopover__item" type="button" role="menuitem"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M12 3.75v10.5"/><path stroke-linecap="round" stroke-linejoin="round" d="m8.25 10.5 3.75 3.75 3.75-3.75"/><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 18.75h15"/></svg>Export TXT</button>
+                  <button id="btnNotesExportMd" class="notesMorePopover__item" type="button" role="menuitem"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M12 3.75v10.5"/><path stroke-linecap="round" stroke-linejoin="round" d="m8.25 10.5 3.75 3.75 3.75-3.75"/><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 18.75h15"/></svg>Export MD</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div id="notesEditorEmptyState" class="emptyState notesEditorEmptyState">
+            <span class="emptyState__icon" aria-hidden="true">📜</span>
+            <span class="emptyState__title">Select a note</span>
+            <span class="emptyState__hint">Choose a note from the library, or start a fresh entry for this session.</span>
+            <button id="btnNotesEmptyEditorCreate" class="btn btn--ghost" type="button">Create note</button>
+          </div>
+
+          <div id="notesEditorFields" class="notesEditorFields hidden">
+            <label class="label" for="noteTitleInput">Note name</label>
+            <input id="noteTitleInput" class="input" type="text" maxlength="80" placeholder="Session 07 - Palace clues">
+
+            <div class="notesEditorFields__meta">
+              <div>
+                <label class="label" for="noteSessionDateInput">Session date</label>
+                <input id="noteSessionDateInput" class="input" type="date">
+              </div>
+              <div>
+                <label class="label" for="noteTagsInput">Tags</label>
+                <input id="noteTagsInput" class="input" type="text" placeholder="session, lore, npc">
+              </div>
+            </div>
+
+            <div id="notesTagSuggestions" class="notesTagSuggestions hidden" aria-live="polite" aria-label="Suggested tags"></div>
+
+            <div id="notesTagPreview" class="notesTagPreview hidden" aria-label="Current note tags"></div>
+          </div>
+
+          <textarea id="notesEditor" class="input notesEditor hidden" rows="14" placeholder="Write your note here..."></textarea>
+          <p id="notesStatus" class="muted small hidden" aria-live="polite">Select a note to begin.</p>
+        </section>
+      </div>
+    </section>
+
+    <div id="notesConfirmModal" class="modal hidden" aria-hidden="true" role="dialog" aria-modal="true">
+      <div class="modal__card notesConfirmModal__card">
+        <div class="modal__header">
+          <h3 id="notesConfirmTitle" class="heading--natural">Are you sure?</h3>
+        </div>
+        <p id="notesConfirmBody" class="muted"></p>
+        <div class="modal-actions">
+          <button id="btnNotesConfirmCancel" class="btn btn--ghost" type="button">Cancel</button>
+          <button id="btnNotesConfirmSecondary" class="btn btn--ghost hidden" type="button"></button>
+          <button id="btnNotesConfirmOk" class="btn btn--danger" type="button">Confirm</button>
+        </div>
+      </div>
+    </div>
+
+    <section id="screenChat" class="card hidden">
+      <div class="dashHeader">
+        <div>
+          <h2>Party Chat</h2>
+          <div class="muted small">A shared room for session discussion. Messages are kept for 30 days.</div>
+        </div>
+        <div class="row row--gap-sm">
+          <button id="btnChatBack" class="btn btn--ghost btn--small" type="button"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" aria-hidden="true" style="width:15px;height:15px;flex-shrink:0;vertical-align:-2px;margin-right:4px"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5"/></svg>Back</button>
+          <button id="btnChatClear" class="btn btn--ghost btn--small hidden" type="button"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" aria-hidden="true" style="width:15px;height:15px;flex-shrink:0;vertical-align:-2px;margin-right:4px"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 7.5h15"/><path stroke-linecap="round" stroke-linejoin="round" d="M9.75 3.75h4.5"/><path stroke-linecap="round" stroke-linejoin="round" d="M6.75 7.5l.9 10.12A1.5 1.5 0 0 0 9.14 19h5.72a1.5 1.5 0 0 0 1.49-1.38l.9-10.12"/><path stroke-linecap="round" stroke-linejoin="round" d="M10 11.25v4.5M14 11.25v4.5"/></svg>Clear</button>
+          <button id="btnChatExport" class="btn btn--ghost btn--small hidden" type="button"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" aria-hidden="true" style="width:15px;height:15px;flex-shrink:0;vertical-align:-2px;margin-right:4px"><path stroke-linecap="round" stroke-linejoin="round" d="M12 3.75v10.5"/><path stroke-linecap="round" stroke-linejoin="round" d="m8.25 10.5 3.75 3.75 3.75-3.75"/><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 18.75h15"/></svg>Export</button>
+        </div>
+      </div>
+
+      <section class="chatPanel" aria-label="Session chat">
+        <div class="chatPanel__meta">
+          <p id="chatRetentionNote" class="chatRetentionNote">Messages are visible to everyone in this session, written under your signed-in account, and automatically removed after 30 days.</p>
+          <p id="chatStatus" class="muted small" aria-live="polite">Open chat to view the latest messages.</p>
+        </div>
+
+        <div id="chatList" class="chatList" aria-live="polite"></div>
+
+        <div id="chatEmpty" class="emptyState chatEmpty hidden">
+          <span class="emptyState__icon" aria-hidden="true">💬</span>
+          <span class="emptyState__title">No messages yet</span>
+          <span class="emptyState__hint">Use this room to discuss the session, recap clues, or coordinate the next step.</span>
+        </div>
+
+        <div class="chatComposer">
+          <label class="label" for="chatInput">Message</label>
+          <textarea id="chatInput" class="input chatComposer__input" rows="4" maxlength="500" placeholder="Write a message to the party..."></textarea>
+          <div class="chatComposer__actions">
+            <p class="muted small">Press Enter to send. Use Shift + Enter for a new line.</p>
+            <button id="btnChatSend" class="btn" type="button">Send</button>
+          </div>
+        </div>
+      </section>
     </section>
 
     <!--
@@ -1590,10 +1778,6 @@
             <img id="modalImage" class="handoutModalImage" alt="Handout image">
           </div>
           <input id="modalHandoutImageUpload" type="file" accept="image/*" class="hidden">
-          <button id="btnPlayerClaim" class="btn btn--primary btnPlayerClaim hidden" type="button" aria-label="Claim loot">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true" class="btnInlineIcon"><path stroke-linecap="round" stroke-linejoin="round" d="M10.05 4.575a1.575 1.575 0 10-3.15 0v3.15M10.05 4.575a1.575 1.575 0 013.15 0v3.15M10.05 4.575v3.15M3.75 10.05a1.575 1.575 0 003.15 0m0 0V4.575m0 5.476v5.1a2.85 2.85 0 002.85 2.85h4.5a2.85 2.85 0 002.85-2.85V7.725m-10.2 2.325h10.2m0 0V4.575m0 3.15a1.575 1.575 0 013.15 0v3.15m-3.15-3.15v3.15m3.15 0a1.575 1.575 0 01-3.15 0m3.15 0v2.175a2.85 2.85 0 01-2.85 2.85"></path></svg>
-            Claim
-          </button>
         </div>
         <div id="modalPublic" class="modalText"></div>
 
@@ -1814,9 +1998,12 @@
 
   <!-- Floating hamburger FAB (bottom-right) &middot; toggles speed-dial actions -->
   <button id="btnHamburger" class="settings-fab hidden" type="button" aria-label="Menu" aria-expanded="false">
-    <span class="hamburger-line"></span>
-    <span class="hamburger-line"></span>
-    <span class="hamburger-line"></span>
+    <span class="settings-fab__icon" aria-hidden="true">
+      <span class="hamburger-line"></span>
+      <span class="hamburger-line"></span>
+      <span class="hamburger-line"></span>
+    </span>
+    <span class="settings-fab__label">Menu</span>
   </button>
 
   <div id="hamburgerSpeedDial" class="hamburger-speed-dial hidden" aria-hidden="true">
@@ -2297,7 +2484,7 @@
   <script src="https://www.google.com/recaptcha/api.js?render=6LeMT5EsAAAAABZpKrhXRvmiG2SLIrjUIq5mqeeK" async defer></script>
 
   <!-- App entry point -->
-  <script type="module" src="index.mjs?v=20260322fix1"></script>
+  <script type="module" src="index.mjs?v=20260325menu1"></script>
 </body>
 </html>
 

@@ -6,7 +6,9 @@
   "license": "MIT",
   "type": "module",
   "scripts": {
-    "start": "npx serve . -l 3000 --cors"
+    "start": "npx serve . -l 3000 --cors",
+    "deploy": "cmd /c firebase deploy",
+    "deploy:log": "cmd /c \"if not exist .private mkdir .private & firebase deploy > .private\\deploy_log.txt 2>&1\""
   },
   "dependencies": {
     "firebase-functions": "^4.9.0"
