@@ -654,6 +654,7 @@ const btnAddHandout = $("btnAddHandout");
 const gmHandoutList = $("gmHandoutList");
 const gmHandoutEmpty = $("gmHandoutEmpty");
 const gmSearch = $("gmSearch");
+const btnOpenGMHandoutDeck = $("btnOpenGMHandoutDeck");
 const gmFilterRow = $("gmFilterRow");
 const btnToggleFilters = $("btnToggleFilters");
 const filterActiveBadge = $("filterActiveBadge");
@@ -768,9 +769,27 @@ const gmPinPrompt = $("gmPinPrompt");
 const switchGMPinInput = $("switchGMPinInput");
 const btnConfirmSwitchGM = $("btnConfirmSwitchGM");
 const btnCancelSwitchGM = $("btnCancelSwitchGM");
-const btnLeaveSession = $("btnLeaveSession");
 const btnDeleteSession = $("btnDeleteSession");
 const btnDiscardSession = $("btnDiscardSession");
+const btnSwitchSession = $("btnSwitchSession");
+const handoutReviewModal = $("handoutReviewModal");
+const handoutReviewSummary = $("handoutReviewSummary");
+const handoutReviewProgress = $("handoutReviewProgress");
+const handoutReviewStack = $("handoutReviewStack");
+const btnHandoutReviewClose = $("btnHandoutReviewClose");
+const btnHandoutReviewKeep = $("btnHandoutReviewKeep");
+const btnHandoutReviewDelete = $("btnHandoutReviewDelete");
+const gmHandoutDeckModal = $("gmHandoutDeckModal");
+const gmHandoutDeckSummary = $("gmHandoutDeckSummary");
+const gmHandoutDeckProgress = $("gmHandoutDeckProgress");
+const gmHandoutDeckFilterRow = $("gmHandoutDeckFilterRow");
+const btnGMDeckKeepClaims = $("btnGMDeckKeepClaims");
+const gmHandoutDeckPlayer = $("gmHandoutDeckPlayer");
+const gmHandoutDeckStack = $("gmHandoutDeckStack");
+const btnGMHandoutDeckClose = $("btnGMHandoutDeckClose");
+const btnGMHandoutDeckSkip = $("btnGMHandoutDeckSkip");
+const btnGMHandoutDeckAssign = $("btnGMHandoutDeckAssign");
+const btnGMHandoutDeckDelete = $("btnGMHandoutDeckDelete");
 const deleteSessionModal = $("deleteSessionModal");
 const deleteSessionConfirmInput = $("deleteSessionConfirmInput");
 const btnConfirmDeleteSession = $("btnConfirmDeleteSession");
@@ -811,6 +830,11 @@ const gmMiniChatStatus = $("gmMiniChatStatus");
 const gmMiniChatList = $("gmMiniChatList");
 const gmMiniChatEmpty = $("gmMiniChatEmpty");
 const btnOpenChatFromMini = $("btnOpenChatFromMini");
+const playerMiniChatPanel = $("playerMiniChatPanel");
+const playerMiniChatStatus = $("playerMiniChatStatus");
+const playerMiniChatList = $("playerMiniChatList");
+const playerMiniChatEmpty = $("playerMiniChatEmpty");
+const btnPlayerOpenChatFromMini = $("btnPlayerOpenChatFromMini");
 const notesList = $("notesList");
 const notesEmpty = $("notesEmpty");
 const notesEmptyTitle = $("notesEmptyTitle");
@@ -1128,6 +1152,7 @@ const state = {
   notes: {
     items: [],
     activeId: null,
+    pinnedNoteId: null,
     scope: "active",
     searchQuery: "",
     tagFilter: "",
@@ -1505,6 +1530,7 @@ function showOnly(screenKey) {
   // body[data-screen] lets CSS target screen-specific styles like
   // showing/hiding elements that only make sense on certain screens.
   document.body.dataset.screen = screenKey;
+  document.body.dataset.role = state.role || "";
 
   // Stop QR scanner camera if navigating away from the join screen.
   if (currentScreenKey === SCREEN_KEYS.PL_JOIN && screenKey !== SCREEN_KEYS.PL_JOIN) {
@@ -1615,8 +1641,8 @@ function showOnly(screenKey) {
         settingsRoleSection.classList.add("hidden");
       }
     }
-    if (btnLeaveSession) {
-      btnLeaveSession.classList.toggle("hidden", !state.sessionId);
+    if (btnSwitchSession) {
+      btnSwitchSession.classList.toggle("hidden", !state.sessionId);
     }
     if (btnDeleteSession) {
       btnDeleteSession.classList.toggle("hidden", !(state.sessionId && state.role === "dm"));
@@ -1641,7 +1667,7 @@ function showOnly(screenKey) {
   if (screenKey === SCREEN_KEYS.NOTES) {
     loadNotesForCurrentSession();
   }
-  if (screenKey === SCREEN_KEYS.CHAT || (screenKey === SCREEN_KEYS.GM_DASH && state.role === "dm")) {
+  if (screenKey === SCREEN_KEYS.CHAT || screenKey === SCREEN_KEYS.GM_DASH || screenKey === SCREEN_KEYS.PLAYER_VIEW) {
     subscribePartyChat();
   }
 }
@@ -3625,6 +3651,13 @@ document.body.addEventListener("click", (e) => {
 // session. Clicking it toggles a dropdown panel listing the latest 10
 // notifications. The badge shows an unread count.
 let notifItems = []; // cached array of {id, type, message, payload, read, createdAt}
+let handoutReviewQueue = [];
+let handoutReviewPlayerName = "";
+let handoutReviewBusy = false;
+let gmHandoutDeckQueue = [];
+let gmHandoutDeckBusy = false;
+let gmHandoutDeckFilter = "all";
+let gmHandoutDeckKeepExistingClaims = true;
 
 function toggleNotifPanel() {
   if (!notifPanel) return;
@@ -3679,10 +3712,471 @@ const NOTIF_ICONS = {
   playerJoined: "🧙",
   playerKicked: "🚫",
   playerLeft: "👋",
+  playerDiscardedHandouts: "🗂️",
   sessionDeleted: "💀",
   gmMessage: "📢",
   default: "🔔"
 };
+
+function truncateHandoutPreview(text, maxLen = 120) {
+  const src = String(text || "").replace(/\s+/g, " ").trim();
+  if (!src) return "No description provided.";
+  if (src.length <= maxLen) return src;
+  return `${src.slice(0, Math.max(0, maxLen - 1)).trim()}…`;
+}
+
+function setHandoutReviewButtonsDisabled(disabled) {
+  if (btnHandoutReviewKeep) btnHandoutReviewKeep.disabled = !!disabled;
+  if (btnHandoutReviewDelete) btnHandoutReviewDelete.disabled = !!disabled;
+}
+
+function renderHandoutReviewCard() {
+  if (!handoutReviewStack || !handoutReviewProgress) return;
+  handoutReviewStack.innerHTML = "";
+
+  if (handoutReviewQueue.length === 0) {
+    handoutReviewProgress.textContent = "Done";
+    if (handoutReviewSummary) {
+      handoutReviewSummary.textContent = handoutReviewPlayerName
+        ? `${handoutReviewPlayerName}'s claimed handouts have been fully reviewed.`
+        : "All claimed handouts have been reviewed.";
+    }
+    const done = document.createElement("div");
+    done.className = "handoutReviewDone";
+    done.textContent = "No more claimed handouts to review.";
+    handoutReviewStack.appendChild(done);
+    setHandoutReviewButtonsDisabled(true);
+    showToast("Claimed handouts reviewed.", "success");
+    return;
+  }
+
+  const item = handoutReviewQueue[0];
+  handoutReviewProgress.textContent = `${Math.max(1, item.totalIndex)} of ${Math.max(1, item.totalCount)}`;
+  if (handoutReviewSummary) {
+    handoutReviewSummary.textContent = handoutReviewPlayerName
+      ? `Reviewing claimed handouts from ${handoutReviewPlayerName}.`
+      : "Review each claimed handout before finishing.";
+  }
+
+  const card = document.createElement("article");
+  card.className = "handoutReviewCard handoutReviewCard--entering";
+
+  const art = String(getVisibleHandoutImageUrl(item, "dm", state.uid) || getHandoutAvatarImageUrl(item) || "").trim();
+  const imgHtml = art
+    ? `<img class="handoutReviewCard__art" src="${escapeHtml(art)}" alt="${escapeHtml(item.title || "Handout")} preview">`
+    : `<div class="handoutReviewCard__art handoutReviewCard__art--empty" aria-hidden="true">No Image</div>`;
+
+  card.innerHTML = `
+    <div class="handoutReviewCard__media">${imgHtml}</div>
+    <div class="handoutReviewCard__content">
+      <div class="handoutReviewCard__title">${escapeHtml(item.title || "Untitled Handout")}</div>
+      <div class="handoutReviewCard__meta">${escapeHtml(String(item.type || "handout").toUpperCase())}</div>
+      <p class="handoutReviewCard__desc">${escapeHtml(truncateHandoutPreview(item.publicContent || item.secretContent || ""))}</p>
+    </div>
+  `;
+
+  card.addEventListener("animationend", () => {
+    card.classList.remove("handoutReviewCard--entering");
+  }, { once: true });
+
+  handoutReviewStack.appendChild(card);
+  setHandoutReviewButtonsDisabled(false);
+}
+
+async function openDiscardedHandoutReviewFromNotification(notif) {
+  if (state.role !== "dm" || !state.sessionId || !notif?.payload) return;
+  const payload = notif.payload || {};
+  const handoutIds = Array.isArray(payload.handoutIds)
+    ? payload.handoutIds.map((id) => String(id || "").trim()).filter(Boolean)
+    : [];
+
+  if (handoutIds.length === 0) {
+    showToast("No claimed handouts were attached to this notification.", "info");
+    return;
+  }
+
+  const playerUid = String(payload.playerUid || "").trim();
+  handoutReviewPlayerName = String(payload.playerName || "").trim() || "the departing player";
+  const loaded = [];
+
+  for (const hid of handoutIds) {
+    try {
+      const hs = await getDoc(doc(db, "sessions", state.sessionId, "handouts", hid));
+      if (!hs.exists()) continue;
+      const data = hs.data() || {};
+      const currentClaimUid = String(data.claimedByUid || "").trim();
+      if (playerUid && currentClaimUid && currentClaimUid !== playerUid) continue;
+      loaded.push({ id: hs.id, ...data });
+    } catch (err) {
+      console.warn("Handout review load failed:", err);
+    }
+  }
+
+  if (loaded.length === 0) {
+    showToast("No matching claimed handouts need review anymore.", "info");
+    return;
+  }
+
+  handoutReviewQueue = loaded.map((h, idx) => ({
+    ...h,
+    totalIndex: idx + 1,
+    totalCount: loaded.length,
+  }));
+  handoutReviewBusy = false;
+  renderHandoutReviewCard();
+  animateModalIn(handoutReviewModal);
+}
+
+async function handleNotificationClick(item) {
+  if (!item?.id) return;
+  if (item.type === "playerDiscardedHandouts" && state.role === "dm") {
+    await markNotifRead(item.id);
+    await openDiscardedHandoutReviewFromNotification(item);
+    return;
+  }
+  await markNotifRead(item.id);
+}
+
+function closeHandoutReviewModal() {
+  if (handoutReviewBusy) return;
+  handoutReviewQueue = [];
+  handoutReviewPlayerName = "";
+  handoutReviewBusy = false;
+  animateModalOut(handoutReviewModal);
+}
+
+async function resolveCurrentHandoutReview(action) {
+  if (handoutReviewBusy || !state.sessionId || handoutReviewQueue.length === 0) return;
+  const current = handoutReviewQueue[0];
+  if (!current?.id) return;
+
+  handoutReviewBusy = true;
+  setHandoutReviewButtonsDisabled(true);
+
+  try {
+    const ref = doc(db, "sessions", state.sessionId, "handouts", current.id);
+    if (action === "delete") {
+      await deleteDoc(ref);
+    } else {
+      await updateDoc(ref, {
+        claimedByUid: null,
+        claimedByNick: null,
+        claimedAt: null,
+      });
+    }
+
+    const card = handoutReviewStack?.querySelector(".handoutReviewCard");
+    if (card) {
+      await new Promise((resolve) => {
+        card.classList.add("handoutReviewCard--leaving");
+        card.addEventListener("animationend", resolve, { once: true });
+      });
+    }
+
+    handoutReviewQueue.shift();
+    renderHandoutReviewCard();
+  } catch (err) {
+    console.error("Handout review action failed:", err);
+    showToast("Could not update this handout right now.", "error");
+    setHandoutReviewButtonsDisabled(false);
+  } finally {
+    handoutReviewBusy = false;
+    if (handoutReviewQueue.length > 0) setHandoutReviewButtonsDisabled(false);
+  }
+}
+
+btnHandoutReviewClose && (btnHandoutReviewClose.onclick = () => closeHandoutReviewModal());
+btnHandoutReviewKeep && (btnHandoutReviewKeep.onclick = () => {
+  resolveCurrentHandoutReview("keep").catch((err) => {
+    console.warn("Handout keep failed:", err);
+  });
+});
+btnHandoutReviewDelete && (btnHandoutReviewDelete.onclick = () => {
+  resolveCurrentHandoutReview("delete").catch((err) => {
+    console.warn("Handout delete failed:", err);
+  });
+});
+
+function getGMDeckAssignablePlayers() {
+  return (state.activePlayers || []).filter((player) => {
+    if (!player?.id) return false;
+    if (player?.isNpc === true) return false;
+    return true;
+  });
+}
+
+function populateGMDeckAssignablePlayers(selectedUid = "") {
+  if (!gmHandoutDeckPlayer) return;
+  const players = getGMDeckAssignablePlayers();
+  gmHandoutDeckPlayer.innerHTML = "";
+
+  const defaultOption = document.createElement("option");
+  defaultOption.value = "";
+  defaultOption.textContent = players.length > 0 ? "Select player..." : "No players available";
+  gmHandoutDeckPlayer.appendChild(defaultOption);
+
+  players.forEach((player) => {
+    const option = document.createElement("option");
+    option.value = String(player.id || "");
+    option.textContent = String(player.nickname || "Adventurer");
+    gmHandoutDeckPlayer.appendChild(option);
+  });
+
+  if (selectedUid && players.some((p) => String(p.id) === selectedUid)) {
+    gmHandoutDeckPlayer.value = selectedUid;
+  }
+}
+
+function sortGMDeckItems(items) {
+  return (items || []).slice().sort((a, b) => {
+    const sa = Number.isFinite(Number(a?.sortOrder)) ? Number(a.sortOrder) : Number.MAX_SAFE_INTEGER;
+    const sb = Number.isFinite(Number(b?.sortOrder)) ? Number(b.sortOrder) : Number.MAX_SAFE_INTEGER;
+    if (sa !== sb) return sa - sb;
+    return toMillisSafe(b?.updatedAt || b?.createdAt) - toMillisSafe(a?.updatedAt || a?.createdAt);
+  });
+}
+
+function getGMDeckFilteredItems() {
+  const typeFilter = String(gmHandoutDeckFilter || "all").toLowerCase();
+  return sortGMDeckItems(state.gmHandoutsRaw || []).filter((item) => {
+    const handoutType = String(item?.type || "").toLowerCase();
+    if (typeFilter !== "all" && handoutType !== typeFilter) return false;
+    if (gmHandoutDeckKeepExistingClaims && String(item?.claimedByUid || "").trim()) return false;
+    return true;
+  });
+}
+
+function setGMDeckQueueFromItems(items) {
+  const source = Array.isArray(items) ? items : [];
+  gmHandoutDeckQueue = source.map((item, idx) => ({
+    ...item,
+    totalIndex: idx + 1,
+    totalCount: source.length,
+  }));
+}
+
+function syncGMDeckFilterUI() {
+  gmHandoutDeckFilterRow?.querySelectorAll("[data-deck-filter]").forEach((button) => {
+    const value = String(button.getAttribute("data-deck-filter") || "all").toLowerCase();
+    button.classList.toggle("chip--active", value === gmHandoutDeckFilter);
+    button.setAttribute("aria-pressed", String(value === gmHandoutDeckFilter));
+  });
+  if (btnGMDeckKeepClaims) {
+    btnGMDeckKeepClaims.classList.toggle("chip--active", gmHandoutDeckKeepExistingClaims);
+    btnGMDeckKeepClaims.setAttribute("aria-pressed", String(gmHandoutDeckKeepExistingClaims));
+  }
+}
+
+function rebuildGMHandoutDeck(options = {}) {
+  const preserveCurrentId = String(options.currentId || "").trim();
+  const items = getGMDeckFilteredItems();
+  if (!preserveCurrentId) {
+    setGMDeckQueueFromItems(items);
+    renderGMHandoutDeckCard();
+    return;
+  }
+
+  const currentIndex = items.findIndex((item) => String(item?.id || "") === preserveCurrentId);
+  if (currentIndex <= 0) {
+    setGMDeckQueueFromItems(items);
+    renderGMHandoutDeckCard();
+    return;
+  }
+
+  const rotated = items.slice(currentIndex).concat(items.slice(0, currentIndex));
+  setGMDeckQueueFromItems(rotated);
+  renderGMHandoutDeckCard();
+}
+
+function setGMHandoutDeckButtonsDisabled(disabled) {
+  const hasPlayers = getGMDeckAssignablePlayers().length > 0;
+  if (btnGMHandoutDeckSkip) btnGMHandoutDeckSkip.disabled = !!disabled || gmHandoutDeckQueue.length <= 1;
+  if (btnGMHandoutDeckAssign) btnGMHandoutDeckAssign.disabled = !!disabled || !hasPlayers;
+  if (btnGMHandoutDeckDelete) btnGMHandoutDeckDelete.disabled = !!disabled;
+  if (btnGMHandoutDeckClose) btnGMHandoutDeckClose.disabled = !!disabled;
+  if (gmHandoutDeckPlayer) gmHandoutDeckPlayer.disabled = !!disabled || !hasPlayers;
+}
+
+function renderGMHandoutDeckCard() {
+  if (!gmHandoutDeckStack || !gmHandoutDeckProgress) return;
+  gmHandoutDeckStack.innerHTML = "";
+  syncGMDeckFilterUI();
+
+  if (gmHandoutDeckQueue.length === 0) {
+    gmHandoutDeckProgress.textContent = "Done";
+    if (gmHandoutDeckSummary) {
+      gmHandoutDeckSummary.textContent = "Your handout deck is complete for the current filter settings.";
+    }
+    const done = document.createElement("div");
+    done.className = "handoutReviewDone";
+    done.textContent = "No more handouts to review.";
+    gmHandoutDeckStack.appendChild(done);
+    setGMHandoutDeckButtonsDisabled(true);
+    showToast("Handout deck complete.", "success");
+    return;
+  }
+
+  const item = gmHandoutDeckQueue[0];
+  gmHandoutDeckProgress.textContent = `${Math.max(1, item.totalIndex)} of ${Math.max(1, item.totalCount)}`;
+  if (gmHandoutDeckSummary) {
+    gmHandoutDeckSummary.textContent = gmHandoutDeckKeepExistingClaims
+      ? "Assign ownership quickly or delete handouts while preserving existing claims."
+      : "Assign ownership quickly or delete handouts while preparing your session.";
+  }
+
+  const card = document.createElement("article");
+  card.className = "handoutReviewCard handoutReviewCard--entering";
+  const art = String(getVisibleHandoutImageUrl(item, "dm", state.uid) || getHandoutAvatarImageUrl(item) || "").trim();
+  const claimMeta = String(item.claimedByNick || "").trim();
+  const claimLine = claimMeta ? ` · Claimed by ${claimMeta}` : "";
+  const imgHtml = art
+    ? `<img class="handoutReviewCard__art" src="${escapeHtml(art)}" alt="${escapeHtml(item.title || "Handout")} preview">`
+    : `<div class="handoutReviewCard__art handoutReviewCard__art--empty" aria-hidden="true">No Image</div>`;
+
+  card.innerHTML = `
+    <div class="handoutReviewCard__media">${imgHtml}</div>
+    <div class="handoutReviewCard__content">
+      <div class="handoutReviewCard__title">${escapeHtml(item.title || "Untitled Handout")}</div>
+      <div class="handoutReviewCard__meta">${escapeHtml(String(item.type || "handout").toUpperCase())}${escapeHtml(claimLine)}</div>
+      <p class="handoutReviewCard__desc">${escapeHtml(truncateHandoutPreview(item.publicContent || item.secretContent || ""))}</p>
+    </div>
+  `;
+
+  card.addEventListener("animationend", () => {
+    card.classList.remove("handoutReviewCard--entering");
+  }, { once: true });
+
+  gmHandoutDeckStack.appendChild(card);
+  setGMHandoutDeckButtonsDisabled(false);
+}
+
+function openGMHandoutDeckModal() {
+  if (state.role !== "dm" || !state.sessionId) return;
+  const all = getGMDeckFilteredItems();
+  if (all.length === 0) {
+    showToast("No handouts available yet.", "info");
+    return;
+  }
+
+  setGMDeckQueueFromItems(all);
+  gmHandoutDeckBusy = false;
+  populateGMDeckAssignablePlayers();
+  renderGMHandoutDeckCard();
+  animateModalIn(gmHandoutDeckModal);
+}
+
+function closeGMHandoutDeckModal() {
+  if (gmHandoutDeckBusy) return;
+  gmHandoutDeckQueue = [];
+  gmHandoutDeckBusy = false;
+  animateModalOut(gmHandoutDeckModal);
+}
+
+async function resolveCurrentGMHandoutDeck(action) {
+  if (gmHandoutDeckBusy || !state.sessionId || gmHandoutDeckQueue.length === 0) return;
+  const current = gmHandoutDeckQueue[0];
+  if (!current?.id) return;
+
+  gmHandoutDeckBusy = true;
+  setGMHandoutDeckButtonsDisabled(true);
+
+  try {
+    const ref = doc(db, "sessions", state.sessionId, "handouts", current.id);
+
+    if (action === "delete") {
+      await deleteDoc(ref);
+    } else {
+      const targetUid = String(gmHandoutDeckPlayer?.value || "").trim();
+      if (!targetUid) {
+        showToast("Select a player before assigning.", "error");
+        setGMHandoutDeckButtonsDisabled(false);
+        gmHandoutDeckBusy = false;
+        return;
+      }
+
+      const target = getGMDeckAssignablePlayers().find((p) => String(p.id || "") === targetUid);
+      if (!target) {
+        showToast("Selected player is not available.", "error");
+        setGMHandoutDeckButtonsDisabled(false);
+        gmHandoutDeckBusy = false;
+        return;
+      }
+
+      const isMap = isMapHandoutType(current?.type);
+      await updateDoc(ref, {
+        claimable: true,
+        claimedByUid: targetUid,
+        claimedByNick: String(target.nickname || "Adventurer"),
+        mapVisibleToUid: isMap ? targetUid : null,
+        claimedAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
+      });
+    }
+
+    const card = gmHandoutDeckStack?.querySelector(".handoutReviewCard");
+    if (card) {
+      await new Promise((resolve) => {
+        card.classList.add("handoutReviewCard--leaving");
+        card.addEventListener("animationend", resolve, { once: true });
+      });
+    }
+
+    gmHandoutDeckQueue.shift();
+    renderGMHandoutDeckCard();
+  } catch (err) {
+    console.error("GM handout deck action failed:", err);
+    showToast("Could not update this handout right now.", "error");
+    setGMHandoutDeckButtonsDisabled(false);
+  } finally {
+    gmHandoutDeckBusy = false;
+    if (gmHandoutDeckQueue.length > 0) setGMHandoutDeckButtonsDisabled(false);
+  }
+}
+
+function skipCurrentGMHandoutDeckCard() {
+  if (gmHandoutDeckBusy || gmHandoutDeckQueue.length <= 1) return;
+  const current = gmHandoutDeckQueue.shift();
+  if (!current) return;
+  gmHandoutDeckQueue.push(current);
+  setGMDeckQueueFromItems(gmHandoutDeckQueue);
+  renderGMHandoutDeckCard();
+}
+
+btnOpenGMHandoutDeck && (btnOpenGMHandoutDeck.onclick = () => openGMHandoutDeckModal());
+btnGMHandoutDeckClose && (btnGMHandoutDeckClose.onclick = () => closeGMHandoutDeckModal());
+btnGMHandoutDeckSkip && (btnGMHandoutDeckSkip.onclick = () => skipCurrentGMHandoutDeckCard());
+btnGMHandoutDeckAssign && (btnGMHandoutDeckAssign.onclick = () => {
+  resolveCurrentGMHandoutDeck("assign").catch((err) => {
+    console.warn("GM deck assign failed:", err);
+  });
+});
+btnGMHandoutDeckDelete && (btnGMHandoutDeckDelete.onclick = () => {
+  resolveCurrentGMHandoutDeck("delete").catch((err) => {
+    console.warn("GM deck delete failed:", err);
+  });
+});
+gmHandoutDeckFilterRow?.addEventListener("click", (event) => {
+  const button = event.target.closest("[data-deck-filter]");
+  if (!(button instanceof HTMLElement)) return;
+  const value = String(button.getAttribute("data-deck-filter") || "all").toLowerCase();
+  gmHandoutDeckFilter = value || "all";
+  rebuildGMHandoutDeck({ currentId: gmHandoutDeckQueue[0]?.id || "" });
+});
+btnGMDeckKeepClaims?.addEventListener("click", () => {
+  gmHandoutDeckKeepExistingClaims = !gmHandoutDeckKeepExistingClaims;
+  rebuildGMHandoutDeck({ currentId: gmHandoutDeckQueue[0]?.id || "" });
+});
+gmHandoutDeckModal?.addEventListener("keydown", (event) => {
+  if (event.key !== "Enter") return;
+  if (event.shiftKey || event.ctrlKey || event.altKey || event.metaKey) return;
+  if (gmHandoutDeckModal.classList.contains("hidden")) return;
+  const target = event.target;
+  if (target instanceof HTMLButtonElement && target.id === "btnGMHandoutDeckDelete") return;
+  event.preventDefault();
+  resolveCurrentGMHandoutDeck("assign").catch((err) => {
+    console.warn("GM deck Enter shortcut failed:", err);
+  });
+});
 
 function renderNotifications() {
   if (!notifList || !notifEmpty) return;
@@ -3709,7 +4203,11 @@ function renderNotifications() {
       + `<span class="notifItem__msg">${escapeHtml(n.message)}</span>`
       + `<span class="notifItem__time">${escapeHtml(timeStr)}</span>`
       + `</div>`;
-    el.addEventListener("click", () => markNotifRead(n.id));
+    el.addEventListener("click", () => {
+      handleNotificationClick(n).catch((err) => {
+        console.warn("Notification click handler failed:", err);
+      });
+    });
     notifList.appendChild(el);
   });
   updateNotifBadge();
@@ -4517,6 +5015,9 @@ function getNoteActionIcon(kind) {
   if (kind === "restore") {
     return '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12a7.5 7.5 0 1 0 2.2-5.3"/><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 4.5v5.25h5.25"/></svg>';
   }
+  if (kind === "pin") {
+    return '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7Z"/><circle cx="12" cy="9" r="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+  }
   return '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 7.5h15"/><path stroke-linecap="round" stroke-linejoin="round" d="M9.75 3.75h4.5"/><path stroke-linecap="round" stroke-linejoin="round" d="M6.75 7.5l.9 10.12A1.5 1.5 0 0 0 9.14 19h5.72a1.5 1.5 0 0 0 1.49-1.38l.9-10.12"/><path stroke-linecap="round" stroke-linejoin="round" d="M10 11.25v4.5M14 11.25v4.5"/></svg>';
 }
 
@@ -4701,7 +5202,12 @@ function normalizeNoteRecord(note, fallbackId = "") {
 }
 
 function sortNoteItems(items) {
+  const pinnedId = state.notes.pinnedNoteId;
   return [...(items || [])].sort((left, right) => {
+    if (pinnedId) {
+      if (left.id === pinnedId) return -1;
+      if (right.id === pinnedId) return 1;
+    }
     const leftUpdated = serializeNoteDateValue(left.updatedAt) || 0;
     const rightUpdated = serializeNoteDateValue(right.updatedAt) || 0;
     return rightUpdated - leftUpdated;
@@ -4950,8 +5456,9 @@ function renderNotesList() {
   const fragment = document.createDocumentFragment();
   filtered.forEach((note) => {
     const isArchived = note.status === "archived";
+    const isPinned = note.id === state.notes.pinnedNoteId;
     const row = document.createElement("div");
-    row.className = `item notesListItem${note.id === renderedActiveId ? " notesListItem--active" : ""}`;
+    row.className = `item notesListItem${note.id === renderedActiveId ? " notesListItem--active" : ""}${isPinned ? " notesListItem--pinned" : ""}`;
     row.setAttribute("role", "button");
     row.setAttribute("tabindex", "0");
     row.innerHTML = `
@@ -4973,7 +5480,8 @@ function renderNotesList() {
         ${isArchived
           ? `<button type="button" class="iconBtn notesActionBtn" data-action="restore" aria-label="Restore note" title="Restore note">${getNoteActionIcon("restore")}</button>
              <button type="button" class="iconBtn notesActionBtn notesActionBtn--danger" data-action="delete" aria-label="Delete note forever" title="Delete forever">${getNoteActionIcon("delete")}</button>`
-          : `<button type="button" class="iconBtn notesActionBtn" data-action="archive" aria-label="Move note to bin" title="Move note to bin">${getNoteActionIcon("delete")}</button>`}
+          : `<button type="button" class="iconBtn notesActionBtn notesActionBtn--pin" data-action="pin" aria-label="${isPinned ? "Unpin note" : "Pin note to top"}" aria-pressed="${isPinned}" title="${isPinned ? "Unpin note" : "Pin to top"}">${getNoteActionIcon("pin")}</button>
+             <button type="button" class="iconBtn notesActionBtn" data-action="archive" aria-label="Move note to bin" title="Move note to bin">${getNoteActionIcon("delete")}</button>`}
       </div>
     `;
     row.addEventListener("click", () => setActiveNote(note.id));
@@ -4993,6 +5501,11 @@ function renderNotesList() {
       actionButton.addEventListener("click", async (event) => {
         event.stopPropagation();
         const action = actionButton.getAttribute("data-action");
+        if (action === "pin") {
+          state.notes.pinnedNoteId = state.notes.pinnedNoteId === note.id ? null : note.id;
+          renderNotesList();
+          return;
+        }
         if (action === "archive") await archiveNote(note.id);
         if (action === "restore") await restoreNote(note.id);
         if (action === "delete") await deleteNoteForever(note.id);
@@ -6125,6 +6638,21 @@ function cleanupListeners() {
   if (notifPanel) {
     notifPanel.classList.add("hidden");
     notifPanel.setAttribute("aria-hidden", "true");
+  }
+  handoutReviewQueue = [];
+  handoutReviewPlayerName = "";
+  handoutReviewBusy = false;
+  if (handoutReviewStack) handoutReviewStack.innerHTML = "";
+  if (handoutReviewModal) {
+    handoutReviewModal.classList.add("hidden");
+    handoutReviewModal.setAttribute("aria-hidden", "true");
+  }
+  gmHandoutDeckQueue = [];
+  gmHandoutDeckBusy = false;
+  if (gmHandoutDeckStack) gmHandoutDeckStack.innerHTML = "";
+  if (gmHandoutDeckModal) {
+    gmHandoutDeckModal.classList.add("hidden");
+    gmHandoutDeckModal.setAttribute("aria-hidden", "true");
   }
   gmSeenHumanPlayerIdsForJoinNotifs = null;
   gmTemplateStatusSnapshot = null;
@@ -9406,31 +9934,32 @@ function setChatEmptyState(title, hint) {
   chatEmpty.querySelector(".emptyState__hint")?.replaceChildren(document.createTextNode(hint));
 }
 
-function renderGMMiniChatPreview() {
-  if (!gmMiniChatPanel || !gmMiniChatStatus || !gmMiniChatList || !gmMiniChatEmpty) return;
-  const canShow = state.role === "dm" && !!state.sessionId;
-  gmMiniChatPanel.classList.toggle("hidden", !canShow);
+function renderMiniChatPreview(panel, statusNode, listNode, emptyNode, roleKey) {
+  if (!panel || !statusNode || !listNode || !emptyNode) return;
+  const roleMatches = !roleKey || state.role === roleKey;
+  const canShow = roleMatches && !!state.sessionId;
+  panel.classList.toggle("hidden", !canShow);
   if (!canShow) return;
 
   const messages = sortChatMessagesAsc(state.chat.messages || []);
-  gmMiniChatList.innerHTML = "";
-  gmMiniChatEmpty.classList.add("hidden");
+  listNode.innerHTML = "";
+  emptyNode.classList.add("hidden");
 
   if (state.chat.isLoading && messages.length === 0) {
-    gmMiniChatStatus.textContent = "Loading recent chat...";
-    gmMiniChatEmpty.classList.remove("hidden");
+    statusNode.textContent = "Loading recent chat...";
+    emptyNode.classList.remove("hidden");
     return;
   }
 
   if (state.chat.error && messages.length === 0) {
-    gmMiniChatStatus.textContent = "Could not load chat preview.";
-    gmMiniChatEmpty.classList.remove("hidden");
+    statusNode.textContent = "Could not load chat preview.";
+    emptyNode.classList.remove("hidden");
     return;
   }
 
   if (messages.length === 0) {
-    gmMiniChatStatus.textContent = "No messages yet.";
-    gmMiniChatEmpty.classList.remove("hidden");
+    statusNode.textContent = "No messages yet.";
+    emptyNode.classList.remove("hidden");
     return;
   }
 
@@ -9439,24 +9968,50 @@ function renderGMMiniChatPreview() {
   latestMessages.forEach((entry) => {
     const row = document.createElement("article");
     row.className = `gmMiniChatPanel__row${entry.uid && entry.uid === state.uid ? " gmMiniChatPanel__row--self" : ""}`;
+    const avatarSrc = resolveDisplayAvatar(entry.avatarUrl, entry.uid);
     const preview = String(entry.message || "").replace(/\s+/g, " ").trim();
     const clipped = preview.length > 96 ? `${preview.slice(0, 96)}...` : preview;
     row.innerHTML = `
-      <div class="gmMiniChatPanel__rowMeta">
-        <strong class="gmMiniChatPanel__name">${escapeHtml(entry.displayName || "Adventurer")}</strong>
-        <span class="gmMiniChatPanel__time">${escapeHtml(formatChatTimestamp(entry.createdAt))}</span>
+      <div class="gmMiniChatPanel__avatarWrap">
+        <img class="gmMiniChatPanel__avatar" src="${escapeHtml(avatarSrc)}" alt="${escapeHtml(entry.displayName || "Adventurer")} avatar">
       </div>
-      <p class="gmMiniChatPanel__text">${escapeHtml(clipped || "(empty)")}</p>
+      <div class="gmMiniChatPanel__body">
+        <div class="gmMiniChatPanel__rowMeta">
+          <strong class="gmMiniChatPanel__name">${escapeHtml(entry.displayName || "Adventurer")}</strong>
+          <span class="gmMiniChatPanel__time">${escapeHtml(formatChatTimestamp(entry.createdAt))}</span>
+        </div>
+        <p class="gmMiniChatPanel__text">${escapeHtml(clipped || "(empty)")}</p>
+      </div>
     `;
     fragment.appendChild(row);
   });
-  gmMiniChatList.appendChild(fragment);
+  listNode.appendChild(fragment);
 
   if (state.chat.fromCache && state.chat.hasServerSnapshot) {
-    gmMiniChatStatus.textContent = "Showing last server-confirmed messages.";
+    statusNode.textContent = "Showing last server-confirmed messages.";
   } else {
-    gmMiniChatStatus.textContent = `Latest ${latestMessages.length} message${latestMessages.length === 1 ? "" : "s"}.`;
+    statusNode.textContent = `Latest ${latestMessages.length} message${latestMessages.length === 1 ? "" : "s"}.`;
   }
+}
+
+function renderGMMiniChatPreview() {
+  renderMiniChatPreview(gmMiniChatPanel, gmMiniChatStatus, gmMiniChatList, gmMiniChatEmpty, "dm");
+}
+
+function renderPlayerMiniChatPreview() {
+  // No role check — this panel is scoped inside #screenPlayerView (players only).
+  // Only suppress it when there is no active session.
+  if (!playerMiniChatPanel) return;
+  const hasSession = !!state.sessionId;
+  playerMiniChatPanel.classList.toggle("hidden", !hasSession);
+  if (!hasSession) return;
+  renderMiniChatPreview(playerMiniChatPanel, playerMiniChatStatus, playerMiniChatList, playerMiniChatEmpty, null);
+}
+
+// Called whenever the player view screen becomes visible so the panel
+// shows/hides correctly without waiting for the chat subscription cycle.
+function syncPlayerMiniChatPanel() {
+  renderPlayerMiniChatPreview();
 }
 
 function syncChatComposerState() {
@@ -9472,6 +10027,7 @@ function syncChatComposerState() {
 function renderChatScreen() {
   if (!chatList || !chatEmpty || !chatStatus) return;
   renderGMMiniChatPreview();
+  renderPlayerMiniChatPreview();
   const messages = sortChatMessagesAsc(state.chat.messages || []);
   const isGM = state.role === "dm";
   const shouldStickToBottom = state.chat.shouldAutoScroll || currentScreenKey === SCREEN_KEYS.CHAT;
@@ -9826,6 +10382,10 @@ btnOpenChatFromParty?.addEventListener("click", () => {
 });
 
 btnOpenChatFromMini?.addEventListener("click", () => {
+  openChatScreen();
+});
+
+btnPlayerOpenChatFromMini?.addEventListener("click", () => {
   openChatScreen();
 });
 
@@ -10738,33 +11298,41 @@ btnConfirmSwitchGM && (btnConfirmSwitchGM.onclick = async () => {
   }
 });
 
-btnLeaveSession && (btnLeaveSession.onclick = () => {
-  rememberCurrentPlayerSessionForList();
-  cleanupListeners();
-  stopHeartbeat();
-  state.role = null;
-  state.sessionId = null;
-  state.joinTag = null;
-  state.sessionName = "";
-  state.gmPinPlain = null;
-  state.joinLink = null;
-  state.gmHandoutsRaw = [];
-  state.playerInventoryRaw = [];
-  state.activePlayers = [];
-  state.partyRoster = [];
-  state.battleActive = false;
-  state.gmUid = null;
-  state.currentTurnUid = null;
-  state.turnRound = 1;
-  state.inventoryItems = [];
-  state.wallets = {};
-  localStorage.removeItem("tv_role");
-  localStorage.removeItem("tv_sessionId");
-  localStorage.removeItem("tv_joinTag");
-  localStorage.removeItem("tv_dmPin");
-  showOnly(SCREEN_KEYS.LANDING);
-  loadMySessions();
-  showToast("Left session.");
+// Soft-disconnect from the current session without removing any Firestore data.
+// Listeners are torn down here; when the player rejoins, onSnapshot re-attaches
+// and delivers every change that occurred while they were away.
+function doSoftLeave(toastMsg) {
+    rememberCurrentPlayerSessionForList();
+    cleanupListeners();
+    stopHeartbeat();
+    state.role = null;
+    state.sessionId = null;
+    state.joinTag = null;
+    state.sessionName = "";
+    state.gmPinPlain = null;
+    state.joinLink = null;
+    state.gmHandoutsRaw = [];
+    state.playerInventoryRaw = [];
+    state.activePlayers = [];
+    state.partyRoster = [];
+    state.battleActive = false;
+    state.gmUid = null;
+    state.currentTurnUid = null;
+    state.turnRound = 1;
+    state.inventoryItems = [];
+    state.wallets = {};
+    localStorage.removeItem("tv_role");
+    localStorage.removeItem("tv_sessionId");
+    localStorage.removeItem("tv_joinTag");
+    localStorage.removeItem("tv_dmPin");
+    showOnly(SCREEN_KEYS.LANDING);
+    loadMySessions();
+    showToast(toastMsg || "Left session.");
+}
+
+// Switch Session — instant soft-leave, no confirmation needed (all data is preserved).
+btnSwitchSession && (btnSwitchSession.onclick = () => {
+  doSoftLeave("Session paused — your data is safe. Pick another session below.");
 });
 
 // -- Delete Session (GM) --
@@ -11047,7 +11615,10 @@ btnConfirmDeleteSession && (btnConfirmDeleteSession.onclick = async () => {
 btnDiscardSession && (btnDiscardSession.onclick = () => {
   if (state.role !== "player" || !state.sessionId) return;
   if (discardSessionConfirmInput) discardSessionConfirmInput.value = "";
-  if (btnConfirmDiscardSession) btnConfirmDiscardSession.disabled = true;
+  if (btnConfirmDiscardSession) {
+    btnConfirmDiscardSession.disabled = true;
+    btnConfirmDiscardSession.textContent = "Leave Permanently";
+  }
   animateModalIn(discardSessionModal);
   discardSessionConfirmInput?.focus();
 });
@@ -11065,10 +11636,30 @@ btnConfirmDiscardSession && (btnConfirmDiscardSession.onclick = async () => {
   if (discardSessionConfirmInput?.value.trim() !== "DISCARD") return;
   if (state.role !== "player" || !state.sessionId || !state.uid) return;
   btnConfirmDiscardSession.disabled = true;
-  btnConfirmDiscardSession.textContent = "Leaving�";
+  btnConfirmDiscardSession.textContent = "Leaving...";
   try {
     const sid = state.sessionId;
     const uid = state.uid;
+    const nick = state.playerNick || state.displayName || "A player";
+
+    let claimedHandoutIds = [];
+    let gmUid = String(state.gmUid || "").trim();
+
+    try {
+      const [sessionSnap, handoutSnap] = await Promise.all([
+        getDoc(doc(db, "sessions", sid)),
+        getDocs(collection(db, "sessions", sid, "handouts")),
+      ]);
+      if (sessionSnap.exists()) {
+        gmUid = gmUid || String(sessionSnap.data()?.gmUid || "").trim();
+      }
+      claimedHandoutIds = handoutSnap.docs
+        .filter((d) => String(d.data()?.claimedByUid || "").trim() === uid)
+        .map((d) => d.id);
+    } catch (claimScanErr) {
+      console.warn("Claimed handout scan failed:", claimScanErr);
+    }
+
     // Try to transfer character profile to GM's premade templates.
     try {
       const playerRef = doc(db, "sessions", sid, "players", uid);
@@ -11098,8 +11689,26 @@ btnConfirmDiscardSession && (btnConfirmDiscardSession.onclick = async () => {
     } catch (profileErr) {
       console.warn("Profile transfer to templates failed:", profileErr);
     }
+
+    if (gmUid && gmUid !== uid && claimedHandoutIds.length > 0) {
+      try {
+        await createNotification(
+          gmUid,
+          "playerDiscardedHandouts",
+          `${nick} left permanently. Review ${claimedHandoutIds.length} claimed handout${claimedHandoutIds.length === 1 ? "" : "s"}.`,
+          {
+            playerUid: uid,
+            playerName: nick,
+            handoutIds: claimedHandoutIds,
+            sessionId: sid,
+          }
+        );
+      } catch (notifyErr) {
+        console.warn("Discard handout review notification failed:", notifyErr);
+      }
+    }
+
     // Broadcast leave notification before removing data.
-    const nick = state.playerNick || state.displayName || "A player";
     await broadcastNotification("playerLeft", `${nick} has left the session permanently.`);
     // Delete player's own wallet and inventory.
     try { await deleteDoc(doc(db, "sessions", sid, "wallets", uid)); } catch {}
@@ -11141,7 +11750,7 @@ btnConfirmDiscardSession && (btnConfirmDiscardSession.onclick = async () => {
     console.error("Discard session failed:", e);
     showToast("Failed to leave session.", "error");
     btnConfirmDiscardSession.disabled = false;
-    btnConfirmDiscardSession.textContent = "Discard & Leave";
+    btnConfirmDiscardSession.textContent = "Leave Permanently";
   }
 });
 
@@ -12152,6 +12761,7 @@ function renderGMPlayers(players) {
 
   renderGMPartyPanel(players);
   renderPlayerPartyPanel(players);
+    renderPlayerMiniChatPreview();
   syncNpcCombatantsWithNpcHandouts().catch(() => {});
 }
 
@@ -12839,6 +13449,7 @@ btnRollInitiative?.addEventListener("click", () => {
 });
 
 btnResetInitiative?.addEventListener("click", () => {
+  if (!window.confirm("Reset all initiative values? This cannot be undone.")) return;
   resetInitiative().catch((err) => {
     console.error("Reset initiative failed:", err);
     showToast("Failed to reset initiative.", "error");

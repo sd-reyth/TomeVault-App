@@ -51,7 +51,7 @@
   <meta name="twitter:title" content="TomeVault - Live Handouts for Your Table">
   <meta name="twitter:description" content="Share session invites, PINs, and handouts in seconds.">
   <meta name="twitter:image" content="references/tomeVaultLogo1.png">
-  <link rel="stylesheet" href="style.css?v=20260325menu3">
+  <link rel="stylesheet" href="style.css?v=20260325menu8">
   <!-- fantasy fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
@@ -326,10 +326,10 @@
       <p id="gmCreateGuestNotice" class="auth-info hidden">You're in one-shot mode. This session will expire in 24 hours. Sign up after creating to keep it.</p>
 
       <label class="label">Session name</label>
-      <input id="gmSessionName" class="input" placeholder="e.g. The Lost Mine" minlength="2" maxlength="48">
+      <input id="gmSessionName" class="input" type="text" placeholder="e.g. The Lost Mine" minlength="2" maxlength="48">
 
       <label class="label">Pincode (4&middot;8 digits)</label>
-      <input id="gmPin" class="input" inputmode="numeric" placeholder="e.g. 1234">
+      <input id="gmPin" class="input" type="text" inputmode="numeric" placeholder="e.g. 1234">
 
       <div class="row">
         <!-- Secondary: return to role-selection screen -->
@@ -412,6 +412,9 @@
               </span>
               <input id="gmSearch" class="input searchField__input" type="search" placeholder="Search handouts..." aria-label="Search handouts">
             </label>
+            <button id="btnOpenGMHandoutDeck" class="iconBtn gmDeckQuickBtn" type="button" aria-label="Open handout deck" title="Cycle handouts">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="width:18px;height:18px"><path d="M4 7.5 14 4l6 4.5L10 12 4 7.5Z"/><path d="M4 12.5 10 17l10-4.5"/><path d="M4 16.5 10 21l10-4.5"/></svg>
+            </button>
             <button id="btnToggleFilters" class="btn btn--ghost btn--small filterToggleBtn" type="button" aria-expanded="false" aria-controls="gmFilterRow">
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="width:14px;height:14px;flex-shrink:0"><path d="M3 6h18M7 12h10M11 18h2"/></svg>
               Filter
@@ -664,7 +667,7 @@
           </div>
 
           <label class="label">Title</label>
-          <input id="gmTitle" class="input" placeholder="Name..." required>
+          <input id="gmTitle" class="input" type="text" placeholder="Name..." required>
 
           <label class="label">Public Content</label>
           <textarea id="gmPublic" class="input" rows="5" placeholder="Description visible to players..." required></textarea>
@@ -785,13 +788,13 @@
       <p id="plJoinSignedNotice" class="muted small hidden">Signed in &middot; session data saved to your account.</p>
 
       <label class="label">Session Tag (auto if you came via QR link)</label>
-      <input id="plSessionId" class="input" placeholder="lost-mine#1234">
+      <input id="plSessionId" class="input" type="text" placeholder="lost-mine#1234">
 
       <label class="label">Nickname</label>
-      <input id="plNick" class="input" placeholder="e.g. Elara">
+      <input id="plNick" class="input" type="text" placeholder="e.g. Elara">
 
       <label class="label">Pincode</label>
-      <input id="plPin" class="input" inputmode="numeric" placeholder="e.g. 1234">
+      <input id="plPin" class="input" type="text" inputmode="numeric" placeholder="e.g. 1234">
 
       <div class="row">
         <!-- Secondary: returns to landing and stops scanner if active -->
@@ -922,6 +925,22 @@
           </div>
           </div><!-- end partyListWrap -->
         </aside>
+
+        <aside id="playerMiniChatPanel" class="panel gmMiniChatPanel playerMiniChatPanel" aria-label="Party chat preview">
+          <div class="gmMiniChatPanel__head">
+            <h3>Party Chat</h3>
+            <button id="btnPlayerOpenChatFromMini" class="btn btn--small gmMiniChatPanel__open" type="button" title="Open full chat">
+              Chat
+            </button>
+          </div>
+          <p id="playerMiniChatStatus" class="muted small" aria-live="polite">Open chat to load messages.</p>
+          <div id="playerMiniChatList" class="gmMiniChatPanel__list"></div>
+          <div id="playerMiniChatEmpty" class="emptyState gmMiniChatPanel__empty hidden">
+            <span class="emptyState__icon" aria-hidden="true">💬</span>
+            <span class="emptyState__title">No messages yet</span>
+            <span class="emptyState__hint">Use Chat to open the full conversation.</span>
+          </div>
+        </aside>
       </div>
     </section>
 
@@ -953,7 +972,7 @@
       <div class="inventorySearchWrap">
         <div class="searchInputWrap">
           <svg class="searchInputIcon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"/></svg>
-          <input id="inventorySearch" class="input" placeholder="Search items..." autocomplete="off" aria-label="Search items">
+          <input id="inventorySearch" class="input" type="search" placeholder="Search items..." autocomplete="off" aria-label="Search items">
         </div>
       </div>
 
@@ -1086,13 +1105,13 @@
         </div>
 
         <label class="label" for="inventoryItemName">Item Name</label>
-        <input id="inventoryItemName" class="input" placeholder="e.g. Healing Potion">
+        <input id="inventoryItemName" class="input" type="text" placeholder="e.g. Healing Potion">
 
         <label class="label" for="inventoryItemDesc">Description</label>
         <textarea id="inventoryItemDesc" class="input" rows="3" placeholder="What is this item?"></textarea>
 
         <label class="label" for="inventoryItemAmount">Amount</label>
-        <input id="inventoryItemAmount" class="input" inputmode="numeric" value="1" min="1" placeholder="1">
+        <input id="inventoryItemAmount" class="input" type="number" inputmode="numeric" value="1" min="1" placeholder="1">
 
         <input id="inventoryItemId" type="hidden" value="">
         <input id="inventoryItemOwner" type="hidden" value="">
@@ -1132,7 +1151,7 @@
           <button id="btnSwitchToGM" class="btn btn--ghost hidden" type="button"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" aria-hidden="true" style="width:16px;height:16px;flex-shrink:0;vertical-align:-2px;margin-right:6px"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75m-3-7.036A11.959 11.959 0 0 1 3.598 6 11.99 11.99 0 0 0 3 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285Z"/></svg>Switch to GM</button>
           <p id="settingsIdentityHint" class="muted small hidden">Session invite details are kept in the Social tab to avoid duplicates.</p>
           <div id="gmPinPrompt" class="gmPinPrompt hidden">
-            <input id="switchGMPinInput" class="input" inputmode="numeric" placeholder="Enter GM Transfer PIN">
+            <input id="switchGMPinInput" class="input" type="text" inputmode="numeric" placeholder="Enter GM Transfer PIN">
             <div class="row row--gap-sm">
               <button id="btnCancelSwitchGM" class="btn btn--ghost btn--small" type="button">Cancel</button>
               <button id="btnConfirmSwitchGM" class="btn btn--small" type="button">Confirm</button>
@@ -1161,9 +1180,9 @@
           <!-- Leave / Delete / Discard session &middot; danger zone, clearly separated -->
           <div class="settingsSection settingsSection--danger">
             <div class="settingsSection__title settingsSection__title--danger">Session Actions</div>
-            <button id="btnLeaveSession" class="btn btn--ghost btn--warning" type="button">Leave Session</button>
+            <button id="btnSwitchSession" class="btn btn--ghost hidden" type="button">Switch Session</button>
             <button id="btnDeleteSession" class="btn btn--ghost btn--danger hidden" type="button">Delete Session</button>
-            <button id="btnDiscardSession" class="btn btn--ghost btn--danger hidden" type="button">Discard Session</button>
+            <button id="btnDiscardSession" class="btn btn--ghost btn--danger hidden" type="button">Leave Permanently</button>
           </div>
       </div>
     </div>
@@ -1228,7 +1247,7 @@
 
         <div class="formGrid">
           <label class="label" for="profileDisplayName">Display Name</label>
-          <input id="profileDisplayName" class="input" placeholder="e.g. Elara Stormborn">
+          <input id="profileDisplayName" class="input" type="text" placeholder="e.g. Elara Stormborn">
 
           <label class="label" for="profileBio">Bio</label>
           <textarea id="profileBio" class="input" rows="4" placeholder="Short profile for your table..."></textarea>
@@ -1239,19 +1258,19 @@
           <div class="profileStatsGrid profileStatsGrid--core">
             <div class="profileStatItem profileStatItem--core">
               <label class="profileStatItem__label" for="profileStatLevel">Level</label>
-              <input id="profileStatLevel" class="profileStatItem__input" inputmode="numeric" placeholder="1">
+              <input id="profileStatLevel" class="profileStatItem__input" type="number" inputmode="numeric" placeholder="1">
             </div>
             <div class="profileStatItem profileStatItem--core">
               <label class="profileStatItem__label" for="profileStatArmorRating">Armor Rating</label>
-              <input id="profileStatArmorRating" class="profileStatItem__input" inputmode="numeric" placeholder="10">
+              <input id="profileStatArmorRating" class="profileStatItem__input" type="number" inputmode="numeric" placeholder="10">
             </div>
             <div class="profileStatItem profileStatItem--core">
               <label class="profileStatItem__label" for="profileStatHitPoints">Hit Points</label>
-              <input id="profileStatHitPoints" class="profileStatItem__input" inputmode="numeric" placeholder="12">
+              <input id="profileStatHitPoints" class="profileStatItem__input" type="number" inputmode="numeric" placeholder="12">
             </div>
             <div class="profileStatItem profileStatItem--core">
               <label class="profileStatItem__label" for="profileStatInitiative">Initiative</label>
-              <input id="profileStatInitiative" class="profileStatItem__input" inputmode="numeric" placeholder="+2">
+              <input id="profileStatInitiative" class="profileStatItem__input" type="text" inputmode="numeric" placeholder="+2">
             </div>
           </div>
 
@@ -1602,7 +1621,7 @@
           </div>
           <!-- Name + Bio editing (edit mode) -->
           <div id="profileHeroEditFields" class="hidden">
-            <div class="auth-field"><label class="label" for="profileEditName">Character Name</label><input id="profileEditName" class="input" placeholder="e.g. Elara Stormborn"></div>
+            <div class="auth-field"><label class="label" for="profileEditName">Character Name</label><input id="profileEditName" class="input" type="text" placeholder="e.g. Elara Stormborn"></div>
             <div class="auth-field"><label class="label" for="profileEditBio">Bio</label><textarea id="profileEditBio" class="input" rows="3" placeholder="Short backstory..."></textarea></div>
           </div>
         </div>
@@ -1619,16 +1638,16 @@
           <div id="profileStatsReadOnly" class="profileStatsGrid"></div>
           <!-- Editable stats grid (edit mode) -->
           <div id="profileStatsEditable" class="profileGrid hidden">
-            <div class="profileStatRow"><label class="label small" for="profStatLevel">Level</label><input id="profStatLevel" class="input input--small" inputmode="numeric" placeholder="1"></div>
-            <div class="profileStatRow"><label class="label small" for="profStatArmorRating">Armor Rating</label><input id="profStatArmorRating" class="input input--small" inputmode="numeric" placeholder="10"></div>
-            <div class="profileStatRow"><label class="label small" for="profStatHitPoints">Hit Points</label><input id="profStatHitPoints" class="input input--small" inputmode="numeric" placeholder="12"></div>
-            <div class="profileStatRow"><label class="label small" for="profStatInitiative">Initiative</label><input id="profStatInitiative" class="input input--small" placeholder="+2"></div>
-            <div class="profileStatRow"><label class="label small" for="profStatStrength">Strength</label><input id="profStatStrength" class="input input--small" inputmode="numeric" placeholder="10"></div>
-            <div class="profileStatRow"><label class="label small" for="profStatDexterity">Dexterity</label><input id="profStatDexterity" class="input input--small" inputmode="numeric" placeholder="10"></div>
-            <div class="profileStatRow"><label class="label small" for="profStatConstitution">Constitution</label><input id="profStatConstitution" class="input input--small" inputmode="numeric" placeholder="10"></div>
-            <div class="profileStatRow"><label class="label small" for="profStatIntelligence">Intelligence</label><input id="profStatIntelligence" class="input input--small" inputmode="numeric" placeholder="10"></div>
-            <div class="profileStatRow"><label class="label small" for="profStatWisdom">Wisdom</label><input id="profStatWisdom" class="input input--small" inputmode="numeric" placeholder="10"></div>
-            <div class="profileStatRow"><label class="label small" for="profStatCharisma">Charisma</label><input id="profStatCharisma" class="input input--small" inputmode="numeric" placeholder="10"></div>
+            <div class="profileStatRow"><label class="label small" for="profStatLevel">Level</label><input id="profStatLevel" class="input input--small" type="number" inputmode="numeric" placeholder="1"></div>
+            <div class="profileStatRow"><label class="label small" for="profStatArmorRating">Armor Rating</label><input id="profStatArmorRating" class="input input--small" type="number" inputmode="numeric" placeholder="10"></div>
+            <div class="profileStatRow"><label class="label small" for="profStatHitPoints">Hit Points</label><input id="profStatHitPoints" class="input input--small" type="number" inputmode="numeric" placeholder="12"></div>
+            <div class="profileStatRow"><label class="label small" for="profStatInitiative">Initiative</label><input id="profStatInitiative" class="input input--small" type="text" inputmode="numeric" placeholder="+2"></div>
+            <div class="profileStatRow"><label class="label small" for="profStatStrength">Strength</label><input id="profStatStrength" class="input input--small" type="number" inputmode="numeric" placeholder="10"></div>
+            <div class="profileStatRow"><label class="label small" for="profStatDexterity">Dexterity</label><input id="profStatDexterity" class="input input--small" type="number" inputmode="numeric" placeholder="10"></div>
+            <div class="profileStatRow"><label class="label small" for="profStatConstitution">Constitution</label><input id="profStatConstitution" class="input input--small" type="number" inputmode="numeric" placeholder="10"></div>
+            <div class="profileStatRow"><label class="label small" for="profStatIntelligence">Intelligence</label><input id="profStatIntelligence" class="input input--small" type="number" inputmode="numeric" placeholder="10"></div>
+            <div class="profileStatRow"><label class="label small" for="profStatWisdom">Wisdom</label><input id="profStatWisdom" class="input input--small" type="number" inputmode="numeric" placeholder="10"></div>
+            <div class="profileStatRow"><label class="label small" for="profStatCharisma">Charisma</label><input id="profStatCharisma" class="input input--small" type="number" inputmode="numeric" placeholder="10"></div>
           </div>
           <!-- Camera scan (edit mode) -->
           <div id="profileScanWrap" class="hidden">
@@ -1701,7 +1720,7 @@
         </div>
         <div class="auth-field">
           <label class="label" for="templateName">Character Name</label>
-          <input id="templateName" class="input" placeholder="e.g. Elara Nightwhisper">
+          <input id="templateName" class="input" type="text" placeholder="e.g. Elara Nightwhisper">
         </div>
         <div class="auth-field">
           <label class="label" for="templateBio">Bio / Backstory</label>
@@ -1864,39 +1883,48 @@
           </div>
 
           <div id="modalGMClaimControls" class="hidden">
-            <hr class="hr">
-            <div class="row">
-              <button id="btnToggleClaimable" class="btn btn--ghost" type="button" aria-pressed="false">Claimable Off</button>
-
-              <button id="btnResetClaim" class="btn btn--ghost" type="button">Reset claim</button>
-            </div>
-
-            <div class="row assignRow">
-              <label class="label small" for="gmAssignPlayer">Assign to player</label>
-              <select id="gmAssignPlayer" class="input"></select>
-              <button id="btnAssignClaim" class="btn btn--ghost" type="button">Assign selected player</button>
-            </div>
+            <details class="modalAdvanced" id="modalAdvancedDetails">
+              <summary class="modalAdvanced__toggle">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" aria-hidden="true" style="width:16px;height:16px;flex-shrink:0"><path stroke-linecap="round" stroke-linejoin="round" d="M10.5 6h9.75M10.5 6a1.5 1.5 0 1 1-3 0m3 0a1.5 1.5 0 1 0-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-9.75 0h9.75"/></svg>
+                Claim &amp; Assign Options
+              </summary>
+              <div class="modalAdvanced__body">
+                <div class="row">
+                  <button id="btnToggleClaimable" class="btn btn--ghost" type="button" aria-pressed="false">Claimable Off</button>
+                  <button id="btnResetClaim" class="btn btn--ghost" type="button">Reset claim</button>
+                </div>
+                <div class="row assignRow">
+                  <label class="label small" for="gmAssignPlayer">Assign to player</label>
+                  <select id="gmAssignPlayer" class="input"></select>
+                  <button id="btnAssignClaim" class="btn btn--ghost" type="button">Assign selected player</button>
+                </div>
+              </div>
+            </details>
           </div>
 
           <!-- Icon editor — GM can change the handout's emoji icon -->
-          <div id="modalIconWrap" class="emojiCustomRow" style="padding:4px 0 8px">
-            <span id="modalIconPreview" class="emojiPreview" title="Click to change icon" aria-hidden="true">🎭</span>
-            <div class="emojiCustomField">
-              <span class="emojiCustomLabel">Icon &middot; paste or type an emoji</span>
-              <input id="modalIconInput" class="emojiInput" type="text" maxlength="12" placeholder="Paste any emoji&hellip;" aria-label="Change handout icon">
+          <details class="modalAdvanced" id="modalIconDetails">
+            <summary class="modalAdvanced__toggle">
+              <span id="modalIconPreview" class="emojiPreview" title="Click to change icon" aria-hidden="true" style="font-size:16px;line-height:1">🎭</span>
+              Change Icon
+            </summary>
+            <div class="modalAdvanced__body">
+              <div class="emojiCustomRow" style="padding:4px 0 0">
+                <div class="emojiCustomField">
+                  <span class="emojiCustomLabel">Icon &middot; paste or type an emoji</span>
+                  <input id="modalIconInput" class="emojiInput" type="text" maxlength="12" placeholder="Paste any emoji&hellip;" aria-label="Change handout icon">
+                </div>
+              </div>
             </div>
-          </div>
+          </details>
 
           <hr class="hr">
-          <!--
-            Beginner note:
-            This action row is intentionally placed at the bottom of the modal.
-            CSS makes it sticky so these primary actions are always reachable.
-          -->
-          <div class="row modalActionRow modalActionRow--bottom">
+          <div class="row modalActionRow modalActionRow--bottom modalActionRow--two">
             <button id="btnSaveHandout" class="btn">Save</button>
-            <button id="btnAddHandoutToInitiativeModal" class="btn btn--ghost hidden" type="button">Add for Initiative</button>
             <button id="btnDeleteHandout" class="btn btn--ghost btn--danger">Delete</button>
+          </div>
+          <div class="row modalActionRow--aux">
+            <button id="btnAddHandoutToInitiativeModal" class="btn btn--ghost btn--small hidden" type="button">Add for Initiative</button>
           </div>
           <p id="modalSaveState" class="modalSaveState" aria-live="polite">All changes saved</p>
         </div>
@@ -2029,26 +2057,23 @@
   </button>
 
   <div id="hamburgerSpeedDial" class="hamburger-speed-dial hidden" aria-hidden="true">
-    <button id="btnDialHandouts" class="speed-dial-btn hidden" type="button" aria-label="Open Handouts" title="Handouts" aria-hidden="true">
+    <button id="btnDialHandouts" class="speed-dial-btn speed-dial-btn--compact hidden" type="button" aria-label="Open Handouts" title="Handouts" aria-hidden="true">
       <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25"/></svg>
       <span class="speed-dial-btn__text">Handouts</span>
     </button>
-    <button id="btnDialSocial" class="speed-dial-btn hidden" type="button" aria-label="Open Session Panel" title="Session" aria-hidden="true">
+    <button id="btnDialSocial" class="speed-dial-btn speed-dial-btn--compact hidden" type="button" aria-label="Open Session Panel" title="Session" aria-hidden="true">
       <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 0 0 2.625.372 9.337 9.337 0 0 0 4.121-.952 4.125 4.125 0 0 0-2.062-7.846h-.343M15 19.128v-.003c0-1.113-.285-2.16-.786-3.072M15 19.128a9.34 9.34 0 0 1-5.625 0m0 0A9.34 9.34 0 0 1 5.25 16.053m4.125 3.075c0-1.113.285-2.16.786-3.072m0 0a4.125 4.125 0 1 0-5.744 0m5.744 0a4.125 4.125 0 1 1 5.744 0M12 12.75a4.125 4.125 0 1 0 0-8.25 4.125 4.125 0 0 0 0 8.25Z"/></svg>
       <span class="speed-dial-btn__text">Session</span>
     </button>
-    <button id="btnDialAtmosphere" class="speed-dial-btn hidden" type="button" aria-label="Open Atmosphere Controls" title="Atmosphere" aria-hidden="true">
+    <button id="btnDialAtmosphere" class="speed-dial-btn speed-dial-btn--compact hidden" type="button" aria-label="Open Atmosphere Controls" title="Atmosphere" aria-hidden="true">
       <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="m9 9 10.5-3m0 6.553v3.75a2.25 2.25 0 0 1-1.632 2.163l-1.32.377a1.803 1.803 0 1 1-.99-3.467l2.31-.66a2.25 2.25 0 0 0 1.632-2.163Zm0 0V4.5l-10.5 3v6.553m0 0v3.75a2.25 2.25 0 0 1-1.632 2.163l-1.32.377a1.803 1.803 0 0 1-.99-3.467l2.31-.66A2.25 2.25 0 0 0 9 13.053Z"/></svg>
       <span class="speed-dial-btn__text">Atmosphere</span>
     </button>
-    <button id="btnDialInventory" class="speed-dial-btn hidden" type="button" aria-label="Open Inventory" title="Inventory" aria-hidden="true">
-      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M9 6.75V6a3 3 0 0 1 6 0v.75"/><path stroke-linecap="round" stroke-linejoin="round" d="M6.75 9h10.5a2.25 2.25 0 0 1 2.25 2.25v7.5A2.25 2.25 0 0 1 17.25 21H6.75a2.25 2.25 0 0 1-2.25-2.25v-7.5A2.25 2.25 0 0 1 6.75 9Z"/><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 12h7.5"/><path stroke-linecap="round" stroke-linejoin="round" d="M10.5 15.75h3"/></svg>
-      <span class="speed-dial-btn__text">Inventory</span>
-    </button>
-    <button id="btnDialNotes" class="speed-dial-btn hidden" type="button" aria-label="Open Notes" title="Notes" aria-hidden="true">
+    <button id="btnDialNotes" class="speed-dial-btn speed-dial-btn--compact hidden" type="button" aria-label="Open Notes" title="Notes" aria-hidden="true">
       <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M16.5 3.75v2.25m-9-2.25v2.25m11.25 0H5.25A2.25 2.25 0 0 0 3 8.25v10.5A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V8.25A2.25 2.25 0 0 0 18.75 6Zm-12 6.75h10.5"/></svg>
       <span class="speed-dial-btn__text">Notes</span>
     </button>
+    <div class="speed-dial-divider" aria-hidden="true"></div>
     <button id="btnDialSettings" class="speed-dial-btn speed-dial-btn--settings" type="button" aria-label="Open Settings" title="Settings">
       <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.592c.55 0 1.02.398 1.11.94l.213 1.277c.075.446.367.826.777 1.02.402.191.87.178 1.26-.03l1.122-.6a1.125 1.125 0 011.53.41l1.296 2.244a1.125 1.125 0 01-.41 1.53l-1.122.6a1.125 1.125 0 00-.546 1.23c.078.44.078.89 0 1.33a1.125 1.125 0 00.546 1.23l1.122.6c.54.288.739.96.41 1.53l-1.296 2.244a1.125 1.125 0 01-1.53.41l-1.122-.6a1.125 1.125 0 00-1.26-.03c-.41.194-.702.574-.777 1.02l-.213 1.277c-.09.542-.56.94-1.11.94h-2.592c-.55 0-1.02-.398-1.11-.94l-.213-1.277a1.125 1.125 0 00-.777-1.02 1.125 1.125 0 00-1.26.03l-1.122.6a1.125 1.125 0 01-1.53-.41L2.9 17.6a1.125 1.125 0 01.41-1.53l1.122-.6c.39-.208.602-.638.546-1.08a8.54 8.54 0 010-1.63c.056-.442-.156-.872-.546-1.08l-1.122-.6a1.125 1.125 0 01-.41-1.53L4.196 5.306a1.125 1.125 0 011.53-.41l1.122.6c.39.208.858.221 1.26.03.41-.194.702-.574.777-1.02l.213-1.277z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
       <span class="speed-dial-btn__text">Settings</span>
@@ -2140,7 +2165,7 @@
     <div class="blockingModal__backdrop"></div>
     <div class="blockingModal__box card" style="max-width:340px">
       <h3 id="changePinTitle">Change PIN</h3>
-      <input id="changePinInput" class="input" inputmode="numeric" maxlength="8" placeholder="4&middot;8 digits">
+      <input id="changePinInput" class="input" type="text" inputmode="numeric" maxlength="8" placeholder="4&middot;8 digits">
       <p id="changePinMsg" class="muted small modal-msg"></p>
       <div class="modal-actions"><button id="btnCancelChangePin" class="btn btn--ghost btn--small" type="button">Cancel</button><button id="btnConfirmChangePin" class="btn btn--small" type="button">Save</button></div>
     </div>
@@ -2151,7 +2176,7 @@
     <div class="blockingModal__box card" style="max-width:340px">
       <h3 id="changeTransferPinTitle">Set GM Transfer PIN</h3>
       <p class="muted small">Players need this PIN to take over the GM role. Keep it separate from the session join PIN.</p>
-      <input id="changeTransferPinInput" class="input" inputmode="numeric" maxlength="8" placeholder="4&middot;8 digits">
+      <input id="changeTransferPinInput" class="input" type="text" inputmode="numeric" maxlength="8" placeholder="4&middot;8 digits">
       <p id="changeTransferPinMsg" class="muted small modal-msg"></p>
       <div class="modal-actions">
         <button id="btnCancelChangeTransferPin" class="btn btn--ghost btn--small" type="button">Cancel</button>
@@ -2289,6 +2314,59 @@
     </div>
   </div>
 
+  <div id="handoutReviewModal" class="modal hidden" aria-hidden="true">
+    <div class="modal__card handoutReviewModalCard">
+      <div class="modal__top">
+        <h3>Review Claimed Handouts</h3>
+        <button id="btnHandoutReviewClose" class="iconBtn closeIconBtn" type="button" aria-label="Close handout review modal">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"></path></svg>
+        </button>
+      </div>
+      <p id="handoutReviewSummary" class="muted handoutReviewSummary">A departing player left claimed handouts. Keep them in the vault or delete them permanently.</p>
+      <div id="handoutReviewProgress" class="pill handoutReviewProgress">0 of 0</div>
+      <div id="handoutReviewStack" class="handoutReviewStack"></div>
+      <div class="row handoutReviewActions">
+        <button id="btnHandoutReviewKeep" class="btn" type="button">Keep</button>
+        <button id="btnHandoutReviewDelete" class="btn btn--danger" type="button">Delete</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="gmHandoutDeckModal" class="modal hidden" aria-hidden="true">
+    <div class="modal__card handoutReviewModalCard">
+      <div class="modal__top">
+        <h3>Handout Deck</h3>
+        <button id="btnGMHandoutDeckClose" class="iconBtn closeIconBtn" type="button" aria-label="Close handout deck modal">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"></path></svg>
+        </button>
+      </div>
+      <p id="gmHandoutDeckSummary" class="muted handoutReviewSummary">Cycle through your handouts quickly and assign them to a player or delete them.</p>
+      <div id="gmHandoutDeckProgress" class="pill handoutReviewProgress">0 of 0</div>
+      <div class="gmHandoutDeckTools">
+        <div id="gmHandoutDeckFilterRow" class="chipRow gmHandoutDeckFilterRow">
+          <button class="chip chip--active" data-deck-filter="all" type="button">All</button>
+          <button class="chip" data-deck-filter="loot" type="button">Loot</button>
+          <button class="chip" data-deck-filter="npc" type="button">Npc</button>
+          <button class="chip" data-deck-filter="clue" type="button">Clue</button>
+          <button class="chip" data-deck-filter="letter" type="button">Letter</button>
+          <button class="chip" data-deck-filter="quest" type="button">Quest</button>
+          <button class="chip" data-deck-filter="map" type="button">Map</button>
+        </div>
+        <button id="btnGMDeckKeepClaims" class="chip chip--active" type="button" aria-pressed="true">Keep Existing Claims</button>
+      </div>
+      <div class="row gmHandoutDeckAssignRow">
+        <label class="label small" for="gmHandoutDeckPlayer">Assign to player</label>
+        <select id="gmHandoutDeckPlayer" class="input"></select>
+      </div>
+      <div id="gmHandoutDeckStack" class="handoutReviewStack"></div>
+      <div class="row handoutReviewActions">
+        <button id="btnGMHandoutDeckSkip" class="btn btn--ghost" type="button">Skip</button>
+        <button id="btnGMHandoutDeckAssign" class="btn" type="button">Assign</button>
+        <button id="btnGMHandoutDeckDelete" class="btn btn--danger" type="button">Delete</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Discard Session confirmation modal (Player only) -->
   <div id="discardSessionModal" class="blockingModal hidden" aria-hidden="true">
     <div class="blockingModal__card">
@@ -2298,7 +2376,7 @@
       <input id="discardSessionConfirmInput" class="input" type="text" autocomplete="off" placeholder="DISCARD" style="text-align:center;letter-spacing:2px">
       <div class="modal-actions">
         <button id="btnCancelDiscardSession" class="btn btn--ghost" type="button">Cancel</button>
-        <button id="btnConfirmDiscardSession" class="btn btn--danger-fill" type="button" disabled>Discard &amp; Leave</button>
+        <button id="btnConfirmDiscardSession" class="btn btn--danger-fill" type="button" disabled>Leave Permanently</button>
       </div>
     </div>
   </div>
@@ -2526,7 +2604,7 @@
   <script src="https://www.google.com/recaptcha/api.js?render=6LeMT5EsAAAAABZpKrhXRvmiG2SLIrjUIq5mqeeK" async defer></script>
 
   <!-- App entry point -->
-  <script type="module" src="index.mjs?v=20260325menu3"></script>
+  <script type="module" src="index.mjs?v=20260325menu7"></script>
 </body>
 </html>
 

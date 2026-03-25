@@ -1,7 +1,9 @@
 ---
 name: interface-update
 description: 'TomeVault UI/UX audit and brand compliance refactor. Use when auditing accessibility, fixing DM→GM terminology, checking mobile responsiveness, reviewing WCAG contrast, or enforcing the TomeVault design token system.'
-argument-hint: 'Optional: specify a phase to run (e.g. "Phase 1 only" or "audit only, no changes")'
+argument-hint: 'Optional: specify phase + mode (e.g. "Phase 1 only", "audit only, no changes", "mode: ui-copy-only")'
+user-invocable: true
+disable-model-invocation: false
 ---
 
 # interfaceUpdate — TomeVault UI/UX Audit & Brand Compliance
@@ -11,6 +13,18 @@ argument-hint: 'Optional: specify a phase to run (e.g. "Phase 1 only" or "audit 
 > **Non-negotiable foundation:** `.github/copilot-instructions.md` is the single source of
 > truth for all visual tokens, component patterns, motion rules, and theming. It overrides
 > every generic design system (Material, Tailwind, etc.). Read it before touching any CSS or HTML.
+
+## Do Not Use When
+
+- The request is primarily repository architecture/performance/storage cleanup (use `code-cleanup`).
+- The request is primarily feature discovery and roadmap prioritization using external research (use `function-suggestions`).
+- The request is only about debugging chat-agent runtime behavior or skill loading failures (use `troubleshoot`).
+
+## Invocation Modes
+
+- `mode: ui-copy-only` (default): only update visible UI text, labels, titles, placeholders, tooltips, aria-label/title text, and docs/comments where safe.
+- `mode: ui-and-css`: includes `ui-copy-only` plus CSS/HTML/accessibility implementation work from this skill.
+- `mode: migration-required`: allows internal identifier changes (variable names, persisted role values, keys) only with explicit user approval in the current request.
 
 ---
 
@@ -34,11 +48,18 @@ Before doing anything else:
 Scan **all files in the repository** (including `functions/index.js` and any other backend files)
 for `DM` (case-sensitive and -insensitive).
 
+Default behavior is `mode: ui-copy-only`.
+
 **Replace** `DM` / `Dm` / `dm` → `GM` / `Gm` / `gm` (preserve original casing) **only when** it
 refers to "Dungeon Master" in:
 - UI text, labels, headings, toasts, placeholders, tooltips
 - ARIA labels and `title` attributes
-- Variable names, function names, and code comments
+- Code comments
+
+Only in `mode: migration-required` and only after explicit user approval in this run:
+
+- Variable names and function names
+- Persisted role values, Firestore fields, IDs, and storage keys tied to role naming
 
 **Do NOT replace** in:
 - "Direct Message" contexts
@@ -47,6 +68,8 @@ refers to "Dungeon Master" in:
 - Import paths or contents of `node_modules/` or `functions/node_modules/`
 
 After replacing: verify that all renamed identifiers still resolve without reference errors.
+
+If migration mode is used, provide a compatibility plan (fallback reads, data backfill, rollback path).
 
 ---
 
@@ -64,6 +87,7 @@ For each finding, classify it as **[IMPLEMENT]** (unambiguous best-practice fix)
 - [ ] Touch targets ≥ 44×44px on all interactive elements in mobile layout — **[IMPLEMENT]**
 - [ ] No element causes horizontal scroll at < 768px — tables must degrade to cards or scrollable containers — **[IMPLEMENT]** for trivial fixes, **[SUGGEST]** for layout refactors
 - [ ] All `<input>` fields have the correct `type` attribute (`number`, `email`, `tel`, `url`, etc.) — **[IMPLEMENT]**
+- [ ] Each major screen fills the visible viewport (`100dvh`) without accidental page overflow in default state (allow overflow only in intended scroll regions or explicitly expanded content) — **[IMPLEMENT]** for CSS/container fixes, **[SUGGEST]** for structural rewrites
 
 ### 2C. Player vs. GM Mode Awareness
 - [ ] A clear visual indicator communicates which mode the user is in — **[IMPLEMENT]**
@@ -81,6 +105,18 @@ For each finding, classify it as **[IMPLEMENT]** (unambiguous best-practice fix)
 - [ ] Errors surface a user-readable message, not a raw Firebase error code — **[IMPLEMENT]**
 - [ ] Save/submit success shows a brief toast or inline confirmation — **[IMPLEMENT]**
 
+### 2F. Dimensional Consistency
+- [ ] Equivalent component variants use consistent dimensions (button heights, input heights, icon button sizes, card paddings, radii) unless a documented variant intentionally differs — **[IMPLEMENT]**
+- [ ] Repeated controls in the same region align to a shared baseline/width rule (`auto`, `--btn--full`, or grid constraint) with no one-off pixel widths — **[IMPLEMENT]**
+
+### 2G. Brand Wordmark Consistency
+- [ ] The `TomeVault` wordmark styling remains consistent anywhere it appears as brand text (gold emphasis, subtle glow treatment, heading font usage, and no off-brand color drift) — **[IMPLEMENT]** when class/token fixes are clear, **[SUGGEST]** if conflicting legacy variants need design decision
+
+### 2H. Motion Uniformity & Polish
+- [ ] Add or normalize subtle, professional motion where missing on key interactions (screen enter, modal open/close, primary button hover/press, panel reveal), using existing motion tokens only — **[IMPLEMENT]**
+- [ ] Remove inconsistent easing/duration usage and align to `var(--tv-ease)` + `var(--tv-dur-fast/mid/slow)` tiers — **[IMPLEMENT]**
+- [ ] Ensure all new or adjusted motion paths include reduced-motion fallbacks — **[IMPLEMENT]**
+
 ---
 
 ## Phase 3 — Execution Rules
@@ -93,6 +129,10 @@ For each finding, classify it as **[IMPLEMENT]** (unambiguous best-practice fix)
 - Spacing corrections that violate the 8-point grid and have no layout side effects
 - Replacing `<div role="button">` with `<button>` where behavior is unchanged
 - GM/Player mode awareness indicator (Phase 2C) using existing CSS tokens
+- Viewport-fit fixes that keep each screen within device-visible bounds by default
+- Size/width/radius normalization for equivalent controls where intent is unambiguous
+- Brand wordmark token/class consistency fixes where the canonical style already exists
+- Motion token/easing/duration normalization and reduced-motion coverage
 
 **Pause and verify with the user before acting** when:
 - The correct element, selector, or variable name to change is ambiguous
@@ -133,6 +173,13 @@ Only include changes that would materially improve UX or accessibility.
 If none meet that bar, state: **"No further improvements necessary."**
 Do not list speculative or cosmetic changes.
 
+### Shared Output Contract
+- Severity: Critical, High, Medium, Low
+- Confidence: High, Medium, Low
+- Safe-to-auto-fix: Yes or No
+- Decision: Implemented, Suggested, Needs Confirmation, Deferred
+- Evidence: short rationale with affected file(s)
+
 ---
 
 ## Post-run — Update the Audit Log
@@ -153,4 +200,10 @@ After delivering the Phase 4 report, update [./AUDIT_LOG.md](./AUDIT_LOG.md):
    `## Completed Items` and change its status to `DONE`.
 4. Do not remove old entries — the log is append-only except for status promotions.
 5. Update the `Last run:` date at the top of the file.
+
+## Cross-Skill Routing
+
+- If audit uncovers deeper performance/scalability/storage durability concerns, route to `code-cleanup`.
+- If audit surfaces repeated feature demand or roadmap uncertainty, route to `function-suggestions`.
+- If a blocker is caused by customization-file behavior or agent config loading, route to `agent-customization` or `troubleshoot`.
 
