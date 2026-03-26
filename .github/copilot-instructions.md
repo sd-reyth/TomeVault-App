@@ -516,10 +516,24 @@ A feature is **not done** until all of the following are true:
 11. Equivalent controls maintain consistent dimensions (height/radius/padding/width behavior) unless intentionally variant by catalog.
 12. Brand wordmark (`TomeVault`) style is consistent (Cinzel, gold `T`/`V`, canonical glow treatment).
 13. Key interactions use consistent motion tiers and reduced-motion fallbacks.
+14. If `style.css` or `index.mjs` is changed, `index.html` asset query versions are updated for affected assets.
+15. Deployment verification confirms live assets include the expected version string and latest selector/function changes.
 
 ---
 
-## 17. Build Prompt Template
+## 17. Execution Consistency (Mandatory)
+
+For uniform future execution, follow this sequence for every UI task:
+
+1. **Context load:** Read `style.css`, `index.mjs`, and this contract section before editing.
+2. **Viewport-fit standard:** Use the app shell pattern already in code (`body[data-screen]` active screen constraints with internal scroll regions) and avoid introducing page-level horizontal overflow.
+3. **Token-only implementation:** Use existing variables/classes only; no ad-hoc color/timing/radius values.
+4. **Validation pass:** Run diagnostics on edited files and fix relevant errors before final output.
+5. **Versioning + verification:** If CSS/JS changed, bump cache-bust query strings in `index.html` and verify the expected version appears in deployed assets.
+
+---
+
+## 18. Build Prompt Template
 
 Use this template when requesting a new feature:
 
@@ -545,12 +559,14 @@ Output expectations:
 - Confirm all class names match the UX Contract catalog.
 - Confirm light mode tested.
 - Confirm mobile (375px+) and desktop (1280px+) usability verified.
+- Confirm cache-bust version bump performed when CSS/JS changed.
+- Confirm deployment verification evidence (version string + changed selector/behavior present live).
 - Explain any non-obvious UX decisions briefly.
 ```
 
 ---
 
-## 18. What Not to Do
+## 19. What Not to Do
 
 These are direct violations — catch and fix immediately:
 

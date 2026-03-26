@@ -88,6 +88,7 @@ For each finding, classify it as **[IMPLEMENT]** (unambiguous best-practice fix)
 - [ ] No element causes horizontal scroll at < 768px — tables must degrade to cards or scrollable containers — **[IMPLEMENT]** for trivial fixes, **[SUGGEST]** for layout refactors
 - [ ] All `<input>` fields have the correct `type` attribute (`number`, `email`, `tel`, `url`, etc.) — **[IMPLEMENT]**
 - [ ] Each major screen fills the visible viewport (`100dvh`) without accidental page overflow in default state (allow overflow only in intended scroll regions or explicitly expanded content) — **[IMPLEMENT]** for CSS/container fixes, **[SUGGEST]** for structural rewrites
+- [ ] Viewport-fit implementations follow the existing app-shell and `body[data-screen]` active-screen pattern (including chrome-offset variables already defined in `style.css`) — **[IMPLEMENT]**
 
 ### 2C. Player vs. GM Mode Awareness
 - [ ] A clear visual indicator communicates which mode the user is in — **[IMPLEMENT]**
@@ -133,6 +134,8 @@ For each finding, classify it as **[IMPLEMENT]** (unambiguous best-practice fix)
 - Size/width/radius normalization for equivalent controls where intent is unambiguous
 - Brand wordmark token/class consistency fixes where the canonical style already exists
 - Motion token/easing/duration normalization and reduced-motion coverage
+- Asset query version bumps in `index.html` when CSS/JS assets are changed
+- Post-edit diagnostics checks on all touched files, with relevant error fixes before final report
 
 **Pause and verify with the user before acting** when:
 - The correct element, selector, or variable name to change is ambiguous
@@ -179,6 +182,11 @@ Do not list speculative or cosmetic changes.
 - Safe-to-auto-fix: Yes or No
 - Decision: Implemented, Suggested, Needs Confirmation, Deferred
 - Evidence: short rationale with affected file(s)
+
+### Validation Evidence (Required)
+- Diagnostics status for touched files (errors fixed or none found)
+- Asset version update confirmation when CSS/JS changed
+- Deployment verification note: expected version string and changed selector/behavior present in live assets (or explicitly marked as not yet deployed)
 
 ---
 

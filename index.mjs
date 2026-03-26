@@ -10389,6 +10389,11 @@ btnPlayerOpenChatFromMini?.addEventListener("click", () => {
   openChatScreen();
 });
 
+playerMiniChatPanel?.addEventListener("click", (event) => {
+  if (event.target.closest("button, a, input, textarea, [role='button']")) return;
+  openChatScreen();
+});
+
 btnPlayerOpenChatFromParty?.addEventListener("click", () => {
   openChatScreen();
 });
@@ -14597,14 +14602,12 @@ function renderPlayerHandouts(items) {
         const hasPreview = previewText.length > 0;
         const previewCanExpand = hasPreview && playerHandoutPreviewCanExpand(previewText);
         if (!previewCanExpand) setPlayerHandoutPreviewExpanded(h.id, false);
-        const previewExpanded = previewCanExpand && isPlayerHandoutPreviewExpanded(h.id);
+        const previewExpanded = false;
         const previewId = `playerHandoutPreview-${String(h.id || "handout")}`;
         const previewHtml = hasPreview
           ? `<p id="${escapeHtml(previewId)}" class="item__preview${previewExpanded ? " item__preview--expanded" : ""}">${escapeHtml(previewText)}</p>`
           : "";
-        const previewToggleHtml = previewCanExpand
-          ? `<button type="button" class="item__previewToggle" aria-expanded="${previewExpanded ? "true" : "false"}" aria-controls="${escapeHtml(previewId)}">${previewExpanded ? "Show less" : "Read more"}</button>`
-          : "";
+        const previewToggleHtml = "";
         // Set meta/text content via innerHTML, then attach the thumbnail using
         // DOM APIs so it cannot be dropped by the HTML parser under any circumstances.
         row.innerHTML = `
@@ -14665,15 +14668,6 @@ function renderPlayerHandouts(items) {
         rightCol.appendChild(claimBtnEl);
         row.appendChild(rightCol);
         row.onclick = () => openModal({ ...h, id: h.id }, "player");
-        const previewToggle = row.querySelector(".item__previewToggle");
-        if (previewToggle) {
-          previewToggle.addEventListener("click", (event) => {
-            event.preventDefault();
-            event.stopPropagation();
-            setPlayerHandoutPreviewExpanded(h.id, !isPlayerHandoutPreviewExpanded(h.id));
-            renderPlayerHandouts(getCurrentPlayerVisibleHandouts());
-          });
-        }
         fragment.appendChild(row);
         renderedCount += 1;
       } catch (renderErr) {
