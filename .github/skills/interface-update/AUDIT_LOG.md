@@ -1,6 +1,6 @@
 # interfaceUpdate Audit Log
 
-Last run: _2026-03-25_
+Last run: _2026-03-27_
 
 > This file is maintained automatically by the `interface-update` skill.
 > Do not edit manually unless removing a stale or incorrect entry.
@@ -18,6 +18,10 @@ Last run: _2026-03-25_
 - [DONE] 2C-mode-indicator-state — Added `document.body.dataset.role = state.role || ""` in `showOnly()` in `index.mjs` — 2026-03-25
 - [DONE] 2D-destructive-confirm-leave — Added confirmation guard before leave-session state reset in `index.mjs` — 2026-03-25
 - [DONE] 2D-destructive-confirm-reset — Added confirmation guard before reset-initiative action in `index.mjs` — 2026-03-25
+- [DONE] 2H-motion-token-normalization — Replaced hardcoded CSS animation/transition timings and easing with TomeVault motion tokens in `style.css` — 2026-03-27
+- [DONE] 2H-inline-chevron-motion — Removed hardcoded inline SVG chevron transitions and moved them to tokenized CSS handling in `index.html` and `style.css` — 2026-03-27
+- [DONE] 2H-js-ui-timers — Replaced hardcoded UI animation/reset delays with `UI_TIMERS` constants in `index.mjs` — 2026-03-27
+- [DONE] 2H-active-turn-motion-tokens — Replaced undefined `--ease-out`/`--space-3` usage in active-turn row transitions with TomeVault spacing and motion tokens in `style.css` — 2026-03-27
 
 ---
 

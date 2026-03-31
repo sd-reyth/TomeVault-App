@@ -50,6 +50,7 @@ Always load each skill file first, then execute that skill's workflow.
 - If a step needs user input, ask one concise question, then continue once answered.
 - Never skip ahead unless blocked.
 - Prefer practical fixes in files over long theory.
+- If a loaded skill requires approval before fixing a Critical or High issue in auth, security, billing, entitlements, or data migration, stop implementation for that item and report the finding instead of auto-editing it.
 
 ## Modes
 - Thorough mode (default): deep analysis, full checks, full recommendations.

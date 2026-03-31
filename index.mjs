@@ -76,9 +76,12 @@ const UI_TIMERS = {
   GM_SEARCH_DEBOUNCE_MS: 250,
   CREATE_DRAFT_DEBOUNCE_MS: 500,
   INVENTORY_SEARCH_DEBOUNCE_MS: 300,
+  TAG_SUGGESTIONS_BLUR_MS: 200,
   // FAB timers
   FAB_HOLD_MS: 2000,
   FAB_DRAG_TOAST_MS: 1500,
+  TOPBAR_REVEAL_MS: 300,
+  ANIMATION_FALLBACK_MS: 500,
   // Presence thresholds (30 min online grace keeps players visible while device sleeps)
   ONLINE_THRESHOLD_MS: 1_800_000,
   AWAY_THRESHOLD_MS:   2_100_000,
@@ -1551,7 +1554,7 @@ function showOnly(screenKey) {
       if (_wasHidden && !topBar.classList.contains("hidden")) {
         requestAnimationFrame(() => {
           topBar.classList.add("topbar--entering");
-          setTimeout(() => topBar.classList.remove("topbar--entering"), 350);
+          setTimeout(() => topBar.classList.remove("topbar--entering"), UI_TIMERS.TOPBAR_REVEAL_MS);
         });
       }
     }
@@ -6035,7 +6038,7 @@ noteTagsInput?.addEventListener("focus", () => {
 });
 
 noteTagsInput?.addEventListener("blur", () => {
-  window.setTimeout(() => notesTagSuggestions?.classList.add("hidden"), 200);
+  window.setTimeout(() => notesTagSuggestions?.classList.add("hidden"), UI_TIMERS.TAG_SUGGESTIONS_BLUR_MS);
 });
 
 notesEditor?.addEventListener("input", () => {
@@ -8832,7 +8835,7 @@ async function processRedirectAuthResult() {
     }
     await convertOneShotSessions(user.uid);
     if (!hadProfile) {
-      showToast("First time here - choose your player name.", "info", UI_TIMERS.TOAST_MEDIUM);
+      showToast("First time here - choose your player name.", "info", UI_TIMERS.TOAST_MED);
     }
     const nick = await requireNickname({ forcePrompt: !hadProfile });
     if (nick) state.displayName = nick;
@@ -9293,7 +9296,7 @@ async function signUpWithEmail() {
     if (redirected) return;
 
     if (signUpRecaptcha?.bypassed) {
-      showToast("Account created. Security check was unavailable and was bypassed for this attempt.", "info", UI_TIMERS.TOAST_MEDIUM);
+      showToast("Account created. Security check was unavailable and was bypassed for this attempt.", "info", UI_TIMERS.TOAST_MED);
     }
     if (!user.emailVerified) {
       showToast("Account created. You're signed in now - please verify your email when convenient.", "info", UI_TIMERS.TOAST_LONG);
@@ -9356,7 +9359,7 @@ async function signInWithEmailFn() {
     if (redirected) return;
 
     if (recaptchaBypassed) {
-      showToast("Signed in. Security check was unavailable and was bypassed for this attempt.", "info", UI_TIMERS.TOAST_MEDIUM);
+      showToast("Signed in. Security check was unavailable and was bypassed for this attempt.", "info", UI_TIMERS.TOAST_MED);
     }
     showToast("Welcome back, " + (state.displayName || "Adventurer") + "!", "success");
   } catch (e) {
@@ -9414,7 +9417,7 @@ async function signInWithGoogleFn() {
     }
     await convertOneShotSessions(user.uid);
     if (!hadProfile) {
-      showToast("First time here - choose your player name.", "info", UI_TIMERS.TOAST_MEDIUM);
+      showToast("First time here - choose your player name.", "info", UI_TIMERS.TOAST_MED);
     }
     const nick = await requireNickname({ forcePrompt: !hadProfile });
     if (nick) state.displayName = nick;
@@ -11911,7 +11914,7 @@ const handleCopyJoinLink = async (buttonEl = null) => {
   }
   const prev = buttonEl.textContent;
   buttonEl.textContent = "Copied!";
-  setTimeout(() => { buttonEl.textContent = prev; }, 1800);
+  setTimeout(() => { buttonEl.textContent = prev; }, UI_TIMERS.BUTTON_FLASH_MS);
 };
 
 // Copy join link — primary CTA in QR modal and secondary quick action in social panel.
@@ -13445,7 +13448,7 @@ btnAddNpc?.addEventListener("click", () => {
 
 btnRollInitiative?.addEventListener("click", () => {
   btnRollInitiative.classList.add("is-rolling");
-  window.setTimeout(() => btnRollInitiative.classList.remove("is-rolling"), 500);
+  window.setTimeout(() => btnRollInitiative.classList.remove("is-rolling"), UI_TIMERS.ROLL_ANIM_MS);
   rollInitiativeForAll().catch((err) => {
     console.error("Roll initiative action failed:", err);
     showToast("Failed to roll initiative.", "error");
@@ -14387,7 +14390,7 @@ state.unsubHandouts = onSnapshot(handoutsRef, (snap) => {
           _tavernOverlay.classList.remove("tavern-overlay--leaving");
         };
         _tavernOverlay.addEventListener("animationend", _onEnd, { once: true });
-        setTimeout(_onEnd, 500); // fallback if animationend doesn't fire
+        setTimeout(_onEnd, UI_TIMERS.ANIMATION_FALLBACK_MS); // fallback if animationend doesn't fire
         _tavernOverlay._hasEntered = true;
       };
     }
