@@ -51,7 +51,7 @@
   <meta name="twitter:title" content="TomeVault - Live Handouts for Your Table">
   <meta name="twitter:description" content="Share session invites, PINs, and handouts in seconds.">
   <meta name="twitter:image" content="references/tomeVaultLogo1.png">
-  <link rel="stylesheet" href="style.css?v=20260327patrick2">
+  <link rel="stylesheet" href="style.css?v=20260331ui13">
   <!-- fantasy fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
@@ -468,10 +468,6 @@
               <button id="btnOpenSocialFromParty" class="btn btn--ghost btn--small partyAction partyAction--invite" type="button">
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" aria-hidden="true" style="width:15px;height:15px;flex-shrink:0"><path stroke-linecap="round" stroke-linejoin="round" d="M7.217 10.907a2.25 2.25 0 1 0 0 2.186m0-2.186c.18.324.283.696.283 1.093s-.103.77-.283 1.093m0-2.186 9.566-5.314m-9.566 7.5 9.566 5.314m0-12.814a2.25 2.25 0 1 0 3.935-2.186 2.25 2.25 0 0 0-3.935 2.186Zm0 12.814a2.25 2.25 0 1 0 3.935 2.186 2.25 2.25 0 0 0-3.935-2.186Z" /></svg>
                 Invite
-              </button>
-              <button id="btnOpenChatFromParty" class="btn btn--ghost btn--small partyAction" type="button">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" aria-hidden="true" style="width:15px;height:15px;flex-shrink:0"><path stroke-linecap="round" stroke-linejoin="round" d="M8.625 9.75h6.75M8.625 13.5h4.5M6.75 18.75h7.734a3 3 0 0 0 2.122-.879l1.787-1.787a3 3 0 0 0 .879-2.121V8.25a3 3 0 0 0-3-3H6.75a3 3 0 0 0-3 3v7.5a3 3 0 0 0 3 3Z" /></svg>
-                Chat
               </button>
               <!-- btnAddNpc hidden &middot; NPC initiative added via handout creation instead -->
               <button id="btnAddNpc" class="hidden" type="button" aria-hidden="true"></button>
@@ -893,7 +889,6 @@
         <aside id="playerPartyPanel" class="panel gmPartyPanel playerPartyPanel" aria-label="Party panel">
           <div class="gmPartyPanel__head">
             <h3>The Party</h3>
-            <span class="muted small">Initiative order</span>
             <button id="btnCollapsePlayerParty" class="partyCollapseBtn iconBtn" type="button" aria-expanded="false" aria-label="Expand party list" title="Expand / collapse party list">
               <svg class="partyCollapseChevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true" style="width:16px;height:16px"><path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5"/></svg>
             </button>
@@ -906,10 +901,6 @@
             <button id="btnPlayerInitiativeRoll" class="btn btn--small partyAction" type="button" title="Roll and set your initiative">
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="width:15px;height:15px;flex-shrink:0"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8.5" cy="8.5" r="1.2" fill="currentColor"/><circle cx="15.5" cy="8.5" r="1.2" fill="currentColor"/><circle cx="8.5" cy="15.5" r="1.2" fill="currentColor"/><circle cx="15.5" cy="15.5" r="1.2" fill="currentColor"/><circle cx="12" cy="12" r="1.2" fill="currentColor"/></svg>
               Roll
-            </button>
-            <button id="btnPlayerOpenChatFromParty" class="btn btn--ghost btn--small partyAction" type="button" title="Open session chat">
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" aria-hidden="true" style="width:15px;height:15px;flex-shrink:0"><path stroke-linecap="round" stroke-linejoin="round" d="M8.625 9.75h6.75M8.625 13.5h4.5M6.75 18.75h7.734a3 3 0 0 0 2.122-.879l1.787-1.787a3 3 0 0 0 .879-2.121V8.25a3 3 0 0 0-3-3H6.75a3 3 0 0 0-3 3v7.5a3 3 0 0 0 3 3Z" /></svg>
-              Chat
             </button>
           </div>
           <!-- Turn indicator · read-only for players, shown when initiative is active -->
@@ -1131,22 +1122,28 @@
         <div id="settingsSessionInfo" class="muted small hidden"></div>
       </div>
       <div class="settingsMenu">
-        <div id="trialStatus" class="trialBanner hidden">
-          <span id="trialText" class="muted small"></span>
+        <div class="settingsSection">
+          <div class="settingsSection__title">Guidance</div>
+          <div id="trialStatus" class="trialBanner hidden">
+            <span id="trialText" class="muted small"></span>
+          </div>
+          <button id="btnReplayTutorial" class="btn btn--ghost" type="button">Replay Tutorial</button>
         </div>
-        <button id="btnReplayTutorial" class="btn btn--ghost" type="button">Replay Tutorial</button>
-        <div class="settingsAppearance">
-          <div class="label">Appearance</div>
-          <div class="settingsAppearance__options" role="group" aria-label="Appearance theme">
-            <button id="btnThemeSystem" class="btn btn--ghost btn--small" type="button" aria-pressed="false">System</button>
-            <button id="btnThemeDark" class="btn btn--ghost btn--small" type="button" aria-pressed="false">Dark</button>
-            <button id="btnThemeLight" class="btn btn--ghost btn--small" type="button" aria-pressed="false">Light</button>
+
+        <div class="settingsSection">
+          <div class="settingsSection__title">Appearance</div>
+          <div class="settingsAppearance">
+            <div class="settingsAppearance__options" role="group" aria-label="Appearance theme">
+              <button id="btnThemeSystem" class="btn btn--ghost btn--small" type="button" aria-pressed="false">System</button>
+              <button id="btnThemeDark" class="btn btn--ghost btn--small" type="button" aria-pressed="false">Dark</button>
+              <button id="btnThemeLight" class="btn btn--ghost btn--small" type="button" aria-pressed="false">Light</button>
+            </div>
           </div>
         </div>
 
         <!-- Role switching -->
-        <div id="settingsRoleSection" class="settingsRoleSwitch hidden">
-          <div class="label">Role</div>
+        <div id="settingsRoleSection" class="settingsSection settingsRoleSwitch hidden">
+          <div class="settingsSection__title">Role</div>
           <button id="btnSwitchToPlayer" class="btn btn--ghost hidden" type="button"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" aria-hidden="true" style="width:16px;height:16px;flex-shrink:0;vertical-align:-2px;margin-right:6px"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z"/></svg>Switch to Player View</button>
           <button id="btnSwitchToGM" class="btn btn--ghost hidden" type="button"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" aria-hidden="true" style="width:16px;height:16px;flex-shrink:0;vertical-align:-2px;margin-right:6px"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75m-3-7.036A11.959 11.959 0 0 1 3.598 6 11.99 11.99 0 0 0 3 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285Z"/></svg>Switch to GM</button>
           <p id="settingsIdentityHint" class="muted small hidden">Session invite details are kept in the Social tab to avoid duplicates.</p>
@@ -1165,17 +1162,13 @@
           <button id="btnToggleSound" class="btn btn--ghost btn--small" type="button">Enable sound</button>
         </div>
 
-        <!-- GM-only: Premade Profiles -->
-        <button id="btnCharacterProfiles" class="btn btn--ghost btn--gm hidden" type="button">Premade Profiles</button>
-
-        <!-- GM-only: Transfer GM Role -->
-        <button id="btnTransferGMRole" class="btn btn--ghost btn--gm hidden" type="button">Transfer GM Role</button>
-
-        <!-- Desktop only: Keyboard Shortcuts reference -->
-        <button id="btnShowShortcuts" class="btn btn--ghost hidden" type="button">Keyboard Shortcuts</button>
-
-        <!-- Music credits -->
-        <button id="btnShowCredits" class="btn btn--ghost" type="button"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true" style="width:18px;height:18px;vertical-align:-3px;margin-right:6px"><path stroke-linecap="round" stroke-linejoin="round" d="m9 9 10.5-3m0 6.553v3.75a2.25 2.25 0 0 1-1.632 2.163l-1.32.377a1.803 1.803 0 1 1-.99-3.467l2.31-.66a2.25 2.25 0 0 0 1.632-2.163Zm0 0V4.5l-10.5 3v6.553m0 0v3.75a2.25 2.25 0 0 1-1.632 2.163l-1.32.377a1.803 1.803 0 0 1-.99-3.467l2.31-.66A2.25 2.25 0 0 0 9 13.053Z"/></svg>Credits</button>
+        <div class="settingsSection">
+          <div class="settingsSection__title">Tools</div>
+          <button id="btnCharacterProfiles" class="btn btn--ghost btn--gm hidden" type="button">Premade Profiles</button>
+          <button id="btnTransferGMRole" class="btn btn--ghost btn--gm hidden" type="button">Transfer GM Role</button>
+          <button id="btnShowShortcuts" class="btn btn--ghost hidden" type="button">Keyboard Shortcuts</button>
+          <button id="btnShowCredits" class="btn btn--ghost" type="button"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true" style="width:18px;height:18px;vertical-align:-3px;margin-right:6px"><path stroke-linecap="round" stroke-linejoin="round" d="m9 9 10.5-3m0 6.553v3.75a2.25 2.25 0 0 1-1.632 2.163l-1.32.377a1.803 1.803 0 1 1-.99-3.467l2.31-.66a2.25 2.25 0 0 0 1.632-2.163Zm0 0V4.5l-10.5 3v6.553m0 0v3.75a2.25 2.25 0 0 1-1.632 2.163l-1.32.377a1.803 1.803 0 0 1-.99-3.467l2.31-.66A2.25 2.25 0 0 0 9 13.053Z"/></svg>Credits</button>
+        </div>
 
           <!-- Leave / Delete / Discard session &middot; danger zone, clearly separated -->
           <div class="settingsSection settingsSection--danger">
@@ -2057,24 +2050,24 @@
   </button>
 
   <div id="hamburgerSpeedDial" class="hamburger-speed-dial hidden" aria-hidden="true">
-    <button id="btnDialHandouts" class="speed-dial-btn speed-dial-btn--compact hidden" type="button" aria-label="Open Handouts" title="Handouts" aria-hidden="true">
+    <button id="btnDialHandouts" class="speed-dial-btn hidden" type="button" aria-label="Open Handouts" title="Handouts" aria-hidden="true">
       <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25"/></svg>
       <span class="speed-dial-btn__text">Handouts</span>
     </button>
-    <button id="btnDialSocial" class="speed-dial-btn speed-dial-btn--compact hidden" type="button" aria-label="Open Session Panel" title="Session" aria-hidden="true">
+    <button id="btnDialSocial" class="speed-dial-btn hidden" type="button" aria-label="Open Session Panel" title="Session" aria-hidden="true">
       <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 0 0 2.625.372 9.337 9.337 0 0 0 4.121-.952 4.125 4.125 0 0 0-2.062-7.846h-.343M15 19.128v-.003c0-1.113-.285-2.16-.786-3.072M15 19.128a9.34 9.34 0 0 1-5.625 0m0 0A9.34 9.34 0 0 1 5.25 16.053m4.125 3.075c0-1.113.285-2.16.786-3.072m0 0a4.125 4.125 0 1 0-5.744 0m5.744 0a4.125 4.125 0 1 1 5.744 0M12 12.75a4.125 4.125 0 1 0 0-8.25 4.125 4.125 0 0 0 0 8.25Z"/></svg>
       <span class="speed-dial-btn__text">Session</span>
     </button>
-    <button id="btnDialAtmosphere" class="speed-dial-btn speed-dial-btn--compact hidden" type="button" aria-label="Open Atmosphere Controls" title="Atmosphere" aria-hidden="true">
+    <button id="btnDialAtmosphere" class="speed-dial-btn hidden" type="button" aria-label="Open Atmosphere Controls" title="Atmosphere" aria-hidden="true">
       <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="m9 9 10.5-3m0 6.553v3.75a2.25 2.25 0 0 1-1.632 2.163l-1.32.377a1.803 1.803 0 1 1-.99-3.467l2.31-.66a2.25 2.25 0 0 0 1.632-2.163Zm0 0V4.5l-10.5 3v6.553m0 0v3.75a2.25 2.25 0 0 1-1.632 2.163l-1.32.377a1.803 1.803 0 0 1-.99-3.467l2.31-.66A2.25 2.25 0 0 0 9 13.053Z"/></svg>
       <span class="speed-dial-btn__text">Atmosphere</span>
     </button>
-    <button id="btnDialNotes" class="speed-dial-btn speed-dial-btn--compact hidden" type="button" aria-label="Open Notes" title="Notes" aria-hidden="true">
+    <button id="btnDialNotes" class="speed-dial-btn hidden" type="button" aria-label="Open Notes" title="Notes" aria-hidden="true">
       <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M16.5 3.75v2.25m-9-2.25v2.25m11.25 0H5.25A2.25 2.25 0 0 0 3 8.25v10.5A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V8.25A2.25 2.25 0 0 0 18.75 6Zm-12 6.75h10.5"/></svg>
       <span class="speed-dial-btn__text">Notes</span>
     </button>
     <div class="speed-dial-divider" aria-hidden="true"></div>
-    <button id="btnDialSettings" class="speed-dial-btn speed-dial-btn--settings" type="button" aria-label="Open Settings" title="Settings">
+    <button id="btnDialSettings" class="speed-dial-btn hidden" type="button" aria-label="Open Settings" title="Settings" aria-hidden="true">
       <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.592c.55 0 1.02.398 1.11.94l.213 1.277c.075.446.367.826.777 1.02.402.191.87.178 1.26-.03l1.122-.6a1.125 1.125 0 011.53.41l1.296 2.244a1.125 1.125 0 01-.41 1.53l-1.122.6a1.125 1.125 0 00-.546 1.23c.078.44.078.89 0 1.33a1.125 1.125 0 00.546 1.23l1.122.6c.54.288.739.96.41 1.53l-1.296 2.244a1.125 1.125 0 01-1.53.41l-1.122-.6a1.125 1.125 0 00-1.26-.03c-.41.194-.702.574-.777 1.02l-.213 1.277c-.09.542-.56.94-1.11.94h-2.592c-.55 0-1.02-.398-1.11-.94l-.213-1.277a1.125 1.125 0 00-.777-1.02 1.125 1.125 0 00-1.26.03l-1.122.6a1.125 1.125 0 01-1.53-.41L2.9 17.6a1.125 1.125 0 01.41-1.53l1.122-.6c.39-.208.602-.638.546-1.08a8.54 8.54 0 010-1.63c.056-.442-.156-.872-.546-1.08l-1.122-.6a1.125 1.125 0 01-.41-1.53L4.196 5.306a1.125 1.125 0 011.53-.41l1.122.6c.39.208.858.221 1.26.03.41-.194.702-.574.777-1.02l.213-1.277z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
       <span class="speed-dial-btn__text">Settings</span>
     </button>
@@ -2604,7 +2597,7 @@
   <script src="https://www.google.com/recaptcha/api.js?render=6LeMT5EsAAAAABZpKrhXRvmiG2SLIrjUIq5mqeeK" async defer></script>
 
   <!-- App entry point -->
-  <script type="module" src="index.mjs?v=20260327patrick2"></script>
+  <script type="module" src="index.mjs?v=20260331ui13"></script>
 </body>
 </html>
 

@@ -677,7 +677,6 @@ const btnPartyBattle = $("btnPartyBattle");
 const btnAddNpc = $("btnAddNpc");
 const gmPartyRollOverlay = $("gmPartyRollOverlay");
 const btnOpenSocialFromParty = $("btnOpenSocialFromParty");
-const btnOpenChatFromParty = $("btnOpenChatFromParty");
 const gmTurnNav = $("gmTurnNav");
 const gmTurnLabel = $("gmTurnLabel");
 const btnTurnPrev = $("btnTurnPrev");
@@ -1989,14 +1988,17 @@ function animateModalOut(el) {
   if (!el) return;
   el.classList.remove("modal--entering");
   el.classList.add("modal--leaving");
+  let finished = false;
   const finish = () => {
+    if (finished) return;
+    finished = true;
     setModalVisibility(el, false);
     el.classList.remove("modal--leaving");
     el._modalLeaveTimer = 0;
   };
   el.addEventListener("animationend", finish, { once: true });
   if (el._modalLeaveTimer) clearTimeout(el._modalLeaveTimer);
-  el._modalLeaveTimer = setTimeout(finish, 420);
+  el._modalLeaveTimer = setTimeout(finish, UI_TIMERS.MODAL_LEAVE_MS);
 }
 
 function isWideGMDashboard() {
@@ -9937,8 +9939,9 @@ function setChatEmptyState(title, hint) {
   chatEmpty.querySelector(".emptyState__hint")?.replaceChildren(document.createTextNode(hint));
 }
 
-function renderMiniChatPreview(panel, statusNode, listNode, emptyNode, roleKey) {
+function renderMiniChatPreview(panel, statusNode, listNode, emptyNode, roleKey, options = {}) {
   if (!panel || !statusNode || !listNode || !emptyNode) return;
+  const compactStatus = !!options.compactStatus;
   const roleMatches = !roleKey || state.role === roleKey;
   const canShow = roleMatches && !!state.sessionId;
   panel.classList.toggle("hidden", !canShow);
@@ -9947,6 +9950,7 @@ function renderMiniChatPreview(panel, statusNode, listNode, emptyNode, roleKey) 
   const messages = sortChatMessagesAsc(state.chat.messages || []);
   listNode.innerHTML = "";
   emptyNode.classList.add("hidden");
+  statusNode.classList.remove("hidden");
 
   if (state.chat.isLoading && messages.length === 0) {
     statusNode.textContent = "Loading recent chat...";
@@ -9994,6 +9998,7 @@ function renderMiniChatPreview(panel, statusNode, listNode, emptyNode, roleKey) 
     statusNode.textContent = "Showing last server-confirmed messages.";
   } else {
     statusNode.textContent = `Latest ${latestMessages.length} message${latestMessages.length === 1 ? "" : "s"}.`;
+    statusNode.classList.toggle("hidden", compactStatus);
   }
 }
 
@@ -10008,7 +10013,7 @@ function renderPlayerMiniChatPreview() {
   const hasSession = !!state.sessionId;
   playerMiniChatPanel.classList.toggle("hidden", !hasSession);
   if (!hasSession) return;
-  renderMiniChatPreview(playerMiniChatPanel, playerMiniChatStatus, playerMiniChatList, playerMiniChatEmpty, null);
+  renderMiniChatPreview(playerMiniChatPanel, playerMiniChatStatus, playerMiniChatList, playerMiniChatEmpty, null, { compactStatus: true });
 }
 
 // Called whenever the player view screen becomes visible so the panel
@@ -10378,10 +10383,6 @@ btnChatJumpLatest?.addEventListener("click", () => {
   state.chat.shouldAutoScroll = true;
   chatList.scrollTo({ top: chatList.scrollHeight, behavior: "smooth" });
   syncChatScrollState();
-});
-
-btnOpenChatFromParty?.addEventListener("click", () => {
-  openChatScreen();
 });
 
 btnOpenChatFromMini?.addEventListener("click", () => {
@@ -14253,12 +14254,11 @@ showSkeletonCards(plHandoutList, 3);
 function getPlayerVisibleHandouts() {
   const raw = state.gmHandoutsRaw || [];
   const revealed = raw.filter((h) => h.revealed === true);
-  const claimedFiltered = revealed.filter((h) => {
+  const unclaimedFiltered = revealed.filter((h) => {
     const claimedByUid = String(h?.claimedByUid || "").trim();
-    if (!claimedByUid) return true;
-    return claimedByUid === state.uid;
+    return !claimedByUid;
   });
-  const mapFiltered = claimedFiltered.filter((h) => {
+  const mapFiltered = unclaimedFiltered.filter((h) => {
     if (!isMapHandoutType(h?.type)) return true;
     const mapVisibleUid = String(h?.mapVisibleToUid || "").trim();
     if (!mapVisibleUid) return true;
@@ -14284,7 +14284,7 @@ function getPlayerVisibleHandouts() {
 
   // Defensive fallback for legacy / mismatched data states:
   // never show an empty handout feed if revealed items are present.
-  return claimedFiltered.sort((a, b) => {
+  return unclaimedFiltered.sort((a, b) => {
     const ams = a.updatedAt?.toMillis ? a.updatedAt.toMillis() : 0;
     const bms = b.updatedAt?.toMillis ? b.updatedAt.toMillis() : 0;
     return bms - ams;
@@ -15860,7 +15860,6 @@ function resolveModalImage(h) {
 
   const fallbackImageUrl = String(semanticFallbackUrl || seededFallbackUrl || hardFallbackUrl).trim();
   const resolvedImageUrl = String(storedImageUrl || fallbackImageUrl).trim();
-  const frame = h?.imageFrame || null;
   const showImage = !!resolvedImageUrl;
   modalImageWrap?.classList.toggle("hidden", !showImage);
   if (showImage) {
@@ -15870,19 +15869,10 @@ function resolveModalImage(h) {
       modalImageWrap?.classList.remove("hidden");
     };
     modalImage.src = resolvedImageUrl;
-    const frameScale = Number(frame?.scale);
-    const frameOffsetX = Number(frame?.offsetX);
-    const frameOffsetY = Number(frame?.offsetY);
-    if (Number.isFinite(frameScale) || Number.isFinite(frameOffsetX) || Number.isFinite(frameOffsetY)) {
-      const scale = Number.isFinite(frameScale) ? clampValue(frameScale, 1, 2.8) : 1;
-      const offsetX = Number.isFinite(frameOffsetX) ? frameOffsetX : 0;
-      const offsetY = Number.isFinite(frameOffsetY) ? frameOffsetY : 0;
-      modalImage.style.transform = `translate(${offsetX.toFixed(1)}px, ${offsetY.toFixed(1)}px) scale(${scale.toFixed(3)})`;
-      modalImage.style.transformOrigin = "center";
-    } else {
-      modalImage.style.removeProperty("transform");
-      modalImage.style.removeProperty("transform-origin");
-    }
+    // Keep detail modal composition stable: ignore per-card frame zoom/offset
+    // that can make artwork appear oversized in the fullscreen modal.
+    modalImage.style.removeProperty("transform");
+    modalImage.style.removeProperty("transform-origin");
     modalImageWrap?.classList.remove("hidden");
   } else {
     modalImage.removeAttribute("src");
