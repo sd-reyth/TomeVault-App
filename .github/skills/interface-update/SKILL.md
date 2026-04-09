@@ -87,7 +87,7 @@ For each finding, classify it as **[IMPLEMENT]** (unambiguous best-practice fix)
 - [ ] Touch targets ≥ 44×44px on all interactive elements in mobile layout — **[IMPLEMENT]**
 - [ ] No element causes horizontal scroll at < 768px — tables must degrade to cards or scrollable containers — **[IMPLEMENT]** for trivial fixes, **[SUGGEST]** for layout refactors
 - [ ] All `<input>` fields have the correct `type` attribute (`number`, `email`, `tel`, `url`, etc.) — **[IMPLEMENT]**
-- [ ] Each major screen fills the visible viewport (`100dvh`) without accidental page overflow in default state (allow overflow only in intended scroll regions or explicitly expanded content) — **[IMPLEMENT]** for CSS/container fixes, **[SUGGEST]** for structural rewrites
+- [ ] Each major screen fills the visible viewport (`100dvh`) without accidental page overflow in default state (allow overflow only in intended scroll regions or explicitly expanded content). Exclude fixed overlays (`position: fixed` modals/drawers/lightboxes/toasts) from this check — **[IMPLEMENT]** for CSS/container fixes, **[SUGGEST]** for structural rewrites
 - [ ] Viewport-fit implementations follow the existing app-shell and `body[data-screen]` active-screen pattern (including chrome-offset variables already defined in `style.css`) — **[IMPLEMENT]**
 
 ### 2C. Player vs. GM Mode Awareness

@@ -267,6 +267,7 @@ Every button in TomeVault maps to one of these CSS classes. **Never create a cus
 </div>
 ```
 
+- Modal container alignment: `place-items: center` (horizontally + vertically centered)
 - Max-width: `min(760px, 96vw)`, max-height: `calc(100dvh - 40px)`
 - Backdrop: `rgba(9,7,13,.74)` + `backdrop-filter: blur(4px)`
 - Card background: `rgba(16,8,34,.88)` + `backdrop-filter: blur(16px)`
@@ -325,6 +326,7 @@ Use these existing classes. Never create new one-off layout wrappers without goo
 | `.pill` | Status badge (online count, nugget balance, labels) |
 | `.formGrid` | Grid layout for aligned form fields (label + input pairs) |
 | `.row` | Horizontal flex row for button groups or paired elements |
+| `.railTabs` | Desktop tab container for stacked rail surfaces (e.g., Party/Chat); mobile uses stacked panels |
 
 **Elevation rules (dark mode):**
 - Cards/panels: `border: 1px solid var(--card-border)` + `var(--shadow-md)`
@@ -346,6 +348,7 @@ Use these existing classes. Never create new one-off layout wrappers without goo
 | Hamburger menu | `.settings-fab` | Floating action button trigger |
 | Speed-dial entries | `.speed-dial-btn` | Menu items expanding from hamburger; `42px` min-height |
 | Settings variant | `.speed-dial-btn--settings` | Gold gradient, serif font, uppercase label |
+| Rail tab bar | `.railTabs__bar` + `.railTabs__tab` | Desktop-only right-rail tab switcher for Party/Chat panels |
 
 The `.gm-fab` uses `gmFabGoldPulse` keyframe (2.2s infinite) for persistent atmosphere pulse — never disable this.
 
@@ -496,6 +499,7 @@ All `.modal__top` (sticky modal headers) use this pattern with a vertical gradie
 - **Settings (`#screenSettings`):** Sectioned clearly. Destructive actions (account delete, leave session) always at the bottom, visually separated, behind a confirmation modal.
 - **Modals:** All modals must feel consistent regardless of content — same card shape, same animation, same close behavior.
 - **Viewport Fit (all screens):** In default (unexpanded) state, each screen should fit inside the visible device viewport and feel full-screen without unintended page overflow. Prefer internal scroll regions for long content over global page overflow.
+- **Viewport Fit Exemption:** `position: fixed` overlays (modals, drawers, lightboxes, toasts) are exempt from screen viewport-fit checks; validate viewport-fit against active screen containers, not overlay layers.
 
 ---
 

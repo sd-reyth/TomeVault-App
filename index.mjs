@@ -667,6 +667,11 @@ const createHandoutModal = $("createHandoutModal");
 
 // ---- GM: connected players sidebar ----
 
+const gmRailTabs = $("gmRailTabs");
+const gmTabParty = $("gmTabParty");
+const gmTabChat = $("gmTabChat");
+const gmPartyBadge = $("gmPartyBadge");
+const gmChatBadge = $("gmChatBadge");
 
 const gmSplit = $("gmSplit");
 const gmPartyInlineList = $("gmPartyInlineList");
@@ -715,6 +720,11 @@ const plHandoutList = $("plHandoutList");
 const plHandoutEmpty = $("plHandoutEmpty");
 const playerPartyInlineList = $("playerPartyInlineList");
 const playerPartyInlineEmpty = $("playerPartyInlineEmpty");
+const plRailTabs = $("plRailTabs");
+const plTabParty = $("plTabParty");
+const plTabChat = $("plTabChat");
+const plPartyBadge = $("plPartyBadge");
+const plChatBadge = $("plChatBadge");
 const playerTurnNav = $("playerTurnNav");
 const playerTurnLabel = $("playerTurnLabel");
 const btnPlayerInitiativeEdit = $("btnPlayerInitiativeEdit");
@@ -1128,6 +1138,8 @@ const state = {
   gmSearchQuery: "",
   playerHandoutSearchQuery: "",
   playerVisibleHandoutsCache: null,
+  gmActiveRailTab: "party",
+  plActiveRailTab: "party",
   gmHandoutsRaw: [],
   playerInventoryRaw: [],
   playerNick: "",
@@ -1540,6 +1552,14 @@ function showOnly(screenKey) {
   }
 
   currentScreenKey = screenKey;
+  if (isWideGMDashboard()) {
+    if (screenKey === SCREEN_KEYS.GM_DASH && gmRailTabs) {
+      switchRailTab(gmRailTabs, state.gmActiveRailTab || "party", "gmActiveRailTab");
+    }
+    if (screenKey === SCREEN_KEYS.PLAYER_VIEW && plRailTabs) {
+      switchRailTab(plRailTabs, state.plActiveRailTab || "party", "plActiveRailTab");
+    }
+  }
   // Clear lingering toasts on screen transition so they don't persist across views.
   if (toastStack) toastStack.innerHTML = "";
   const isSessionScreen = screenKey === SCREEN_KEYS.GM_DASH || screenKey === SCREEN_KEYS.PLAYER_VIEW || screenKey === SCREEN_KEYS.PLAYER_INVENTORY || screenKey === SCREEN_KEYS.CHAT || screenKey === SCREEN_KEYS.NOTES || screenKey === SCREEN_KEYS.SETTINGS || screenKey === SCREEN_KEYS.INFO || screenKey === SCREEN_KEYS.SETTINGS_PROFILE || screenKey === SCREEN_KEYS.CHARACTER_TEMPLATES || screenKey === SCREEN_KEYS.PROFILE;
@@ -2003,6 +2023,34 @@ function animateModalOut(el) {
 
 function isWideGMDashboard() {
   return window.matchMedia("(min-width: 1100px)").matches;
+}
+
+// ---- Rail tab switching (desktop tabbed sidebar) ----
+function switchRailTab(containerEl, tabKey, stateKey) {
+  if (!containerEl) return;
+  const bar = containerEl.querySelector(".railTabs__bar");
+  if (!bar) return;
+  state[stateKey] = tabKey;
+  bar.querySelectorAll(".railTabs__tab").forEach(btn => {
+    const isActive = btn.dataset.tab === tabKey;
+    btn.classList.toggle("railTabs__tab--active", isActive);
+    btn.setAttribute("aria-selected", String(isActive));
+    if (isActive) btn.classList.remove("railTabs__tab--notify");
+  });
+  containerEl.querySelectorAll(":scope > [role='tabpanel']").forEach(panel => {
+    panel.classList.toggle("hidden", panel.id !== btn_panelId(containerEl, tabKey));
+  });
+}
+
+function btn_panelId(container, tabKey) {
+  const tab = container.querySelector(`.railTabs__tab[data-tab="${tabKey}"]`);
+  return tab ? tab.getAttribute("aria-controls") : "";
+}
+
+function updateRailBadge(badgeEl, count) {
+  if (!badgeEl) return;
+  badgeEl.textContent = count > 0 ? String(count) : "";
+  badgeEl.classList.toggle("hidden", count < 1);
 }
 
 function getAmbienceTrackLabel(track) {
@@ -3998,7 +4046,7 @@ function setGMHandoutDeckButtonsDisabled(disabled) {
   if (btnGMHandoutDeckSkip) btnGMHandoutDeckSkip.disabled = !!disabled || gmHandoutDeckQueue.length <= 1;
   if (btnGMHandoutDeckAssign) btnGMHandoutDeckAssign.disabled = !!disabled || !hasPlayers;
   if (btnGMHandoutDeckDelete) btnGMHandoutDeckDelete.disabled = !!disabled;
-  if (btnGMHandoutDeckClose) btnGMHandoutDeckClose.disabled = !!disabled;
+  if (btnGMHandoutDeckClose) btnGMHandoutDeckClose.disabled = !!disabled && gmHandoutDeckBusy;
   if (gmHandoutDeckPlayer) gmHandoutDeckPlayer.disabled = !!disabled || !hasPlayers;
 }
 
@@ -4127,6 +4175,11 @@ async function resolveCurrentGMHandoutDeck(action) {
     }
 
     gmHandoutDeckQueue.shift();
+    if (action === "assign" && gmHandoutDeckQueue.length === 0) {
+      closeGMHandoutDeckModal();
+      showToast("Handout assigned. Deck complete.", "success");
+      return;
+    }
     renderGMHandoutDeckCard();
   } catch (err) {
     console.error("GM handout deck action failed:", err);
@@ -10004,6 +10057,16 @@ function renderMiniChatPreview(panel, statusNode, listNode, emptyNode, roleKey, 
 
 function renderGMMiniChatPreview() {
   renderMiniChatPreview(gmMiniChatPanel, gmMiniChatStatus, gmMiniChatList, gmMiniChatEmpty, "dm");
+  const hasGMChatSession = state.role === "dm" && !!state.sessionId;
+  const chatCount = hasGMChatSession ? (state.chat.messages || []).length : 0;
+  updateRailBadge(gmChatBadge, chatCount);
+  gmTabChat?.classList.toggle("railTabs__tab--notify", chatCount > 0 && state.gmActiveRailTab !== "chat");
+  if (isWideGMDashboard() && gmRailTabs) {
+    switchRailTab(gmRailTabs, state.gmActiveRailTab || "party", "gmActiveRailTab");
+  } else {
+    gmPartyPanel?.classList.toggle("hidden", false);
+    gmMiniChatPanel?.classList.toggle("hidden", !(state.role === "dm" && !!state.sessionId));
+  }
 }
 
 function renderPlayerMiniChatPreview() {
@@ -10011,9 +10074,22 @@ function renderPlayerMiniChatPreview() {
   // Only suppress it when there is no active session.
   if (!playerMiniChatPanel) return;
   const hasSession = !!state.sessionId;
-  playerMiniChatPanel.classList.toggle("hidden", !hasSession);
+  if (!hasSession) {
+    updateRailBadge(plChatBadge, 0);
+    plTabChat?.classList.remove("railTabs__tab--notify");
+  }
+  if (!isWideGMDashboard()) {
+    playerMiniChatPanel.classList.toggle("hidden", !hasSession);
+    playerPartyPanel?.classList.toggle("hidden", false);
+  }
   if (!hasSession) return;
   renderMiniChatPreview(playerMiniChatPanel, playerMiniChatStatus, playerMiniChatList, playerMiniChatEmpty, null, { compactStatus: true });
+  const chatCount = (state.chat.messages || []).length;
+  updateRailBadge(plChatBadge, chatCount);
+  plTabChat?.classList.toggle("railTabs__tab--notify", chatCount > 0 && state.plActiveRailTab !== "chat");
+  if (isWideGMDashboard() && plRailTabs) {
+    switchRailTab(plRailTabs, state.plActiveRailTab || "party", "plActiveRailTab");
+  }
 }
 
 // Called whenever the player view screen becomes visible so the panel
@@ -10402,6 +10478,18 @@ btnPlayerOpenChatFromParty?.addEventListener("click", () => {
   openChatScreen();
 });
 
+// ---- Rail tab click handlers (desktop tabbed sidebar) ----
+gmRailTabs?.querySelector(".railTabs__bar")?.addEventListener("click", (e) => {
+  const tab = e.target.closest(".railTabs__tab");
+  if (!tab || !isWideGMDashboard()) return;
+  switchRailTab(gmRailTabs, tab.dataset.tab, "gmActiveRailTab");
+});
+plRailTabs?.querySelector(".railTabs__bar")?.addEventListener("click", (e) => {
+  const tab = e.target.closest(".railTabs__tab");
+  if (!tab || !isWideGMDashboard()) return;
+  switchRailTab(plRailTabs, tab.dataset.tab, "plActiveRailTab");
+});
+
 btnChatBack?.addEventListener("click", () => {
   openHandoutsHomeScreen();
 });
@@ -10588,6 +10676,15 @@ btnOpenAtmospherePanel?.addEventListener("click", () => {
 window.addEventListener("resize", () => {
   syncResponsivePanelState();
   if (currentScreenKey === SCREEN_KEYS.GM_DASH) syncGMDashboardLayout();
+  if (isWideGMDashboard()) {
+    if (gmRailTabs) switchRailTab(gmRailTabs, state.gmActiveRailTab || "party", "gmActiveRailTab");
+    if (plRailTabs) switchRailTab(plRailTabs, state.plActiveRailTab || "party", "plActiveRailTab");
+  } else {
+    gmPartyPanel?.classList.remove("hidden");
+    playerPartyPanel?.classList.remove("hidden");
+    gmMiniChatPanel?.classList.toggle("hidden", !(state.role === "dm" && !!state.sessionId));
+    playerMiniChatPanel?.classList.toggle("hidden", !state.sessionId);
+  }
 });
 
 btnToggleFilters?.addEventListener("click", () => {
@@ -13172,11 +13269,23 @@ function renderGMPartyPanel(players) {
   // GM should not see themselves in their own party list
   const visiblePlayers = players.filter(p => (p?.id || p?.uid) !== state.uid || p?.isNpc === true);
   renderPartyPanel(visiblePlayers, gmPartyInlineList, gmPartyInlineEmpty);
+  updateRailBadge(gmPartyBadge, visiblePlayers.length);
+  if (isWideGMDashboard() && gmRailTabs) {
+    switchRailTab(gmRailTabs, state.gmActiveRailTab || "party", "gmActiveRailTab");
+  } else {
+    gmPartyPanel?.classList.toggle("hidden", false);
+  }
   updateTurnNav();
 }
 
 function renderPlayerPartyPanel(players) {
   renderPartyPanel(players, playerPartyInlineList, playerPartyInlineEmpty);
+  updateRailBadge(plPartyBadge, players.length);
+  if (isWideGMDashboard() && plRailTabs) {
+    switchRailTab(plRailTabs, state.plActiveRailTab || "party", "plActiveRailTab");
+  } else {
+    playerPartyPanel?.classList.toggle("hidden", false);
+  }
   updatePlayerTurnNav();
 }
 

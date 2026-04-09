@@ -38,5 +38,9 @@ Last run: 2026-03-31
 - [DONE] 2B-gm-chat-action-dedup — Removed the duplicate GM party-bar Chat action so the Party Chat panel remains the single dashboard chat entry point — 2026-03-31
 - [DONE] 2B-gm-dashboard-scroll-ownership — Moved the desktop GM dashboard toward the same overflow model as Player View by making the outer screen shell non-scrolling and shifting handout overflow into the handout list region — 2026-03-31
 - [DONE] 2B-asset-version-bump-ui13 — Bumped both frontend asset query strings to ui13 after the GM parity and scroll-ownership fix pass — 2026-03-31
+- [DONE] 2B-rail-tabs-desktop-gm-player — Added desktop-only right-rail tab switching (Party/Chat) for GM and Player views so chat remains reachable without vertical squeeze; mobile remains stacked — 2026-03-31
+- [DONE] 2B-modal-center-alignment — Centered shared modal container alignment and preserved internal scroll so handout modals stay within viewport bounds more reliably — 2026-03-31
+- [DONE] 2B-rail-tabs-lightmode-overrides — Added illuminated-manuscript light-mode overrides for rail tab borders/hover/active/badge states — 2026-03-31
+- [DONE] 2B-asset-version-bump-ui14 — Bumped both frontend asset query strings to ui14 after desktop rail tab + modal alignment updates — 2026-03-31
 
 ## Pending Suggestions

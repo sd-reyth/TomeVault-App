@@ -51,7 +51,7 @@
   <meta name="twitter:title" content="TomeVault - Live Handouts for Your Table">
   <meta name="twitter:description" content="Share session invites, PINs, and handouts in seconds.">
   <meta name="twitter:image" content="references/tomeVaultLogo1.png">
-  <link rel="stylesheet" href="style.css?v=20260331ui13">
+  <link rel="stylesheet" href="style.css?v=20260402ui15">
   <!-- fantasy fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
@@ -449,7 +449,21 @@
           <span id="gmAtmosphereVolume" class="hidden"></span>
           <button id="btnOpenAtmospherePanel" class="hidden" type="button" aria-hidden="true"></button>
 
-          <aside id="gmPartyPanel" class="panel gmPartyPanel" aria-label="Party panel">
+          <div class="railTabs" id="gmRailTabs">
+            <div class="railTabs__bar" role="tablist" aria-label="Session panel tabs">
+              <button class="railTabs__tab railTabs__tab--active" role="tab" type="button" aria-selected="true" data-tab="party" aria-controls="gmPartyPanel" id="gmTabParty">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" aria-hidden="true" class="railTabs__icon"><path stroke-linecap="round" stroke-linejoin="round" d="M18 18.72a9.094 9.094 0 0 0 3.741-.479 3 3 0 0 0-4.682-2.72m.94 3.198.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0 1 12 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 0 1 6 18.719m12 0a5.971 5.971 0 0 0-.941-3.197m0 0A5.995 5.995 0 0 0 12 12.75a5.995 5.995 0 0 0-5.058 2.772m0 0a3 3 0 0 0-4.681 2.72 8.986 8.986 0 0 0 3.74.477m.94-3.197a5.971 5.971 0 0 0-.94 3.197M15 6.75a3 3 0 1 1-6 0 3 3 0 0 1 6 0Zm6 3a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Zm-13.5 0a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Z"/></svg>
+                Party
+                <span class="railTabs__badge hidden" id="gmPartyBadge" aria-label="Player count"></span>
+              </button>
+              <button class="railTabs__tab" role="tab" type="button" aria-selected="false" data-tab="chat" aria-controls="gmMiniChatPanel" id="gmTabChat">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" aria-hidden="true" class="railTabs__icon"><path stroke-linecap="round" stroke-linejoin="round" d="M20.25 8.511c.884.284 1.5 1.128 1.5 2.097v4.286c0 1.136-.847 2.1-1.98 2.193-.34.027-.68.052-1.02.072v3.091l-3-3c-1.354 0-2.694-.055-4.02-.163a2.115 2.115 0 0 1-.825-.242m9.345-8.334a2.126 2.126 0 0 0-.476-.095 48.64 48.64 0 0 0-8.048 0c-1.131.094-1.976 1.057-1.976 2.192v4.286c0 .837.46 1.58 1.155 1.951m9.345-8.334V6.637c0-1.621-1.152-3.026-2.76-3.235A48.455 48.455 0 0 0 11.25 3c-2.115 0-4.198.137-6.24.402-1.608.209-2.76 1.614-2.76 3.235v6.226c0 1.621 1.152 3.026 2.76 3.235.577.075 1.157.14 1.74.194V21l4.155-4.155"/></svg>
+                Chat
+                <span class="railTabs__badge hidden" id="gmChatBadge" aria-label="Message count"></span>
+              </button>
+            </div>
+
+          <aside id="gmPartyPanel" class="panel gmPartyPanel" role="tabpanel" aria-label="Party panel">
             <div class="gmPartyPanel__head">
               <h3>The Party</h3>
               <button id="btnCollapseParty" class="partyCollapseBtn iconBtn" type="button" aria-expanded="false" aria-label="Expand party list" title="Expand / collapse player list">
@@ -500,7 +514,7 @@
             </div><!-- end partyListWrap -->
           </aside>
 
-          <aside id="gmMiniChatPanel" class="panel gmMiniChatPanel" aria-label="Party chat preview">
+          <aside id="gmMiniChatPanel" class="panel gmMiniChatPanel hidden" role="tabpanel" aria-label="Party chat preview">
             <div class="gmMiniChatPanel__head">
               <h3>Party Chat</h3>
               <button id="btnOpenChatFromMini" class="btn btn--small gmMiniChatPanel__open" type="button" title="Open full chat">
@@ -515,6 +529,7 @@
               <span class="emptyState__hint">Use Chat to open the full conversation.</span>
             </div>
           </aside>
+          </div><!-- end railTabs -->
         </div>
       </div>
     </section>
@@ -886,7 +901,21 @@
           </div>
         </div>
 
-        <aside id="playerPartyPanel" class="panel gmPartyPanel playerPartyPanel" aria-label="Party panel">
+        <div class="railTabs" id="plRailTabs">
+          <div class="railTabs__bar" role="tablist" aria-label="Session panel tabs">
+            <button class="railTabs__tab railTabs__tab--active" role="tab" type="button" aria-selected="true" data-tab="party" aria-controls="playerPartyPanel" id="plTabParty">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" aria-hidden="true" class="railTabs__icon"><path stroke-linecap="round" stroke-linejoin="round" d="M18 18.72a9.094 9.094 0 0 0 3.741-.479 3 3 0 0 0-4.682-2.72m.94 3.198.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0 1 12 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 0 1 6 18.719m12 0a5.971 5.971 0 0 0-.941-3.197m0 0A5.995 5.995 0 0 0 12 12.75a5.995 5.995 0 0 0-5.058 2.772m0 0a3 3 0 0 0-4.681 2.72 8.986 8.986 0 0 0 3.74.477m.94-3.197a5.971 5.971 0 0 0-.94 3.197M15 6.75a3 3 0 1 1-6 0 3 3 0 0 1 6 0Zm6 3a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Zm-13.5 0a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Z"/></svg>
+              Party
+              <span class="railTabs__badge hidden" id="plPartyBadge" aria-label="Player count"></span>
+            </button>
+            <button class="railTabs__tab" role="tab" type="button" aria-selected="false" data-tab="chat" aria-controls="playerMiniChatPanel" id="plTabChat">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" aria-hidden="true" class="railTabs__icon"><path stroke-linecap="round" stroke-linejoin="round" d="M20.25 8.511c.884.284 1.5 1.128 1.5 2.097v4.286c0 1.136-.847 2.1-1.98 2.193-.34.027-.68.052-1.02.072v3.091l-3-3c-1.354 0-2.694-.055-4.02-.163a2.115 2.115 0 0 1-.825-.242m9.345-8.334a2.126 2.126 0 0 0-.476-.095 48.64 48.64 0 0 0-8.048 0c-1.131.094-1.976 1.057-1.976 2.192v4.286c0 .837.46 1.58 1.155 1.951m9.345-8.334V6.637c0-1.621-1.152-3.026-2.76-3.235A48.455 48.455 0 0 0 11.25 3c-2.115 0-4.198.137-6.24.402-1.608.209-2.76 1.614-2.76 3.235v6.226c0 1.621 1.152 3.026 2.76 3.235.577.075 1.157.14 1.74.194V21l4.155-4.155"/></svg>
+              Chat
+              <span class="railTabs__badge hidden" id="plChatBadge" aria-label="Message count"></span>
+            </button>
+          </div>
+
+        <aside id="playerPartyPanel" class="panel gmPartyPanel playerPartyPanel" role="tabpanel" aria-label="Party panel">
           <div class="gmPartyPanel__head">
             <h3>The Party</h3>
             <button id="btnCollapsePlayerParty" class="partyCollapseBtn iconBtn" type="button" aria-expanded="false" aria-label="Expand party list" title="Expand / collapse party list">
@@ -917,7 +946,7 @@
           </div><!-- end partyListWrap -->
         </aside>
 
-        <aside id="playerMiniChatPanel" class="panel gmMiniChatPanel playerMiniChatPanel" aria-label="Party chat preview">
+        <aside id="playerMiniChatPanel" class="panel gmMiniChatPanel playerMiniChatPanel hidden" role="tabpanel" aria-label="Party chat preview">
           <div class="gmMiniChatPanel__head">
             <h3>Party Chat</h3>
             <button id="btnPlayerOpenChatFromMini" class="btn btn--small gmMiniChatPanel__open" type="button" title="Open full chat">
@@ -932,6 +961,7 @@
             <span class="emptyState__hint">Use Chat to open the full conversation.</span>
           </div>
         </aside>
+        </div><!-- end railTabs -->
       </div>
     </section>
 
@@ -2597,7 +2627,7 @@
   <script src="https://www.google.com/recaptcha/api.js?render=6LeMT5EsAAAAABZpKrhXRvmiG2SLIrjUIq5mqeeK" async defer></script>
 
   <!-- App entry point -->
-  <script type="module" src="index.mjs?v=20260331ui13"></script>
+  <script type="module" src="index.mjs?v=20260402ui15"></script>
 </body>
 </html>
 
