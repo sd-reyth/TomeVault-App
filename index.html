@@ -51,7 +51,7 @@
   <meta name="twitter:title" content="TomeVault - Live Handouts for Your Table">
   <meta name="twitter:description" content="Share session invites, PINs, and handouts in seconds.">
   <meta name="twitter:image" content="references/tomeVaultLogo1.png">
-  <link rel="stylesheet" href="style.css?v=20260402ui15">
+  <link rel="stylesheet" href="style.css?v=20260409declutter2">
   <!-- fantasy fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
@@ -372,36 +372,6 @@
       </div>
 
       <div id="gmSplit" class="split singlePane">
-        <div id="gmSocialPanel" class="panel hidden">
-          <div class="gmSocialHeader">
-            <h3 class="heading--natural">Session Info</h3>
-            <div class="gmSocialHeader__actions">
-              <button id="btnShareInviteSocial" class="iconBtn" type="button" aria-label="Share invite" title="Share invite">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M7.217 10.907a2.25 2.25 0 1 0 0 2.186m0-2.186c.18.324.283.696.283 1.093s-.103.77-.283 1.093m0-2.186 9.566-5.314m-9.566 7.5 9.566 5.314m0-12.814a2.25 2.25 0 1 0 3.935-2.186 2.25 2.25 0 0 0-3.935 2.186Zm0 12.814a2.25 2.25 0 1 0 3.935 2.186 2.25 2.25 0 0 0-3.935-2.186Z" /></svg>
-              </button>
-              <button id="btnCloseSocial" class="iconBtn closeIconBtn" type="button" aria-label="Close">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" /></svg>
-              </button>
-            </div>
-          </div>
-          <div class="socialMeta">
-            <div class="socialMeta__row"><span class="muted small">Join Tag</span><strong id="gmSessionIdText">&middot;</strong></div>
-            <div class="socialMeta__row"><span class="muted small">Pincode</span><strong id="gmPinShown">&middot;</strong><button id="btnChangePin" class="btn btn--ghost btn--small" type="button">Change</button></div>
-            <div class="socialMeta__row"><span class="muted small">GM Transfer PIN</span><strong id="gmTransferPinShown">Not set</strong><button id="btnChangeTransferPin" class="btn btn--ghost btn--small" type="button">Set</button></div>
-          </div>
-
-          <div class="socialQRActions">
-            <button id="btnShowQRInvite" class="btn socialQRActions__primary" type="button">
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true" style="width:18px;height:18px"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 4.875c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5A1.125 1.125 0 0 1 3.75 9.375v-4.5ZM3.75 14.625c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5a1.125 1.125 0 0 1-1.125-1.125v-4.5ZM13.5 4.875c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5A1.125 1.125 0 0 1 13.5 9.375v-4.5Z"/><path stroke-linecap="round" stroke-linejoin="round" d="M6.75 6.75h.75v.75h-.75v-.75ZM6.75 16.5h.75v.75h-.75V16.5ZM16.5 6.75h.75v.75h-.75v-.75ZM13.5 13.5h.75v.75h-.75V13.5ZM13.5 19.5h.75v.75h-.75V19.5ZM19.5 13.5h.75v.75h-.75V13.5ZM19.5 19.5h.75v.75h-.75V19.5ZM16.5 16.5h.75v.75h-.75V16.5Z"/></svg>
-              Show QR Code
-            </button>
-            <button id="btnCopyJoinLinkSocial" class="btn btn--ghost socialQRActions__secondary" type="button">
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true" style="width:16px;height:16px"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 17.25v3.375c0 .621-.504 1.125-1.125 1.125h-9.75a1.125 1.125 0 0 1-1.125-1.125V7.875c0-.621.504-1.125 1.125-1.125H6.75a9.06 9.06 0 0 1 1.5.124m7.5 10.376h3.375c.621 0 1.125-.504 1.125-1.125V11.25c0-4.46-3.243-8.161-7.5-8.876a9.06 9.06 0 0 0-1.5-.124H9.375c-.621 0-1.125.504-1.125 1.125v3.5m7.5 10.375H9.375a1.125 1.125 0 0 1-1.125-1.125v-9.25m12 6.625v-1.875a3.375 3.375 0 0 0-3.375-3.375h-1.5a1.125 1.125 0 0 1-1.125-1.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H9.75"/></svg>
-              Copy Join Link
-            </button>
-          </div>
-        </div>
-
         <div id="gmHandoutsPanel" class="panel panel--main">
           <h3>Handouts</h3>
 
@@ -466,9 +436,17 @@
           <aside id="gmPartyPanel" class="panel gmPartyPanel" role="tabpanel" aria-label="Party panel">
             <div class="gmPartyPanel__head">
               <h3>The Party</h3>
-              <button id="btnCollapseParty" class="partyCollapseBtn iconBtn" type="button" aria-expanded="false" aria-label="Expand party list" title="Expand / collapse player list">
-                <svg class="partyCollapseChevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true" style="width:16px;height:16px"><path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5"/></svg>
-              </button>
+              <div class="gmPartyPanel__head-btns">
+                <button id="btnOpenSocialFromParty" class="iconBtn" type="button" aria-label="Session Info" title="Session Info">
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M7.217 10.907a2.25 2.25 0 1 0 0 2.186m0-2.186c.18.324.283.696.283 1.093s-.103.77-.283 1.093m0-2.186 9.566-5.314m-9.566 7.5 9.566 5.314m0-12.814a2.25 2.25 0 1 0 3.935-2.186 2.25 2.25 0 0 0-3.935 2.186Zm0 12.814a2.25 2.25 0 1 0 3.935 2.186 2.25 2.25 0 0 0-3.935-2.186Z" /></svg>
+                </button>
+                <button id="btnPartyBattle" class="iconBtn partyAction--battle" type="button" aria-pressed="false" title="Toggle battle mode">
+                  <span class="gmPartyPanel__battleEmoji" aria-hidden="true">💤</span>
+                </button>
+                <button id="btnCollapseParty" class="partyCollapseBtn iconBtn" type="button" aria-expanded="false" aria-label="Expand party list" title="Expand / collapse player list">
+                  <svg class="partyCollapseChevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true" style="width:16px;height:16px"><path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5"/></svg>
+                </button>
+              </div>
             </div>
             <div class="gmPartyPanel__actions gmPartyPanel__actions--bar">
               <button id="btnRollInitiative" class="btn btn--small partyAction" type="button">
@@ -479,27 +457,21 @@
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" aria-hidden="true" style="width:15px;height:15px;flex-shrink:0"><path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99"/></svg>
                 Reset
               </button>
-              <button id="btnOpenSocialFromParty" class="btn btn--ghost btn--small partyAction partyAction--invite" type="button">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" aria-hidden="true" style="width:15px;height:15px;flex-shrink:0"><path stroke-linecap="round" stroke-linejoin="round" d="M7.217 10.907a2.25 2.25 0 1 0 0 2.186m0-2.186c.18.324.283.696.283 1.093s-.103.77-.283 1.093m0-2.186 9.566-5.314m-9.566 7.5 9.566 5.314m0-12.814a2.25 2.25 0 1 0 3.935-2.186 2.25 2.25 0 0 0-3.935 2.186Zm0 12.814a2.25 2.25 0 1 0 3.935 2.186 2.25 2.25 0 0 0-3.935-2.186Z" /></svg>
-                Invite
-              </button>
-              <!-- btnAddNpc hidden &middot; NPC initiative added via handout creation instead -->
+              <!-- btnAddNpc hidden · NPC initiative added via handout creation instead -->
               <button id="btnAddNpc" class="hidden" type="button" aria-hidden="true"></button>
             </div>
-            <!-- Turn navigator &middot; shown when initiative is active -->
+            <!-- Turn navigator · shown when initiative is active -->
             <div id="gmTurnNav" class="gmTurnNav hidden" aria-label="Turn navigation">
-              <button id="btnTurnPrev" class="gmTurnNav__btn" type="button" aria-label="Previous turn">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" aria-hidden="true" style="width:16px;height:16px"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 15.75 7.5-7.5 7.5 7.5"/></svg>
-              </button>
               <span id="gmTurnLabel" class="gmTurnNav__label">Round 1 &middot; Turn 1</span>
-              <button id="btnTurnNext" class="gmTurnNav__btn" type="button" aria-label="Next turn">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" aria-hidden="true" style="width:16px;height:16px"><path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5"/></svg>
-              </button>
+              <div class="gmTurnNav__controls">
+                <button id="btnTurnPrev" class="gmTurnNav__btn" type="button" aria-label="Previous turn">
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" aria-hidden="true" style="width:16px;height:16px"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 15.75 7.5-7.5 7.5 7.5"/></svg>
+                </button>
+                <button id="btnTurnNext" class="gmTurnNav__btn" type="button" aria-label="Next turn">
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" aria-hidden="true" style="width:16px;height:16px"><path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5"/></svg>
+                </button>
+              </div>
             </div>
-            <button id="btnPartyBattle" class="btn btn--ghost partyAction partyAction--battle" type="button" aria-pressed="false" title="Toggle battle mode">
-              <span class="gmPartyPanel__battleEmoji" aria-hidden="true">💤</span>
-              <span>Battle: OFF</span>
-            </button>
             <div id="gmPartyRollOverlay" class="gmPartyPanel__overlay hidden" aria-hidden="true">
               <div class="authLoadingOverlay__spinner"></div>
               <span class="muted small">Rolling initiative...</span>
@@ -2079,22 +2051,52 @@
     <span class="settings-fab__label">Menu</span>
   </button>
 
+  <!-- Session Info Modal · opened by hamburger Session button or Invite button in party panel -->
+  <div id="gmSocialPanel" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="gmSocialPanelTitle" aria-hidden="true">
+    <div class="modal__card">
+      <div class="modal__top">
+        <h3 class="modal__title" id="gmSocialPanelTitle">Session Info</h3>
+        <div class="gmSocialHeader__actions">
+          <button id="btnShareInviteSocial" class="iconBtn" type="button" aria-label="Share invite" title="Share invite">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M7.217 10.907a2.25 2.25 0 1 0 0 2.186m0-2.186c.18.324.283.696.283 1.093s-.103.77-.283 1.093m0-2.186 9.566-5.314m-9.566 7.5 9.566 5.314m0-12.814a2.25 2.25 0 1 0 3.935-2.186 2.25 2.25 0 0 0-3.935 2.186Zm0 12.814a2.25 2.25 0 1 0 3.935 2.186 2.25 2.25 0 0 0-3.935-2.186Z" /></svg>
+          </button>
+          <button id="btnCloseSocial" class="closeIconBtn" type="button" aria-label="Close">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" /></svg>
+          </button>
+        </div>
+      </div>
+      <div class="socialMeta">
+        <div class="socialMeta__row">
+          <span class="muted small">Join Tag</span>
+          <strong id="gmSessionIdText">&middot;</strong>
+          <button id="btnCopyJoinLinkSocial" class="iconBtn" type="button" aria-label="Copy join link" title="Copy join link">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true" style="width:16px;height:16px"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 17.25v3.375c0 .621-.504 1.125-1.125 1.125h-9.75a1.125 1.125 0 0 1-1.125-1.125V7.875c0-.621.504-1.125 1.125-1.125H6.75a9.06 9.06 0 0 1 1.5.124m7.5 10.376h3.375c.621 0 1.125-.504 1.125-1.125V11.25c0-4.46-3.243-8.161-7.5-8.876a9.06 9.06 0 0 0-1.5-.124H9.375c-.621 0-1.125.504-1.125 1.125v3.5m7.5 10.375H9.375a1.125 1.125 0 0 1-1.125-1.125v-9.25m12 6.625v-1.875a3.375 3.375 0 0 0-3.375-3.375h-1.5a1.125 1.125 0 0 1-1.125-1.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H9.75"/></svg>
+          </button>
+        </div>
+        <div class="socialMeta__row">
+          <span class="muted small">Pincode</span>
+          <strong id="gmPinShown">&middot;</strong>
+          <button id="btnChangePin" class="btn btn--ghost btn--small" type="button">Change</button>
+        </div>
+        <div class="socialMeta__row">
+          <span class="muted small">GM Transfer PIN</span>
+          <strong id="gmTransferPinShown">Not set</strong>
+          <button id="btnChangeTransferPin" class="btn btn--ghost btn--small" type="button">Set</button>
+        </div>
+      </div>
+      <div class="socialQRActions">
+        <button id="btnShowQRInvite" class="btn btn--full socialQRActions__primary" type="button">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true" style="width:18px;height:18px"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 4.875c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5A1.125 1.125 0 0 1 3.75 9.375v-4.5ZM3.75 14.625c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5a1.125 1.125 0 0 1-1.125-1.125v-4.5ZM13.5 4.875c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5A1.125 1.125 0 0 1 13.5 9.375v-4.5Z"/><path stroke-linecap="round" stroke-linejoin="round" d="M6.75 6.75h.75v.75h-.75v-.75ZM6.75 16.5h.75v.75h-.75V16.5ZM16.5 6.75h.75v.75h-.75v-.75ZM13.5 13.5h.75v.75h-.75V13.5ZM13.5 19.5h.75v.75h-.75V19.5ZM19.5 13.5h.75v.75h-.75V13.5ZM19.5 19.5h.75v.75h-.75V19.5ZM16.5 16.5h.75v.75h-.75V16.5Z"/></svg>
+          Show QR Code
+        </button>
+      </div>
+    </div>
+  </div>
+
   <div id="hamburgerSpeedDial" class="hamburger-speed-dial hidden" aria-hidden="true">
-    <button id="btnDialHandouts" class="speed-dial-btn hidden" type="button" aria-label="Open Handouts" title="Handouts" aria-hidden="true">
-      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25"/></svg>
-      <span class="speed-dial-btn__text">Handouts</span>
-    </button>
-    <button id="btnDialSocial" class="speed-dial-btn hidden" type="button" aria-label="Open Session Panel" title="Session" aria-hidden="true">
+    <button id="btnDialSocial" class="speed-dial-btn hidden" type="button" aria-label="Session Info" title="Session Info" aria-hidden="true">
       <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 0 0 2.625.372 9.337 9.337 0 0 0 4.121-.952 4.125 4.125 0 0 0-2.062-7.846h-.343M15 19.128v-.003c0-1.113-.285-2.16-.786-3.072M15 19.128a9.34 9.34 0 0 1-5.625 0m0 0A9.34 9.34 0 0 1 5.25 16.053m4.125 3.075c0-1.113.285-2.16.786-3.072m0 0a4.125 4.125 0 1 0-5.744 0m5.744 0a4.125 4.125 0 1 1 5.744 0M12 12.75a4.125 4.125 0 1 0 0-8.25 4.125 4.125 0 0 0 0 8.25Z"/></svg>
       <span class="speed-dial-btn__text">Session</span>
-    </button>
-    <button id="btnDialAtmosphere" class="speed-dial-btn hidden" type="button" aria-label="Open Atmosphere Controls" title="Atmosphere" aria-hidden="true">
-      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="m9 9 10.5-3m0 6.553v3.75a2.25 2.25 0 0 1-1.632 2.163l-1.32.377a1.803 1.803 0 1 1-.99-3.467l2.31-.66a2.25 2.25 0 0 0 1.632-2.163Zm0 0V4.5l-10.5 3v6.553m0 0v3.75a2.25 2.25 0 0 1-1.632 2.163l-1.32.377a1.803 1.803 0 0 1-.99-3.467l2.31-.66A2.25 2.25 0 0 0 9 13.053Z"/></svg>
-      <span class="speed-dial-btn__text">Atmosphere</span>
-    </button>
-    <button id="btnDialNotes" class="speed-dial-btn hidden" type="button" aria-label="Open Notes" title="Notes" aria-hidden="true">
-      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M16.5 3.75v2.25m-9-2.25v2.25m11.25 0H5.25A2.25 2.25 0 0 0 3 8.25v10.5A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V8.25A2.25 2.25 0 0 0 18.75 6Zm-12 6.75h10.5"/></svg>
-      <span class="speed-dial-btn__text">Notes</span>
     </button>
     <div class="speed-dial-divider" aria-hidden="true"></div>
     <button id="btnDialSettings" class="speed-dial-btn hidden" type="button" aria-label="Open Settings" title="Settings" aria-hidden="true">
@@ -2627,7 +2629,7 @@
   <script src="https://www.google.com/recaptcha/api.js?render=6LeMT5EsAAAAABZpKrhXRvmiG2SLIrjUIq5mqeeK" async defer></script>
 
   <!-- App entry point -->
-  <script type="module" src="index.mjs?v=20260402ui15"></script>
+  <script type="module" src="index.mjs?v=20260409declutter2"></script>
 </body>
 </html>
 

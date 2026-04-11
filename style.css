@@ -1331,7 +1331,7 @@ textarea.input{resize:vertical;min-height:120px}
 
 /* Desktop layout rules for GM/Player are consolidated later in a single @media block. */
 
-.panel{padding:16px;min-width:0}
+.panel{padding:var(--spacing-lg);min-width:0}
 .panel--main h3{display:none}
 
 .gmSocialHeader{
@@ -1436,7 +1436,7 @@ textarea.input{resize:vertical;min-height:120px}
 	position:relative;
 	display:flex;
 	flex-direction:column;
-	gap:10px;
+	gap:var(--spacing-sm);
 	align-content:start;
 	overflow:auto;
 }
@@ -1663,9 +1663,20 @@ textarea.input{resize:vertical;min-height:120px}
 	display:flex;
 	align-items:center;
 	justify-content:space-between;
-	gap:10px;
-	padding-bottom:8px;
+	gap:var(--spacing-sm);
+	padding-bottom:var(--spacing-sm);
 	border-bottom:1px solid var(--line);
+}
+.gmPartyPanel__head-btns{
+	display:flex;
+	align-items:center;
+	gap:var(--spacing-xs);
+	flex-shrink:0;
+}
+.gmPartyPanel__head-btns .partyAction--battle.is-active{
+	color:var(--gold);
+	background:var(--gold-tint);
+	border-color:var(--gold-border);
 }
 
 .partyCollapseBtn{
@@ -1936,7 +1947,7 @@ textarea.input{resize:vertical;min-height:120px}
 }
 
 /* Add/search tools row above handout list. */
-.dashTools{display:grid;grid-template-columns:1fr auto;gap:var(--spacing-sm);align-items:center;margin-bottom:var(--spacing-sm)}
+.dashTools{display:grid;grid-template-columns:1fr auto auto;gap:var(--spacing-sm);align-items:center;margin-bottom:var(--spacing-sm)}
 
 .searchField{
 	position:relative;
@@ -1975,18 +1986,18 @@ textarea.input{resize:vertical;min-height:120px}
 }
 
 /* Filter chip row (All/Loot/Npc/etc.). */
-.chipRow{display:flex;gap:8px;flex-wrap:wrap;margin:4px 0 16px;min-width:0}
+.chipRow{display:flex;gap:var(--spacing-sm);flex-wrap:wrap;margin:var(--spacing-xs) 0 var(--spacing-sm);min-width:0}
 
 .chip{
 	border:1px solid var(--line);
 	background:rgba(57,47,82,.8);
 	color:var(--muted-purple);
 	border-radius:999px;
-	padding:8px 14px;
+	padding:6px 12px;
 	font-size: var(--text-sm);
 	line-height:1;
 	cursor:pointer;
-	transition:background var(--tv-dur-fast) ease-in-out, color var(--tv-dur-fast) ease-in-out, border-color var(--tv-dur-fast) ease-in-out, box-shadow var(--tv-dur-fast) ease-in-out;
+	transition:background var(--tv-dur-fast) var(--tv-ease), color var(--tv-dur-fast) var(--tv-ease), border-color var(--tv-dur-fast) var(--tv-ease), box-shadow var(--tv-dur-fast) var(--tv-ease);
 }
 
 .chip--active{
@@ -2020,6 +2031,7 @@ textarea.input{resize:vertical;min-height:120px}
 
 /* Generic list container used for handouts and players. */
 .list{display:grid;gap:12px}
+#plHandoutList{gap:6px}
 
 /*
   Card row representing one handout/player.
@@ -2238,12 +2250,78 @@ textarea.input{resize:vertical;min-height:120px}
 	margin:8px auto 4px;
 }
 
-/* Social panel: two-button action row for QR access */
+/* Social panel: essential meta (always visible) */
+.socialMeta--essential{
+	margin:var(--spacing-sm) 0;
+	padding:var(--spacing-sm) var(--spacing-md);
+}
+.socialMeta--essential .socialMeta__row{
+	gap:var(--spacing-sm);
+}
+.socialMeta--essential .iconBtn{
+	margin-left:auto;
+	flex-shrink:0;
+}
+
+/* Collapsible session details toggle */
+.socialDetailsToggle{
+	display:flex;
+	align-items:center;
+	justify-content:space-between;
+	width:100%;
+	padding:var(--spacing-sm) var(--spacing-md);
+	background:none;
+	border:1px solid var(--line);
+	border-radius:var(--radius-sm);
+	color:var(--muted);
+	font-family:var(--font-ui);
+	font-size:var(--text-sm);
+	font-weight:600;
+	cursor:pointer;
+	transition:color var(--tv-dur-fast) var(--tv-ease),
+	           border-color var(--tv-dur-fast) var(--tv-ease),
+	           background var(--tv-dur-fast) var(--tv-ease);
+}
+.socialDetailsToggle:hover{
+	color:var(--text);
+	border-color:var(--line-strong);
+	background:var(--gold-tint);
+}
+.socialDetailsToggle:focus-visible{
+	outline:2px solid var(--gold);
+	outline-offset:2px;
+}
+.socialDetailsToggle__chevron{
+	transition:transform var(--tv-dur-fast) var(--tv-ease);
+	flex-shrink:0;
+}
+.socialDetailsToggle[aria-expanded="false"] .socialDetailsToggle__chevron{
+	transform:rotate(-90deg);
+}
+
+/* Collapsible body */
+.socialDetailsBody{
+	overflow:hidden;
+	transition:max-height var(--tv-dur-mid) var(--tv-ease),
+	           opacity var(--tv-dur-mid) var(--tv-ease);
+	max-height:400px;
+	opacity:1;
+}
+.socialDetailsBody.is-collapsed{
+	max-height:0;
+	opacity:0;
+}
+@media(prefers-reduced-motion:reduce){
+	.socialDetailsBody{transition:none}
+	.socialDetailsToggle__chevron{transition:none}
+}
+
+/* Social panel: QR action row (simplified to single button) */
 .socialQRActions{
 	display:flex;
 	flex-direction:column;
 	gap:var(--spacing-sm);
-	margin:var(--spacing-lg) 0 var(--spacing-xs);
+	margin:var(--spacing-sm) 0 var(--spacing-xs);
 }
 
 .socialQRActions__primary{
@@ -2255,13 +2333,7 @@ textarea.input{resize:vertical;min-height:120px}
 	font-size:var(--text-sm);
 }
 
-.socialQRActions__secondary{
-	display:flex;
-	width:100%;
-	align-items:center;
-	justify-content:center;
-	gap:8px;
-}
+/* .socialQRActions__secondary removed — Copy Join Link is now an icon button in the essential meta row */
 
 /* ---- QR Invite Modal ---- */
 .qrInviteModalCard{
@@ -2521,7 +2593,7 @@ textarea.input{resize:vertical;min-height:120px}
 	padding:14px;
 	gap:10px;
 	--handout-modal-image-size:clamp(100px, 17vw, 132px);
-	--handout-modal-image-scale:1.08;
+	--handout-modal-image-scale:1.18;
 }
 
 #modal .modalText{
@@ -2537,6 +2609,14 @@ textarea.input{resize:vertical;min-height:120px}
 
 #modal .handoutModalImage{
 	transform:scale(var(--handout-modal-image-scale));
+}
+
+/* Cap the map display frame inside the handout detail modal so it never
+   exceeds the visible area — aspect-ratio:1/1 at full modal width (~730px)
+   would otherwise make the frame taller than the viewport. The image uses
+   object-fit:contain so it letterboxes gracefully. */
+#modal .mapDisplayFrame{
+	max-height:min(400px, 40dvh);
 }
 
 #modalTitle{
@@ -7668,6 +7748,26 @@ body[data-screen="landing"] .topbar,
 body[data-screen="landing"] .bottom-bar,
 body[data-screen="landing"] .ambience-bar{display:none !important}
 
+/* Desktop landing card: centered floating panel, viewport-contained.
+   Prevents the card from stretching edge-to-edge on wide screens and
+   stops page-level overflow so no outer scrollbar appears on desktop. */
+@media (min-width: 801px) {
+	.landingCard{
+		max-width:860px;
+		margin:0 auto;
+		border-radius:var(--radius-xl);
+		box-shadow:var(--shadow-xl);
+		max-height:100dvh;
+		overflow-y:auto;
+		scrollbar-width:thin;
+		scrollbar-color:var(--amethyst) var(--bg);
+	}
+	.landingCard::-webkit-scrollbar{width:6px}
+	.landingCard::-webkit-scrollbar-track{background:var(--bg)}
+	.landingCard::-webkit-scrollbar-thumb{background:var(--amethyst);border-radius:var(--radius-md)}
+	.landingCard::-webkit-scrollbar-thumb:hover{background:var(--amethyst-light)}
+}
+
 /*
 	==========================================================================
 	RESPONSIVE BREAKPOINTS
@@ -7731,7 +7831,7 @@ body[data-screen="landing"] .ambience-bar{display:none !important}
 	.settingsAppearance,
 	.settingsRoleSwitch{padding:12px}
 	.card{padding:12px}
-	.dashTools{grid-template-columns:1fr}
+	.dashTools{grid-template-columns:1fr auto auto}
 	.landingTitle{font-size: var(--text-3xl)}
 	.landingLead{font-size: var(--text-xl)}
 	.auth-card{padding:20px 16px}
@@ -7819,6 +7919,9 @@ body[data-screen="landing"] .ambience-bar{display:none !important}
 	#gmSocialPanel .gmSocialHeader{align-items:flex-start}
 	#gmSocialPanel .gmSocialHeader__actions{width:100%;justify-content:flex-end}
 	#gmSocialPanel .socialQRActions{margin-top:8px}
+	/* Collapsible details: compact on mobile */
+	.socialDetailsToggle{padding:var(--spacing-xs) var(--spacing-sm);font-size:var(--text-sm)}
+	.socialDetailsBody .socialMeta{margin-top:var(--spacing-sm)}
 	#screenGMDash .list{gap:8px}
 	#screenGMDash .emptyState{padding:14px 10px}
 	#screenProfile .dashHeader{align-items:stretch}
@@ -7949,6 +8052,7 @@ body[data-screen="landing"] .ambience-bar{display:none !important}
 		min-width:0;
 		width:100%;
 		max-width:100%;
+		gap:6px;
 	}
 	#screenPlayerView #plHandoutList .item{
 		height:104px;
@@ -8224,11 +8328,12 @@ body[data-screen="landing"] .ambience-bar{display:none !important}
 	#screenGMDash .dashHeader{margin-bottom:6px}
 	#screenGMDash .playerCountInline{font-size:var(--text-sm);padding:7px 8px}
 	/* Extra-small dashboard social meta tuning (<=480px). */
-	#screenGMDash .socialMeta{padding:8px}
+	#screenGMDash .socialMeta{padding:var(--spacing-sm)}
 	#screenGMDash .socialMeta__row{
 		font-size:var(--text-sm);
 		flex-wrap:wrap;
 	}
+	.socialDetailsToggle{font-size:var(--text-xs);padding:var(--spacing-xs) var(--spacing-sm)}
 	.settingsAppearance__options{grid-template-columns:1fr}
 	#screenProfile .profile-hero{padding:14px 12px}
 	#screenProfile .profile-hero__avatarRing,
@@ -8270,11 +8375,6 @@ body[data-screen="landing"] .ambience-bar{display:none !important}
 	width:100%;
 	justify-content:center;
 	min-width:0;
-}
-
-/* Invite + Chat buttons: compact secondary row */
-.partyAction--invite,
-.gmPartyPanel__actions--bar .partyAction:nth-child(n+3):not(.partyAction--battle){
 	min-height:36px;
 	font-size:var(--text-sm);
 	padding:6px 10px;
@@ -8298,10 +8398,9 @@ body[data-screen="landing"] .ambience-bar{display:none !important}
 	color:#c5bed7;
 	font-weight:700;
 	letter-spacing:.02em;
-	width:100%;
 	justify-content:center;
 	box-shadow:0 4px 0 rgba(0,0,0,.55);
-	transition:transform .1s ease-out, box-shadow .1s ease-out, border-color .1s ease-out, filter .1s ease-out;
+	transition:transform var(--tv-dur-fast) var(--tv-ease), box-shadow var(--tv-dur-fast) var(--tv-ease), border-color var(--tv-dur-fast) var(--tv-ease), filter var(--tv-dur-fast) var(--tv-ease);
 }
 .partyAction--battle:hover:not(:disabled){
 	border-color:rgba(190,180,210,.65);
@@ -8385,12 +8484,17 @@ body[data-screen="landing"] .ambience-bar{display:none !important}
 /* -- Turn navigation strip -------------------------------- */
 .gmTurnNav{
 	display:flex;
+	flex-direction:column;
 	align-items:center;
-	justify-content:center;
-	gap:8px;
-	padding:8px 0 4px;
+	gap:var(--spacing-xs);
+	padding:var(--spacing-sm) 0 var(--spacing-xs);
 	border-top:1px solid var(--line);
 	margin-top:4px;
+}
+.gmTurnNav__controls{
+	display:flex;
+	gap:var(--spacing-sm);
+	justify-content:center;
 }
 .gmTurnNav__btn{
 	width:32px;
@@ -8403,7 +8507,7 @@ body[data-screen="landing"] .ambience-bar{display:none !important}
 	place-items:center;
 	cursor:pointer;
 	box-shadow:0 2px 0 rgba(0,0,0,.48);
-	transition:background var(--tv-dur-fast) ease-in-out, border-color var(--tv-dur-fast) ease-in-out, color var(--tv-dur-fast) ease-in-out, transform .1s ease-out, box-shadow .1s ease-out;
+	transition:background var(--tv-dur-fast) var(--tv-ease), border-color var(--tv-dur-fast) var(--tv-ease), color var(--tv-dur-fast) var(--tv-ease), transform var(--tv-dur-fast) var(--tv-ease), box-shadow var(--tv-dur-fast) var(--tv-ease);
 }
 .gmTurnNav__btn:hover{
 	background:var(--amethyst);
@@ -8419,7 +8523,8 @@ body[data-screen="landing"] .ambience-bar{display:none !important}
 .gmTurnNav__label{
 	font-size:var(--text-sm);
 	color:var(--muted);
-	min-width:90px;
+	min-width:0;
+	max-width:180px;
 	text-align:center;
 	white-space:nowrap;
 	overflow:hidden;
@@ -8584,14 +8689,13 @@ font-size:var(--text-base);
 
 /* Invite is the primary social action in this cluster. */
 .gmPartyPanel__actions--bar .partyAction--invite{
-grid-column:1/-1;
 background:linear-gradient(135deg, rgba(54,43,80,.95), rgba(35,28,58,.96));
 border-color:var(--gold-border);
 color:var(--gold);
 font-weight:700;
 letter-spacing:.02em;
 box-shadow:0 4px 0 rgba(0,0,0,.55);
-transition:transform .1s ease-out, box-shadow .1s ease-out, border-color .1s ease-out, filter .1s ease-out;
+transition:transform var(--tv-dur-fast) var(--tv-ease), box-shadow var(--tv-dur-fast) var(--tv-ease), border-color var(--tv-dur-fast) var(--tv-ease), filter var(--tv-dur-fast) var(--tv-ease);
 }
 
 .gmPartyPanel__actions--bar .partyAction--invite:hover{
@@ -8640,7 +8744,7 @@ align-items:stretch;
 }
 
 .dashHeader--handouts{
-margin-bottom:18px;
+margin-bottom:var(--spacing-md);
 padding-right:0;
 }
 
@@ -8652,7 +8756,7 @@ height:52px;
 #gmSocialPanel,
 #gmPartyPanel,
 #gmHandoutsPanel{
-padding:20px;
+padding:var(--spacing-lg);
 }
 
 #gmHandoutsPanel{min-height:0}
@@ -8691,7 +8795,7 @@ min-height:44px;
 
 #gmPartyPanel{
 	display:grid;
-	grid-template-rows:auto auto auto minmax(0, 1fr);
+	grid-template-rows:auto auto auto auto minmax(0, 1fr);
 	min-height:0;
 	max-height:none;
 	overflow:hidden;
@@ -9518,6 +9622,15 @@ body[data-theme="light"] .socialMeta{
 	background:rgba(242,236,222,.8);
 	border-color:rgba(120,100,60,.16);
 }
+body[data-theme="light"] .socialDetailsToggle{
+	border-color:rgba(120,100,60,.16);
+	color:rgba(74,62,48,.65);
+}
+body[data-theme="light"] .socialDetailsToggle:hover{
+	background:rgba(184,148,26,.08);
+	border-color:rgba(120,100,60,.28);
+	color:var(--text);
+}
 
 /* -- 4. Interactive elements ----------------------------------------------- */
 body[data-theme="light"] .btn--ghost,
@@ -10053,6 +10166,7 @@ body[data-theme="light"] .landing-action-card{
 	border-color:rgba(120,100,60,.16);
 }
 body[data-theme="light"] .landing-logo{background:transparent;border-color:transparent}
+body[data-theme="light"] .landingCard{background:rgba(248,244,234,.97)}
 body[data-theme="light"] .landingSessionItem{
 	background:rgba(248,244,234,.85);
 }

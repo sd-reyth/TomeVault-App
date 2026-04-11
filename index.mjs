@@ -1162,6 +1162,7 @@ const state = {
     error: "",
     sessionId: null,
     shouldAutoScroll: true,
+    seenCount: 0,
   },
   notes: {
     items: [],
@@ -1752,40 +1753,11 @@ function syncBottomBarActiveState(screenKey) {
 }
 
 function setGMSocialMode(isOpen) {
-  if (!gmSocialPanel || !gmHandoutsPanel || !gmSplit) return;
-  if (isWideGMDashboard()) {
-    syncGMDashboardLayout();
-    syncHamburgerQuickActions();
-    if (isOpen) {
-      gmSocialPanel.scrollIntoView({ behavior: "smooth", block: "start", inline: "nearest" });
-    }
-    return;
+  if (isOpen) {
+    animateModalIn(gmSocialPanel);
+  } else {
+    animateModalOut(gmSocialPanel);
   }
-  const open = !!isOpen;
-
-  gmSplit.classList.toggle("social-mode", open);
-  gmSocialPanel.classList.toggle("hidden", !open);
-  gmHandoutsPanel.classList.toggle("hidden", open);
-  if (gmDashTitle) gmDashTitle.textContent = open ? "Social" : "Handouts";
-
-  // Hide inline create handout button when social panel is open
-  const cInline = document.getElementById("btnCreateHandoutInline");
-  if (cInline) cInline.style.display = (open || state.role !== "dm") ? "none" : "";
-
-  if (btnToggleSocial) {
-    btnToggleSocial.classList.toggle("is-active", open);
-    btnToggleSocial.setAttribute("aria-pressed", String(open));
-    btnToggleSocial.title = open ? "Hide social" : "Show social";
-    // Clear notification dot when opening social panel.
-    if (open) btnToggleSocial.querySelector(".notif-dot")?.remove();
-  }
-
-  if (open) {
-    ambienceBar?.classList.add("hidden");
-    ambienceBar?.setAttribute("aria-hidden", "true");
-    btnOpenAmbienceBar?.classList.remove("is-active");
-  }
-
   syncHamburgerQuickActions();
 }
 
@@ -1936,40 +1908,11 @@ function syncHamburgerQuickActions() {
 
   const hasSession = !!state.sessionId;
   const isGM = state.role === "dm";
-  const socialOpen = !!gmSplit?.classList.contains("social-mode");
-  const ambienceOpen = ambienceBar ? !ambienceBar.classList.contains("hidden") : false;
-  const onHandouts = currentScreenKey === SCREEN_KEYS.PLAYER_VIEW || (currentScreenKey === SCREEN_KEYS.GM_DASH && !socialOpen);
-  const onInventory = currentScreenKey === SCREEN_KEYS.PLAYER_INVENTORY;
-  const onNotes = currentScreenKey === SCREEN_KEYS.NOTES;
-
-  setHamburgerDialButtonState(btnDialHandouts, {
-    visible: hasSession,
-    active: onHandouts,
-    label: "Handouts",
-  });
 
   setHamburgerDialButtonState(btnDialSocial, {
     visible: hasSession && isGM,
-    active: currentScreenKey === SCREEN_KEYS.GM_DASH && socialOpen,
+    active: false,
     label: "Session",
-  });
-
-  setHamburgerDialButtonState(btnDialAtmosphere, {
-    visible: hasSession,
-    active: isGM ? ambienceOpen : !!soundEnabled,
-    label: isGM ? "Atmosphere" : soundEnabled ? "Sound On" : "Sound Off",
-  });
-
-  setHamburgerDialButtonState(btnDialInventory, {
-    visible: hasSession && !isGM,
-    active: onInventory,
-    label: "Inventory",
-  });
-
-  setHamburgerDialButtonState(btnDialNotes, {
-    visible: hasSession,
-    active: onNotes,
-    label: "Notes",
   });
 
   setHamburgerDialButtonState(btnDialSettings, {
@@ -2053,6 +1996,14 @@ function updateRailBadge(badgeEl, count) {
   badgeEl.classList.toggle("hidden", count < 1);
 }
 
+function markChatSeen() {
+  state.chat.seenCount = (state.chat.messages || []).length;
+}
+
+function unreadChatCount() {
+  return Math.max(0, (state.chat.messages || []).length - state.chat.seenCount);
+}
+
 function getAmbienceTrackLabel(track) {
   const labels = {
     tavern: "Tavern",
@@ -2076,11 +2027,9 @@ function renderAtmospherePanel(ambience = null) {
 
 function syncGMDashboardLayout() {
   const wide = isWideGMDashboard();
-  if (btnCloseSocial) btnCloseSocial.classList.toggle("hidden", wide);
   if (!wide) return;
 
   gmSplit?.classList.remove("social-mode");
-  gmSocialPanel?.classList.remove("hidden");
   gmHandoutsPanel?.classList.remove("hidden");
   gmPartyPanel?.classList.remove("hidden");
   if (gmDashTitle) gmDashTitle.textContent = "Handouts";
@@ -6403,9 +6352,20 @@ function startOnboarding(options = {}) {
     activeTarget = null;
   }
 
+  // Capture-phase listener — blocks all clicks except on the tooltip and the
+  // current tap target, preventing accidental interaction with the live UI.
+  function handleTutorialBlock(e) {
+    const tooltip = overlay.querySelector(".onboardTooltip");
+    if (tooltip && tooltip.contains(e.target)) return;
+    if (activeTarget && (activeTarget === e.target || activeTarget.contains(e.target))) return;
+    e.stopPropagation();
+    e.preventDefault();
+  }
+
   function cleanupOnboarding() {
     clearActiveTarget();
     window.removeEventListener("resize", showStep);
+    document.removeEventListener("click", handleTutorialBlock, true);
     setHamburgerTutorialLock(false);
     overlay.remove();
   }
@@ -6542,6 +6502,7 @@ function startOnboarding(options = {}) {
   }
 
   document.body.appendChild(overlay);
+  document.addEventListener("click", handleTutorialBlock, true);
   window.addEventListener("resize", showStep);
   showStep();
 }
@@ -6692,6 +6653,7 @@ function cleanupListeners() {
   state.chat.error = "";
   state.chat.sessionId = null;
   state.chat.shouldAutoScroll = true;
+  state.chat.seenCount = 0;
   updateNotifBadge();
   if (notifPanel) {
     notifPanel.classList.add("hidden");
@@ -10058,7 +10020,8 @@ function renderMiniChatPreview(panel, statusNode, listNode, emptyNode, roleKey, 
 function renderGMMiniChatPreview() {
   renderMiniChatPreview(gmMiniChatPanel, gmMiniChatStatus, gmMiniChatList, gmMiniChatEmpty, "dm");
   const hasGMChatSession = state.role === "dm" && !!state.sessionId;
-  const chatCount = hasGMChatSession ? (state.chat.messages || []).length : 0;
+  if (hasGMChatSession && state.gmActiveRailTab === "chat") markChatSeen();
+  const chatCount = hasGMChatSession ? unreadChatCount() : 0;
   updateRailBadge(gmChatBadge, chatCount);
   gmTabChat?.classList.toggle("railTabs__tab--notify", chatCount > 0 && state.gmActiveRailTab !== "chat");
   if (isWideGMDashboard() && gmRailTabs) {
@@ -10084,7 +10047,8 @@ function renderPlayerMiniChatPreview() {
   }
   if (!hasSession) return;
   renderMiniChatPreview(playerMiniChatPanel, playerMiniChatStatus, playerMiniChatList, playerMiniChatEmpty, null, { compactStatus: true });
-  const chatCount = (state.chat.messages || []).length;
+  if (state.plActiveRailTab === "chat") markChatSeen();
+  const chatCount = unreadChatCount();
   updateRailBadge(plChatBadge, chatCount);
   plTabChat?.classList.toggle("railTabs__tab--notify", chatCount > 0 && state.plActiveRailTab !== "chat");
   if (isWideGMDashboard() && plRailTabs) {
@@ -10209,6 +10173,7 @@ function subscribePartyChat(force = false) {
   state.chat.sessionId = state.sessionId;
   const subscribedSessionId = state.sessionId;
   state.chat.messages = [];
+  state.chat.seenCount = 0;
   state.chat.isLoading = true;
   state.chat.isClearing = false;
   state.chat.hasServerSnapshot = false;
@@ -10366,6 +10331,7 @@ async function exportPartyChat() {
 }
 
 function openChatScreen() {
+  markChatSeen();
   showOnly(SCREEN_KEYS.CHAT);
   subscribePartyChat();
   renderChatScreen();
@@ -10482,11 +10448,13 @@ btnPlayerOpenChatFromParty?.addEventListener("click", () => {
 gmRailTabs?.querySelector(".railTabs__bar")?.addEventListener("click", (e) => {
   const tab = e.target.closest(".railTabs__tab");
   if (!tab || !isWideGMDashboard()) return;
+  if (tab.dataset.tab === "chat") markChatSeen();
   switchRailTab(gmRailTabs, tab.dataset.tab, "gmActiveRailTab");
 });
 plRailTabs?.querySelector(".railTabs__bar")?.addEventListener("click", (e) => {
   const tab = e.target.closest(".railTabs__tab");
   if (!tab || !isWideGMDashboard()) return;
+  if (tab.dataset.tab === "chat") markChatSeen();
   switchRailTab(plRailTabs, tab.dataset.tab, "plActiveRailTab");
 });
 
@@ -10646,7 +10614,7 @@ btnDialHandouts && (btnDialHandouts.onclick = () => {
 
 btnDialSocial && (btnDialSocial.onclick = () => {
   closeHamburgerSpeedDial();
-  btnToggleSocial?.click();
+  animateModalIn(gmSocialPanel);
 });
 
 btnDialAtmosphere && (btnDialAtmosphere.onclick = () => {
@@ -12006,7 +11974,8 @@ const handleCopyJoinLink = async (buttonEl = null) => {
   await copyToClipboard(qrUrl);
   showToast("Join link copied!", "success");
   if (!buttonEl) return;
-  // Micro-feedback: swap button text for 1.8 s.
+  // Micro-feedback: swap button text for 1.8 s (skip for icon-only buttons).
+  if (buttonEl.classList.contains("iconBtn")) return;
   if (buttonEl.dataset.originalText === undefined) {
     buttonEl.dataset.originalText = buttonEl.textContent.trim();
   }
@@ -12834,7 +12803,7 @@ function syncPartyBattleUi() {
   if (btnPartyBattle) {
     btnPartyBattle.classList.toggle("is-active", active);
     btnPartyBattle.setAttribute("aria-pressed", active ? "true" : "false");
-    btnPartyBattle.innerHTML = `${battleIconMarkup(active)}<span>${active ? "Battle: ON" : "Battle: OFF"}</span>`;
+    btnPartyBattle.innerHTML = battleIconMarkup(active);
   }
   if (btnPlayerInitiativeEdit) {
     btnPlayerInitiativeEdit.disabled = active;
@@ -15492,7 +15461,8 @@ function renderInventoryScreen() {
 
     // GM doesn't get a personal wallet section � they manage party treasury instead.
     const isGMSelf = isGM && isMe;
-    const showWallet = !isGMSelf;
+    // Players can only see their own coin pouch; GMs can see all players' pouches.
+    const showWallet = !isGMSelf && (isGM || isMe);
 
     // Skip rendering the GM's own section entirely if they have no items.
     // The GM manages gold via party treasury, so an empty personal section is clutter.
@@ -17079,12 +17049,7 @@ if (btnToggleSocial) {
 
 if (btnOpenSocialFromParty) {
   btnOpenSocialFromParty.addEventListener("click", () => {
-    if (currentScreenKey !== SCREEN_KEYS.GM_DASH) showOnly(SCREEN_KEYS.GM_DASH);
-    if (state.joinLink) {
-      openQRInviteModal();
-      return;
-    }
-    setGMSocialMode(true);
+    animateModalIn(gmSocialPanel);
   });
 }
 
@@ -17104,11 +17069,26 @@ if (btnOpenInventory) {
 
 if (btnCloseSocial) {
   btnCloseSocial.addEventListener("click", () => {
-    gmSocialPanel?.classList.add("hidden");
-    gmSplit?.classList.remove("social-mode");
-    gmHandoutsPanel?.classList.remove("hidden");
-    setGMSocialMode(false);
+    animateModalOut(gmSocialPanel);
   });
+}
+
+// Session details collapsible toggle
+{
+  const detailsToggle = $("btnToggleSocialDetails");
+  const detailsBody = $("socialDetailsBody");
+  if (detailsToggle && detailsBody) {
+    // Default collapsed on mobile, expanded on desktop
+    const initCollapsed = !isWideGMDashboard();
+    if (initCollapsed) {
+      detailsBody.classList.add("is-collapsed");
+      detailsToggle.setAttribute("aria-expanded", "false");
+    }
+    detailsToggle.addEventListener("click", () => {
+      const isCollapsed = detailsBody.classList.toggle("is-collapsed");
+      detailsToggle.setAttribute("aria-expanded", String(!isCollapsed));
+    });
+  }
 }
 
 // Change / set session PIN from the social panel (in-app modal, no prompt())
@@ -17641,7 +17621,12 @@ async function main() {
 
     // Signed-in user with no active session → show landing home section
     showOnly(SCREEN_KEYS.LANDING);
-    updateLandingAuthState();
+    // Refresh display name only — sessions were already queued by initAuth.
+    // Calling updateLandingAuthState() here would restart loadMySessions(),
+    // causing a visible double-fetch flicker on every page load.
+    if (state.isSignedIn && landingDisplayName) {
+      landingDisplayName.textContent = state.displayName || "Adventurer";
+    }
   } finally {
     hideAuthLoading();
   }
