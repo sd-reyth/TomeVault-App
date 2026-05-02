@@ -7903,6 +7903,28 @@ body[data-screen="landing"] .topbar,
 body[data-screen="landing"] .bottom-bar,
 body[data-screen="landing"] .ambience-bar{display:none !important}
 
+/* Landing screen: no topbar or bottom-bar, so give back the full viewport.
+   Use max-height:none so the card grows to its natural content height and
+   the browser's own scroll handles navigation — avoids nested scroll traps
+   that prevent touch-swipe on iOS/Android. */
+body[data-screen="landing"] #screenLanding:not(.hidden){
+	min-height:100dvh;
+	max-height:none;
+}
+/* No bottom chrome on landing → strip the chrome-bottom padding from .layout
+   so the ~112px dead zone beneath the card disappears. */
+body[data-screen="landing"] .layout{
+	padding-bottom:env(safe-area-inset-bottom, 0px);
+}
+
+/* reCAPTCHA v3 badge: verification endpoint is disabled (RECAPTCHA_VERIFY_ENDPOINT=""),
+   so no tokens are ever submitted. Hide the cosmetic badge that the script
+   auto-injects so it cannot overlap auth form controls on small screens. */
+.grecaptcha-badge{
+	visibility:hidden !important;
+	pointer-events:none !important;
+}
+
 /* Desktop landing: full-width immersive, hero centered, 2-col content grid */
 @media (min-width: 801px) {
 	.landingCard{
@@ -8008,8 +8030,12 @@ body[data-screen="landing"] .ambience-bar{display:none !important}
 	.auth-social-btn span{display:none}
 	.auth-guest-actions{grid-template-columns:1fr}
 	.landing-home__actions{grid-template-columns:1fr}
-	.landing-home{padding:var(--spacing-2xl) var(--spacing-lg)}
-	.landing-logo{width:88px;height:88px;padding:0;filter:drop-shadow(0 2px 12px rgba(212,175,55,.22))}
+	/* Compact landing on mobile — hero eats too much height on 600-800px phones */
+	.landing-home{padding:14px 16px;gap:14px}
+	.landing-logo{width:60px;height:60px;animation:none;padding:0;filter:drop-shadow(0 2px 10px rgba(212,175,55,.20))}
+	.landingHero{padding:14px clamp(16px,4vw,24px) 10px;gap:10px}
+	.auth-guest-cta{padding-bottom:16px}
+	.auth-guest-ttl{padding:6px 8px;font-size:var(--text-xs)}
 	.row{flex-direction:column;align-items:stretch}
 	.btn{width:100%}
 	.socialActions .btn{width:100%}
@@ -8428,7 +8454,23 @@ body[data-screen="landing"] .ambience-bar{display:none !important}
 	.landing-action-card{padding:var(--spacing-md) var(--spacing-lg);min-height:68px}
 	.landing-action-card__icon{width:44px;height:44px}
 	.landing-action-card__label{font-size:var(--text-base)}
-	.landing-welcome{font-size:var(--text-xl)}
+	.landing-welcome{font-size:var(--text-base)}
+	/* Extra-aggressive landing compact for small phones */
+	.landing-logo{width:48px;height:48px}
+	.landingTitle{font-size:var(--text-xl)}
+	.landingLead{display:none}
+	.landingHero{padding:10px 14px 6px;gap:6px}
+	.auth-card{padding:14px 12px}
+	.auth-mode-selector{margin-bottom:12px}
+	.auth-method-btn + .auth-method-btn{margin-top:6px}
+	.auth-divider{margin:10px 0}
+	.auth-divider--more{margin:8px 0 4px}
+	.auth-social-row{gap:6px}
+	.auth-guest-cta{padding-bottom:10px}
+	.auth-guest-cta::before{padding:12px 0 10px}
+	.auth-guest-btn{min-height:44px;padding:10px 12px}
+	.landing-home{padding:10px 12px;gap:10px}
+	.landing-home__actions{gap:8px}
 	.card{padding:10px}
 	.panel{padding:6px}
 	.layout{padding:0 6px calc(var(--tv-chrome-bottom) + var(--spacing-2xl) + env(safe-area-inset-bottom))}
