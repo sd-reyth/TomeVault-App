@@ -51,7 +51,7 @@
   <meta name="twitter:title" content="TomeVault - Live Handouts for Your Table">
   <meta name="twitter:description" content="Share session invites, PINs, and handouts in seconds.">
   <meta name="twitter:image" content="references/tomeVaultLogo1.png">
-  <link rel="stylesheet" href="style.css?v=20260502hotfix2">
+  <link rel="stylesheet" href="style.css?v=20260502polish3">
   <!-- fantasy fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
@@ -253,6 +253,19 @@
           <button id="btnGuestOneShotJoin" class="btn btn--ghost auth-guest-btn" type="button">Join One-Shot</button>
         </div>
         <p class="auth-guest-ttl">Session data is stored for 24 hours only.</p>
+      </div>
+
+      <!-- Developer bypass — hidden by default; JS reveals only on localhost -->
+      <div id="devBypassWrap" class="dev-bypass-wrap hidden" aria-hidden="true">
+        <div class="dev-bypass-sep"><span>localhost dev</span></div>
+        <button id="btnDevBypass" type="button" class="dev-bypass-btn" aria-label="Developer access — sign in as anonymous test user">
+          <svg viewBox="0 0 24 24" width="15" height="15" fill="none" aria-hidden="true">
+            <rect x="2" y="3" width="20" height="14" rx="2" stroke="currentColor" stroke-width="1.8"/>
+            <path d="M8 21h8M12 17v4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+            <path d="M7 9l2.5 2.5L7 14M12 14h5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          <span class="dev-bypass-btn__label">Dev Access</span>
+        </button>
       </div>
 
       <!-- -- Home section (visible AFTER sign-in) -- -->
@@ -2629,7 +2642,7 @@
   <script src="https://www.google.com/recaptcha/api.js?render=6LeMT5EsAAAAABZpKrhXRvmiG2SLIrjUIq5mqeeK" async defer></script>
 
   <!-- App entry point -->
-  <script type="module" src="index.mjs?v=20260502hotfix2"></script>
+  <script type="module" src="index.mjs?v=20260502hotfix5"></script>
 </body>
 </html>
 

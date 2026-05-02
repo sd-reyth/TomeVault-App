@@ -28,6 +28,7 @@ import {
   EmailAuthProvider,
   updateProfile,
   signOut,
+  signInAnonymously,
   connectAuthEmulator,
 } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-auth.js";
 import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-storage.js";
@@ -512,6 +513,7 @@ const landingSessionCount = $("landingSessionCount");
 const authCard = $("authCard");
 const authGuestCta = $("authGuestCta");
 const landingHome = $("landingHome");
+const devBypassWrap = $("devBypassWrap");
 const landingDisplayName = $("landingDisplayName");
 // Screen-level containers
 const authMethodScreen = $("authMethodScreen");
@@ -8873,6 +8875,8 @@ function updateLandingAuthState() {
   if (authCard) authCard.classList.toggle("hidden", signedIn);
   if (authGuestCta) authGuestCta.classList.toggle("hidden", signedIn);
   if (landingHome) landingHome.classList.toggle("hidden", !signedIn);
+  // Dev bypass button — only visible on localhost when not signed in
+  if (devBypassWrap) devBypassWrap.classList.toggle("hidden", signedIn || !IS_LOCALHOST);
 
   if (signedIn && landingDisplayName) {
     landingDisplayName.textContent = state.displayName || "Adventurer";
@@ -9222,11 +9226,18 @@ function initAuth() {
   return new Promise((resolve) => {
     let resolved = false;
     onAuthStateChanged(auth, (user) => {
-      if (user) {
+      // Dev bypass: if the developer intentionally signed in anonymously via the
+      // Dev Access button on localhost, honour that session instead of purging it.
+      const isDevBypass = IS_LOCALHOST && localStorage.getItem("tv_devBypass") === "1";
+      const isAnonymousUser = !!(user && user.isAnonymous && !isDevBypass);
+      const effectiveUser = isAnonymousUser ? null : user;
+
+      if (effectiveUser) {
         state.uid = user.uid;
         state.isSignedIn = true;
         state.isGuest = false;
-        state.displayName = user.displayName || "";
+        // Anonymous dev bypass user gets a friendly display name for testing.
+        state.displayName = user.displayName || (user.isAnonymous ? "DevUser" : "");
         state.email = user.email || "";
         if (resolved) ensureOwnProfileLoaded().catch(() => {});
       } else {
@@ -9237,8 +9248,18 @@ function initAuth() {
         state.email = null;
         updateTopBarAvatar("");
       }
+
+      // Legacy anonymous sessions can be restored from older builds.
+      // Force sign-out so landing auth controls stay available.
+      // Exception: intentional dev bypass sessions are preserved.
+      if (isAnonymousUser) {
+        signOut(auth).catch((err) => {
+          console.warn("Anonymous session sign-out failed during init:", err);
+        });
+      }
+
       updateLandingAuthState();
-      if (!resolved) { resolved = true; resolve(user); }
+      if (!resolved) { resolved = true; resolve(effectiveUser); }
     });
   });
 }
@@ -9540,6 +9561,7 @@ async function signOutFn() {
   localStorage.removeItem("tv_joinTag");
   localStorage.removeItem("tv_lastDmSessionId");
   localStorage.removeItem("tv_dmPin");
+  localStorage.removeItem("tv_devBypass");
   cleanupListeners();
   showOnly(SCREEN_KEYS.LANDING);
   showAuthMethodScreen();
@@ -9796,6 +9818,26 @@ btnSignOut?.addEventListener("click", () => signOutFn());
 // Guest one-shot
 btnGuestOneShotCreate?.addEventListener("click", () => startOneShot("dm"));
 btnGuestOneShotJoin?.addEventListener("click", () => startOneShot("player"));
+
+// ---- Dev bypass (localhost only) ----
+// Signs in anonymously so the developer can test the full app flow without
+// needing a real account. Button is rendered in HTML but only shown when IS_LOCALHOST.
+async function signInWithDevBypass() {
+  if (!IS_LOCALHOST) return;
+  const btnDev = $("btnDevBypass");
+  if (btnDev) { btnDev.disabled = true; btnDev.querySelector(".dev-bypass-btn__label").textContent = "Connecting…"; }
+  try {
+    localStorage.setItem("tv_devBypass", "1");
+    await signInAnonymously(auth);
+    // onAuthStateChanged → initAuth will pick up the session and set state.isSignedIn = true.
+    showToast("Dev access granted — signed in as DevUser (anonymous Firebase auth).", "info", UI_TIMERS.TOAST_MED);
+  } catch (e) {
+    localStorage.removeItem("tv_devBypass");
+    showToast("Dev bypass failed: " + (e?.message || e), "error");
+    if (btnDev) { btnDev.disabled = false; btnDev.querySelector(".dev-bypass-btn__label").textContent = "Dev Access"; }
+  }
+}
+$("btnDevBypass")?.addEventListener("click", () => signInWithDevBypass());
 
 // One-shot upgrade banner → switch to sign-up tab on landing
 btnOneShotUpgrade?.addEventListener("click", () => {
@@ -17528,6 +17570,13 @@ async function tryResumePlayer(sessionId) {
   return true;
 }
 
+function clearStaleResumeState({ clearRole = false } = {}) {
+  localStorage.removeItem("tv_sessionId");
+  localStorage.removeItem("tv_joinTag");
+  localStorage.removeItem("tv_dmPin");
+  if (clearRole) localStorage.removeItem("tv_role");
+}
+
 // ---- 21) Main boot ----
 // BEGINNER NOTE � Application entry point:
 // `main()` is called once when the page loads. It sets up the entire app
@@ -17602,21 +17651,40 @@ async function main() {
     if (r === "dm" || (!r && dm)) {
       const preferredSessionId = s || dm;
       if (preferredSessionId) {
-        const ok = await tryResumeGM(preferredSessionId);
+        let ok = false;
+        try {
+          ok = await tryResumeGM(preferredSessionId);
+        } catch (e) {
+          console.warn("GM resume failed:", e);
+          clearStaleResumeState({ clearRole: r === "dm" });
+        }
         if (ok) return;
       }
       const fallbackDmId = await findLatestOwnedGMSessionId(state.uid);
       if (fallbackDmId && fallbackDmId !== preferredSessionId) {
-        const fallbackOk = await tryResumeGM(fallbackDmId);
+        let fallbackOk = false;
+        try {
+          fallbackOk = await tryResumeGM(fallbackDmId);
+        } catch (e) {
+          console.warn("GM fallback resume failed:", e);
+          clearStaleResumeState({ clearRole: r === "dm" });
+        }
         if (fallbackOk) return;
       }
     }
 
     // Resume player
     if (r === "player" && s) {
-      const ok = await tryResumePlayer(s);
+      let ok = false;
+      try {
+        ok = await tryResumePlayer(s);
+      } catch (e) {
+        console.warn("Player resume failed:", e);
+      }
       if (ok) return;
-      showOnly(SCREEN_KEYS.PL_JOIN);
+      clearStaleResumeState({ clearRole: true });
+      showOnly(SCREEN_KEYS.LANDING);
+      showToast("Previous session could not be restored. Join again with a fresh invite.", "info", UI_TIMERS.TOAST_MED);
       return;
     }
 

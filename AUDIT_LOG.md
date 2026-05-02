@@ -1,6 +1,6 @@
 # Audit Log
 
-Last run: 2026-03-31
+Last run: 2026-05-02
 
 ## Completed Items
 - [DONE] 2B-viewport-fit — Expanded the desktop app shell and player screen layout so core screens use more of the visible viewport without page-level overflow — 2026-03-31
@@ -44,3 +44,11 @@ Last run: 2026-03-31
 - [DONE] 2B-asset-version-bump-ui14 — Bumped both frontend asset query strings to ui14 after desktop rail tab + modal alignment updates — 2026-03-31
 
 ## Pending Suggestions
+- [DONE] motion-token-fab-inventory — Fixed `.fab-inventory` transition: `ease-in-out` → `var(--tv-ease)` — 2026-05-02
+- [DONE] touch-target-42px — Raised `.socialActions .btn`, `.playerPartyPanel__actions .partyAction`, and `#screenProfile/.screenNotes .dashHeader .btn` from 42px → 44px min-height — 2026-05-02
+- [DONE] touch-target-36px — Raised `.gmPartyPanel__actions--bar .partyAction` from 36px → 40px min-height (compact grid variant) — 2026-05-02
+- [DONE] touch-target-ambience-info-btn — Raised `.ambience-info-btn` from 42×42px → 44×44px — 2026-05-02
+- [DONE] token-text-on-gold — Replaced hardcoded `color:#1a1206` with `color:var(--text-on-gold)` in `.auth-method-btn--primary` — 2026-05-02
+- [DONE] undefined-parchment-var — Fixed undefined `var(--parchment)` → `var(--text)` in GM party invite button — 2026-05-02
+- [DONE] focus-visible-party-action — Added `.partyAction:focus-visible` to the global gold-ring focus-visible selector block — 2026-05-02
+- [DONE] cache-version-polish1 — Bumped style.css cache-bust query to `v=20260502polish1` after all polish fixes — 2026-05-02
