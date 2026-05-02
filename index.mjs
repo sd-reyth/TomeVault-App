@@ -1051,9 +1051,7 @@ let dynamicStats = {
 };
 let profileEditorIsEditable = true;
 function genId() { return Math.random().toString(36).slice(2, 10) + Date.now().toString(36); }
-function escHtml(str) {
-  return String(str ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
-}
+// escHtml removed — use escapeHtml() (defined at line ~8317) for all HTML escaping.
 // BEGINNER NOTE � profileCache:
 // A Map() works like an object but with better performance for frequent
 // add/delete. We cache fetched player profiles so repeated renders
@@ -2814,7 +2812,7 @@ function renderCommonStats() {
             <label class="profileStatItem__label" for="dynCommonStat_${key}">${COMMON_STAT_LABELS[key]}</label>
             <button class="statRemoveBtn" type="button" data-action="remove-common" data-key="${key}" aria-label="Remove ${COMMON_STAT_LABELS[key]}"${dis}>×</button>
           </div>
-          <input id="dynCommonStat_${key}" class="profileStatItem__input" inputmode="numeric" placeholder="10" value="${escHtml(dynamicStats.commonStats[key] || "")}" data-action="common-value" data-key="${key}"${dis}>
+          <input id="dynCommonStat_${key}" class="profileStatItem__input" inputmode="numeric" placeholder="10" value="${escapeHtml(dynamicStats.commonStats[key] || "")}" data-action="common-value" data-key="${key}"${dis}>
         </div>`).join("")}
     </div>`;
   updateCommonStatChips();
@@ -2830,8 +2828,8 @@ function renderCustomStats() {
     <div class="statDynamicList">
       ${dynamicStats.customStats.map((stat) => `
         <div class="statDynamicRow" data-stat-id="${stat.id}">
-          <input class="statDynamicRow__nameInput" type="text" placeholder="Stat name\u2026" maxlength="40" value="${escHtml(stat.name)}" data-action="custom-name" data-id="${stat.id}" aria-label="Stat name"${dis}>
-          <input class="statDynamicRow__valueInput" inputmode="numeric" placeholder="0" maxlength="24" value="${escHtml(stat.value)}" data-action="custom-value" data-id="${stat.id}" aria-label="Stat value"${dis}>
+          <input class="statDynamicRow__nameInput" type="text" placeholder="Stat name\u2026" maxlength="40" value="${escapeHtml(stat.name)}" data-action="custom-name" data-id="${stat.id}" aria-label="Stat name"${dis}>
+          <input class="statDynamicRow__valueInput" inputmode="numeric" placeholder="0" maxlength="24" value="${escapeHtml(stat.value)}" data-action="custom-value" data-id="${stat.id}" aria-label="Stat value"${dis}>
           <button class="statRemoveBtn" type="button" data-action="remove-custom" data-id="${stat.id}" aria-label="Remove stat"${dis}>×</button>
         </div>`).join("")}
     </div>`;
@@ -2851,20 +2849,20 @@ function renderBonuses() {
         return `
           <div class="statDynamicRow statDynamicRow--bonus" data-bonus-id="${bonus.id}">
             <div class="statDynamicRow__bonusMain">
-              <input class="statDynamicRow__nameInput" type="text" placeholder="Bonus name\u2026" maxlength="40" value="${escHtml(bonus.name)}" data-action="bonus-name" data-id="${bonus.id}" aria-label="Bonus name"${dis}>
-              <input class="statDynamicRow__valueInput statDynamicRow__valueInput--signed" type="text" inputmode="numeric" placeholder="+0" maxlength="8" value="${escHtml(bonus.value)}" data-action="bonus-value" data-id="${bonus.id}" aria-label="Bonus value"${dis}>
+              <input class="statDynamicRow__nameInput" type="text" placeholder="Bonus name\u2026" maxlength="40" value="${escapeHtml(bonus.name)}" data-action="bonus-name" data-id="${bonus.id}" aria-label="Bonus name"${dis}>
+              <input class="statDynamicRow__valueInput statDynamicRow__valueInput--signed" type="text" inputmode="numeric" placeholder="+0" maxlength="8" value="${escapeHtml(bonus.value)}" data-action="bonus-value" data-id="${bonus.id}" aria-label="Bonus value"${dis}>
               <button class="statRemoveBtn" type="button" data-action="remove-bonus" data-id="${bonus.id}" aria-label="Remove bonus"${dis}>×</button>
             </div>
             <div class="statDynamicRow__bonusApplies">
               <span class="bonusAppliesLabel">Applies to:</span>
               <div class="bonusTagArea">
                 ${bonus.appliesTo.map((label) => `
-                  <span class="bonusTag">${escHtml(label)}<button class="bonusTag__remove" type="button" data-action="remove-applies" data-bonus-id="${bonus.id}" data-label="${escHtml(label)}" aria-label="Remove ${escHtml(label)}"${dis}>×</button></span>
+                  <span class="bonusTag">${escapeHtml(label)}<button class="bonusTag__remove" type="button" data-action="remove-applies" data-bonus-id="${bonus.id}" data-label="${escapeHtml(label)}" aria-label="Remove ${escapeHtml(label)}"${dis}>×</button></span>
                 `).join("")}
                 ${available.length > 0 && profileEditorIsEditable ? `
                   <select class="bonusAddDropdown" data-action="add-applies" data-bonus-id="${bonus.id}" aria-label="Add stat this bonus applies to">
                     <option value="">\uFF0B stat\u2026</option>
-                    ${available.map((l) => `<option value="${escHtml(l)}">${escHtml(l)}</option>`).join("")}
+                    ${available.map((l) => `<option value="${escapeHtml(l)}">${escapeHtml(l)}</option>`).join("")}
                   </select>` : ""}
               </div>
             </div>
@@ -3136,7 +3134,7 @@ async function renderProfileScreen() {
         const el = document.createElement("div");
         el.className = `profileStatItem${coreStats.has(key) ? " profileStatItem--core" : ""}`;
         el.dataset.statKey = key;
-        el.innerHTML = `<span class="profileStatItem__label">${label}</span><span class="profileStatItem__value">${val}</span>`;
+        el.innerHTML = `<span class="profileStatItem__label">${escapeHtml(label)}</span><span class="profileStatItem__value">${escapeHtml(val)}</span>`;
         profileStatsReadOnly.appendChild(el);
       }
       profileStatsReadOnly.classList.remove("hidden");
@@ -3571,7 +3569,7 @@ function showToast(message, type = "info", timeoutMs = 2600) {
     toast.classList.add("toast--leaving");
     toast.addEventListener("animationend", () => toast.remove(), { once: true });
     // Fallback: remove even if animationend never fires (e.g. reduced motion).
-    setTimeout(() => { if (toast.parentNode) toast.remove(); }, 300);
+    setTimeout(() => { if (toast.parentNode) toast.remove(); }, UI_TIMERS.ANIMATION_FALLBACK_MS);
   }, timeoutMs);
 }
 
@@ -3602,7 +3600,7 @@ function showUndoToast(message, onConfirm, timeoutMs = 5000) {
     if (!cancelled) onConfirm();
     toast.classList.add("toast--leaving");
     toast.addEventListener("animationend", () => toast.remove(), { once: true });
-    setTimeout(() => { if (toast.parentNode) toast.remove(); }, 300);
+    setTimeout(() => { if (toast.parentNode) toast.remove(); }, UI_TIMERS.ANIMATION_FALLBACK_MS);
   }, timeoutMs);
 }
 
@@ -8797,6 +8795,9 @@ function friendlyAuthError(code) {
 
 function authErrorWithCode(code) {
   const message = friendlyAuthError(code);
+  if (code === "auth/app-not-authorized" || code === "auth/unauthorized-domain") {
+    return `${message} (domain: ${location.hostname}, code: ${code})`;
+  }
   return code ? `${message} (${code})` : message;
 }
 
