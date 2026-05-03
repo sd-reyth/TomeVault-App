@@ -22,7 +22,9 @@ export default function LandingScreen({
   onSignInEmail,
   onSignUpEmail,
   sessionError,
+  sessionInfo,
   sessionBusy,
+  onBackfillMemberships,
 }) {
   const [sessionCode, setSessionCode] = useState('');
   const [sessionPin, setSessionPin] = useState('');
@@ -343,12 +345,21 @@ export default function LandingScreen({
         </div>
       </div>
 
-      {uid && Array.isArray(recentSessions) && recentSessions.length > 0 && (
+      {uid && (
         <div className="w-full max-w-4xl z-10 mb-6">
           <div className="bg-stone-900/60 backdrop-blur-sm border border-stone-800 rounded-xl p-4 md:p-5 shadow-2xl">
             <div className="flex items-center justify-between gap-3 mb-3">
               <h3 className="text-stone-100 font-fantasy tracking-wider text-sm md:text-base">Recente Sessies</h3>
               <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => onBackfillMemberships?.()}
+                  disabled={sessionBusy}
+                  className="text-[10px] font-bold uppercase tracking-widest text-stone-300 hover:text-amber-300 bg-stone-800 hover:bg-stone-700 border border-stone-700 px-2 py-1 rounded transition-colors disabled:opacity-50"
+                  title="Herstel oude sessies waar je GM of speler bent"
+                >
+                  Herstel oud
+                </button>
                 {hiddenRecentCount > 0 && (
                   <button
                     type="button"
@@ -362,45 +373,56 @@ export default function LandingScreen({
               </div>
             </div>
 
-            <div className="space-y-2.5">
-              {visibleRecentSessions.slice(0, 8).map((session) => {
-                const displayCode = session.joinTag || session.sessionId;
-                const roleLabel = session.role === 'dm' ? 'GM' : 'Speler';
-                const defaultAsRole = session.role === 'dm' ? 'gm' : 'player';
-                const isHidden = session.status === 'hidden';
+            {visibleRecentSessions.length === 0 ? (
+              <div className="border border-dashed border-stone-800 rounded-lg px-4 py-6 text-center bg-stone-950/35">
+                <p className="text-sm text-stone-400 font-story italic">
+                  Nog geen recente sessies gevonden voor dit account.
+                </p>
+                <p className="text-[11px] text-stone-500 mt-2">
+                  Gebruik Herstel oud om eerdere sessies toe te voegen, of join eerst een sessie.
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-2.5">
+                {visibleRecentSessions.slice(0, 8).map((session) => {
+                  const displayCode = session.joinTag || session.sessionId;
+                  const roleLabel = session.role === 'dm' ? 'GM' : 'Speler';
+                  const defaultAsRole = session.role === 'dm' ? 'gm' : 'player';
+                  const isHidden = session.status === 'hidden';
 
-                return (
-                  <div key={session.sessionId} className={`flex flex-col md:flex-row md:items-center md:justify-between gap-2 border rounded-lg px-3 py-2.5 ${isHidden ? 'border-stone-800/60 bg-stone-950/30 opacity-80' : 'border-stone-800 bg-stone-950/50'}`}>
-                    <div className="min-w-0">
-                      <div className="text-stone-200 text-sm font-fantasy truncate">{session.sessionName || 'Naamloze Sessie'}</div>
-                      <div className="text-[10px] text-stone-500 uppercase tracking-widest truncate">{displayCode} • Laatst actief: {session.updatedAtLabel}</div>
+                  return (
+                    <div key={session.sessionId} className={`flex flex-col md:flex-row md:items-center md:justify-between gap-2 border rounded-lg px-3 py-2.5 ${isHidden ? 'border-stone-800/60 bg-stone-950/30 opacity-80' : 'border-stone-800 bg-stone-950/50'}`}>
+                      <div className="min-w-0">
+                        <div className="text-stone-200 text-sm font-fantasy truncate">{session.sessionName || 'Naamloze Sessie'}</div>
+                        <div className="text-[10px] text-stone-500 uppercase tracking-widest truncate">{displayCode} • Laatst actief: {session.updatedAtLabel}</div>
+                      </div>
+                      <div className="flex items-center gap-2 shrink-0">
+                        <span className={`text-[10px] uppercase tracking-widest px-2 py-1 rounded border ${session.role === 'dm' ? 'text-amber-500 border-amber-900/50 bg-amber-950/20' : 'text-indigo-400 border-indigo-900/50 bg-indigo-950/20'}`}>
+                          {roleLabel}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => (isHidden ? onRestoreRecentSession?.(session.sessionId) : onHideRecentSession?.(session.sessionId))}
+                          disabled={sessionBusy}
+                          className={`text-[11px] font-bold bg-stone-800 hover:bg-stone-700 border border-stone-700 px-2 py-1.5 rounded transition-colors ${isHidden ? 'text-emerald-300 hover:text-emerald-200' : 'text-stone-400 hover:text-rose-300'}`}
+                          title={isHidden ? 'Zet terug in recente lijst' : 'Verberg uit deze lijst'}
+                        >
+                          {isHidden ? 'Herstel' : 'Verberg'}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => onResumeRecentSession?.(session, defaultAsRole)}
+                          disabled={sessionBusy}
+                          className="text-[11px] font-bold text-stone-200 hover:text-amber-300 bg-stone-800 hover:bg-stone-700 border border-stone-700 px-3 py-1.5 rounded transition-colors"
+                        >
+                          Hervat
+                        </button>
+                      </div>
                     </div>
-                    <div className="flex items-center gap-2 shrink-0">
-                      <span className={`text-[10px] uppercase tracking-widest px-2 py-1 rounded border ${session.role === 'dm' ? 'text-amber-500 border-amber-900/50 bg-amber-950/20' : 'text-indigo-400 border-indigo-900/50 bg-indigo-950/20'}`}>
-                        {roleLabel}
-                      </span>
-                      <button
-                        type="button"
-                        onClick={() => (isHidden ? onRestoreRecentSession?.(session.sessionId) : onHideRecentSession?.(session.sessionId))}
-                        disabled={sessionBusy}
-                        className={`text-[11px] font-bold bg-stone-800 hover:bg-stone-700 border border-stone-700 px-2 py-1.5 rounded transition-colors ${isHidden ? 'text-emerald-300 hover:text-emerald-200' : 'text-stone-400 hover:text-rose-300'}`}
-                        title={isHidden ? 'Zet terug in recente lijst' : 'Verberg uit deze lijst'}
-                      >
-                        {isHidden ? 'Herstel' : 'Verberg'}
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => onResumeRecentSession?.(session, defaultAsRole)}
-                        disabled={sessionBusy}
-                        className="text-[11px] font-bold text-stone-200 hover:text-amber-300 bg-stone-800 hover:bg-stone-700 border border-stone-700 px-3 py-1.5 rounded transition-colors"
-                      >
-                        Hervat
-                      </button>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
+                  );
+                })}
+              </div>
+            )}
           </div>
         </div>
       )}
@@ -408,6 +430,12 @@ export default function LandingScreen({
       {sessionError && (
         <div className="w-full max-w-4xl z-10 mb-4 text-xs md:text-sm text-rose-300 bg-rose-950/30 border border-rose-900/50 rounded-lg px-4 py-3">
           {sessionError}
+        </div>
+      )}
+
+      {sessionInfo && (
+        <div className="w-full max-w-4xl z-10 mb-4 text-xs md:text-sm text-emerald-300 bg-emerald-950/30 border border-emerald-900/50 rounded-lg px-4 py-3">
+          {sessionInfo}
         </div>
       )}
 

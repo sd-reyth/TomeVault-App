@@ -132,6 +132,7 @@ export default function TomeVaultApp() {
   const [authLoading, setAuthLoading] = useState(true);
   const [authError, setAuthError] = useState('');
   const [sessionError, setSessionError] = useState('');
+  const [sessionInfo, setSessionInfo] = useState('');
   const [sessionBusy, setSessionBusy] = useState(false);
   const [recentSessions, setRecentSessions] = useState([]);
   const [recentSessionsLoaded, setRecentSessionsLoaded] = useState(false);
@@ -156,6 +157,7 @@ export default function TomeVaultApp() {
 
   const handleJoin = async (selectedRole, code, options = {}) => {
     setSessionError('');
+    setSessionInfo('');
     if (!uid) {
       setAuthError('Log eerst in voordat je een sessie start of joint.');
       return;
@@ -329,6 +331,7 @@ export default function TomeVaultApp() {
     if (!uid || !membership?.sessionId) return;
 
     setSessionError('');
+    setSessionInfo('');
     setSessionBusy(true);
 
     try {
@@ -459,6 +462,55 @@ export default function TomeVaultApp() {
     setIsMusicPlaying(false);
     setIsPartyOpen(false);
     setBattleActive(false);
+  };
+
+  const handleBackfillMemberships = async () => {
+    if (!uid) return;
+
+    setSessionError('');
+    setSessionInfo('');
+    setSessionBusy(true);
+
+    try {
+      const sessionsSnap = await getDocs(collection(db, 'sessions'));
+      let scanned = 0;
+      let restored = 0;
+
+      for (const sessionDoc of sessionsSnap.docs) {
+        scanned += 1;
+        const sessionData = sessionDoc.data() || {};
+
+        let role = null;
+        if (sessionData.gmUid === uid) {
+          role = 'dm';
+        } else {
+          const playerRef = doc(db, 'sessions', sessionDoc.id, 'players', uid);
+          const playerSnap = await getDoc(playerRef);
+          if (playerSnap.exists()) {
+            role = 'player';
+          }
+        }
+
+        if (!role) continue;
+
+        await writeMembership({
+          uid,
+          sessionId: sessionDoc.id,
+          role,
+          sessionName: sessionData.name || '',
+          joinTag: toLegacyHashJoinTag(sessionData.joinTag || sessionDoc.id),
+        });
+
+        restored += 1;
+      }
+
+      setSessionInfo(`Herstel voltooid: ${restored} sessie(s) toegevoegd/geüpdatet na scan van ${scanned} sessies.`);
+    } catch (err) {
+      console.error('Membership herstel fout:', err);
+      setSessionError('Herstel van oude sessies is mislukt. Controleer Firestore-toegang en probeer opnieuw.');
+    } finally {
+      setSessionBusy(false);
+    }
   };
 
   useEffect(() => {
@@ -1130,7 +1182,9 @@ export default function TomeVaultApp() {
           onSignInEmail={handleSignInEmail}
           onSignUpEmail={handleSignUpEmail}
           sessionError={sessionError}
+          sessionInfo={sessionInfo}
           sessionBusy={sessionBusy}
+          onBackfillMemberships={handleBackfillMemberships}
       />
     );
   }
