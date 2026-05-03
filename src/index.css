@@ -1,0 +1,23 @@
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700;900&family=Lora:ital,wght@0,400;0,500;0,600;1,400;1,500&display=swap');
+@import "tailwindcss";
+
+/* Custom font utilities (used as className="font-fantasy" / className="font-story") */
+.font-fantasy { font-family: 'Cinzel', serif; }
+.font-story   { font-family: 'Lora', serif; }
+
+/* Hide scrollbar visually but keep functionality */
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+/* Hide number input arrows */
+.hide-arrows::-webkit-outer-spin-button,
+.hide-arrows::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+.hide-arrows { -moz-appearance: textfield; }
+
+/* iPhone notch safe area */
+.pb-safe { padding-bottom: env(safe-area-inset-bottom, 0px); }
+
+/* Radial vignette overlay for background */
+.bg-texture {
+  background-image: radial-gradient(circle at center, transparent 0%, rgba(0,0,0,0.4) 100%);
+}

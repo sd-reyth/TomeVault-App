@@ -1,16 +1,24 @@
 {
   "name": "tomevault",
-  "version": "1.0.0",
-  "description": "The perfect addition to your TTRPG sessions, TomeVault is a multiplayer companion app for handouts, inventory management, and ambience control. It enhances gameplay by providing a centralized platform for players and game masters to share resources, manage character inventories, and create immersive atmospheres with ease.",
-  "learningNotes": "JSON files do not allow real comments, so this field explains purpose: package.json is metadata used by Node tooling. In this project it mainly sets module type to ESM so index.mjs can use import/export syntax directly in modern browsers and tooling.",
-  "license": "MIT",
+  "private": true,
+  "version": "0.0.1",
   "type": "module",
   "scripts": {
-    "start": "npx serve . -l 3000 --cors",
-    "deploy": "cmd /c firebase deploy",
-    "deploy:log": "cmd /c \"if not exist .private mkdir .private & firebase deploy > .private\\deploy_log.txt 2>&1\""
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
   },
   "dependencies": {
-    "firebase-functions": "^4.9.0"
+    "@tailwindcss/vite": "^4.2.4",
+    "@vitejs/plugin-react": "^6.0.1",
+    "firebase": "^12.12.1",
+    "lucide-react": "^1.14.0",
+    "react": "^19.2.5",
+    "react-dom": "^19.2.5",
+    "tailwindcss": "^4.2.4",
+    "vite": "^8.0.10"
+  },
+  "devDependencies": {
+    "vite-plugin-static-copy": "^4.1.0"
   }
 }

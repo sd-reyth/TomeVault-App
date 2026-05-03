@@ -1,0 +1,1386 @@
+================================================================================
+  TOMEVAULT — TRANSPLANTATIE PLAN
+  Versie: 1.0  |  Datum: 3 mei 2026
+  Opgesteld voor gebruik door AI-agent als uitvoeringshandleiding
+================================================================================
+
+LEESWIJZER VOOR DE AI
+----------------------
+Dit document is de leidraad voor een volledige transplantatie van TomeVault.
+De AI mag dit document als bindende instructie beschouwen. Elke beslissing die
+conflicteert met dit plan dient te worden voorgelegd aan de gebruiker voordat
+er code wordt geschreven.
+
+De gouden regel: de oude stijl, de oude layout, de oude CSS-klassen en de
+oude DOM-structuur mogen op geen enkel moment worden overgenomen of "gepatcht"
+in de nieuwe code. Oud gaat weg. Nieuw komt ervoor in de plaats.
+
+
+================================================================================
+  DEEL 1: SITUATIESCHETS — WAT WE HEBBEN
+================================================================================
+
+HUIDIGE APP (het oude lichaam)
+--------------------------------
+Bestanden:
+  - index.html      (197 KB  — volledige DOM, alle screens als <section> blokken)
+  - style.css       (groot  — CSS custom properties + alle layout klassen)
+  - index.mjs       (17.729 regels — vanilla JS, geen React)
+
+Architectuur:
+  - Geen React. Geen virtual DOM. Geen componenten.
+  - Navigation werkt via showOnly() die CSS-klassen "hidden" toevoegt/verwijdert
+    aan <section id="screen*"> elementen.
+  - Alle UI-state zit in een groot globaal object genaamd `state`.
+  - Alle DOM-manipulatie via document.getElementById() (alias: de $ helper).
+  - Er zijn meer dan 200 directe DOM-referentie-variabelen bovenaan index.mjs.
+  - Firebase Auth, Firestore en Storage zijn volledig geïmplementeerd en werkend.
+
+Firebase collecties (FIREBASE_PATHS):
+  - sessions          (sessie-metadata, PIN, naam, GM uid)
+  - players           (party members per sessie)
+  - handouts          (handout documenten)
+  - inventory         (inventory items per speler)
+  - wallets           (goud, zilver, brons, platina per speler + party kas)
+  - users             (user profielen, avatar URL, stats, bio)
+  - nuggets           (in-app currency)
+  - notifications     (notificaties voor spelers)
+  - chatMessages      (realtime chat berichten)
+  - templates         (karakter templates)
+  - templateAssignments (toegewezen templates aan spelers)
+
+Schermen (SCREEN_KEYS):
+  - landing           (inlogscherm + auth kaart)
+  - gmCreate          (GM maakt nieuwe sessie aan)
+  - gmDash            (GM hoofdscherm)
+  - plJoin            (speler vult sessie ID + PIN in)
+  - plView            (speler hoofdscherm met handouts)
+  - plInventory       (speler inventaris)
+  - chat              (volledige chat view)
+  - notes             (notities/kronieken)
+  - profile           (karakter profiel met stats, bio, avatar, OCR scan)
+  - settings          (instellingen, rol wisselen, sessie beheer)
+  - info              (info scherm)
+  - settingsProfile   (profiel instellingen)
+  - characterTemplates (karakter templates beheer)
+
+Auth-methoden aanwezig:
+  - Email + wachtwoord (aanmaken + inloggen)
+  - Google Sign-In (via popup)
+  - Anoniem (guest/one-shot sessies)
+  - Wachtwoord vergeten (reset email)
+  - Email verificatie
+  - Account koppelen (guest → echte account)
+
+Aanvullende systemen in index.mjs:
+  - WakeLock API (scherm blijft aan tijdens sessie)
+  - Heartbeat systeem (aanwezigheid/online status per 20 seconden)
+  - Presence tracking (online/away/offline per speler)
+  - Realtime Firestore listeners (onSnapshot op alle collecties)
+  - Toast notificaties (showToast)
+  - Hamburger speed dial (zwevende actieknop, sleepbaar)
+  - Theme systeem (dark/light/system, gesynchroniseerd met localStorage)
+  - Random handout generator (combinatorisch systeem met word pools)
+  - QR code generator (via externe API)
+  - OCR karakter sheet scanner (camera + Tesseract/parseCharacterSheetText)
+  - Avatar upload naar Firebase Storage
+  - Session transfer (GM overdracht via PIN)
+  - Handout deck review modal
+  - Nugget systeem (in-app punten)
+  - Character template systeem
+  - Inventory search met debounce
+  - Notes met auto-save, tags, archivering, export (txt/md)
+  - GM mini-chat panel (inline in dashboard)
+  - Session deletion + discard flows
+
+NIEUW ONTWERP (het nieuwe lichaam)
+------------------------------------
+Bestand: newTomeVault.jsx  (2.352 regels — React JSX, Tailwind CSS)
+
+Architectuur:
+  - React met useState/useEffect hooks
+  - Tailwind CSS utility classes
+  - Lucide React iconen
+  - Google Fonts: Cinzel (fantasy/headings) + Lora (story/body)
+  - GEEN Firebase — werkt op mock data arrays
+
+Componenten aanwezig in newTomeVault.jsx:
+  TomeVaultApp          — root component, state management, routing (view)
+  LandingScreen         — landing pagina (GM/Speler keuze + join form)
+  TopBar                — header met logo, sessie badge, muziek, logout
+  Sidebar               — linker navigatiebalk (handouts/chat/inventory/notes)
+  RightSidebar          — rechter party/slagorde panel
+  HandoutsView          — handout grid/lijst + create knop
+  ChatView              — partychat
+  WalletSection         — munt display component
+  InventoryView         — schatkamer (items + wallets + geclaimde handouts)
+  NotesView             — kronieken (lijst + editor)
+  PlaceholderView       — placeholder voor nog te bouwen schermen
+  ShareModal            — QR code + kopieer link modal
+  HandoutModal          — handout detail/bewerken modal
+  CharacterProfileModal — karakter profiel modal (stats, bio, avatar)
+  DamageModal           — HP aanpassen modal
+  AddItemModal          — item toevoegen aan inventaris
+  AddNpcModal           — NPC toevoegen aan slagorde
+  SettingsModal         — instellingen modal
+  EditableStat          — klikbaar/bewerkbaar getal component
+  getHandoutIcon()      — helper functie voor handout type iconen
+
+Stijl-DNA van het nieuwe ontwerp:
+  - Achtergrond:      bg-stone-950 (bijna-zwart)
+  - Oppervlak:        bg-stone-900 (dark cards)
+  - Primaire accent:  amber-500/600/700 (goud)
+  - Secundaire:       indigo-400/500 (blauw voor speler)
+  - Gevaar/NPC:       rose-400/500/900
+  - Tekst:            stone-100/200/300/400 (warm wit naar grijs)
+  - Fonts:            font-fantasy = Cinzel, font-story = Lora
+  - Border radius:    rounded-lg, rounded-xl, rounded-2xl
+  - Backdrop blur:    backdrop-blur-sm/md op cards en sidebars
+  - Schaduw:          shadow-2xl, shadow-inner, shadow-[0_0_15px_...]
+  - Tailwind klassen zijn ALTIJD leidend — nooit custom CSS klassen hergebruiken
+
+SCHERMEN DIE NOG ONTWORPEN MOETEN WORDEN (niet in prototype):
+  - Auth scherm (email, Google, guest login)
+  - GM Create Session scherm
+  - Player Join scherm (met sessie ID + PIN)
+  - Character Templates scherm
+  - Info scherm
+  - Settings Profile scherm (uitgebreide profiel editor)
+  Al deze schermen worden in dezelfde Cinzel/amber/stone stijl gebouwd.
+  Gebruiker keurt elk scherm goed voordat we doorgaan.
+
+
+================================================================================
+  DEEL 2: ARCHITECTUURSWITCH — HET PLAN
+================================================================================
+
+DE KERN VAN HET PROBLEEM
+--------------------------
+De huidige app is vanilla JS die de DOM direct manipuleert.
+De nieuwe app is React.
+Dit zijn twee onverenigbare paradigma's. Er is geen "patch" mogelijk.
+We vervangen de gehele UI-laag. De Firebase-logica overleeft — maar dan
+als React hooks en callbacks, niet als DOM-manipulatie.
+
+BESTANDSSTRUCTUUR NA TRANSPLANTATIE
+--------------------------------------
+WORDT VERWIJDERD of volledig overschreven:
+  - index.html        → wordt minimale React shell (alleen <head> + <div id="root">)
+  - style.css         → wordt teruggebracht tot alleen CSS-variabelen + font imports
+  - index.mjs         → alle DOM-functies worden verwijderd
+                         Firebase + data logica blijft als aparte module
+
+NIEUWE BESTANDEN:
+  - app.jsx           → nieuw React root bestand (vervangt newTomeVault.jsx)
+                         Bevat alle componenten uit newTomeVault.jsx
+                         + alle Firebase logica ingeplugd
+  - firebase.js       → Firebase initialisatie + alle read/write helpers
+                         (geëxtraheerd uit index.mjs)
+
+OPMERKING: newTomeVault.jsx wordt hernoemd naar app.jsx.
+index.mjs wordt gesplitst: Firebase-kern gaat naar firebase.js,
+al het andere (DOM, screens, state object) verdwijnt.
+
+HOE REACT EN FIREBASE SAMENWERKEN
+------------------------------------
+Oud patroon (vanilla JS):
+  onSnapshot(handoutsRef, (snap) => {
+    renderHandoutList(snap.docs);  ← manipuleert DOM direct
+  });
+
+Nieuw patroon (React):
+  const [handouts, setHandouts] = useState([]);
+  useEffect(() => {
+    const unsub = onSnapshot(handoutsRef, (snap) => {
+      setHandouts(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+    });
+    return () => unsub();  ← cleanup bij unmount
+  }, [sessionId]);
+  // React herrendert automatisch als handouts verandert
+
+Elke Firestore listener wordt een useEffect in de root TomeVaultApp of in
+een custom hook. Alle setHandouts/setParty/setChat etc. vervangen de
+renderHandoutList/gmPartyInlineList/chatList DOM-manipulaties.
+
+BUILD SYSTEEM
+--------------
+De huidige app heeft geen build stap — index.html laadt index.mjs direct
+als ES module via CDN imports. React JSX vereist een transpilatiestap.
+
+KEUZE: Vite (aanbevolen)
+  - Snel, minimale configuratie
+  - Ondersteunt JSX, Tailwind, ES modules
+  - Output is statische bestanden die op Firebase Hosting werken
+  Commando's:
+    npm create vite@latest . -- --template react
+    npm install
+    npm install tailwindcss @tailwindcss/vite lucide-react
+    npm run build   → dist/ folder
+    firebase deploy → zet dist/ live
+
+ALTERNATIEF zonder build stap (als Vite niet gewenst is):
+  - importmap + htm library (JSX-achtige syntax zonder transpilatie)
+  - Dit is minder aanbevolen omdat Tailwind dan ook niet werkt
+  - VRAAG GEBRUIKER VOORDAT FASE 0 BEGINT welke aanpak gewenst is
+
+
+================================================================================
+  DEEL 3: FASE-VOOR-FASE UITVOERINGSPLAN
+================================================================================
+
+FASE 0 — FUNDAMENT (EENMALIG, DOEN VÓÓR ALLES)
+-------------------------------------------------
+Doel: het nieuwe huis bouwen voordat we de paspop erin zetten.
+
+Stap 0a: Build-setup keuze bevestigen met gebruiker
+  - Vite + React + Tailwind? Of andere aanpak?
+  - BLOKKEER fase 0b tot gebruiker akkoord geeft
+
+Stap 0b: Vite project initialiseren
+  COMMANDO's (in volgorde uitvoeren):
+    npm create vite@latest . -- --template react --force
+    npm install
+    npm install tailwindcss @tailwindcss/vite
+    npm install lucide-react
+  
+  Tailwind configureren in vite.config.js:
+    import tailwindcss from '@tailwindcss/vite'
+    plugins: [react(), tailwindcss()]
+  
+  In src/index.css:
+    @import "tailwindcss";
+    @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700;900&family=Lora:ital,wght@0,400;0,500;0,600;1,400;1,500&display=swap');
+    .font-fantasy { font-family: 'Cinzel', serif; }
+    .font-story   { font-family: 'Lora', serif; }
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    .hide-arrows::-webkit-outer-spin-button,
+    .hide-arrows::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+    .hide-arrows { -moz-appearance: textfield; }
+    .pb-safe { padding-bottom: env(safe-area-inset-bottom, 0px); }
+
+Stap 0c: Firebase npm packages installeren
+  COMMANDO:
+    npm install firebase
+  
+  Nieuw bestand: src/firebase.js
+  Inhoud: de Firebase initialisatie + config uit index.mjs (regel 1-70)
+    import { initializeApp } from 'firebase/app'
+    import { getAuth, ... } from 'firebase/auth'
+    import { initializeFirestore, ... } from 'firebase/firestore'
+    import { getStorage, ... } from 'firebase/storage'
+    
+    export const firebaseConfig = { ... } (kopieer uit index.mjs)
+    export const app = initializeApp(firebaseConfig)
+    export const auth = getAuth(app)
+    export const db = initializeFirestore(app, {})
+    export const storage = getStorage(app)
+    export { ... alle geëxporteerde Firebase functies die componenten nodig hebben }
+
+Stap 0d: newTomeVault.jsx kopiëren naar src/App.jsx
+  - Alle mock data BLIJFT staan als fallback tijdens ontwikkeling
+  - Import paths aanpassen (lucide-react blijft hetzelfde)
+  - src/main.jsx moet App importeren en renderen in #root
+
+Stap 0e: index.html terugbrengen tot React shell
+  BEHOUD:
+    - Alle <meta> tags
+    - <link rel="manifest"> 
+    - <link rel="icon">
+    - Font preconnects
+    - <title>
+  VERWIJDER:
+    - Alle <section id="screen*"> blokken
+    - Alle <header id="topBar"> structuur
+    - Alle <div id="modal*"> blokken
+    - <script> tags die index.mjs laden
+  VOEG TOE:
+    - <div id="root"></div>
+    - <script type="module" src="/src/main.jsx"></script>
+
+Stap 0f: style.css aanpassen
+  BEHOUD:
+    - :root { } blok met alle CSS custom properties (--bg, --gold, --text etc.)
+    - Alle font @import regels
+  VERWIJDER:
+    - Alle .topbar, .sidebar, .screen-*, .modal-*, .btn-*, etc. klassen
+    - Alles wat gebonden is aan specifieke HTML element IDs
+  REDEN: Tailwind neemt alle layout over.
+         CSS variables mogen blijven als fallback tokens.
+
+Stap 0g: Verifieer dat de app opstart met npm run dev
+  - Verwacht: LandingScreen zichtbaar, mock data zichtbaar, geen crashes
+  - Als er crashes zijn: fix die vóór we naar Fase 1 gaan
+  - VRAAG GEBRUIKER om te bevestigen dat de app er uitziet als de screenshot
+    vóór we doorgaan naar Fase 1
+
+
+FASE 1 — FIREBASE AUTH INTEGRATIE
+------------------------------------
+Doel: de mock handleJoin vervangen door echte Firebase auth.
+
+Wat er nu is (mock):
+  const handleJoin = (selectedRole, code) => {
+    setRole(selectedRole);
+    setSessionId(code);
+    setView('dashboard');
+  };
+
+Wat het wordt:
+  useEffect(() => {
+    const unsub = onAuthStateChanged(auth, (user) => {
+      if (user) {
+        setUid(user.uid);
+        setIsGuest(user.isAnonymous);
+        setDisplayName(user.displayName || user.email || 'Avonturier');
+      } else {
+        setView('landing');
+      }
+    });
+    return () => unsub();
+  }, []);
+
+State die moet worden toegevoegd aan TomeVaultApp:
+  const [uid, setUid] = useState(null);
+  const [isGuest, setIsGuest] = useState(true);
+  const [displayName, setDisplayName] = useState('');
+  const [authLoading, setAuthLoading] = useState(true);
+
+Auth flows die moeten worden gebouwd als React componenten
+(in dezelfde Cinzel/amber/stone stijl als LandingScreen):
+
+  AuthCard component (nieuw, niet in prototype):
+    - Knop: "Doorgaan met Google"   → signInWithPopup(auth, googleProvider)
+    - Knop: "Doorgaan als Gast"     → signInAnonymously(auth)
+    - Link:  "Inloggen met Email"   → toont EmailForm component
+    
+  EmailForm component (nieuw):
+    - Tab: Inloggen | Aanmaken
+    - Inloggen: email + wachtwoord veld + btnSignIn
+    - Aanmaken: weergavenaam + email + wachtwoord + bevestig wachtwoord
+    - Wachtwoord vergeten link → sendPasswordResetEmail
+    - Foutafhandeling: verkeerde inloggegevens, email al in gebruik, etc.
+    - STIJLREGEL: zelfde bg-stone-900/60, border-stone-800, amber accenten
+                  als de bestaande LandingScreen kaarten
+
+Uit index.mjs kopiëren (functies, niet DOM-aanroepen):
+  - signInWithEmailAndPassword logica
+  - createUserWithEmailAndPassword logica (+ updateProfile voor displayName)
+  - signInWithPopup(googleProvider) logica
+  - signInAnonymously logica
+  - sendPasswordResetEmail logica
+  - sendEmailVerification logica
+
+VALIDATIE: gebruiker kan inloggen via Google en via email voordat we doorgaan.
+
+
+FASE 2 — SESSIE AANMAKEN EN JOINEN
+-------------------------------------
+Doel: echte Firestore sessies aanmaken en joinen.
+
+SCHERM: GM Create Session (nieuw, niet in prototype)
+  Component naam: GMCreateScreen
+  Props: uid, onSessionCreated(sessionId, role)
+  
+  Velden (uit index.mjs gmCreate scherm):
+    - Sessie naam (text input, 2-48 tekens)
+    - PIN (number input, 4-8 cijfers)
+    - Toggle: "One-shot" (sessie vervalt na 24 uur)
+    - Toggle: "Claimable handouts" standaard aan
+    - Knop: "Sessie Ontwaken"
+  
+  Firebase logica (uit index.mjs btnCreateSession handler):
+    await setDoc(doc(db, 'sessions', sessionId), {
+      name: sessionName,
+      gmUid: uid,
+      pin: hashedPin,   ← PIN wordt gehashed opgeslagen
+      createdAt: serverTimestamp(),
+      isOneShot: isOneShotEnabled,
+      claimableDefault: claimableToggle
+    });
+  
+  Stijl: zelfde als LandingScreen (bg-stone-900/60, rounded-xl, amber accenten)
+         Cinzel voor headings, Lora voor labels
+
+SCHERM: Player Join (nieuw, niet in prototype)
+  Component naam: PlayerJoinScreen
+  Props: uid, onJoined(sessionId, role)
+  
+  Velden:
+    - Sessie Code invoer (uppercase, formaat #WOORD-1234)
+    - PIN invoer
+    - Weergavenaam (als gast)
+    - Knop: "Betreed de Wereld"
+    - Recent joined sessions lijst (uit localStorage, JOINED_SESSION_LIST_KEY)
+  
+  Firebase logica:
+    - Haal sessie op via getDoc
+    - Valideer PIN
+    - Voeg speler toe aan players collectie
+    - Start aanwezigheids-heartbeat
+
+QR Camera Scanner (optioneel, na basisflow):
+  - btnScanInApp functionaliteit
+  - Gebruikt Html5Qrcode library
+  - Decodeert QR → vult Sessie Code automatisch in
+
+VALIDATIE: GM kan sessie aanmaken, speler kan joinen met code + PIN.
+
+
+FASE 3 — HANDOUTS (CORE SCHERM)
+----------------------------------
+Doel: HandoutsView koppelen aan Firestore.
+
+State aanpassen in TomeVaultApp:
+  VERVANG:  const [handouts, setHandouts] = useState(MOCK_HANDOUTS);
+  MET:      const [handouts, setHandouts] = useState([]);
+  
+  useEffect(() => {
+    if (!sessionId) return;
+    const handoutsRef = collection(db, 'sessions', sessionId, 'handouts');
+    const q = query(handoutsRef, orderBy('createdAt', 'desc'));
+    const unsub = onSnapshot(q, (snap) => {
+      setHandouts(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+    });
+    return () => unsub();
+  }, [sessionId]);
+
+Handout aanmaken (uit GM create form in index.mjs):
+  const handleCreateHandout = async (formData) => {
+    await addDoc(collection(db, 'sessions', sessionId, 'handouts'), {
+      ...formData,
+      createdAt: serverTimestamp(),
+      gmUid: uid
+    });
+  };
+
+Handout bewerken:
+  await updateDoc(doc(db, 'sessions', sessionId, 'handouts', id), changes);
+
+Handout verwijderen:
+  await deleteDoc(doc(db, 'sessions', sessionId, 'handouts', id));
+
+Zichtbaarheid togglen (GM onthult aan spelers):
+  await updateDoc(handoutRef, { isRevealed: !current.isRevealed });
+
+Claim systeem:
+  Speler claimit:   updateDoc(handoutRef, { claimedBy: uid, claimedAt: serverTimestamp() });
+  Speler unclaimit: updateDoc(handoutRef, { claimedBy: null, claimedAt: null });
+
+Afbeelding upload (uit index.mjs uploadHandoutImage):
+  const fileRef = storageRef(storage, `sessions/${sessionId}/handouts/${id}/image`);
+  await uploadBytes(fileRef, file);
+  const url = await getDownloadURL(fileRef);
+  await updateDoc(handoutRef, { imageUrl: url });
+
+HandoutModal — GM vs Speler gedrag:
+  GM:     kan CRUD, ziet geheimen, kan reveal togglen
+  Speler: read-only, ziet geen geheimen, kan claimen als claimable=true
+
+Random Handout Generator behouden:
+  RANDOM_GENERATOR_CATALOG zit al in index.mjs.
+  Dit wordt gekopieerd naar src/App.jsx of een aparte src/data/generators.js
+  De "Willekeurige Handout" knop roept generateRandomHandout() aan.
+
+VALIDATIE: GM kan handout aanmaken. Speler ziet het verschijnen. Reveal werkt.
+
+
+FASE 4 — PARTY, GEVECHT EN CHAT
+----------------------------------
+Doel: RightSidebar en ChatView koppelen aan Firestore.
+
+PARTY (players collectie):
+  State:
+    const [party, setParty] = useState([]);
+    useEffect(() => {
+      const q = query(collection(db, 'sessions', sessionId, 'players'));
+      const unsub = onSnapshot(q, (snap) => {
+        setParty(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+      });
+      return () => unsub();
+    }, [sessionId]);
+
+  HP aanpassen (onOpenDamageModal → DamageModal → handleSave):
+    await updateDoc(doc(db, 'sessions', sessionId, 'players', memberId), { hp: newHp });
+
+  NPC toevoegen (AddNpcModal → onSave):
+    await addDoc(collection(db, 'sessions', sessionId, 'players'), {
+      ...npcData, isNpc: true, createdAt: serverTimestamp()
+    });
+
+  NPC verwijderen:
+    await deleteDoc(doc(db, 'sessions', sessionId, 'players', npcId));
+
+GEVECHTSTRACKER:
+  Huidige mock werkt al met lokale state. Initiatief synchroniseren via Firestore:
+    - battleActive, currentTurnUid, turnRound worden opgeslagen in sessie document
+    - updateDoc(sessionRef, { battleActive, currentTurnUid, turnRound })
+    - Alle verbonden clients lezen dit via de onSnapshot op de sessie
+
+AANWEZIGHEID (heartbeat systeem):
+  Elke 20 seconden (HEARTBEAT_MS):
+    await updateDoc(playerRef, { 
+      lastSeen: serverTimestamp(), 
+      online: true 
+    });
+  Bij disconnect (onDisconnect):
+    Firestore heeft geen native onDisconnect zoals Realtime Database.
+    Workaround: gebruik Cloud Functions of accepteer dat "last seen" 
+    na AWAY_THRESHOLD_MS (35 min) de status wijzigt.
+  
+  In RightSidebar: toon online indicator als lastSeen < ONLINE_THRESHOLD_MS geleden.
+
+CHAT (chatMessages collectie):
+  State:
+    const [chat, setChat] = useState([]);
+    useEffect(() => {
+      const q = query(
+        collection(db, 'sessions', sessionId, 'chatMessages'),
+        orderBy('createdAt', 'asc'),
+        limit(CHAT_INITIAL_LIMIT)
+      );
+      const unsub = onSnapshot(q, (snap) => {
+        setChat(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+      });
+      return () => unsub();
+    }, [sessionId]);
+
+  Bericht sturen:
+    await addDoc(collection(db, 'sessions', sessionId, 'chatMessages'), {
+      author: displayName,
+      authorUid: uid,
+      text: messageText,
+      createdAt: serverTimestamp()
+    });
+
+  ChatView aanpassen:
+    - VERVANG: setChat([...chat, newMsg])  (mock)
+    - MET:     handleSendChat(text)  die addDoc aanroept
+    - Firestore listener update de chat state automatisch
+
+VALIDATIE: party verschijnt in slagorde. HP aanpassen werkt voor GM.
+           Chat berichten verschijnen realtime bij alle verbonden clients.
+
+
+FASE 5 — SCHATKAMER, KRONIEKEN EN PROFIEL
+-------------------------------------------
+Doel: InventoryView, NotesView en CharacterProfileModal koppelen.
+
+INVENTARIS (inventory collectie):
+  State:
+    const [inventory, setInventory] = useState([]);
+    useEffect(() => {
+      const q = query(collection(db, 'sessions', sessionId, 'inventory'));
+      const unsub = onSnapshot(q, snap => {
+        setInventory(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+      });
+      return () => unsub();
+    }, [sessionId]);
+
+  Item toevoegen (AddItemModal → onSave):
+    await addDoc(collection(db, 'sessions', sessionId, 'inventory'), {
+      ...itemData, createdAt: serverTimestamp()
+    });
+
+  Item verwijderen:
+    await deleteDoc(doc(db, 'sessions', sessionId, 'inventory', itemId));
+
+WALLETS:
+  State:
+    const [wallets, setWallets] = useState({});
+    useEffect(() => {
+      const q = query(collection(db, 'sessions', sessionId, 'wallets'));
+      const unsub = onSnapshot(q, snap => {
+        const data = {};
+        snap.docs.forEach(d => { data[d.id] = d.data(); });
+        setWallets(data);
+      });
+      return () => unsub();
+    }, [sessionId]);
+
+  Munt aanpassen:
+    await updateDoc(doc(db, 'sessions', sessionId, 'wallets', ownerId), 
+      { [coinType]: increment(amount) });
+
+NOTITIES (notes systeem):
+  Notes zijn opgeslagen in Firestore: sessions/{id}/notes/{noteId}
+  
+  State:
+    const [notes, setNotes] = useState([]);
+    useEffect(() => {
+      const q = query(
+        collection(db, 'sessions', sessionId, 'notes'),
+        where('authorUid', '==', uid),
+        orderBy('updatedAt', 'desc')
+      );
+      const unsub = onSnapshot(q, snap => {
+        setNotes(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+      });
+      return () => unsub();
+    }, [sessionId, uid]);
+
+  Auto-save (debounced, 500ms na laatste wijziging):
+    debounce(async (noteId, changes) => {
+      await updateDoc(doc(db, 'sessions', sessionId, 'notes', noteId), {
+        ...changes, updatedAt: serverTimestamp()
+      });
+    }, 500);
+
+  NotesView aanpassen:
+    - lastEdited moet formatRelativeTime(timestamp) gebruiken
+    - Auto-save indicator ("Opgeslagen") verschijnt na succesvolle updateDoc
+    - Tag systeem: tags worden als array opgeslagen in Firestore
+    - Archivering: archived: true/false veld
+
+PROFIEL (CharacterProfileModal + users collectie):
+  Profiel opslaan:
+    await setDoc(doc(db, 'users', uid), {
+      displayName, bio, hp, maxHp, ac, initMod,
+      customStats, avatar: avatarUrl,
+      updatedAt: serverTimestamp()
+    }, { merge: true });
+
+  Avatar upload:
+    const avatarRef = storageRef(storage, `users/${uid}/avatar`);
+    await uploadBytes(avatarRef, file);
+    const url = await getDownloadURL(avatarRef);
+    handleChange('avatar', url);
+    await updateProfile(auth.currentUser, { photoURL: url });
+
+  Profiel ophalen bij openen modal:
+    const snap = await getDoc(doc(db, 'users', memberId));
+    setFormData(snap.data() || {});
+
+  OCR scanner (optioneel, na basisflow):
+    - Camera openen: getUserMedia
+    - Foto maken: canvas.drawImage(video, ...)
+    - OCR: Tesseract.js of parseCharacterSheetText() uit index.mjs
+    - Resultaat invullen: applyParsedProfileToEditor()
+
+VALIDATIE: item toevoegen werkt. Wallet coins kloppen. Notitie wordt opgeslagen.
+           Avatar upload werkt. Profiel wordt opgeslagen en geladen.
+
+
+FASE 6 — ONTBREKENDE SCHERMEN IN NIEUWE STIJL
+-----------------------------------------------
+Doel: alle schermen die niet in het prototype zitten bouwen in dezelfde stijl.
+
+STIJLREGEL voor nieuwe schermen:
+  - bg-stone-950 als pagina achtergrond
+  - bg-stone-900/60 + border-stone-800 voor kaarten
+  - Amber accenten: from-amber-700 to-amber-600 voor primaire knoppen
+  - font-fantasy (Cinzel) voor alle headings en knoppen
+  - font-story (Lora) voor beschrijvingen en labels
+  - Altijd rounded-xl of rounded-2xl voor containers
+  - Altijd backdrop-blur-sm op floating/overlay elementen
+  - Maximale breedte: max-w-4xl of max-w-sm voor modals
+
+Te bouwen schermen (in volgorde van prioriteit):
+
+  6a: Settings/Configuratie scherm (uitbreiding van bestaande SettingsModal)
+      Voeg toe aan SettingsModal:
+        - Thema wisselaar (dark/light/system)
+        - Sessie info (naam, ID, PIN tonen)
+        - "Overdracht GM-rol" knop (transferModal flow)
+        - "Sessie verwijderen" knop (met bevestigingsinput)
+        - Karakter Templates link
+
+  6b: Character Templates scherm
+      Component: CharacterTemplatesScreen
+      Lijst van opgeslagen templates (uit templates collectie)
+      Template aanmaken: naam, bio, stats, avatar
+      Template toewijzen aan speler
+      Stijl: zelfde handout kaart layout maar voor karakters
+
+  6c: Info scherm
+      Component: InfoScreen
+      Statisch scherm: over TomeVault, versienummer, licenties
+      Links naar Discord, feedback etc.
+
+  6d: Settings Profile scherm (uitgebreide profiel editor)
+      Component: SettingsProfileScreen
+      Uitgebreide versie van CharacterProfileModal
+      OCR scanner knop
+      Alle customStats bewerken
+      Avatar crop/zoom
+
+  6e: Notification systeem (optioneel)
+      Component: NotificationBell + NotificationPanel
+      Toon badge als er ongeziene notificaties zijn
+      Klik op bell opent panel met lijst
+      Typen: handout_shared, hp_update, chat_mention
+
+  6f: GM Handout Deck modal
+      Modal voor GM om handouts in bulk te beoordelen/toewijzen
+      Swipe-interface (één kaart tegelijk)
+      Knoppen: Bewaar / Wijs Toe / Verwijder
+
+VALIDATIE PER SCHERM: gebruiker keurt visueel goed voordat we doorgaan.
+
+
+FASE 7 — AFRONDING EN HARDENING
+----------------------------------
+Doel: productie-gereed maken.
+
+  7a: Loading states
+      - Elke async operatie krijgt een isLoading state
+      - Knoppen worden disabled tijdens laden
+      - Skeleton loaders voor handout lijst, party lijst, chat
+      Implementatie: spinner component in amber-stijl
+        <div className="animate-spin w-5 h-5 border-2 border-amber-500 border-t-transparent rounded-full" />
+
+  7b: Error handling
+      - Firebase permission denied errors afvangen
+      - Netwerk-errors met retry optie
+      - Toast notificaties (showToast van index.mjs migreren naar React)
+      Toast component:
+        <div className="fixed bottom-4 right-4 z-[100] flex flex-col gap-2">
+          {toasts.map(t => <ToastItem key={t.id} {...t} />)}
+        </div>
+
+  7c: Offline support
+      - Firestore heeft ingebouwde offline cache (initializeFirestore met settings)
+      - Toon "Offline" banner als navigator.onLine === false
+      - WakeLock API migreren naar useEffect
+
+  7d: PWA
+      - manifest.json al aanwezig (behouden)
+      - Service worker via Vite PWA plugin (optioneel)
+      - Theme-color meta tag synchroniseren met theme state
+
+  7e: Security
+      - Firestore rules (firestore.rules) controleren en aanscherpen
+      - Storage rules (storage.rules) controleren
+      - Geen API keys in client-side code (Firebase config is public by design)
+      - Input sanitization voor chat berichten en handout teksten
+
+  7f: Performance
+      - React.memo op RightSidebar (rerenders bij iedere chat update vermijden)
+      - useMemo voor gefilterde handout lijsten
+      - Lazy loading voor ChatView en NotesView (React.lazy + Suspense)
+
+  7g: Firebase Hosting deploy
+      COMMANDO's:
+        npm run build
+        firebase deploy --only hosting
+      
+      Verwacht: dist/ folder gedeployed, app live op tomevault.app
+
+
+================================================================================
+  DEEL 4: COMPONENT-VOOR-COMPONENT MAPPING
+================================================================================
+
+Dit is de directe koppeling: welke component uit het prototype vervangt
+welke functionaliteit uit index.mjs.
+
+COMPONENT          | VERVANGT IN INDEX.MJS
+-------------------|------------------------------------------------------------
+TomeVaultApp       | state object + onAuthStateChanged + showOnly()
+LandingScreen      | screenLanding + authCard + landingHome
+GMCreateScreen     | screenGMCreate + btnCreateSession handler
+PlayerJoinScreen   | screenPlayerJoin + btnJoin handler
+TopBar             | #topBar header element + alle topbar.* functies
+Sidebar            | #bottomBar + switchRailTab() voor GM/speler
+RightSidebar       | #gmPartyPanel + #gmSplit + gevechtstracker UI
+HandoutsView       | #gmHandoutsPanel + #gmHandoutList + renderHandoutCard()
+ChatView           | #screenChat + chatList + sendChatMessage()
+InventoryView      | #screenPlayerInventory + inventoryPlayersContainer
+NotesView          | #screenNotes + notesList + notesEditor
+ShareModal         | qrBox + btnCopyJoinLinkModal + whatsapp link logica
+HandoutModal       | #modal + modalCard + modalTitle/public/secret etc.
+CharacterProfileModal | #screenProfile + renderProfileScreen()
+DamageModal        | hp aanpassing flow (geen apart modal in oud design)
+AddItemModal       | #createInventoryModal + btnSaveInventoryItem
+AddNpcModal        | btnAddNpc + gmPartyInlineList NPC flow
+SettingsModal      | #screenSettings + #settingsDrawer
+EditableStat       | editeerbare initiatief/HP/AC velden in party list
+
+
+================================================================================
+  DEEL 5: WAT NIET WORDT GEMIGREERD (BEWUST WEGGELATEN)
+================================================================================
+
+De volgende functionaliteit uit index.mjs is bewust NIET opgenomen in de
+initiële transplantatie. Dit kan later worden toegevoegd als de kern werkt.
+
+  - Hamburger speed dial (zwevende sleepbare FAB)
+    Reden: complexe drag-and-drop logica, niet in nieuwe stijl ontworpen.
+    Alternatief: vast floating action button (FAB) rechtsonder.
+
+  - OCR karakter sheet scanner
+    Reden: afhankelijk van externe Tesseract library, complex flow.
+    Later toe te voegen als aparte feature na kern-migratie.
+
+  - AI kaart generator (mapGenerateModal + btnMapGenGenerate)
+    Reden: Cloud Function afhankelijkheid, buiten scope kern.
+
+  - Nugget systeem (in-app currency)
+    Reden: monetisatie feature, complex, buiten scope kern.
+
+  - GM rol overdracht (transferModal)
+    Reden: complex handshake flow, toe te voegen in Fase 6a.
+
+  - Sessie overdracht / bijwonen eerdere sessies flow
+    Reden: edge case, toe te voegen na stabiele kern.
+
+  - Shortcut overlay (btnShowShortcuts)
+    Reden: leuke extra, geen prioriteit.
+
+  - Handout deck review modal (bulk beoordeling)
+    Reden: Fase 6f.
+
+  - Profile offer modal (GM biedt karakter template aan)
+    Reden: Fase 6 feature.
+
+
+================================================================================
+  DEEL 6: REGELS VOOR DE AI TIJDENS UITVOERING
+================================================================================
+
+ABSOLUTE REGELS (nooit overtreden):
+
+  1. NOOIT een CSS-klasse hergebruiken uit style.css die gebonden is aan
+     een oud element-ID of oud scherm-layout. Tailwind klassen zijn altijd
+     de bron voor alle nieuwe styling.
+
+  2. NOOIT document.getElementById() of DOM-selectoren gebruiken in nieuwe code.
+     Alles werkt via React state en props.
+
+  3. NOOIT de oude showOnly() navigatie-logica herhalen.
+     Navigatie werkt via: const [view, setView] = useState('landing')
+     en conditionele rendering: {view === 'dashboard' && <Dashboard />}
+
+  4. NOOIT mock data laten staan in productie-componenten.
+     Mock data mag tijdelijk aanwezig zijn ALLEEN als Firebase-koppeling
+     voor dat specifieke onderdeel nog niet gebouwd is. Zodra Firebase werkt
+     voor een component wordt de mock data verwijderd.
+
+  5. NOOIT een component "patchen" met een mix van oude en nieuwe stijl.
+     Een component is 100% nieuw of staat in de wachtrij.
+
+  6. ALTIJD een component volledig schrijven voordat je doorgaat naar de volgende.
+     Geen half-gebouwde componenten achterlaten.
+
+  7. ALTIJD de gebruiker om validatie vragen na elke fase.
+     Geen fase starten die afhankelijk is van een vorige fase die niet
+     gevalideerd is.
+
+WERKWIJZE REGELS:
+
+  8. Lees ALTIJD het relevante stuk van dit plan vóór je code schrijft.
+     Gebruik de component-mapping tabel als startpunt.
+
+  9. Als een Firebase-functie nodig is die niet in dit plan staat:
+     zoek de bijbehorende functie op in index.mjs en port die naar React.
+     Gebruik NOOIT een nieuwe third-party library voor iets dat al in
+     index.mjs gebouwd is.
+
+  10. Bij twijfel over de gewenste stijl: kijk naar de bestaande componenten
+      in src/App.jsx (afgeleid van newTomeVault.jsx) als referentie.
+      Gebruik NOOIT index.html of style.css als visuele referentie.
+
+  11. Als de gebruiker een scherm laat zien dat anders is dan verwacht:
+      dit plan aanpassen en dan pas verder.
+
+  12. Foutmeldingen van Firebase worden afgevangen en getoond via
+      het toast systeem (Fase 7b), NOOIT via alert() of console.log alleen.
+
+
+================================================================================
+  DEEL 7: SNELREFERENTIE — STIJL CHEATSHEET
+================================================================================
+
+Gebruik dit als spiekbriefje bij het bouwen van elk nieuw component.
+
+KLEUREN:
+  Pagina achtergrond:     bg-stone-950
+  Card oppervlak:         bg-stone-900
+  Card hover:             bg-stone-900/60
+  Card border:            border-stone-800
+  Card border hover:      hover:border-amber-600/50
+  Card border NPC:        border-rose-900/30
+  Primaire knop:          bg-gradient-to-r from-amber-700 to-amber-600
+  Primaire knop hover:    hover:from-amber-600 hover:to-amber-500
+  Destructieve knop:      bg-rose-950/40, border-rose-900/50, text-rose-400
+  Secundaire knop:        bg-stone-800, border-stone-700, text-stone-300
+  Tekst primair:          text-stone-100
+  Tekst secundair:        text-stone-300
+  Tekst muted:            text-stone-400/500
+  Accent goud:            text-amber-500
+  Accent goud dark:       text-amber-600
+  Accent indigo:          text-indigo-400 (speler kleur)
+  Accent rose:            text-rose-400 (NPC / gevaar)
+  HP laag:                text-rose-500
+  HP hoog:                text-emerald-500
+
+FONTS:
+  Headings/knoppen:       font-fantasy (Cinzel)
+  Letter spacing:         tracking-wider / tracking-widest
+  Body tekst:             font-story (Lora)
+  UI labels:              font-sans (system)
+  Label stijl:            text-[10px] font-bold uppercase tracking-widest text-stone-500
+
+RUIMTE:
+  Pagina padding:         p-4 md:p-6
+  Card padding:           p-4 md:p-5 of p-6
+  Gap tussen items:       gap-3 md:gap-4
+  Section scheiding:      border-b border-stone-800/50 pb-4 mb-6
+
+EFFECTEN:
+  Card schaduw:           shadow-2xl
+  Knop glow:              shadow-[0_0_10px_rgba(217,119,6,0.2)]
+  Actieve item glow:      shadow-[0_0_15px_rgba(245,158,11,0.15)]
+  Inset schaduw:          shadow-inner
+  Achtergrond blur:       backdrop-blur-sm / backdrop-blur-md
+  Ambient licht:          bg-amber-900/5 blur-[100px] (achtergrond decoratie)
+
+MODALS:
+  Overlay:                fixed inset-0 bg-stone-950/80 backdrop-blur-sm z-50
+  Container:              bg-stone-900 border border-amber-900/40 rounded-2xl
+                          max-w-sm md:max-w-2xl w-full shadow-2xl
+  Header:                 p-4 border-b border-stone-800/50
+  Body:                   p-6 flex flex-col gap-4
+  Footer:                 p-4 border-t border-stone-800/50
+
+INPUT VELDEN:
+  Basis:                  bg-stone-950/80 border border-stone-700 rounded-lg
+                          px-3 py-2.5 text-sm text-stone-200
+  Focus:                  focus:outline-none focus:border-amber-600/50
+  Font voor tekst:        font-story
+  Font voor labels:       font-fantasy tracking-wider
+
+SCROLLBAR VERBERGEN:      className="no-scrollbar overflow-y-auto"
+
+LEGE STAAT:               border-2 border-dashed border-stone-800 rounded-xl
+                          text-stone-600 font-story italic text-center py-16
+
+SECTIE HEADING:
+  h2:   text-2xl md:text-3xl font-bold text-stone-100 font-fantasy tracking-wider
+  h3:   font-fantasy font-bold text-stone-200 tracking-wider
+  label: text-[10px] font-bold text-stone-500 uppercase tracking-widest mb-1.5
+
+
+================================================================================
+  DEEL 8: WAAROM DE JSX HET WEL DOET EN DE OUDE APP HET NIET DEED
+  — EN HOE WE DIT DEZE KEER STRUCTUREEL OPLOSSEN
+================================================================================
+
+Dit deel is geschreven na grondig onderzoek naar de oorzaken van het probleem.
+Het is geen uitleg voor de gebruiker — het is een bindende technische instructie
+voor de AI. Elke beslissing die hieronder staat moet gevolgd worden, zonder
+uitzondering, voor de gehele duur van de transplantatie.
+
+
+WAAROM DE JSX FILE ZO WEINIG REGELS NODIG HEEFT EN ZO GOED WERKT
+-------------------------------------------------------------------
+
+De JSX file (newTomeVault.jsx) heeft 2.352 regels en ziet er perfect uit.
+De bestaande app heeft ~20.000 regels en de stijl ging nooit goed.
+Dat is geen toeval. Dit zijn de structurele oorzaken:
+
+OORZAAK 1: CSS groeit lineair, Tailwind groeit logaritmisch
+  In een custom CSS codebase geldt: elke nieuwe component = nieuwe CSS regels.
+  Na een jaar ontwikkeling zijn er honderden CSS klassen die elkaar overlappen,
+  overschrijven en beïnvloeden via de cascade.
+  
+  Bewijs uit onderzoek (cssstats.com meting):
+    - GitLab:    402 unieke tekstkleuren, 239 achtergrondkleuren, 59 font sizes
+    - GitHub:    163 tekstkleuren, 147 achtergrondkleuren
+    - Stripe:    189 tekstkleuren
+  
+  Dit is wat er in style.css is gebeurd. Elke keer dat een stijl "niet klopte"
+  werd er een nieuwe regel aan toegevoegd, bovenop de bestaande. Het resultaat:
+  een huis van kaarten waar je niets aan kunt raken zonder dat iets anders breekt.
+  
+  Tailwind heeft dit probleem NIET. Er zijn exact 10-12 tekst-grijstinten
+  (stone-100 t/m stone-900), precies 8 amberwaarden, en die staan VAST.
+  Je kunt nooit een "stone-387" uitvinden. De schaal is de schaal.
+
+OORZAAK 2: CSS specificity oorlogen
+  In de oude app staan regels als:
+    .topbar .topbar__inner .brand .brand__title { font-size: 1.2rem; }
+  
+  En ergens anders:
+    .topbar--gm .brand__title { font-size: 1.1rem; }
+  
+  Welke wint? Dat hangt af van specificity-berekening, volgorde in het bestand,
+  en of er ergens een !important staat. Dit is de reden dat layout-aanpassingen
+  "soms werken en soms niet".
+  
+  Tailwind heeft NUL specificity conflicten. Elke utility klasse heeft exact
+  dezelfde specificiteit (één klasse-selector). De volgorde in de build output
+  is deterministisch. Er zijn geen verborgen cascade-effecten.
+
+OORZAAK 3: "Spooky action at a distance" in CSS
+  Als in index.mjs staat:
+    $("screenGMDash").classList.add("screen--active");
+  
+  Dan triggert dat CSS die in een compleet ander deel van style.css staat.
+  De stijl is NIET bij de component — hij staat tientallen regels verderop,
+  soms in een compleet ander blok.
+  
+  In React + Tailwind staat de stijl NAAST de component:
+    <div className="bg-stone-900 border border-amber-900/30 rounded-xl p-4">
+  Je kunt het zien, je kunt het begrijpen, je kunt het wijzigen zonder angst.
+
+OORZAAK 4: Vaste maatschalen vs. magische getallen
+  In style.css staan waarden als:
+    padding: 12px 16px;
+    margin-top: 14px;
+    font-size: 0.875rem;
+    border-radius: 8px;
+  
+  Dit zijn "magic numbers" — willekeurige waarden die nergens aan gekoppeld zijn.
+  Elke keer dat er iets "iets groter" of "iets kleiner" moest, werd er een nieuwe
+  waarde uitgevonden. Na 6 maanden zijn er 47 verschillende padding-waarden.
+  
+  Tailwind dwingt je te kiezen uit een vaste schaal:
+    p-3 (12px), p-4 (16px), p-5 (20px), p-6 (24px)
+  Je KUNT geen p-3.5 maken tenzij je het expliciet definieert.
+  Dit zorgt voor visuele consistentie die onmogelijk te breken is.
+
+OORZAAK 5: Responsive design met media queries vs. Tailwind prefixes
+  In style.css:
+    @media (min-width: 768px) {
+      .handout-card { flex-direction: row; }
+    }
+    @media (min-width: 1024px) {
+      .handout-card { grid-columns: 3; }  /* wacht, welk element was dit ook? */
+    }
+  
+  Na 6 maanden development weet niemand meer welke media query geldt voor welk
+  element, of ze conflicteren met andere breakpoints.
+  
+  In Tailwind staat alles op één regel:
+    className="flex flex-col md:flex-row lg:grid lg:grid-cols-3"
+  Je ziet op één plek wat er gebeurt op elke schermgrootte.
+  Dit is de reden dat scaling in de JSX file perfect werkt.
+
+OORZAAK 6: Visuele effecten vereisen exacte stacking contexts
+  Effecten zoals backdrop-blur werken ALLEEN als:
+    a) het element position: relative of fixed heeft
+    b) er geen transform: translate3d(0,0,0) ancestor is die de stacking context breekt
+    c) de juiste z-index hiërarchie aanwezig is
+  
+  In de oude app werden deze contexten gebroken door DOM-manipulatie
+  (showOnly() togglede classes op section-elementen, wat stacking contexts
+  verplaatste) en door CSS regels die overflow:hidden of transform zetten
+  op container-elementen zonder dat dit bedoeld was.
+  
+  In React zijn stacking contexts stabiel en voorspelbaar omdat de DOM-structuur
+  vast is — er worden geen elementen verborgen via class-toggling.
+
+
+WAAROM GEMINI HET IN ÉÉN UUR KON BOUWEN
+------------------------------------------
+Dit is geen mysterie. Het heeft alles te maken met het gereedschap:
+
+  1. Tailwind + React = visuele effecten zijn triviaal
+     shadow-[0_0_15px_rgba(245,158,11,0.15)] is één woord.
+     In CSS is het: box-shadow: 0 0 15px rgba(245, 158, 11, 0.15); + specificiteit check
+     + zorgen dat geen parent overflow:hidden heeft
+     + testen in alle browsers.
+
+  2. Moderne AI + Tailwind werkt "vibe-first"
+     Gemini (en ook deze AI) kan direct denken in visuele termen:
+     "amber glow achter de kaart" → shadow-[0_0_20px_rgba(217,119,6,0.15)]
+     Er is geen vertaalstap van "visuele intentie" naar "CSS implementatie"
+     nodig. De Tailwind klasse IS de intentie.
+
+  3. React componenten zijn zelfvoorzienend
+     Een component in React draagt zijn eigen stijl, gedrag én structuur.
+     Er is geen aparte HTML-file die je ook nog moet bijhouden.
+     Dit is waarom 2.352 regels JSX meer doet dan 20.000 regels HTML+CSS+JS.
+
+
+DE VOLLEDIGE INVENTARIS VAN VISUELE EFFECTEN UIT DE NIEUWE JSX
+-----------------------------------------------------------------
+Dit is een compleet overzicht van alle visuele effecten in newTomeVault.jsx
+die behouden MOETEN worden bij de transplantatie. Dit zijn de effecten die
+eerder nooit goed overkwamen in de oude app.
+
+EFFECT 1: Ambient glow achtergrond (paginaniveau)
+  Klasse:  bg-amber-900/20 blur-[150px] rounded-full (absolute, pointer-events-none)
+  Wat:     Een zachte, grote amberkleurige lichtbron achter de content
+  Hoe:     div met position:absolute, buiten de flow, blur-filter
+  Risico:  Werkt NIET als een ancestor overflow:hidden heeft
+  Regel:   Container van dit element mag nooit overflow:hidden hebben
+           Gebruik overflow-x:hidden op <body>, NIET op content-wrappers
+
+EFFECT 2: Card glow bij hover
+  Klasse:  hover:shadow-xl hover:shadow-amber-900/10
+  Wat:     Subtiele ambergloed verschijnt als je over een handout card hovert
+  Hoe:     Tailwind hover-variant op shadow met kleur-modifier
+  Regel:   ALTIJD toepassen op interactieve cards, nooit weglaten
+
+EFFECT 3: Aktieve item indicator (slagorde)
+  Klasse:  ring-1 ring-amber-500 + absolute w-[3px] bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.8)]
+  Wat:     Gouden lijn links van het actieve karakter + ring om het element
+  Hoe:     position:absolute op het streepje, ring-utility voor de border
+  Regel:   Parent container moet position:relative hebben
+
+EFFECT 4: Knop glow (primaire CTA knoppen)
+  Klasse:  shadow-[0_0_10px_rgba(217,119,6,0.2)] op amber knoppen
+           shadow-[0_0_15px_rgba(217,119,6,0.3)] op landing CTA
+  Wat:     Goudkleurige aura achter primaire knoppen
+  Hoe:     Tailwind arbitrary shadow value
+  Regel:   Elke from-amber-700 to-amber-600 knop krijgt deze shadow
+
+EFFECT 5: Shimmer effect op share knop (TopBar)
+  Klasse:  absolute inset-0 bg-gradient-to-r from-amber-500/0 via-amber-500/10 to-amber-500/0
+           translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000
+  Wat:     Bewegend lichtreflectie-effect bij hover
+  Hoe:     Absolute pseudo-element met gradient + transform transition
+  Risico:  Werkt NIET als parent overflow:visible is uitgeschakeld
+  Regel:   Parent van shimmer-element MOET overflow-hidden hebben
+           (de share knop heeft al: relative overflow-hidden)
+
+EFFECT 6: Glasmorfisme (backdrop blur op cards en sidebars)
+  Klasse:  bg-stone-900/80 backdrop-blur-md   (sidebars)
+           bg-stone-900/60 backdrop-blur-sm   (cards)
+  Wat:     Doorzichtige cards met blur-effect op de achtergrond
+  Hoe:     backdrop-filter: blur() + semi-transparante achtergrond
+  Risico:  Werkt NIET in Safari als de parent een filter heeft
+           Werkt NIET als er geen achtergrond-content achter de kaart is
+  Regel:   Container achter glasmorfisme-elementen moet visible content hebben
+           Test altijd in Safari (iOS/macOS) na implementatie
+
+EFFECT 7: Perkament textuur overlay
+  Klasse:  bg-[url('data:image/svg+xml;base64,...')] opacity-[0.03]
+  Wat:     Subtiel grid-patroon dat een perkament-gevoel geeft
+  Hoe:     Inline SVG als background-image, bijna onzichtbaar (3% opacity)
+  Regel:   Dit patroon wordt ALTIJD toegepast op handout cards en chat container
+           Het SVG base64 patroon staat letterlijk in newTomeVault.jsx — kopieer exact
+
+EFFECT 8: Gradient toprand op cards (hover)
+  Klasse:  absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-amber-700/50 to-transparent
+           opacity-0 group-hover:opacity-100 transition-opacity
+  Wat:     Subtiele gouden lijn verschijnt bovenaan de kaart bij hover
+  Hoe:     Absolute element met gradient, group-hover trigger
+  Regel:   Wordt toegepast op de GM en Speler kaarten in LandingScreen
+
+EFFECT 9: Initiative active turn puls indicator
+  Klasse:  shadow-[0_0_15px_rgba(245,158,11,0.15)] ring-1 ring-amber-500/50
+  Wat:     Het actieve karakter in de slagorde gloeit zachtjes op
+  Regel:   Toepassen op de party member die aan de beurt is (isActiveTurn === true)
+
+EFFECT 10: GM Inzicht textarea glow
+  Klasse:  shadow-[inset_0_0_20px_rgba(0,0,0,0.5)] border-amber-900/30
+  Wat:     Donkere inner shadow op de GM secret textarea (gevoel van een apart compartiment)
+  Regel:   Altijd toepassen op elementen die "geheime" GM-informatie bevatten
+
+EFFECT 11: Ping animatie (online indicator in TopBar)
+  Klasse:  w-2.5 h-2.5 rounded-full bg-emerald-500/30 animate-ping (outer ring)
+           w-1.5 h-1.5 rounded-full bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.9)] (kern)
+  Wat:     Pulserende groene stip die aangeeft dat de sessie live is
+  Hoe:     Tailwind animate-ping class op het buitenste element
+  Regel:   ALTIJD aanwezig in TopBar als er een actieve sessie is
+
+EFFECT 12: Gradient banner in CharacterProfileModal
+  Klasse:  bg-gradient-to-r from-amber-950 to-stone-800 (speler)
+           bg-gradient-to-r from-rose-950 to-rose-900 (NPC)
+  Wat:     Gekleurde banner bovenaan het karakterprofiel
+  Regel:   NPC = rose gradient, speler = amber gradient. NOOIT omgewisseld.
+
+EFFECT 13: Negatieve margin voor avatar overlap
+  Klasse:  -mt-12 md:-mt-16 (avatar container boven de banner)
+  Wat:     Avatar "zweft" half buiten de banner, half over de content
+  Risico:  BREEKT als de container overflow:hidden heeft
+  Regel:   De wrapper van de avatar MAG GEEN overflow:hidden hebben
+
+
+TECHNISCHE GRENZEN & RICHTLIJNEN VOOR VISUELE EFFECTEN
+---------------------------------------------------------
+
+Onderscheid: De regels hieronder zijn twee soorten.
+
+  HARDE GRENZEN zijn browser-gedragingen die altijd breken — geen uitzondering.
+  Ze zijn niet streng omdat het plan dat zegt, maar omdat de browser zo werkt.
+
+  RICHTLIJNEN zijn aanbevelingen op basis van de bestaande JSX. Ze beschrijven
+  de intentie, niet elke pixel. Er is ruimte voor afwijking als de concrete
+  situatie dat vraagt — zolang het visuele resultaat klopt met de screenshot.
+
+--- HARDE GRENZEN (browser-gedrag, altijd van toepassing) ---
+
+GRENS V1: NOOIT overflow:hidden zetten op een container die een ambient glow
+          of shimmer effect bevat. Gebruik overflow-x-hidden alleen op <body>.
+
+GRENS V2: NOOIT transform of filter zetten op een container die backdrop-blur
+          kinderen heeft. Dit breekt de stacking context en backdrop-filter werkt niet.
+
+GRENS V3: ALTIJD position:relative op de parent van position:absolute effecten.
+          Als een effect onzichtbaar is, is dit bijna altijd de oorzaak.
+
+GRENS V4: animate-ping werkt alleen als het element display:block of display:inline-block
+          is. Inline elementen negeren de animatie.
+
+GRENS V5: group-hover effecten vereisen className="group" op de PARENT container.
+          Als een hover-effect niet werkt: controleer of "group" aanwezig is op de parent.
+
+--- RICHTLIJNEN (aanbevelingen, ruimte voor afwijking als de situatie dat vraagt) ---
+
+RICHTLIJN V6: Shadows met rgba kleurwaarden bij voorkeur in Tailwind arbitrary syntax:
+          shadow-[0_0_15px_rgba(217,119,6,0.3)]
+          Liever niet in style.css, maar als een specifieke situatie dat vereist
+          mag het inline via style={{}} — zolang het niet in een los CSS-bestand belandt.
+
+RICHTLIJN V7: Glasmorfisme (backdrop-blur) testen in Safari na implementatie.
+          iOS Safari heeft bekende bugs met backdrop-filter + overflow.
+          Als het niet werkt: voeg -webkit-backdrop-filter toe als fallback.
+
+RICHTLIJN V8: De perkament textuur SVG base64 string uit newTomeVault.jsx
+          bij voorkeur letterlijk kopiëren. Opacity [0.03] mag licht aangepast
+          worden als het visuele resultaat op het scherm beter uitkomt.
+
+RICHTLIJN V9: Glow effecten gebruiken bij voorkeur kleuren uit het stijl-DNA
+          (amber, rose, emerald). Kleine afwijkingen zijn oké als het beter
+          past bij de context van het component.
+
+RICHTLIJN V10: Responsive breakpoints bij voorkeur sm:/md:/lg: — geen custom
+           breakpoints tenzij noodzakelijk. Geen losse px-waarden in media queries.
+
+
+HOE TE WERKEN ALS EEN COMPONENT VISUEEL "NIET KLOPT"
+------------------------------------------------------
+
+Als een visueel effect niet zichtbaar is of anders werkt dan in de screenshot,
+volg dan dit stappenplan (in volgorde):
+
+STAP 1: Controleer overflow
+  → Heeft een ancestor overflow:hidden?
+  → Gebruik browser DevTools: rechtermuisknop → Inspect → kijk naar computed styles
+  → Fix: verwijder overflow:hidden van de ancestor, of gebruik clip-path als alternatief
+
+STAP 2: Controleer stacking context
+  → Heeft een ancestor transform, filter, of will-change: transform?
+  → Dit breekt backdrop-filter en position:fixed gedrag
+  → Fix: verwijder transform van de ancestor
+
+STAP 3: Controleer z-index hiërarchie
+  → Modals: z-50
+  → RightSidebar (mobiel): z-50
+  → TopBar: z-30
+  → Sidebar: z-30
+  → Ambient glow decoraties: z-0 of geen z-index (ze zitten buiten de flow)
+  → Als een element achter een ander verstopt zit: pas z-index aan volgens dit schema
+
+STAP 4: Controleer group/group-hover
+  → Staat "group" op de juiste parent?
+  → Werkt de hover-trigger op het juiste element?
+
+STAP 5: Vergelijk met de originele className in newTomeVault.jsx
+  → Kopieer de exacte className string en vervang de huidige
+  → Als het dan wel werkt: identificeer welke klasse weggelaten was
+
+STAP 6: Test in Chrome EN Safari
+  → Safari heeft strictere regels voor backdrop-filter
+  → Als het in Chrome werkt maar niet in Safari: voeg -webkit-backdrop-filter toe
+
+
+SCHAALRICHTLIJNEN — VERMIJD VASTE PIXELS WAAR MOGELIJK
+---------------------------------------------------------
+Dit was de directe oorzaak van de scaling-problemen uit het verleden.
+Het principe: gebruik de Tailwind schaal als vertrekpunt. Als een waarde
+niet in de schaal bestaat en het visueel verschil maakt, is een arbitrary
+waarde of inline style toegestaan — maar het is de uitzondering, niet de norm.
+
+LIEVER NIET (gebruik Tailwind schaal als alternatief beschikbaar is):
+  ✗  style={{ fontSize: '14px' }}       → text-sm
+  ✗  style={{ padding: '12px 16px' }}   → px-3 py-3
+  ✗  style={{ width: '240px' }}         → w-60
+  ✗  style={{ marginTop: '14px' }}      → mt-3.5
+
+TOEGESTAAN:
+  ✓  text-sm (14px via Tailwind)
+  ✓  px-3 py-2.5 (via Tailwind)
+  ✓  w-64 (256px via Tailwind)
+  ✓  mt-3.5 (14px via Tailwind)
+  ✓  Arbitrary waarden voor shadows: shadow-[0_0_10px_rgba(...)]
+  ✓  Arbitrary waarden voor specifieke breedte: w-[3px] (dunne borders/indicators)
+
+UITZONDERINGEN (en ze zijn schaars):
+  - env(safe-area-inset-bottom) voor iPhone notch: dit is een CSS environment variabele,
+    geen magic number. Gebruik: pb-safe (via custom utility in index.css)
+  - Exacte pixel waarden voor border-stukjes: w-[1px], h-[3px] zijn acceptabel
+    omdat Tailwind geen border-width 3 heeft in zijn schaal
+
+RESPONSIVE DESIGN SCHEMA:
+  Elk nieuw component volgt dit patroon:
+    Mobiel eerst (geen prefix):   basis layout voor 320-639px
+    sm: (640px+):                 tablet portrait aanpassingen
+    md: (768px+):                 tablet landscape / kleine desktop
+    lg: (1024px+):                desktop aanpassingen
+  
+  SPECIFIEKE LAYOUT REGELS:
+    - Sidebar:    mobiel = fixed bottom bar (h-16), desktop = md:relative md:w-64
+    - RightSidebar: mobiel = fixed right drawer, desktop = lg:relative lg:flex
+    - TopBar:     h-14 md:h-16 (iets groter op desktop)
+    - Modals:     max-w-sm voor kleine modals, max-w-2xl voor handout modal
+                  Altijd: max-h-[90vh] overflow-y-auto voor lange modals
+    - Tekst:      text-xs md:text-sm voor labels, text-sm md:text-base voor body
+
+
+FONT IMPLEMENTATIE — WAAROM HET EERDER MISGING
+-------------------------------------------------
+In de oude app werden Cinzel en Open Sans geladen via een <link> in index.html.
+Dan werd in style.css geschreven: font-family: 'Cinzel', serif;
+Maar dit kon botsen met andere font-family declaraties hogerop in de cascade.
+
+In de nieuwe app:
+  1. Google Fonts worden geladen in src/index.css via @import
+  2. font-fantasy en font-story zijn utility-klassen gedefinieerd in index.css
+  3. Ze worden gebruikt via className="font-fantasy" — nooit via CSS regels
+  4. Er is GEEN font-family declaratie in enig ander CSS bestand
+
+De .font-fantasy en .font-story klassen moeten in index.css staan:
+  .font-fantasy { font-family: 'Cinzel', serif; }
+  .font-story   { font-family: 'Lora', serif; }
+
+Ze worden NOOIT inline geschreven als style={{ fontFamily: 'Cinzel' }}
+Ze worden NOOIT uitgeschreven als een Tailwind extend in tailwind.config
+(dat is onnodige complexiteit — de utility klassen in index.css zijn voldoende)
+
+
+SAMENVATTING: DE DRIE PRINCIPES DIE ALLES BEPALEN
+---------------------------------------------------
+
+PRINCIPE 1: CO-LOCATIE
+  Stijl staat ALTIJD bij het component. Nooit in een aparte file.
+  Als je een component aanpast, pas je de stijl in diezelfde file aan.
+  Er is geen CSS file die je ook nog moet openen.
+
+PRINCIPE 2: VASTE SCHALEN
+  Elke maat, kleur, schaduw en afstand komt uit de Tailwind schaal.
+  Er worden geen willekeurige waarden uitgevonden.
+  Als iets "iets groter" moet, kies je de eerstvolgende schaalstap omhoog.
+
+PRINCIPE 3: ZICHTBAARHEID
+  Elk visueel effect is zichtbaar in de className string.
+  Er zijn geen verborgen CSS regels die van een afstand het element beïnvloeden.
+  Als het er niet in staat, doet het ook niets.
+
+Deze drie principes zijn de reden dat de JSX file prachtige visuele effecten
+heeft in 2.352 regels, en de oude app ze niet kon reproduceren in 20.000 regels.
+Ze zijn ook de reden dat Gemini het in een uur kon bouwen.
+Volg ze zonder uitzondering.
+
+================================================================================
+  EINDE VAN HET PLAN
+================================================================================
+
+Totale omvang van de transplantatie:
+  - Regels oud code die vervangen worden: ~20.000 (index.html + index.mjs + style.css)
+  - Regels nieuw code als basis: 2.352 (newTomeVault.jsx)
+  - Geschatte eindgrootte na alle fasen: ~5.000-8.000 regels (React + Firebase hooks)
+  - Reden voor krimp: React is declaratiever dan imperatieve DOM-manipulatie
+
+Prioriteitsvolgorde als tijd beperkt is:
+  Fase 0 → 1 → 3 → 4 (chat) → 5 (inventory) → 2 → 5 (notes/profiel) → 6 → 7
+
+Laatste opmerking:
+  Dit document is een levend document. Als tijdens de uitvoering blijkt dat
+  een aanpak niet werkt of dat de gebruiker een andere richting wil, wordt
+  dit plan bijgewerkt voordat de volgende fase begint.
+================================================================================
