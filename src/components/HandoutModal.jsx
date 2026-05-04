@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { X, ImagePlus, Eye, EyeOff, Hand, Trash2 } from 'lucide-react';
 import { getHandoutIcon } from '../lib/handoutUtils';
-import { suggestHandoutImages } from '../lib/placeholders';
+import { getAllPlaceholderImages, suggestHandoutImages } from '../lib/placeholders';
 
 function HandoutModal({ isOpen, onClose, handout, role, onSave, onDelete }) {
   const [isEditing, setIsEditing] = useState(false);
@@ -9,10 +9,12 @@ function HandoutModal({ isOpen, onClose, handout, role, onSave, onDelete }) {
     title: '', type: 'clue', content: '', secret: '', isRevealed: false, imageUrl: null, claimable: false, claimedBy: null
   });
   const [pendingFile, setPendingFile] = useState(null);
+  const [showAllPlaceholders, setShowAllPlaceholders] = useState(false);
 
   useEffect(() => {
     if (isOpen) {
       setPendingFile(null);
+      setShowAllPlaceholders(false);
       if (handout) {
         setFormData({ ...handout });
         setIsEditing(false); 
@@ -27,6 +29,17 @@ function HandoutModal({ isOpen, onClose, handout, role, onSave, onDelete }) {
 
   const isGM = role === 'gm';
   const Icon = getHandoutIcon(formData.type);
+  const normalizeParagraph = (text) => String(text || '')
+    .replace(/\r/g, '')
+    .split('\n')
+    .map((line) => line.trim())
+    .filter(Boolean)
+    .join(' ');
+
+  const paragraphs = String(formData.content || '')
+    .split(/\n{2,}/)
+    .map((paragraph) => normalizeParagraph(paragraph))
+    .filter(Boolean);
 
   const handleSave = (e) => {
     e.preventDefault();
@@ -97,7 +110,8 @@ function HandoutModal({ isOpen, onClose, handout, role, onSave, onDelete }) {
               </div>
 
               {(() => {
-                const suggestions = suggestHandoutImages(formData.title, formData.content, formData.type, 6);
+                const suggestions = suggestHandoutImages(formData.title, formData.content, formData.type, 5);
+                const allImages = getAllPlaceholderImages();
                 return (
                   <div>
                     <div className="text-[10px] font-bold text-stone-500 uppercase tracking-widest mb-2">Of kies een suggestie</div>
@@ -113,10 +127,35 @@ function HandoutModal({ isOpen, onClose, handout, role, onSave, onDelete }) {
                               : 'border-stone-700 hover:border-amber-700/60'
                           }`}
                         >
-                          <img src={url} alt="" className="w-full h-full object-cover" loading="lazy" />
+                          <img src={url} alt="" className="w-full h-full object-cover scale-[1.25]" loading="lazy" />
                         </button>
                       ))}
+                      <button
+                        type="button"
+                        onClick={() => setShowAllPlaceholders((v) => !v)}
+                        className={`aspect-square rounded-lg border-2 transition-all text-stone-300 font-fantasy text-lg ${showAllPlaceholders ? 'border-amber-500 bg-amber-950/30' : 'border-stone-700 hover:border-amber-700/60 bg-stone-900/60'}`}
+                        title="Toon alle placeholders"
+                      >
+                        ...
+                      </button>
                     </div>
+
+                    {showAllPlaceholders && (
+                      <div className="mt-3 max-h-52 overflow-y-auto no-scrollbar rounded-lg border border-stone-800 bg-stone-950/40 p-2">
+                        <div className="grid grid-cols-8 gap-1.5">
+                          {allImages.map((url) => (
+                            <button
+                              key={`all-${url}`}
+                              type="button"
+                              onClick={() => handlePickPlaceholder(url)}
+                              className={`aspect-square rounded-md overflow-hidden border transition-all ${formData.imageUrl === url ? 'border-amber-500 shadow-[0_0_6px_rgba(217,119,6,0.4)]' : 'border-stone-700 hover:border-amber-700/60'}`}
+                            >
+                              <img src={url} alt="" className="w-full h-full object-cover scale-[1.25]" loading="lazy" />
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
                   </div>
                 );
               })()}
@@ -223,14 +262,27 @@ function HandoutModal({ isOpen, onClose, handout, role, onSave, onDelete }) {
                   {formData.title}
                 </h2>
                 {formData.imageUrl && (
-                  <div className="w-full h-48 md:h-64 rounded-xl border border-stone-800 overflow-hidden shadow-lg mt-6">
-                    <img src={formData.imageUrl} alt={formData.title} className="w-full h-full object-cover" />
+                  <div className="w-full h-48 md:h-64 rounded-xl border border-stone-800 overflow-hidden shadow-lg mt-6 bg-stone-950 relative isolate">
+                    <img
+                      src={formData.imageUrl}
+                      alt=""
+                      aria-hidden="true"
+                      className="absolute inset-0 w-full h-full object-cover scale-[1.65] blur-2xl opacity-70 saturate-125"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-b from-stone-950/10 via-transparent to-stone-950/25" />
+                    <img src={formData.imageUrl} alt={formData.title} className="relative z-10 w-full h-full object-cover scale-[1.18]" />
                   </div>
                 )}
               </div>
               
-              <div className="prose prose-stone prose-invert max-w-none font-story leading-loose text-stone-300">
-                <p className="whitespace-pre-wrap text-[15px] md:text-base">{formData.content}</p>
+              <div className="w-full font-story text-stone-200 text-[15px] md:text-[17px] leading-[1.8] tracking-[0.01em]">
+                <div className="space-y-4 md:space-y-5 break-words">
+                  {(paragraphs.length ? paragraphs : [normalizeParagraph(formData.content || '')]).map((paragraph, index) => (
+                    <p key={`${index}-${paragraph.slice(0, 24)}`}>
+                      {paragraph}
+                    </p>
+                  ))}
+                </div>
               </div>
 
               {isGM && formData.secret && (
@@ -239,8 +291,13 @@ function HandoutModal({ isOpen, onClose, handout, role, onSave, onDelete }) {
                   <h4 className="text-[10px] font-bold text-amber-600 uppercase tracking-widest mb-2 flex items-center gap-2">
                     <EyeOff className="w-3 h-3" /> Exclusief GM Inzicht
                   </h4>
-                  <p className="font-story italic text-amber-500/90 text-sm leading-relaxed whitespace-pre-wrap">
-                    {formData.secret}
+                  <p className="font-story italic text-amber-500/90 text-sm leading-relaxed whitespace-pre-line">
+                    {String(formData.secret || '')
+                      .replace(/\r/g, '')
+                      .split(/\n{2,}/)
+                      .map((paragraph) => normalizeParagraph(paragraph))
+                      .filter(Boolean)
+                      .join('\n\n')}
                   </p>
                 </div>
               )}

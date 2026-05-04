@@ -21,3 +21,47 @@
 .bg-texture {
   background-image: radial-gradient(circle at center, transparent 0%, rgba(0,0,0,0.4) 100%);
 }
+
+/* ── Color themes ────────────────────────────────────────────────────── */
+/* ── Default: Amber/Bruin (no overrides needed)                         */
+
+/* ── Paars/Goud: violet accent + dark purple-tinted background          */
+[data-theme="purple"] {
+  --color-stone-950: #0d0916;
+  --color-stone-900: #130d22;
+  --color-stone-800: #1d1535;
+  --color-amber-100: #ede9fe;
+  --color-amber-200: #ddd6fe;
+  --color-amber-300: #c4b5fd;
+  --color-amber-400: #a78bfa;
+  --color-amber-500: #8b5cf6;
+  --color-amber-600: #7c3aed;
+  --color-amber-700: #6d28d9;
+  --color-amber-800: #5b21b6;
+  --color-amber-900: #4c1d95;
+  --color-amber-950: #2e1065;
+}
+
+/* ── Amber/Bruin: subtle warm tint on background                        */
+[data-theme="amber"] {
+  --color-stone-950: #0e0b08;
+  --color-stone-900: #161008;
+}
+
+/* ── Groen/Crème: emerald accent + deep forest-tinted background        */
+[data-theme="green"] {
+  --color-stone-950: #060e09;
+  --color-stone-900: #0a160b;
+  --color-stone-800: #0f2011;
+  --color-amber-100: #dcfce7;
+  --color-amber-200: #bbf7d0;
+  --color-amber-300: #86efac;
+  --color-amber-400: #4ade80;
+  --color-amber-500: #22c55e;
+  --color-amber-600: #16a34a;
+  --color-amber-700: #15803d;
+  --color-amber-800: #166534;
+  --color-amber-900: #14532d;
+  --color-amber-950: #052e16;
+}
+

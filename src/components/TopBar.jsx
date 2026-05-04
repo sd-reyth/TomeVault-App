@@ -1,7 +1,7 @@
 import React from 'react';
 import { Flame, Share2, Pause, Music, Volume2, Swords, User, LogOut } from 'lucide-react';
 
-export default function TopBar({ role, sessionId, onLogout, isMusicPlaying, setIsMusicPlaying, onToggleParty, onOpenShare, onOpenProfile }) {
+export default function TopBar({ role, sessionId, sessionNumber, onLogout, isMusicPlaying, setIsMusicPlaying, onToggleParty, onOpenShare, onOpenProfile }) {
   return (
     <header className="h-14 md:h-16 bg-stone-900/80 backdrop-blur border-b border-stone-800 flex items-center justify-between px-3 md:px-5 shrink-0 z-30">
       <div className="flex items-center gap-2 md:gap-3 min-w-0">
@@ -24,6 +24,14 @@ export default function TopBar({ role, sessionId, onLogout, isMusicPlaying, setI
                 {sessionId || '#ONBEKEND'}
               </span>
             </div>
+          </div>
+
+          <div
+            className="h-9 px-2.5 md:px-3 rounded-lg border border-amber-800/40 bg-amber-950/25 shadow-inner flex items-center"
+            title="Campagne sessienummer"
+          >
+            <span className="text-[9px] md:text-[10px] uppercase tracking-[0.2em] text-amber-600/80 mr-1.5 hidden md:inline">Sessie</span>
+            <span className="font-fantasy text-[11px] md:text-xs tracking-[0.14em] text-amber-400">#{Math.max(1, Number(sessionNumber) || 1)}</span>
           </div>
 
           <button

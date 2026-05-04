@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Flame, Swords, Users, Terminal } from 'lucide-react';
+import { AlertTriangle, Flame, Swords, Terminal, Trash2, Users, X } from 'lucide-react';
 import { getJoinTagLookupVariants } from '../lib/sessionUtils';
 
 export default function LandingScreen({
@@ -7,6 +7,7 @@ export default function LandingScreen({
   onResumeRecentSession,
   onHideRecentSession,
   onRestoreRecentSession,
+  onDeleteRecentSession,
   onQuickTestGm,
   onQuickTestPlayer,
   recentSessions,
@@ -41,6 +42,10 @@ export default function LandingScreen({
   const [confirmPassword, setConfirmPassword] = useState('');
   const [authName, setAuthName] = useState('');
   const [localAuthError, setLocalAuthError] = useState('');
+  const [deleteTarget, setDeleteTarget] = useState(null);
+  const [deleteSessionNameInput, setDeleteSessionNameInput] = useState('');
+  const [deleteError, setDeleteError] = useState('');
+  const [showGmDeleteWarning, setShowGmDeleteWarning] = useState(false);
 
   const generateSessionCode = () => {
     const words = ['DRAAK', 'WOLF', 'ZWAARD', 'SCHILD', 'MAGIE', 'KROON', 'RAAF', 'SCHADUW', 'VUUR', 'KELK'];
@@ -127,6 +132,44 @@ export default function LandingScreen({
     (s) => showHiddenSessions || s.status !== 'hidden'
   );
   const hiddenRecentCount = (recentSessions || []).filter((s) => s.status === 'hidden').length;
+
+  const closeDeleteFlow = () => {
+    setDeleteTarget(null);
+    setDeleteSessionNameInput('');
+    setDeleteError('');
+    setShowGmDeleteWarning(false);
+  };
+
+  const handleOpenDeleteFlow = (session) => {
+    setDeleteTarget(session);
+    setDeleteSessionNameInput('');
+    setDeleteError('');
+    setShowGmDeleteWarning(false);
+  };
+
+  const handleDeleteNameConfirm = () => {
+    if (!deleteTarget) return;
+    const expectedName = String(deleteTarget.sessionName || 'Naamloze Sessie').trim();
+    if (deleteSessionNameInput.trim() !== expectedName) {
+      setDeleteError('De ingevoerde sessienaam komt niet exact overeen.');
+      return;
+    }
+
+    setDeleteError('');
+    if (deleteTarget.role === 'dm') {
+      setShowGmDeleteWarning(true);
+      return;
+    }
+
+    onDeleteRecentSession?.(deleteTarget);
+    closeDeleteFlow();
+  };
+
+  const handleFinalDeleteConfirm = () => {
+    if (!deleteTarget) return;
+    onDeleteRecentSession?.(deleteTarget);
+    closeDeleteFlow();
+  };
 
   return (
     <div className="min-h-screen bg-stone-950 flex flex-col items-center justify-center p-4 sm:p-6 relative overflow-x-hidden bg-texture">
@@ -411,6 +454,15 @@ export default function LandingScreen({
                         </button>
                         <button
                           type="button"
+                          onClick={() => handleOpenDeleteFlow(session)}
+                          disabled={sessionBusy}
+                          className="h-8 w-8 flex items-center justify-center text-rose-300 hover:text-rose-200 bg-rose-950/30 hover:bg-rose-900/40 border border-rose-900/50 rounded transition-colors disabled:opacity-50"
+                          title="Verlaat en wis deze sessie permanent"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                        <button
+                          type="button"
                           onClick={() => onResumeRecentSession?.(session, defaultAsRole)}
                           disabled={sessionBusy}
                           className="text-[11px] font-bold text-stone-200 hover:text-amber-300 bg-stone-800 hover:bg-stone-700 border border-stone-700 px-3 py-1.5 rounded transition-colors"
@@ -436,6 +488,89 @@ export default function LandingScreen({
       {sessionInfo && (
         <div className="w-full max-w-4xl z-10 mb-4 text-xs md:text-sm text-emerald-300 bg-emerald-950/30 border border-emerald-900/50 rounded-lg px-4 py-3">
           {sessionInfo}
+        </div>
+      )}
+
+      {deleteTarget && (
+        <div className="fixed inset-0 bg-stone-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="w-full max-w-md bg-stone-900 border border-rose-900/40 rounded-2xl shadow-2xl overflow-hidden">
+            <div className="p-4 border-b border-stone-800/50 flex items-center justify-between gap-3">
+              <div className="flex items-center gap-2 text-rose-300">
+                <AlertTriangle className="w-5 h-5" />
+                <h3 className="font-fantasy tracking-wider text-stone-100">Sessie Permanent Wissen</h3>
+              </div>
+              <button onClick={closeDeleteFlow} className="text-stone-500 hover:text-stone-300 transition-colors">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {!showGmDeleteWarning ? (
+              <div className="p-5 space-y-4">
+                <p className="text-sm text-stone-300 font-story leading-relaxed">
+                  Om deze sessie permanent te verwijderen, typ de volledige sessienaam exact over zoals hieronder weergegeven.
+                </p>
+                <div className="rounded-xl border border-stone-800 bg-stone-950/40 px-4 py-3">
+                  <div className="text-[10px] uppercase tracking-widest text-stone-500 mb-1">Te bevestigen sessie</div>
+                  <div className="font-fantasy text-stone-100 font-bold break-words">{deleteTarget.sessionName || 'Naamloze Sessie'}</div>
+                </div>
+                <input
+                  type="text"
+                  value={deleteSessionNameInput}
+                  onChange={(e) => setDeleteSessionNameInput(e.target.value)}
+                  placeholder="Typ de sessienaam exact over"
+                  className="w-full bg-stone-950/90 border border-stone-700 rounded-lg px-3 py-2.5 text-sm text-stone-200 placeholder-stone-600 focus:outline-none focus:border-rose-600/50 transition-colors"
+                />
+                {deleteError && (
+                  <div className="text-xs text-rose-300 bg-rose-950/30 border border-rose-900/50 rounded-lg px-3 py-2">
+                    {deleteError}
+                  </div>
+                )}
+                <div className="flex gap-2 pt-1">
+                  <button
+                    type="button"
+                    onClick={closeDeleteFlow}
+                    className="flex-1 py-2.5 rounded-lg border border-stone-700 text-stone-300 hover:bg-stone-800 transition-colors text-xs font-fantasy tracking-wider"
+                  >
+                    Annuleer
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleDeleteNameConfirm}
+                    disabled={sessionBusy}
+                    className="flex-1 py-2.5 rounded-lg border border-rose-900/60 bg-rose-950/40 text-rose-200 hover:bg-rose-900/50 transition-colors text-xs font-fantasy tracking-wider disabled:opacity-50"
+                  >
+                    Bevestigen
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div className="p-5 space-y-4">
+                <p className="text-sm text-stone-300 font-story leading-relaxed">
+                  U bent de GM van deze sessie en staat op het punt de volledige campagne definitief te verwijderen. Spelers kunnen deze wereld daarna niet meer betreden en dit kan niet ongedaan worden gemaakt.
+                </p>
+                <div className="rounded-xl border border-rose-900/40 bg-rose-950/20 px-4 py-3 text-sm text-rose-100 font-story leading-relaxed">
+                  Weet u zeker dat u <strong>{deleteTarget.sessionName || 'Naamloze Sessie'}</strong> voorgoed wilt wissen?
+                </div>
+                <div className="flex gap-2 pt-1">
+                  <button
+                    type="button"
+                    onClick={() => setShowGmDeleteWarning(false)}
+                    className="flex-1 py-2.5 rounded-lg border border-stone-700 text-stone-300 hover:bg-stone-800 transition-colors text-xs font-fantasy tracking-wider"
+                  >
+                    Terug
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleFinalDeleteConfirm}
+                    disabled={sessionBusy}
+                    className="flex-1 py-2.5 rounded-lg border border-rose-900/60 bg-rose-950/40 text-rose-200 hover:bg-rose-900/50 transition-colors text-xs font-fantasy tracking-wider disabled:opacity-50"
+                  >
+                    Campagne Wissen
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
         </div>
       )}
 

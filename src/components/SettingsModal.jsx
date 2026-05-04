@@ -1,8 +1,34 @@
-import React from 'react';
-import { Settings, X, User, LogOut } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+import { Save, Settings, X, LogOut } from 'lucide-react';
 
-function SettingsModal({ isOpen, onClose, playerName, setPlayerName, role, setRole, onLogout }) {
+function SettingsModal({ isOpen, onClose, playerName, role, onLogout, theme, sessionNumber, onSaveSettings }) {
+  const [draftName, setDraftName] = useState(playerName || '');
+  const [draftTheme, setDraftTheme] = useState(theme || 'purple');
+  const [draftSession, setDraftSession] = useState(Math.max(1, Number(sessionNumber) || 1));
+
+  useEffect(() => {
+    if (!isOpen) return;
+    setDraftName(playerName || '');
+    setDraftTheme(theme || 'purple');
+    setDraftSession(Math.max(1, Number(sessionNumber) || 1));
+  }, [isOpen, playerName, theme, sessionNumber]);
+
   if (!isOpen) return null;
+
+  const themes = [
+    { id: 'purple',    label: 'Paars',     sub: 'Violet / Donker',    from: '#6d28d9', to: '#a78bfa' },
+    { id: 'amber',     label: 'Amber',     sub: 'Oranje / Bruin',     from: '#b45309', to: '#f59e0b' },
+    { id: 'green',     label: 'Groen',     sub: 'Smaragd / Donker',   from: '#15803d', to: '#4ade80' },
+  ];
+
+  const handleSave = async () => {
+    await onSaveSettings?.({
+      nextPlayerName: draftName,
+      nextTheme: draftTheme,
+      nextSessionNumber: draftSession,
+    });
+    onClose();
+  };
 
   return (
     <div className="fixed inset-0 bg-stone-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
@@ -18,28 +44,73 @@ function SettingsModal({ isOpen, onClose, playerName, setPlayerName, role, setRo
           </button>
         </div>
         
-        <div className="p-6 relative z-10 flex flex-col gap-6">
+        <div className="p-6 relative z-10 flex flex-col gap-5">
           <div>
             <label className="block text-[10px] font-bold text-stone-500 uppercase tracking-widest mb-1.5">Mijn Naam (Weergave)</label>
             <input 
               type="text" 
-              value={playerName}
-              onChange={e => setPlayerName(e.target.value)}
+              value={draftName}
+              onChange={e => setDraftName(e.target.value)}
               placeholder="Je naam aan tafel"
               className="w-full bg-stone-950/80 border border-stone-700 rounded-lg px-3 py-2.5 text-sm text-stone-200 focus:outline-none focus:border-amber-600/50 transition-colors font-story"
             />
           </div>
 
-          <div className="pt-4 border-t border-stone-800/50">
+          <div>
+            <label className="block text-[10px] font-bold text-stone-500 uppercase tracking-widest mb-3">Kleurenthema</label>
+            <div className="grid grid-cols-4 gap-2">
+              {themes.map(t => (
+                <button
+                  key={t.id}
+                  onClick={() => setDraftTheme(t.id)}
+                  className={`flex flex-col items-center gap-1.5 p-2 rounded-lg border transition-all ${draftTheme === t.id ? 'border-amber-600/60 bg-amber-950/20 shadow-md shadow-amber-900/20' : 'border-stone-800 hover:border-stone-600 bg-stone-950/40'}`}
+                  title={t.sub}
+                >
+                  <div
+                    className="w-full h-5 rounded"
+                    style={{ background: `linear-gradient(to right, ${t.from}, ${t.to})` }}
+                  />
+                  <span className="text-[9px] font-bold uppercase tracking-widest text-stone-400">{t.label}</span>
+                  {draftTheme === t.id && <span className="text-[8px] text-amber-500 uppercase tracking-widest">Actief</span>}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {role === 'gm' && (
+            <div>
+              <label className="block text-[10px] font-bold text-stone-500 uppercase tracking-widest mb-2">Campagne Sessie</label>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setDraftSession((v) => Math.max(1, Number(v || 1) - 1))}
+                  className="h-9 w-9 rounded-lg border border-stone-700 bg-stone-950/70 text-stone-300 hover:text-amber-400 hover:border-amber-700/50 transition-colors"
+                  title="Vorige sessie"
+                >
+                  -
+                </button>
+                <input
+                  type="number"
+                  min="1"
+                  value={Math.max(1, Number(draftSession) || 1)}
+                  onChange={(e) => setDraftSession(Math.max(1, Number(e.target.value) || 1))}
+                  className="flex-1 h-9 bg-stone-950/80 border border-stone-700 rounded-lg px-3 text-sm text-stone-200 focus:outline-none focus:border-amber-600/50 transition-colors font-fantasy tracking-wider hide-arrows"
+                />
+                <button
+                  type="button"
+                  onClick={() => setDraftSession((v) => (Number(v) || 1) + 1)}
+                  className="h-9 w-9 rounded-lg border border-stone-700 bg-stone-950/70 text-stone-300 hover:text-amber-400 hover:border-amber-700/50 transition-colors"
+                  title="Volgende sessie"
+                >
+                  +
+                </button>
+              </div>
+            </div>
+          )}
+
+          <div className="pt-3 border-t border-stone-800/50">
             <label className="block text-[10px] font-bold text-stone-500 uppercase tracking-widest mb-3">Sessie Acties</label>
             <div className="flex flex-col gap-3">
-              <button 
-                onClick={() => { setRole(role === 'gm' ? 'player' : 'gm'); onClose(); }}
-                className="w-full flex items-center justify-center gap-2 bg-stone-950 hover:bg-stone-800 border border-stone-700 text-stone-300 py-2.5 rounded-lg font-fantasy tracking-wider text-xs transition-colors"
-              >
-                <User className="w-4 h-4 text-amber-500" /> Switch naar {role === 'gm' ? 'Speler' : 'GM'} Modus
-              </button>
-              
               <button 
                 onClick={() => { onLogout(); onClose(); }}
                 className="w-full flex items-center justify-center gap-2 bg-rose-950/30 hover:bg-rose-900/50 border border-rose-900/50 text-rose-400 py-2.5 rounded-lg font-fantasy tracking-wider text-xs transition-colors"
@@ -47,6 +118,16 @@ function SettingsModal({ isOpen, onClose, playerName, setPlayerName, role, setRo
                 <LogOut className="w-4 h-4" /> Verlaat Sessie
               </button>
             </div>
+          </div>
+
+          <div className="pt-1 -mt-1">
+            <button
+              type="button"
+              onClick={handleSave}
+              className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-amber-700 to-amber-600 hover:from-amber-600 hover:to-amber-500 text-stone-100 py-2.5 rounded-lg border border-amber-900/50 font-fantasy tracking-wider text-xs transition-colors shadow-[0_0_10px_rgba(217,119,6,0.2)]"
+            >
+              <Save className="w-4 h-4" /> Opslaan
+            </button>
           </div>
         </div>
       </div>

@@ -1,17 +1,21 @@
 import React, { useState, useEffect } from 'react';
-import { Package, X } from 'lucide-react';
+import { ImagePlus, Package, X } from 'lucide-react';
+import { ITEM_PLACEHOLDER_IMAGES } from '../lib/placeholders';
 
 function AddItemModal({ isOpen, onClose, onSave, role, party, currentPlayerId, itemToEdit }) {
   const [formData, setFormData] = useState({
-    name: '', desc: '', amount: 1, ownerId: currentPlayerId
+    name: '', desc: '', amount: 1, ownerId: currentPlayerId, category: 'overig', section: 'Uitrusting & Items', imageUrl: null
   });
+  const [pendingFile, setPendingFile] = useState(null);
 
   useEffect(() => {
     if (isOpen) {
       if (itemToEdit) {
         setFormData({ ...itemToEdit });
+        setPendingFile(null);
       } else {
-        setFormData({ name: '', desc: '', amount: 1, ownerId: currentPlayerId });
+        setFormData({ name: '', desc: '', amount: 1, ownerId: currentPlayerId, category: 'overig', section: 'Uitrusting & Items', imageUrl: null });
+        setPendingFile(null);
       }
     }
   }, [isOpen, currentPlayerId, itemToEdit]);
@@ -24,7 +28,19 @@ function AddItemModal({ isOpen, onClose, onSave, role, party, currentPlayerId, i
   const handleSave = (e) => {
     e.preventDefault();
     if (!formData.name.trim()) return;
-    onSave(formData);
+    onSave(formData, pendingFile);
+  };
+
+  const handleImageChange = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setPendingFile(file);
+    setFormData((prev) => ({ ...prev, imageUrl: URL.createObjectURL(file) }));
+  };
+
+  const handlePickPlaceholder = (url) => {
+    setPendingFile(null);
+    setFormData((prev) => ({ ...prev, imageUrl: url }));
   };
 
   return (
@@ -81,6 +97,72 @@ function AddItemModal({ isOpen, onClose, onSave, role, party, currentPlayerId, i
               onChange={e => setFormData({...formData, amount: parseInt(e.target.value) || 1})}
               className="w-full bg-stone-950/80 border border-stone-700 rounded-lg px-3 py-2.5 text-sm text-stone-200 focus:outline-none focus:border-amber-600/50 transition-colors font-sans hide-arrows"
             />
+          </div>
+
+          <div>
+            <label className="block text-[10px] font-bold text-stone-500 uppercase tracking-widest mb-1.5">Soort</label>
+            <select
+              value={formData.category || 'overig'}
+              onChange={e => setFormData({ ...formData, category: e.target.value })}
+              className="w-full bg-stone-950/80 border border-stone-700 rounded-lg px-3 py-2.5 text-sm text-stone-200 focus:outline-none focus:border-amber-600/50 transition-colors font-story"
+            >
+              <option value="overig">Overig</option>
+              <option value="wapen">Wapen</option>
+              <option value="pantser">Pantser</option>
+              <option value="verbruikbaar">Verbruikbaar</option>
+              <option value="magisch">Magisch</option>
+              <option value="grondstof">Grondstof</option>
+              <option value="quest">Quest</option>
+            </select>
+          </div>
+
+          <div>
+            <label className="block text-[10px] font-bold text-stone-500 uppercase tracking-widest mb-1.5">Sectie</label>
+            <input
+              type="text"
+              value={formData.section || 'Uitrusting & Items'}
+              onChange={e => setFormData({ ...formData, section: e.target.value || 'Uitrusting & Items' })}
+              className="w-full bg-stone-950/80 border border-stone-700 rounded-lg px-3 py-2.5 text-sm text-stone-200 focus:outline-none focus:border-amber-600/50 transition-colors font-story"
+              placeholder="Bijv. Sneltoegang"
+            />
+          </div>
+
+          <div>
+            <label className="block text-[10px] font-bold text-stone-500 uppercase tracking-widest mb-1.5">Afbeelding</label>
+            <label className="relative group cursor-pointer w-full h-24 rounded-lg border border-dashed border-stone-700 bg-stone-950/60 hover:border-amber-700/60 flex items-center justify-center overflow-hidden transition-all shadow-inner">
+              <input type="file" accept="image/*" className="hidden" onChange={handleImageChange} />
+              {formData.imageUrl ? (
+                <>
+                  <img src={formData.imageUrl} alt="item" className="w-full h-full object-cover scale-[1.25] opacity-80 group-hover:opacity-45 transition-opacity" />
+                  <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                    <ImagePlus className="w-6 h-6 text-stone-200" />
+                  </div>
+                </>
+              ) : (
+                <div className="flex flex-col items-center gap-1 text-stone-500 group-hover:text-amber-500 transition-colors">
+                  <ImagePlus className="w-5 h-5" />
+                  <span className="text-[10px] uppercase tracking-widest font-bold">Upload</span>
+                </div>
+              )}
+            </label>
+          </div>
+
+          <div>
+            <label className="block text-[10px] font-bold text-stone-500 uppercase tracking-widest mb-1.5">Of kies uit placeholders</label>
+            <div className="max-h-32 overflow-y-auto no-scrollbar rounded-lg border border-stone-800 bg-stone-950/40 p-2">
+              <div className="grid grid-cols-8 gap-1.5">
+                {ITEM_PLACEHOLDER_IMAGES.map((url) => (
+                  <button
+                    key={url}
+                    type="button"
+                    onClick={() => handlePickPlaceholder(url)}
+                    className={`aspect-square rounded-md overflow-hidden border transition-all ${formData.imageUrl === url ? 'border-amber-500 shadow-[0_0_6px_rgba(217,119,6,0.4)]' : 'border-stone-700 hover:border-amber-700/60'}`}
+                  >
+                    <img src={url} alt="" className="w-full h-full object-cover scale-[1.25]" loading="lazy" />
+                  </button>
+                ))}
+              </div>
+            </div>
           </div>
 
           <div>

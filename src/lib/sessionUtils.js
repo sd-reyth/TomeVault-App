@@ -42,7 +42,7 @@ export async function sha256(text) {
 
 export function formatLastEditedLabel(ts) {
   const ms = ts?.toMillis ? ts.toMillis() : Date.now();
-  return new Date(ms).toLocaleString([], {
+  return new Date(ms).toLocaleString('nl-NL', {
     day: '2-digit',
     month: '2-digit',
     hour: '2-digit',

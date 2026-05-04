@@ -12,6 +12,7 @@ import {
 import {
   addDoc,
   collection,
+  collectionGroup,
   deleteDoc,
   doc,
   getDoc,
@@ -22,7 +23,9 @@ import {
   query,
   serverTimestamp,
   setDoc,
+  Timestamp,
   updateDoc,
+  writeBatch,
   where,
 } from 'firebase/firestore';
 import { auth, db, googleProvider } from './firebase';
@@ -105,6 +108,21 @@ async function writeMembership({ uid, sessionId, role, sessionName, joinTag }) {
   }, { merge: true });
 }
 
+const CHAT_ACCENT_COLORS = {
+  indigo: '#6366f1',
+  violet: '#8b5cf6',
+  sky: '#0ea5e9',
+  teal: '#14b8a6',
+  emerald: '#10b981',
+  lime: '#84cc16',
+  amber: '#f59e0b',
+  orange: '#f97316',
+  rose: '#f43f5e',
+  pink: '#ec4899',
+  fuchsia: '#d946ef',
+  cyan: '#22d3ee',
+};
+
 // --- COMPONENTEN ---
 
 export default function TomeVaultApp() {
@@ -115,6 +133,16 @@ export default function TomeVaultApp() {
   const [showShareModal, setShowShareModal] = useState(false);
   const [activeTab, setActiveTab] = useState('handouts');
   const [playerName, setPlayerName] = useState('');
+  const [theme, setTheme] = useState(() => {
+    const saved = localStorage.getItem('tv_theme');
+    if (saved) {
+      if (saved === 'parchment' || saved === 'sunlight') return 'amber';
+      return saved;
+    }
+    return 'purple';
+  });
+
+  const handleThemeChange = (t) => { setTheme(t); localStorage.setItem('tv_theme', t); };
   
   const [handouts, setHandouts] = useState(MOCK_HANDOUTS);
   const [party, setParty] = useState(MOCK_PARTY);
@@ -152,6 +180,7 @@ export default function TomeVaultApp() {
   const [damageTarget, setDamageTarget] = useState(null);
   const [profileTarget, setProfileTarget] = useState(null);
   const [selectedHandout, setSelectedHandout] = useState(null);
+  const [campaignSessionNumber, setCampaignSessionNumber] = useState(1);
 
   const CURRENT_PLAYER_ID = uid || 'p1';
 
@@ -209,6 +238,7 @@ export default function TomeVaultApp() {
             setRole('gm');
             setSessionDocId(existing.id);
             setSessionId(toLegacyHashJoinTag(existingData.joinTag || joinTag));
+            setCampaignSessionNumber(Number(existingData.campaignSessionNumber || 1));
             setView('dashboard');
             return;
           }
@@ -221,6 +251,7 @@ export default function TomeVaultApp() {
           joinTag,
           pinHash,
           gmUid: uid,
+          campaignSessionNumber: 1,
           battleActive: false,
           createdAt: serverTimestamp(),
           updatedAt: serverTimestamp(),
@@ -241,6 +272,7 @@ export default function TomeVaultApp() {
         setRole('gm');
         setSessionDocId(created.id);
         setSessionId(joinTag);
+        setCampaignSessionNumber(1);
         setView('dashboard');
         return;
       }
@@ -318,6 +350,7 @@ export default function TomeVaultApp() {
       setRole('player');
       setSessionDocId(sessionDoc.id);
       setSessionId(toLegacyHashJoinTag(sessionData?.joinTag || joinTagRaw));
+      setCampaignSessionNumber(Number(sessionData?.campaignSessionNumber || 1));
       setView('dashboard');
     } catch (err) {
       console.error('Join/Create sessie fout:', err);
@@ -363,6 +396,7 @@ export default function TomeVaultApp() {
         setRole('gm');
         setSessionDocId(snap.id);
         setSessionId(resolvedJoinTag);
+        setCampaignSessionNumber(Number(data?.campaignSessionNumber || 1));
         setView('dashboard');
         return;
       }
@@ -389,6 +423,7 @@ export default function TomeVaultApp() {
       setRole('player');
       setSessionDocId(snap.id);
       setSessionId(resolvedJoinTag);
+      setCampaignSessionNumber(Number(data?.campaignSessionNumber || 1));
       setView('dashboard');
     } catch (err) {
       console.error('Recente sessie hervatten fout:', err);
@@ -449,6 +484,90 @@ export default function TomeVaultApp() {
     await handleSetRecentSessionStatus(sessionId, 'active');
   };
 
+  const deleteDocsInSubcollection = async (sessionId, subcollectionName, queryRef = null) => {
+    const snap = queryRef ? await getDocs(queryRef) : await getDocs(collection(db, 'sessions', sessionId, subcollectionName));
+    if (snap.empty) return;
+
+    for (let index = 0; index < snap.docs.length; index += 450) {
+      const batch = writeBatch(db);
+      snap.docs.slice(index, index + 450).forEach((entry) => batch.delete(entry.ref));
+      await batch.commit();
+    }
+  };
+
+  const handleDeleteRecentSession = async (membership) => {
+    if (!uid || !membership?.sessionId) return;
+
+    setSessionError('');
+    setSessionInfo('');
+    setSessionBusy(true);
+
+    const sessionName = membership.sessionName || 'Naamloze Sessie';
+    const membershipRef = doc(db, 'users', uid, 'memberships', membership.sessionId);
+
+    try {
+      if (membership.role === 'dm') {
+        const sessionRef = doc(db, 'sessions', membership.sessionId);
+        const sessionSnap = await getDoc(sessionRef);
+
+        if (!sessionSnap.exists()) {
+          await deleteDoc(membershipRef);
+          setRecentSessions((prev) => prev.filter((session) => session.sessionId !== membership.sessionId));
+          setSessionInfo(`De verwijzing naar ${sessionName} is verwijderd uit je recente sessies.`);
+          return;
+        }
+
+        const sessionData = sessionSnap.data() || {};
+        if (sessionData.gmUid !== uid) {
+          throw new Error('Alleen de actieve GM kan deze campagne definitief verwijderen.');
+        }
+
+        await deleteDocsInSubcollection(membership.sessionId, 'wallets');
+        await deleteDocsInSubcollection(membership.sessionId, 'handouts');
+        await deleteDocsInSubcollection(membership.sessionId, 'players');
+        await deleteDocsInSubcollection(membership.sessionId, 'inventory');
+        await deleteDocsInSubcollection(membership.sessionId, 'notifications');
+        await deleteDocsInSubcollection(membership.sessionId, 'chatMessages');
+        await deleteDocsInSubcollection(membership.sessionId, 'characterTemplates');
+        await deleteDocsInSubcollection(membership.sessionId, 'pendingTransfer');
+        await deleteDocsInSubcollection(
+          membership.sessionId,
+          'noteFiles',
+          query(collection(db, 'sessions', membership.sessionId, 'noteFiles'), where('ownerUid', '==', uid))
+        );
+
+        await deleteDoc(sessionRef);
+        await deleteDoc(membershipRef);
+
+        setRecentSessions((prev) => prev.filter((session) => session.sessionId !== membership.sessionId));
+        setSessionInfo(`Campagne ${sessionName} is definitief verwijderd.`);
+
+        if (sessionDocId === membership.sessionId) {
+          setRole(null);
+          setSessionId('');
+          setCampaignSessionNumber(1);
+          setSessionDocId('');
+          setView('landing');
+          setIsMusicPlaying(false);
+          setIsPartyOpen(false);
+          setBattleActive(false);
+        }
+
+        return;
+      }
+
+      await deleteDoc(doc(db, 'sessions', membership.sessionId, 'players', uid)).catch(() => {});
+      await deleteDoc(membershipRef);
+      setRecentSessions((prev) => prev.filter((session) => session.sessionId !== membership.sessionId));
+      setSessionInfo(`Je hebt ${sessionName} permanent verlaten en uit je recente sessies verwijderd.`);
+    } catch (err) {
+      console.error('Recente sessie verwijderen fout:', err);
+      setSessionError(err?.message || 'Het permanent verwijderen van deze sessie is mislukt.');
+    } finally {
+      setSessionBusy(false);
+    }
+  };
+
   const handleLogout = async () => {
     try {
       await signOut(auth);
@@ -457,6 +576,7 @@ export default function TomeVaultApp() {
     }
     setRole(null);
     setSessionId('');
+    setCampaignSessionNumber(1);
     setSessionDocId('');
     setView('landing');
     setIsMusicPlaying(false);
@@ -640,6 +760,18 @@ export default function TomeVaultApp() {
       const ms = ts?.toMillis ? ts.toMillis() : Date.now();
       return new Date(ms).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     };
+    const toIsoDate = (ts) => {
+      const ms = ts?.toMillis ? ts.toMillis() : Date.now();
+      return new Date(ms).toLocaleDateString('nl-NL', { day: '2-digit', month: '2-digit', year: 'numeric' });
+    };
+    const toIsoMs = (ts) => (ts?.toMillis ? ts.toMillis() : Date.now());
+
+    unsubs.push(
+      onSnapshot(doc(db, 'sessions', sid), (snap) => {
+        const s = snap.data() || {};
+        setCampaignSessionNumber(Number(s.campaignSessionNumber || 1));
+      })
+    );
 
     unsubs.push(
       onSnapshot(collection(db, 'sessions', sid, 'handouts'), (snap) => {
@@ -695,9 +827,15 @@ export default function TomeVaultApp() {
             const c = d.data() || {};
             return {
               id: d.id,
+              uid: c.uid || '',
               author: c.displayName || c.author || 'Onbekend',
               text: c.message || c.text || '',
               time: toIsoTime(c.createdAt),
+              date: toIsoDate(c.createdAt),
+              ms: toIsoMs(c.createdAt),
+              color: c.color || 'indigo',
+              replyTo: c.replyTo || null,
+              clientMessageId: c.clientMessageId || null,
             };
           });
 
@@ -716,7 +854,9 @@ export default function TomeVaultApp() {
             name: i.name || 'Onbekend item',
             desc: i.description || i.desc || '',
             amount: Number(i.amount ?? 1),
-            avatarUrl: i.avatarUrl || null,
+            imageUrl: i.imageUrl || i.avatarUrl || null,
+            category: String(i.category || 'overig').toLowerCase(),
+            section: i.section || 'Uitrusting & Items',
           };
         });
 
@@ -755,11 +895,12 @@ export default function TomeVaultApp() {
                 authorId: n.ownerRole === 'dm' ? 'gm' : (n.ownerUid || uid),
                 title: n.title || 'Nieuwe Notitie',
                 content: n.content || '',
+                lastEditedMs: (n.updatedAt || n.createdAt)?.toMillis ? (n.updatedAt || n.createdAt).toMillis() : Date.now(),
                 lastEdited: formatLastEditedLabel(n.updatedAt || n.createdAt),
               };
             })
             .filter(Boolean)
-            .sort((a, b) => String(b.lastEdited).localeCompare(String(a.lastEdited)));
+            .sort((a, b) => Number(b.lastEditedMs || 0) - Number(a.lastEditedMs || 0));
 
           setNotes(incoming);
         }
@@ -850,17 +991,95 @@ export default function TomeVaultApp() {
     setHandouts(handouts.map(h => h.id === handoutId ? { ...h, claimedBy: null } : h));
   };
 
-  const handleSendChatRemote = async (text) => {
+  const handleSendChatRemote = async ({ text, color, replyTo, clientMessageId } = {}) => {
     if (!sessionDocId || !uid) {
       throw new Error('Geen actieve sessie voor chat.');
     }
-
     await addDoc(collection(db, 'sessions', sessionDocId, 'chatMessages'), {
       uid,
       displayName: role === 'gm' ? 'GM' : (playerName || displayName || 'Avonturier'),
+      avatarUrl: '',
       message: String(text || '').trim(),
+      color: color || 'indigo',
+      replyTo: replyTo || null,
+      clientMessageId: clientMessageId || null,
       createdAt: serverTimestamp(),
+      updatedAt: serverTimestamp(),
+      expireAt: Timestamp.fromMillis(Date.now() + (1000 * 60 * 60 * 24 * 365 * 2)),
     });
+  };
+
+  const handleEditChatMessage = async (msgId, newText) => {
+    if (!sessionDocId || !msgId) return;
+    try {
+      await updateDoc(doc(db, 'sessions', sessionDocId, 'chatMessages', msgId), {
+        message: String(newText || '').trim(),
+      });
+    } catch (err) {
+      console.error('Bewerk chat mislukt:', err);
+    }
+  };
+
+  const handleDeleteChatMessage = async (msgId) => {
+    if (!sessionDocId || !msgId || msgId.startsWith('tmp-')) return;
+    try {
+      await deleteDoc(doc(db, 'sessions', sessionDocId, 'chatMessages', msgId));
+    } catch (err) {
+      console.error('Verwijder chat mislukt:', err);
+    }
+  };
+
+  const handleUpdateChatColor = async (nextColor) => {
+    if (!sessionDocId || !uid || !nextColor) return;
+
+    try {
+      const legacyDisplayName = role === 'gm' ? 'GM' : (playerName || displayName || 'Avonturier');
+      const [uidSnap, legacySnap] = await Promise.all([
+        getDocs(query(collection(db, 'sessions', sessionDocId, 'chatMessages'), where('uid', '==', uid))),
+        getDocs(query(collection(db, 'sessions', sessionDocId, 'chatMessages'), where('displayName', '==', legacyDisplayName))),
+      ]);
+
+      const allDocs = [...uidSnap.docs, ...legacySnap.docs];
+      if (!allDocs.length) return;
+
+      const seen = new Set();
+      const uniqueDocs = allDocs.filter((d) => {
+        if (seen.has(d.id)) return false;
+        seen.add(d.id);
+        return true;
+      });
+
+      for (let i = 0; i < uniqueDocs.length; i += 450) {
+        const batch = writeBatch(db);
+        uniqueDocs.slice(i, i + 450).forEach((d) => {
+          batch.update(d.ref, { color: nextColor });
+        });
+        await batch.commit();
+      }
+
+      setChat((prev) => prev.map((msg) => {
+        const mineByUid = msg.uid && msg.uid === uid;
+        const mineLegacy = !msg.uid && msg.author === legacyDisplayName;
+        return mineByUid || mineLegacy ? { ...msg, color: nextColor } : msg;
+      }));
+    } catch (err) {
+      console.error('Chatkleur historisch bijwerken mislukt:', err);
+    }
+  };
+
+  const handleUpdateCampaignSessionNumber = async (nextNumber) => {
+    const safe = Math.max(1, Number(nextNumber) || 1);
+    setCampaignSessionNumber(safe);
+
+    if (!sessionDocId || role !== 'gm') return;
+    try {
+      await updateDoc(doc(db, 'sessions', sessionDocId), {
+        campaignSessionNumber: safe,
+        updatedAt: serverTimestamp(),
+      });
+    } catch (err) {
+      console.error('Campagne sessienummer bijwerken mislukt:', err);
+    }
   };
 
   const buildHandoutPayload = (handout = {}) => ({
@@ -992,6 +1211,40 @@ export default function TomeVaultApp() {
     }
   };
 
+  const handleTransferGm = async (targetMember) => {
+    if (role !== 'gm' || !sessionDocId || !uid || !targetMember?.id || targetMember.id === uid || targetMember.isNpc) return;
+
+    try {
+      await updateDoc(doc(db, 'sessions', sessionDocId), {
+        gmUid: targetMember.id,
+        updatedAt: serverTimestamp(),
+      });
+
+      await writeMembership({
+        uid: targetMember.id,
+        sessionId: sessionDocId,
+        role: 'dm',
+        sessionName: '',
+        joinTag: sessionId,
+      });
+
+      await writeMembership({
+        uid,
+        sessionId: sessionDocId,
+        role: 'player',
+        sessionName: '',
+        joinTag: sessionId,
+      });
+
+      setRole('player');
+      setSessionInfo(`${targetMember.name || 'Speler'} is nu GM van deze sessie.`);
+      setProfileTarget(null);
+    } catch (err) {
+      console.error('GM overdracht mislukt:', err);
+      setSessionError('GM overdracht is mislukt. Probeer opnieuw.');
+    }
+  };
+
   const handleAddNpcSave = async (npcData) => {
     const tempId = 'n' + Date.now();
     setParty([...party, { ...npcData, id: tempId, isNpc: true, init: null }]);
@@ -1018,17 +1271,34 @@ export default function TomeVaultApp() {
     }
   };
 
-  const handleAddItemSave = async (newItem) => {
+  const handleAddItemSave = async (newItem, pendingFile) => {
     const tempId = 'i' + Date.now();
-    setInventory([...inventory, { ...newItem, id: tempId }]);
+    let finalItem = { ...newItem };
+
+    if (pendingFile && uid) {
+      try {
+        const ext = pendingFile.name.split('.').pop();
+        const storagePath = `users/${uid}/items/${Date.now()}.${ext}`;
+        const downloadUrl = await uploadImageToStorage(pendingFile, storagePath);
+        finalItem = { ...finalItem, imageUrl: downloadUrl };
+      } catch (err) {
+        console.error('Item afbeelding uploaden mislukt:', err);
+      }
+    }
+
+    setInventory([...inventory, { ...finalItem, id: tempId }]);
     setIsAddItemModalOpen(false);
     if (sessionDocId) {
       try {
         await addDoc(collection(db, 'sessions', sessionDocId, 'inventory'), {
+          ownerUid: newItem.ownerId || null,
           ownerId: newItem.ownerId || null,
           name: newItem.name || 'Item',
           desc: newItem.desc || '',
           amount: Number(newItem.amount) || 1,
+          imageUrl: finalItem.imageUrl || null,
+          category: String(newItem.category || 'overig').toLowerCase(),
+          section: newItem.section || 'Uitrusting & Items',
           createdAt: serverTimestamp(),
           updatedAt: serverTimestamp(),
         });
@@ -1070,6 +1340,31 @@ export default function TomeVaultApp() {
         console.error('Item verwijderen fout:', err);
         setInventory(previousInventory);
       }
+    }
+  };
+
+  const handleMoveItemSection = async (itemId, nextSection) => {
+    const safeSection = String(nextSection || '').trim() || 'Uitrusting & Items';
+    const previousInventory = inventory;
+    setInventory((prev) => prev.map((item) => (item.id === itemId ? { ...item, section: safeSection } : item)));
+
+    if (!sessionDocId) return;
+    try {
+      await updateDoc(doc(db, 'sessions', sessionDocId, 'inventory', itemId), {
+        section: safeSection,
+        updatedAt: serverTimestamp(),
+      });
+    } catch (err) {
+      console.error('Item sectie verplaatsen mislukt:', err);
+      setInventory(previousInventory);
+    }
+  };
+
+  const handleSaveSettings = async ({ nextPlayerName, nextTheme, nextSessionNumber }) => {
+    if (typeof nextPlayerName === 'string') setPlayerName(nextPlayerName);
+    if (typeof nextTheme === 'string') handleThemeChange(nextTheme);
+    if (role === 'gm' && Number.isFinite(Number(nextSessionNumber))) {
+      await handleUpdateCampaignSessionNumber(nextSessionNumber);
     }
   };
 
@@ -1167,6 +1462,7 @@ export default function TomeVaultApp() {
         onResumeRecentSession={handleResumeRecentSession}
           onHideRecentSession={handleHideRecentSession}
           onRestoreRecentSession={handleRestoreRecentSession}
+          onDeleteRecentSession={handleDeleteRecentSession}
           onQuickTestGm={handleQuickTestGm}
           onQuickTestPlayer={handleQuickTestPlayer}
           recentSessions={recentSessions}
@@ -1189,12 +1485,21 @@ export default function TomeVaultApp() {
     );
   }
 
+  const getCharacterChatColor = (character) => {
+    if (!character) return null;
+    const byUid = [...chat].reverse().find((m) => m.uid && m.uid === character.id && m.color);
+    if (byUid?.color) return byUid.color;
+    const byName = [...chat].reverse().find((m) => !m.uid && m.author === character.name && m.color);
+    return byName?.color || null;
+  };
+
   return (
-    <div className="h-screen w-full bg-stone-950 text-stone-300 font-sans flex flex-col selection:bg-amber-500/30 bg-texture overflow-hidden">
+    <div data-theme={theme} className="h-screen w-full bg-stone-950 text-stone-300 font-sans flex flex-col selection:bg-amber-500/30 bg-texture overflow-hidden">
         
         <TopBar 
           role={role} 
           sessionId={sessionId}
+          sessionNumber={campaignSessionNumber}
           onLogout={handleLogout} 
           isMusicPlaying={isMusicPlaying} 
           setIsMusicPlaying={setIsMusicPlaying} 
@@ -1225,8 +1530,12 @@ export default function TomeVaultApp() {
                   chat={chat}
                   setChat={setChat}
                   role={role}
+                  uid={uid}
                   playerName={playerName || 'Speler'}
                   onSendMessageRemote={handleSendChatRemote}
+                  onEditMessage={handleEditChatMessage}
+                  onDeleteMessage={handleDeleteChatMessage}
+                  onChangeColor={handleUpdateChatColor}
                 />
               )}
               {activeTab === 'inventory' && (
@@ -1242,6 +1551,7 @@ export default function TomeVaultApp() {
                   onOpenAddItem={() => setIsAddItemModalOpen(true)}
                   onUpdateItemAmount={handleUpdateItemAmount}
                   onDeleteItem={handleDeleteItem}
+                  onMoveItemSection={handleMoveItemSection}
                   onAdjustWallet={handleAdjustWallet}
                 />
               )}
@@ -1308,6 +1618,8 @@ export default function TomeVaultApp() {
           role={role}
           currentPlayerId={CURRENT_PLAYER_ID}
           onSave={handleProfileSave}
+          onTransferGm={handleTransferGm}
+          chatColor={getCharacterChatColor(profileTarget)}
         />
 
         <AddItemModal
@@ -1375,10 +1687,11 @@ export default function TomeVaultApp() {
           isOpen={isSettingsOpen}
           onClose={() => setIsSettingsOpen(false)}
           playerName={playerName}
-          setPlayerName={setPlayerName}
           role={role}
-          setRole={setRole}
           onLogout={handleLogout}
+          theme={theme}
+          sessionNumber={campaignSessionNumber}
+          onSaveSettings={handleSaveSettings}
         />
       </div>
   );

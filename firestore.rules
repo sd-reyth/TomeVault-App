@@ -155,11 +155,17 @@ service cloud.firestore {
 
         // Players can CREATE items where they set themselves as owner
         allow create: if request.auth != null
-                      && request.resource.data.ownerUid == request.auth.uid;
+                      && (
+                        request.resource.data.ownerUid == request.auth.uid
+                        || request.resource.data.ownerId == request.auth.uid
+                      );
 
         // Players can UPDATE / DELETE their own items
         allow update, delete: if request.auth != null
-                              && resource.data.ownerUid == request.auth.uid;
+                              && (
+                                resource.data.ownerUid == request.auth.uid
+                                || resource.data.ownerId == request.auth.uid
+                              );
       }
 
       // Notifications (per-player, in-app)
@@ -183,22 +189,53 @@ service cloud.firestore {
         allow read: if request.auth != null;
 
         allow create: if request.auth != null
-                      && request.resource.data.keys().hasOnly(['uid', 'displayName', 'avatarUrl', 'message', 'createdAt', 'expireAt'])
+                      && request.resource.data.keys().hasOnly(['uid', 'displayName', 'avatarUrl', 'message', 'createdAt', 'expireAt', 'color', 'replyTo', 'clientMessageId', 'updatedAt'])
                       && request.resource.data.uid == request.auth.uid
                       && request.resource.data.uid is string
                       && request.resource.data.uid.size() > 0
                       && request.resource.data.displayName is string
                       && request.resource.data.displayName.size() > 0
                       && request.resource.data.displayName.size() <= 60
-                      && request.resource.data.avatarUrl is string
-                      && request.resource.data.avatarUrl.size() <= 2048
+                      && (
+                        !('avatarUrl' in request.resource.data)
+                        || (
+                          request.resource.data.avatarUrl is string
+                          && request.resource.data.avatarUrl.size() <= 2048
+                        )
+                      )
                       && request.resource.data.message is string
                       && request.resource.data.message.size() > 0
                       && request.resource.data.message.size() <= 500
                       && request.resource.data.createdAt is timestamp
-                      && request.resource.data.expireAt is timestamp;
+                      && request.resource.data.expireAt is timestamp
+                      && (!(request.resource.data.color is string) || request.resource.data.color.size() <= 24)
+                      && (!(request.resource.data.clientMessageId is string) || request.resource.data.clientMessageId.size() <= 80)
+                      && (
+                        request.resource.data.replyTo == null
+                        || (
+                          request.resource.data.replyTo is map
+                          && request.resource.data.replyTo.keys().hasOnly(['author', 'text'])
+                          && request.resource.data.replyTo.author is string
+                          && request.resource.data.replyTo.author.size() <= 60
+                          && request.resource.data.replyTo.text is string
+                          && request.resource.data.replyTo.text.size() <= 500
+                        )
+                      );
 
-                  allow delete: if isGM(sessionId);
+        allow update: if request.auth != null
+                      && (isGM(sessionId) || resource.data.uid == request.auth.uid)
+                      && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['message', 'color', 'updatedAt'])
+                      && request.resource.data.uid == resource.data.uid
+                      && request.resource.data.displayName == resource.data.displayName
+                      && request.resource.data.createdAt == resource.data.createdAt
+                      && request.resource.data.expireAt == resource.data.expireAt
+                      && request.resource.data.message is string
+                      && request.resource.data.message.size() > 0
+                      && request.resource.data.message.size() <= 500
+                      && (!(request.resource.data.color is string) || request.resource.data.color.size() <= 24);
+
+        allow delete: if isGM(sessionId)
+                      || (request.auth != null && resource.data.uid == request.auth.uid);
       }
 
       // Character templates (GM-managed)

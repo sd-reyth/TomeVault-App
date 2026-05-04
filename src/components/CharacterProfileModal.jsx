@@ -1,16 +1,38 @@
 import React, { useState, useEffect } from 'react';
-import { X, ImagePlus, Fingerprint, Plus, NotebookPen } from 'lucide-react';
-import { resolveDisplayAvatar, PROFILE_PLACEHOLDERS } from '../lib/placeholders';
+import { Crown, X, ImagePlus, Fingerprint, Plus, NotebookPen } from 'lucide-react';
+import {
+  resolveDisplayAvatar,
+  PROFILE_PROMPT_AVATARS,
+} from '../lib/placeholders';
 import { STAT_SUGGESTIONS } from '../data/mockData';
 
-function CharacterProfileModal({ isOpen, onClose, character, role, currentPlayerId, onSave }) {
+const CHAT_ACCENT_COLORS = {
+  indigo: '#6366f1',
+  violet: '#8b5cf6',
+  sky: '#0ea5e9',
+  teal: '#14b8a6',
+  emerald: '#10b981',
+  lime: '#84cc16',
+  amber: '#f59e0b',
+  orange: '#f97316',
+  rose: '#f43f5e',
+  pink: '#ec4899',
+  fuchsia: '#d946ef',
+  cyan: '#22d3ee',
+};
+
+function CharacterProfileModal({ isOpen, onClose, character, role, currentPlayerId, onSave, onTransferGm, chatColor }) {
   const [formData, setFormData] = useState({});
   const [pendingAvatarFile, setPendingAvatarFile] = useState(null);
+  const [confirmTransfer, setConfirmTransfer] = useState(false);
+  const [showAllPromptAvatars, setShowAllPromptAvatars] = useState(false);
 
   useEffect(() => {
     if (character) {
       setFormData({ ...character });
       setPendingAvatarFile(null);
+      setConfirmTransfer(false);
+      setShowAllPromptAvatars(false);
     }
   }, [character]);
 
@@ -19,6 +41,8 @@ function CharacterProfileModal({ isOpen, onClose, character, role, currentPlayer
   const isGM = role === 'gm';
   const isMine = character.id === currentPlayerId;
   const canEdit = isGM || isMine;
+  const canTransferGm = isGM && !isMine && !character.isNpc;
+  const bannerAccent = CHAT_ACCENT_COLORS[chatColor] || null;
 
   const handleChange = (field, value) => {
     setFormData(prev => ({ ...prev, [field]: value }));
@@ -68,7 +92,10 @@ function CharacterProfileModal({ isOpen, onClose, character, role, currentPlayer
       <div className="bg-stone-900 border border-stone-700/50 rounded-2xl max-w-md w-full shadow-2xl relative overflow-hidden flex flex-col max-h-[90vh]">
         
         {/* Banner */}
-        <div className={`h-24 md:h-32 w-full relative shrink-0 z-0 ${character.isNpc ? 'bg-gradient-to-r from-rose-950 to-rose-900' : 'bg-gradient-to-r from-amber-950 to-stone-800'}`}>
+        <div
+          className={`h-24 md:h-32 w-full relative shrink-0 z-0 ${character.isNpc ? 'bg-gradient-to-r from-rose-950 to-rose-900' : 'bg-gradient-to-r from-amber-950 to-stone-800'}`}
+          style={bannerAccent ? { background: `linear-gradient(120deg, ${bannerAccent}55, #0b0b16 70%)` } : undefined}
+        >
           <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI4IiBoZWlnaHQ9IjgiPgo8cmVjdCB3aWR0aD0iOCIgaGVpZ2h0PSI4IiBmaWxsPSIjZmZmIiBmaWxsLW9wYWNpdHk9IjAuMSIvPgo8L3N2Zz4=')] opacity-20 pointer-events-none" />
           <button onClick={onClose} className="absolute top-4 right-4 text-stone-300 hover:text-white bg-stone-950/50 rounded-md p-1 backdrop-blur-sm transition-colors z-10">
             <X className="w-5 h-5" />
@@ -83,7 +110,11 @@ function CharacterProfileModal({ isOpen, onClose, character, role, currentPlayer
               const displayAvatar = resolveDisplayAvatar(formData.avatar, character.id);
               return (
                 <>
-                  <img src={displayAvatar} alt="Portret" className="w-full h-full object-cover" />
+                  <img
+                    src={displayAvatar}
+                    alt="Portret"
+                    className="w-full h-full object-cover object-center scale-[1.08]"
+                  />
                   {canEdit && (
                     <div className="absolute inset-0 flex items-center justify-center bg-stone-950/60 opacity-0 group-hover:opacity-100 transition-opacity">
                       <ImagePlus className="w-6 h-6 text-stone-200" />
@@ -134,7 +165,7 @@ function CharacterProfileModal({ isOpen, onClose, character, role, currentPlayer
               <div>
                 <div className="text-[10px] font-bold text-stone-500 uppercase tracking-widest mb-2">Of kies een avatar</div>
                 <div className="flex gap-1.5 overflow-x-auto no-scrollbar pb-1">
-                  {PROFILE_PLACEHOLDERS.slice(0, 10).map((url) => (
+                  {PROFILE_PROMPT_AVATARS.slice(0, 18).map((url) => (
                     <button
                       key={url}
                       type="button"
@@ -145,10 +176,71 @@ function CharacterProfileModal({ isOpen, onClose, character, role, currentPlayer
                           : 'border-stone-700 hover:border-amber-700/60'
                       }`}
                     >
-                      <img src={url} alt="" className="w-full h-full object-cover" loading="lazy" />
+                      <img src={url} alt="" className="w-full h-full object-cover object-center scale-[1.2]" loading="lazy" />
                     </button>
                   ))}
+                  <button
+                    type="button"
+                    onClick={() => setShowAllPromptAvatars((value) => !value)}
+                    className={`shrink-0 w-10 h-10 rounded-lg border-2 transition-all text-stone-300 font-fantasy text-lg ${showAllPromptAvatars ? 'border-amber-500 bg-amber-950/30' : 'border-stone-700 hover:border-amber-700/60 bg-stone-900/60'}`}
+                    title="Toon alle prompt avatars"
+                  >
+                    ...
+                  </button>
                 </div>
+
+                {showAllPromptAvatars && (
+                  <div className="mt-3 max-h-52 overflow-y-auto no-scrollbar rounded-lg border border-stone-800 bg-stone-950/40 p-2">
+                    <div className="grid grid-cols-6 gap-1.5">
+                      {PROFILE_PROMPT_AVATARS.map((url) => (
+                        <button
+                          key={`all-${url}`}
+                          type="button"
+                          onClick={() => handlePickAvatar(url)}
+                          className={`aspect-square rounded-md overflow-hidden border transition-all ${formData.avatar === url ? 'border-amber-500 shadow-[0_0_6px_rgba(217,119,6,0.5)]' : 'border-stone-700 hover:border-amber-700/60'}`}
+                        >
+                          <img src={url} alt="" className="w-full h-full object-cover object-center scale-[1.2]" loading="lazy" />
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {canTransferGm && (
+              <div className="rounded-lg border border-amber-900/40 bg-amber-950/20 p-3">
+                {!confirmTransfer ? (
+                  <button
+                    type="button"
+                    onClick={() => setConfirmTransfer(true)}
+                    className="w-full flex items-center justify-center gap-2 bg-amber-800/30 hover:bg-amber-700/40 border border-amber-700/50 text-amber-300 py-2 rounded-lg text-xs font-fantasy tracking-wider transition-colors"
+                  >
+                    <Crown className="w-4 h-4" /> Maak {formData.name || 'speler'} de nieuwe GM
+                  </button>
+                ) : (
+                  <div className="space-y-2">
+                    <p className="text-[11px] text-amber-200/90 font-story leading-relaxed">
+                      Weet je zeker dat je GM-rechten overdraagt? Deze keuze is blijvend voor deze sessie, maar de nieuwe GM kan jou later weer terugzetten.
+                    </p>
+                    <div className="flex gap-2">
+                      <button
+                        type="button"
+                        onClick={() => setConfirmTransfer(false)}
+                        className="flex-1 py-2 rounded-lg border border-stone-700 text-stone-300 hover:bg-stone-800 text-xs font-fantasy tracking-wider"
+                      >
+                        Annuleer
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => onTransferGm?.(formData)}
+                        className="flex-1 py-2 rounded-lg border border-amber-700/60 bg-amber-700/30 text-amber-200 hover:bg-amber-600/40 text-xs font-fantasy tracking-wider"
+                      >
+                        Bevestig overdracht
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
             )}
 

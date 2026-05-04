@@ -3,7 +3,7 @@ import { LayoutGrid, List, Plus, Eye, EyeOff, Hand } from 'lucide-react';
 import { getHandoutIcon } from '../lib/handoutUtils';
 
 function HandoutsView({ role, handouts, onToggleVisibility, onOpenHandout, onCreateHandout, onClaim }) {
-  const [viewMode, setViewMode] = useState('grid');
+  const [viewMode, setViewMode] = useState('list');
 
   const toggleVisibility = (id) => {
     if (role !== 'gm') return;
@@ -28,18 +28,18 @@ function HandoutsView({ role, handouts, onToggleVisibility, onOpenHandout, onCre
         <div className="flex flex-row items-center gap-3 w-full sm:w-auto">
           <div className="flex items-center bg-stone-900/80 border border-stone-800 rounded-lg p-1 shrink-0">
             <button 
-              onClick={() => setViewMode('grid')} 
-              className={`p-1.5 md:p-2 rounded-md transition-colors ${viewMode === 'grid' ? 'bg-amber-900/40 text-amber-500 shadow-sm' : 'text-stone-500 hover:text-stone-300'}`}
-              title="Blok weergave"
-            >
-              <LayoutGrid className="w-4 h-4 md:w-5 md:h-5" />
-            </button>
-            <button 
               onClick={() => setViewMode('list')} 
               className={`p-1.5 md:p-2 rounded-md transition-colors ${viewMode === 'list' ? 'bg-amber-900/40 text-amber-500 shadow-sm' : 'text-stone-500 hover:text-stone-300'}`}
               title="Lijst weergave"
             >
               <List className="w-4 h-4 md:w-5 md:h-5" />
+            </button>
+            <button 
+              onClick={() => setViewMode('grid')} 
+              className={`p-1.5 md:p-2 rounded-md transition-colors ${viewMode === 'grid' ? 'bg-amber-900/40 text-amber-500 shadow-sm' : 'text-stone-500 hover:text-stone-300'}`}
+              title="Blok weergave"
+            >
+              <LayoutGrid className="w-4 h-4 md:w-5 md:h-5" />
             </button>
           </div>
 
@@ -69,15 +69,15 @@ function HandoutsView({ role, handouts, onToggleVisibility, onOpenHandout, onCre
           >
             <div className="absolute inset-0 opacity-[0.03] bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI4IiBoZWlnaHQ9IjgiPgo8cmVjdCB3aWR0aD0iOCIgaGVpZ2h0PSI4IiBmaWxsPSIjZmZmIiBmaWxsLW9wYWNpdHk9IjAuMSIvPgo8L3N2Zz4=')] pointer-events-none" />
 
-            <div className={`${viewMode === 'grid' ? 'h-28 md:h-32 border-b' : 'w-16 md:w-20 border-r'} bg-stone-950/80 relative overflow-hidden flex items-center justify-center border-stone-800/50 shrink-0`}>
+            <div className={`${viewMode === 'grid' ? 'aspect-[16/9] w-full border-b' : 'w-20 md:w-24 aspect-square border-r'} bg-stone-950/80 relative overflow-hidden flex items-center justify-center border-stone-800/50 shrink-0`}>
               
               {handout.imageUrl ? (
-                <img src={handout.imageUrl} alt={handout.title} className="absolute inset-0 w-full h-full object-cover opacity-50 mix-blend-luminosity" />
+                <img src={handout.imageUrl} alt={handout.title} className="absolute inset-0 w-full h-full object-cover scale-[1.25] transition-transform duration-500 group-hover:scale-[1.4]" />
               ) : (
-                <div className="absolute inset-0 bg-gradient-to-br from-stone-900 to-transparent opacity-80" />
+                <div className="absolute inset-0 bg-gradient-to-br from-amber-950/40 via-stone-900/60 to-stone-950" />
               )}
               
-              <Icon className={`${viewMode === 'grid' ? 'w-10 h-10 md:w-12 md:h-12' : 'w-6 h-6 md:w-8 md:h-8'} ${handout.imageUrl ? 'text-stone-300 drop-shadow-[0_0_8px_rgba(0,0,0,0.8)]' : 'text-stone-700 drop-shadow-md'} relative z-10`} strokeWidth={1.5} />
+              <Icon className={`${viewMode === 'grid' ? 'w-10 h-10 md:w-12 md:h-12' : 'w-6 h-6 md:w-8 md:h-8'} ${handout.imageUrl ? 'text-white/80 drop-shadow-[0_2px_12px_rgba(0,0,0,0.9)]' : 'text-amber-700/60 drop-shadow-md'} relative z-10`} strokeWidth={1.5} />
               
               {role === 'gm' && viewMode === 'grid' && (
                 <button 
@@ -123,7 +123,7 @@ function HandoutsView({ role, handouts, onToggleVisibility, onOpenHandout, onCre
               )}
 
               <div className={`flex items-center gap-2 ${viewMode === 'grid' ? 'mb-2 md:mb-3 pr-10' : 'mb-1 pr-12'}`}>
-                <span className={`font-bold uppercase tracking-widest text-amber-600 bg-amber-950/50 border border-amber-900/30 rounded shrink-0 ${viewMode === 'grid' ? 'text-[9px] px-2 py-1' : 'text-[8px] px-1.5 py-0.5'}`}>
+                <span className={`font-bold uppercase tracking-widest text-amber-600 bg-amber-950/50 border border-amber-900/30 rounded shrink-0 ${viewMode === 'list' ? 'text-[9px] px-2 py-1' : 'text-[8px] px-1.5 py-0.5'}`}>
                   {handout.type}
                 </span>
                 
@@ -152,7 +152,7 @@ function HandoutsView({ role, handouts, onToggleVisibility, onOpenHandout, onCre
                 </h3>
               )}
               
-              <p className={`text-stone-400 font-story leading-relaxed ${viewMode === 'grid' ? 'text-xs md:text-sm mb-3 md:mb-4' : 'text-[11px] md:text-xs line-clamp-1 md:line-clamp-2 pr-12'}`}>
+              <p className={`text-stone-400 font-story leading-relaxed ${viewMode === 'grid' ? 'text-xs md:text-sm mb-3 md:mb-4 line-clamp-3' : 'text-[11px] md:text-xs line-clamp-1 md:line-clamp-2 pr-12'}`}>
                 {handout.content}
               </p>
               

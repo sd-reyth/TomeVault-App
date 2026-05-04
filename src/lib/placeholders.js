@@ -40,15 +40,42 @@ const PLACEHOLDER_CATALOG = (() => {
   return entries;
 })();
 
+export const ALL_PLACEHOLDER_IMAGES = PLACEHOLDER_CATALOG.map((entry) => entry.url);
+export const ITEM_PLACEHOLDER_IMAGES = PLACEHOLDER_CATALOG
+  .map((entry) => entry.url)
+  .filter((url) => url.includes('/itemsPrompt'));
+
+export const PROFILE_RANDOM_PLACEHOLDERS = Array.from(
+  { length: 15 },
+  (_, i) => `/placeholders/emptyProfilePictures/emptyProfilePH1_${i + 1}.png`
+);
+
+export const LEGACY_PROFILE_PICKABLE_PLACEHOLDERS = Array.from(
+  { length: 14 },
+  (_, i) => `/placeholders/emptyProfilePictures/emptyProfilePH2_${i + 1}.png`
+);
+
+export const PROFILE_PROMPT_AVATARS = PLACEHOLDER_CATALOG
+  .map((entry) => entry.url)
+  .filter((url) => url.includes('/Prompt') && !url.includes('/itemsPrompt'));
+
 export const PROFILE_PLACEHOLDERS = [
-  ...Array.from({ length: 15 }, (_, i) => `/placeholders/emptyProfilePictures/emptyProfilePH1_${i + 1}.png`),
-  ...Array.from({ length: 14 }, (_, i) => `/placeholders/emptyProfilePictures/emptyProfilePH2_${i + 1}.png`),
+  ...PROFILE_RANDOM_PLACEHOLDERS,
+  ...LEGACY_PROFILE_PICKABLE_PLACEHOLDERS,
 ];
 
+export function isLockedProfilePlaceholder(url) {
+  return PROFILE_RANDOM_PLACEHOLDERS.includes(url);
+}
+
+export function isLegacyEmptyProfilePlaceholder(url) {
+  return LEGACY_PROFILE_PICKABLE_PLACEHOLDERS.includes(url);
+}
+
 export function resolveDisplayAvatar(url, id) {
-  if (url && !url.startsWith('blob:')) return url;
+  if (url && !url.startsWith('blob:') && !isLegacyEmptyProfilePlaceholder(url)) return url;
   const hash = String(id || '').split('').reduce((acc, c) => acc + c.charCodeAt(0), 0);
-  return PROFILE_PLACEHOLDERS[hash % PROFILE_PLACEHOLDERS.length];
+  return PROFILE_RANDOM_PLACEHOLDERS[hash % PROFILE_RANDOM_PLACEHOLDERS.length];
 }
 
 export function suggestHandoutImages(title, content, type, count = 6) {
@@ -70,4 +97,8 @@ export function suggestHandoutImages(title, content, type, count = 6) {
   });
 
   return scored.sort((a, b) => b.score - a.score).slice(0, count).map((e) => e.url);
+}
+
+export function getAllPlaceholderImages() {
+  return ALL_PLACEHOLDER_IMAGES;
 }
