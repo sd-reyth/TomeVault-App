@@ -1596,6 +1596,7 @@ export default function TomeVaultApp() {
           isOpen={showShareModal} 
           onClose={() => setShowShareModal(false)} 
           sessionId={sessionId} 
+          theme={theme}
         />
 
         <AddNpcModal
