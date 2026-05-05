@@ -253,13 +253,32 @@ service cloud.firestore {
 
       // Character templates (GM-managed)
       match /characterTemplates/{templateId} {
-        allow read: if request.auth != null;
+        allow read: if isGM(sessionId)
+                    || (request.auth != null && resource.data.assignedToUid == request.auth.uid);
         allow create, delete: if isGM(sessionId);
 
-        // GM can update anything; assigned player can update assignmentStatus
+        // GM can update anything; assigned player can only answer their own offer.
         allow update: if isGM(sessionId)
                       || (request.auth != null
-                          && resource.data.assignedToUid == request.auth.uid);
+                          && resource.data.assignedToUid == request.auth.uid
+                          && request.resource.data.assignedToUid == resource.data.assignedToUid
+                          && request.resource.data.name == resource.data.name
+                          && request.resource.data.subtitle == resource.data.subtitle
+                          && request.resource.data.bio == resource.data.bio
+                          && request.resource.data.imageUrl == resource.data.imageUrl
+                          && request.resource.data.sourceUid == resource.data.sourceUid
+                          && request.resource.data.sourceType == resource.data.sourceType
+                          && request.resource.data.createdByUid == resource.data.createdByUid
+                          && request.resource.data.createdAt == resource.data.createdAt
+                          && request.resource.data.offeredAt == resource.data.offeredAt
+                          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['assignmentStatus', 'respondedAt', 'updatedAt']));
+      }
+
+      // GM-only restore points for preparation overwrites
+      match /preparationBackups/{backupId} {
+        allow read, update, delete: if isGM(sessionId);
+        allow create: if isGM(sessionId)
+                      || (request.auth != null && request.resource.data.playerUid == request.auth.uid);
       }
 
       // Pending GM role transfer

@@ -1,21 +1,85 @@
-import React from 'react';
-import { Scroll, MessageSquare, Backpack, NotebookPen, Settings } from 'lucide-react';
+import React, { useEffect, useRef, useState } from 'react';
+import { Scroll, MessageSquare, Backpack, NotebookPen, Crown, Settings } from 'lucide-react';
 
-export default function Sidebar({ activeTab, setActiveTab, onOpenSettings }) {
+const SIDEBAR_DEFAULT_WIDTH = 252;
+const SIDEBAR_MIN_WIDTH = 96;
+const SIDEBAR_MAX_WIDTH = 320;
+const SIDEBAR_COLLAPSE_WIDTH = 172;
+const SIDEBAR_STORAGE_KEY = 'tomevault.sidebarWidth';
+
+function clampSidebarWidth(width) {
+  return Math.min(SIDEBAR_MAX_WIDTH, Math.max(SIDEBAR_MIN_WIDTH, width));
+}
+
+export default function Sidebar({ activeTab, setActiveTab, onOpenSettings, role }) {
+  const [sidebarWidth, setSidebarWidth] = useState(SIDEBAR_DEFAULT_WIDTH);
+  const [isDragging, setIsDragging] = useState(false);
+  const dragStateRef = useRef({ startX: 0, startWidth: SIDEBAR_DEFAULT_WIDTH });
+
   const tabs = [
     { id: 'handouts', icon: Scroll, label: 'Handouts' },
     { id: 'chat', icon: MessageSquare, label: 'Partychat' },
     { id: 'inventory', icon: Backpack, label: 'Schatkamer' },
+    ...(role === 'gm' ? [{ id: 'preparations', icon: Crown, label: 'Voorbereidingen' }] : []),
     { id: 'notes', icon: NotebookPen, label: 'Kronieken' },
   ];
 
+  const isCollapsed = sidebarWidth <= SIDEBAR_COLLAPSE_WIDTH;
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const storedWidth = Number(window.localStorage.getItem(SIDEBAR_STORAGE_KEY));
+    if (storedWidth) {
+      setSidebarWidth(clampSidebarWidth(storedWidth));
+    }
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    window.localStorage.setItem(SIDEBAR_STORAGE_KEY, String(sidebarWidth));
+  }, [sidebarWidth]);
+
+  useEffect(() => {
+    if (!isDragging) return undefined;
+
+    const handleMouseMove = (event) => {
+      const delta = event.clientX - dragStateRef.current.startX;
+      setSidebarWidth(clampSidebarWidth(dragStateRef.current.startWidth + delta));
+    };
+
+    const handleMouseUp = () => {
+      setIsDragging(false);
+    };
+
+    document.body.style.userSelect = 'none';
+    document.body.style.cursor = 'col-resize';
+    window.addEventListener('mousemove', handleMouseMove);
+    window.addEventListener('mouseup', handleMouseUp);
+
+    return () => {
+      document.body.style.userSelect = '';
+      document.body.style.cursor = '';
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('mouseup', handleMouseUp);
+    };
+  }, [isDragging]);
+
+  const handleResizeStart = (event) => {
+    if (typeof window === 'undefined' || window.innerWidth < 768) return;
+    dragStateRef.current = {
+      startX: event.clientX,
+      startWidth: sidebarWidth,
+    };
+    setIsDragging(true);
+  };
+
   return (
-    <aside className="
-      fixed bottom-0 left-0 w-full h-16 bg-stone-900/95 border-t border-stone-800 flex flex-row justify-around items-center px-2 z-30 backdrop-blur-md pb-safe
-      md:relative md:w-64 md:h-auto md:bg-stone-900/55 md:border-t-0 md:border-r md:flex-col md:py-4 md:px-0 md:justify-start md:backdrop-blur-sm md:pb-3
-    ">
-      <nav className="flex flex-row w-full justify-around md:flex-col md:flex-1 md:px-3 md:pt-2 md:gap-2">
-        <div className="hidden md:flex items-center px-3 pb-3 mb-2 border-b border-stone-800/70">
+    <aside
+      style={{ '--sidebar-width': `${sidebarWidth}px` }}
+      className="fixed bottom-0 left-0 z-30 flex h-16 w-full flex-row items-center justify-around border-t border-stone-800 bg-stone-900/95 px-2 backdrop-blur-md pb-safe md:relative md:h-auto md:shrink-0 md:w-[var(--sidebar-width)] md:min-w-[var(--sidebar-width)] md:max-w-[var(--sidebar-width)] md:flex-col md:justify-start md:border-r md:border-t-0 md:bg-stone-900/55 md:px-0 md:py-4 md:pb-3 md:backdrop-blur-sm"
+    >
+      <nav className={`flex w-full flex-row items-center justify-between gap-1 md:flex-col md:flex-1 md:pt-2 ${isCollapsed ? 'md:px-2' : 'md:px-3 md:gap-2'}`}>
+        <div className={`hidden border-b border-stone-800/70 px-3 pb-3 mb-2 md:flex ${isCollapsed ? 'md:justify-center' : 'md:items-center'}`}>
           <span className="text-[10px] uppercase tracking-[0.28em] text-stone-500 font-bold">Navigatie</span>
         </div>
         {tabs.map((tab) => {
@@ -25,36 +89,42 @@ export default function Sidebar({ activeTab, setActiveTab, onOpenSettings }) {
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
               className={`
-                flex flex-col md:flex-row items-center justify-center md:justify-start gap-1 md:gap-3 p-2 md:px-3 md:py-3.5 rounded-lg transition-all font-fantasy tracking-wider relative min-h-[54px]
+                relative flex min-h-[48px] min-w-0 flex-1 flex-col items-center justify-center rounded-lg p-2 transition-all font-fantasy tracking-wider md:w-full md:flex-none ${isCollapsed ? 'md:min-h-[58px] md:px-2 md:py-3' : 'md:min-h-[54px] md:flex-row md:justify-start md:gap-3 md:px-3 md:py-3.5'}
                 ${isActive 
                   ? 'text-amber-500 md:bg-gradient-to-r md:from-amber-950/60 md:to-stone-900 md:border md:border-amber-900/40 md:shadow-[inset_0_0_18px_rgba(217,119,6,0.08)]' 
                   : 'text-stone-400 hover:bg-stone-800/80 hover:text-stone-200 border border-transparent'}
               `}
               title={tab.label}
             >
-              {isActive && <span className="hidden md:block absolute left-0 top-2 bottom-2 w-[3px] rounded-r bg-amber-500 shadow-[0_0_10px_rgba(245,158,11,0.6)]" />}
-              <span className={`hidden md:flex items-center justify-center w-9 h-9 rounded-md border shrink-0 transition-colors ${isActive ? 'bg-amber-950/40 border-amber-800/50 text-amber-400' : 'bg-stone-950/50 border-stone-800 text-stone-500 group-hover:text-stone-300'}`}>
+              {isActive && !isCollapsed ? <span className="hidden md:block absolute left-0 top-2 bottom-2 w-[3px] rounded-r bg-amber-500 shadow-[0_0_10px_rgba(245,158,11,0.6)]" /> : null}
+              <span className={`hidden shrink-0 items-center justify-center rounded-md border transition-colors md:flex ${isCollapsed ? 'h-10 w-10' : 'h-9 w-9'} ${isActive ? 'border-amber-800/50 bg-amber-950/40 text-amber-400' : 'border-stone-800 bg-stone-950/50 text-stone-500'}`}>
                 <tab.icon className="w-4 h-4" />
               </span>
               <tab.icon className={`w-5 h-5 md:hidden shrink-0 ${isActive ? 'text-amber-500 drop-shadow-md' : 'opacity-70'}`} />
-              <span className="text-[10px] md:text-[15px] md:tracking-[0.12em] md:uppercase">{tab.label}</span>
+              <span className={`${isCollapsed ? 'hidden' : 'hidden md:block'} text-[15px] uppercase md:tracking-[0.12em]`}>{tab.label}</span>
             </button>
           )
         })}
-        <button onClick={onOpenSettings} className="flex flex-col items-center justify-center gap-1 p-2 rounded-lg text-stone-400 hover:bg-stone-800 transition-all font-fantasy tracking-wider md:hidden">
-          <Settings className="w-5 h-5 shrink-0 opacity-70" />
-          <span className="text-[10px] block">Config</span>
-        </button>
       </nav>
       
-      <div className="hidden md:block px-3 mt-auto w-full pt-3 pb-1 border-t border-stone-800/70">
-        <button onClick={onOpenSettings} className="w-full min-h-[54px] flex items-center gap-3 px-3 py-3.5 rounded-lg text-stone-400 hover:bg-stone-800/80 hover:text-stone-200 transition-all font-fantasy tracking-wider border border-transparent hover:border-stone-700/80">
-          <span className="flex items-center justify-center w-9 h-9 rounded-md border border-stone-800 bg-stone-950/50 shrink-0">
+      <div className={`hidden w-full border-t border-stone-800/70 pt-3 pb-1 md:block ${isCollapsed ? 'px-2' : 'px-3'}`}>
+        <button onClick={onOpenSettings} className={`w-full rounded-lg border border-transparent text-stone-400 transition-all font-fantasy tracking-wider hover:border-stone-700/80 hover:bg-stone-800/80 hover:text-stone-200 ${isCollapsed ? 'flex min-h-[58px] items-center justify-center px-2 py-3' : 'flex min-h-[54px] items-center gap-3 px-3 py-3.5'}`}>
+          <span className={`flex items-center justify-center rounded-md border border-stone-800 bg-stone-950/50 shrink-0 ${isCollapsed ? 'h-10 w-10' : 'h-9 w-9'}`}>
             <Settings className="w-4 h-4 opacity-80" />
           </span>
-          <span className="text-[15px] uppercase tracking-[0.12em]">Configuratie</span>
+          <span className={`${isCollapsed ? 'hidden' : 'block'} text-[15px] uppercase tracking-[0.12em]`}>Configuratie</span>
         </button>
       </div>
+
+      <button
+        type="button"
+        aria-label="Sleep om navigatiebreedte aan te passen"
+        onMouseDown={handleResizeStart}
+        onDoubleClick={() => setSidebarWidth(SIDEBAR_DEFAULT_WIDTH)}
+        className="absolute right-0 top-0 hidden h-full w-3 -translate-x-1/2 cursor-col-resize md:block"
+      >
+        <span className={`absolute left-1/2 top-1/2 h-16 w-[3px] -translate-x-1/2 -translate-y-1/2 rounded-full transition-colors ${isDragging ? 'bg-amber-500 shadow-[0_0_12px_rgba(245,158,11,0.45)]' : 'bg-stone-800 hover:bg-stone-700'}`} />
+      </button>
     </aside>
   );
 }

@@ -47,7 +47,6 @@ import {
   toLegacyHashJoinTag,
   sha256,
   formatLastEditedLabel,
-  getPersonalTestJoinTag,
 } from './lib/sessionUtils';
 import LandingScreen from './components/LandingScreen';
 import TopBar from './components/TopBar';
@@ -58,6 +57,7 @@ import Sidebar from './components/Sidebar';
 import PlaceholderView from './components/PlaceholderView';
 import ChatView from './components/ChatView';
 import HandoutsView from './components/HandoutsView';
+import PreparationsView from './components/PreparationsView';
 import WalletSection from './components/WalletSection';
 import InventoryView from './components/InventoryView';
 import NotesView from './components/NotesView';
@@ -66,6 +66,9 @@ import SettingsModal from './components/SettingsModal';
 import AddItemModal from './components/AddItemModal';
 import HandoutModal from './components/HandoutModal';
 import CharacterProfileModal from './components/CharacterProfileModal';
+import PreparationModal from './components/PreparationModal';
+import PlayerPickerModal from './components/PlayerPickerModal';
+import PreparationOfferModal from './components/PreparationOfferModal';
 import RightSidebar from './components/RightSidebar';
 
 async function uploadImageToStorage(file, path) {
@@ -131,6 +134,134 @@ function hasNonEmptyText(value) {
   return typeof value === 'string' && value.trim().length > 0;
 }
 
+function sanitizeCustomStats(value) {
+  if (!Array.isArray(value)) return [];
+
+  return value
+    .map((entry, index) => ({
+      id: entry?.id || `stat-${index}`,
+      name: String(entry?.name || '').trim().toUpperCase(),
+      value: Number(entry?.value ?? 0) || 0,
+    }))
+    .filter((entry) => entry.name.length > 0);
+}
+
+function isLocalDevHost() {
+  if (typeof window === 'undefined') return false;
+  const host = String(window.location.hostname || '').toLowerCase();
+  return host === 'localhost' || host === '127.0.0.1';
+}
+
+function getLocalDevBootstrapConfig() {
+  if (!isLocalDevHost() || typeof window === 'undefined') return null;
+
+  const params = new URLSearchParams(window.location.search);
+  const rawDev = String(params.get('dev') || '').trim().toLowerCase();
+  if (!rawDev) return null;
+
+  const defaultRole = window.location.hostname === '127.0.0.1' ? 'gm' : 'player';
+  const rawRole = String(params.get('role') || params.get('devRole') || '').trim().toLowerCase();
+  const role = String(rawRole || (rawDev === 'gm' || rawDev === 'player' ? rawDev : defaultRole)).trim().toLowerCase();
+  if (!['gm', 'player'].includes(role)) return null;
+
+  const joinTag = rawDev === '1' || rawDev === 'gm' || rawDev === 'player'
+    ? String(params.get('tag') || params.get('devTag') || 'dev-lab-0000').trim()
+    : rawDev;
+
+  return {
+    role,
+    joinTag: joinTag || 'dev-lab-0000',
+    pin: String(params.get('pin') || params.get('devPin') || '1234').trim() || '1234',
+    sessionName: String(params.get('session') || params.get('devSession') || 'Dev Lab').trim() || 'Dev Lab',
+    playerName: String(params.get('name') || params.get('devName') || 'Elara').trim() || 'Elara',
+  };
+}
+
+function normalizePreparationDoc(docSnap) {
+  const data = docSnap.data() || {};
+  const updatedAt = data.updatedAt || data.createdAt || null;
+  const offeredAt = data.offeredAt || null;
+  const respondedAt = data.respondedAt || null;
+
+  return {
+    id: docSnap.id,
+    name: String(data.name || '').trim() || 'Naamloos personage',
+    subtitle: String(data.subtitle || '').trim(),
+    bio: String(data.bio || '').trim(),
+    imageUrl: String(data.imageUrl || data.avatarUrl || '').trim() || null,
+    hp: Number(data.hp ?? data.hitPoints ?? 0),
+    maxHp: Number(data.maxHp ?? data.maxHitPoints ?? data.hp ?? data.hitPoints ?? 0),
+    ac: Number(data.ac ?? data.armorClass ?? 10),
+    initMod: Number(data.initMod ?? data.dexterityMod ?? 0),
+    customStats: sanitizeCustomStats(data.customStats),
+    sourceUid: String(data.sourceUid || '').trim() || null,
+    sourceType: String(data.sourceType || '').trim() || 'manual',
+    createdByUid: String(data.createdByUid || '').trim() || null,
+    assignedToUid: String(data.assignedToUid || '').trim() || null,
+    assignmentStatus: String(data.assignmentStatus || 'unassigned').trim() || 'unassigned',
+    createdAtMs: data.createdAt?.toMillis ? data.createdAt.toMillis() : 0,
+    updatedAtMs: updatedAt?.toMillis ? updatedAt.toMillis() : 0,
+    offeredAtMs: offeredAt?.toMillis ? offeredAt.toMillis() : 0,
+    respondedAtMs: respondedAt?.toMillis ? respondedAt.toMillis() : 0,
+  };
+}
+
+function normalizePreparationBackupDoc(docSnap) {
+  const data = docSnap.data() || {};
+  const snapshot = data.snapshot || {};
+
+  return {
+    id: docSnap.id,
+    playerUid: String(data.playerUid || '').trim() || null,
+    playerName: String(data.playerName || '').trim() || '',
+    templateId: String(data.templateId || '').trim() || null,
+    templateName: String(data.templateName || '').trim() || '',
+    createdAtMs: data.createdAt?.toMillis ? data.createdAt.toMillis() : 0,
+    restoredAtMs: data.restoredAt?.toMillis ? data.restoredAt.toMillis() : 0,
+    snapshot: {
+      name: String(snapshot.name || '').trim(),
+      subtitle: String(snapshot.subtitle || '').trim(),
+      bio: String(snapshot.bio || '').trim(),
+      avatarUrl: String(snapshot.avatarUrl || '').trim() || null,
+      hp: Number(snapshot.hp ?? 0),
+      maxHp: Number(snapshot.maxHp ?? snapshot.hp ?? 0),
+      ac: Number(snapshot.ac ?? 10),
+      initMod: Number(snapshot.initMod ?? 0),
+      customStats: sanitizeCustomStats(snapshot.customStats),
+    },
+  };
+}
+
+function snapshotPreparationFromCharacter(character = {}) {
+  return {
+    name: String(character.name || '').trim(),
+    subtitle: String(character.subtitle || '').trim(),
+    bio: String(character.bio || '').trim(),
+    imageUrl: String(character.avatar || '').trim() || null,
+    hp: Number(character.hp ?? 0),
+    maxHp: Number(character.maxHp ?? character.hp ?? 0),
+    ac: Number(character.ac ?? 10),
+    initMod: Number(character.initMod ?? 0),
+    customStats: sanitizeCustomStats(character.customStats),
+    sourceUid: String(character.id || '').trim() || null,
+    sourceType: 'playerSnapshot',
+  };
+}
+
+function buildPreparationBackupSnapshot(player = {}, fallbacks = {}) {
+  return {
+    name: String(player.name || fallbacks.name || '').trim(),
+    subtitle: String(player.subtitle || fallbacks.subtitle || '').trim(),
+    bio: String(player.bio || fallbacks.bio || '').trim(),
+    avatarUrl: String(player.avatar || fallbacks.avatarUrl || '').trim() || null,
+    hp: Number(player.hp ?? fallbacks.hp ?? 0),
+    maxHp: Number(player.maxHp ?? fallbacks.maxHp ?? player.hp ?? fallbacks.hp ?? 0),
+    ac: Number(player.ac ?? fallbacks.ac ?? 10),
+    initMod: Number(player.initMod ?? fallbacks.initMod ?? 0),
+    customStats: sanitizeCustomStats(player.customStats || fallbacks.customStats),
+  };
+}
+
 // --- COMPONENTEN ---
 
 export default function TomeVaultApp() {
@@ -159,12 +290,15 @@ export default function TomeVaultApp() {
   const [inventoryLoaded, setInventoryLoaded] = useState(false);
   const [wallets, setWallets] = useState(MOCK_WALLETS);
   const [notes, setNotes] = useState(MOCK_NOTES);
+  const [preparations, setPreparations] = useState([]);
+  const [preparationBackups, setPreparationBackups] = useState([]);
   const [isMusicPlaying, setIsMusicPlaying] = useState(false);
   const tavernAudioRef = useRef(null);
   const isClearingInventorySectionsRef = useRef(false);
   const lastInventorySectionCleanupSignatureRef = useRef('');
   const isBackfillingInventoryDescriptionsRef = useRef(false);
   const lastInventoryDescriptionBackfillSignatureRef = useRef('');
+  const localDevBootstrapRef = useRef({ key: '', lastAuthAttemptAt: 0, lastJoinAttemptAt: 0 });
 
   // Firebase auth state
   const [uid, setUid] = useState(null);
@@ -193,7 +327,25 @@ export default function TomeVaultApp() {
   const [damageTarget, setDamageTarget] = useState(null);
   const [profileTarget, setProfileTarget] = useState(null);
   const [selectedHandout, setSelectedHandout] = useState(null);
+  const [selectedPreparation, setSelectedPreparation] = useState(null);
+  const [assigningPreparation, setAssigningPreparation] = useState(null);
+  const [pendingPreparationOffer, setPendingPreparationOffer] = useState(null);
   const [campaignSessionNumber, setCampaignSessionNumber] = useState(1);
+
+  useEffect(() => {
+    if (role !== 'gm' && activeTab === 'preparations') {
+      setActiveTab('handouts');
+    }
+  }, [activeTab, role]);
+
+  useEffect(() => {
+    if (role !== 'player' || view !== 'dashboard' || !uid) return;
+    const currentPlayer = party.find((member) => member.id === uid && member.isNpc !== true);
+    if (!currentPlayer?.name) return;
+    if (currentPlayer.name !== playerName) {
+      setPlayerName(currentPlayer.name);
+    }
+  }, [party, playerName, role, uid, view]);
 
   const CURRENT_PLAYER_ID = uid || 'p1';
 
@@ -342,8 +494,12 @@ export default function TomeVaultApp() {
         }
       }
 
-      await setDoc(doc(db, 'sessions', sessionDoc.id, 'players', uid), {
-        nickname: nick,
+      const existingPlayerRef = doc(db, 'sessions', sessionDoc.id, 'players', uid);
+      const existingPlayerSnap = await getDoc(existingPlayerRef);
+      const resolvedNick = String(existingPlayerSnap.data()?.nickname || nick).trim() || 'Avonturier';
+
+      await setDoc(existingPlayerRef, {
+        nickname: resolvedNick,
         joinedAt: serverTimestamp(),
         lastSeenAt: serverTimestamp(),
         isNpc: false,
@@ -359,7 +515,7 @@ export default function TomeVaultApp() {
         joinTag: toLegacyHashJoinTag(sessionData?.joinTag || joinTagRaw),
       });
 
-      setPlayerName(nick);
+      setPlayerName(resolvedNick);
       setRole('player');
       setSessionDocId(sessionDoc.id);
       setSessionId(toLegacyHashJoinTag(sessionData?.joinTag || joinTagRaw));
@@ -415,8 +571,12 @@ export default function TomeVaultApp() {
       }
 
       const nick = String(playerName || displayName || 'Avonturier').trim();
-      await setDoc(doc(db, 'sessions', snap.id, 'players', uid), {
-        nickname: nick,
+      const existingPlayerRef = doc(db, 'sessions', snap.id, 'players', uid);
+      const existingPlayerSnap = await getDoc(existingPlayerRef);
+      const resolvedNick = String(existingPlayerSnap.data()?.nickname || nick).trim() || 'Avonturier';
+
+      await setDoc(existingPlayerRef, {
+        nickname: resolvedNick,
         joinedAt: serverTimestamp(),
         lastSeenAt: serverTimestamp(),
         isNpc: false,
@@ -432,7 +592,7 @@ export default function TomeVaultApp() {
         joinTag: resolvedJoinTag,
       });
 
-      setPlayerName(nick);
+      setPlayerName(resolvedNick);
       setRole('player');
       setSessionDocId(snap.id);
       setSessionId(resolvedJoinTag);
@@ -444,27 +604,6 @@ export default function TomeVaultApp() {
     } finally {
       setSessionBusy(false);
     }
-  };
-
-  const handleQuickTestGm = () => {
-    if (!uid) return;
-    const tag = getPersonalTestJoinTag(uid);
-    handleJoin('gm', `#${tag.toUpperCase()}`, {
-      skipPinPrompt: true,
-      defaultPin: '0000',
-      fixedJoinTag: tag,
-      forceSessionName: 'Testmodus',
-    });
-  };
-
-  const handleQuickTestPlayer = () => {
-    if (!uid) return;
-    const tag = getPersonalTestJoinTag(uid);
-    if (!playerName) setPlayerName('Elara');
-    handleJoin('player', toLegacyHashJoinTag(tag), {
-      skipPin: true,
-      playerName: playerName || 'Elara',
-    });
   };
 
   const handleSetRecentSessionStatus = async (sessionId, status) => {
@@ -543,6 +682,7 @@ export default function TomeVaultApp() {
         await deleteDocsInSubcollection(membership.sessionId, 'notifications');
         await deleteDocsInSubcollection(membership.sessionId, 'chatMessages');
         await deleteDocsInSubcollection(membership.sessionId, 'characterTemplates');
+        await deleteDocsInSubcollection(membership.sessionId, 'preparationBackups');
         await deleteDocsInSubcollection(membership.sessionId, 'pendingTransfer');
         await deleteDocsInSubcollection(
           membership.sessionId,
@@ -770,6 +910,9 @@ export default function TomeVaultApp() {
     setInventoryLoaded(false);
     setWallets({});
     setNotes([]);
+    setPreparations([]);
+    setPreparationBackups([]);
+    setPendingPreparationOffer(null);
     lastInventorySectionCleanupSignatureRef.current = '';
     isClearingInventorySectionsRef.current = false;
     lastInventoryDescriptionBackfillSignatureRef.current = '';
@@ -932,6 +1075,43 @@ export default function TomeVaultApp() {
       )
     );
 
+    if (role === 'gm') {
+      unsubs.push(
+        onSnapshot(
+          query(collection(db, 'sessions', sid, 'characterTemplates'), orderBy('updatedAt', 'desc')),
+          (snap) => {
+            const incoming = snap.docs.map((entry) => normalizePreparationDoc(entry));
+            setPreparations(incoming);
+          }
+        )
+      );
+
+      unsubs.push(
+        onSnapshot(
+          query(collection(db, 'sessions', sid, 'preparationBackups'), orderBy('createdAt', 'desc'), limit(8)),
+          (snap) => {
+            const incoming = snap.docs.map((entry) => normalizePreparationBackupDoc(entry));
+            setPreparationBackups(incoming);
+          }
+        )
+      );
+    }
+
+    if (role === 'player' && uid) {
+      unsubs.push(
+        onSnapshot(
+          query(collection(db, 'sessions', sid, 'characterTemplates'), where('assignedToUid', '==', uid)),
+          (snap) => {
+            const incoming = snap.docs.map((entry) => normalizePreparationDoc(entry));
+            const nextPending = incoming
+              .filter((entry) => entry.assignmentStatus === 'pending')
+              .sort((left, right) => Number(right.offeredAtMs || 0) - Number(left.offeredAtMs || 0))[0] || null;
+            setPendingPreparationOffer(nextPending);
+          }
+        )
+      );
+    }
+
     return () => {
       unsubs.forEach((fn) => {
         try {
@@ -941,7 +1121,7 @@ export default function TomeVaultApp() {
         }
       });
     };
-  }, [sessionDocId, view]);
+  }, [role, sessionDocId, uid, view]);
 
   useEffect(() => {
     if (!sessionDocId || view !== 'dashboard' || !inventoryLoaded) return;
@@ -1073,6 +1253,58 @@ export default function TomeVaultApp() {
     }
   };
 
+  useEffect(() => {
+    const localDevBootstrap = getLocalDevBootstrapConfig();
+    if (!localDevBootstrap || view !== 'landing' || authLoading || sessionBusy) return;
+
+    const bootstrapKey = [
+      localDevBootstrap.role,
+      localDevBootstrap.joinTag,
+      localDevBootstrap.pin,
+      localDevBootstrap.sessionName,
+      localDevBootstrap.playerName,
+    ].join('|');
+
+    if (localDevBootstrapRef.current.key !== bootstrapKey) {
+      localDevBootstrapRef.current = {
+        key: bootstrapKey,
+        lastAuthAttemptAt: 0,
+        lastJoinAttemptAt: 0,
+      };
+    }
+
+    const now = Date.now();
+
+    if (!uid) {
+      if (now - localDevBootstrapRef.current.lastAuthAttemptAt < 1500) return;
+      localDevBootstrapRef.current.lastAuthAttemptAt = now;
+      void handleSignInGuest();
+      return;
+    }
+
+    if (now - localDevBootstrapRef.current.lastJoinAttemptAt < 1500) return;
+    localDevBootstrapRef.current.lastJoinAttemptAt = now;
+
+    if (localDevBootstrap.role === 'gm') {
+      void handleJoin('gm', localDevBootstrap.sessionName, {
+        skipPinPrompt: true,
+        defaultPin: localDevBootstrap.pin,
+        fixedJoinTag: localDevBootstrap.joinTag,
+        forceSessionName: localDevBootstrap.sessionName,
+      });
+      return;
+    }
+
+    if (playerName !== localDevBootstrap.playerName) {
+      setPlayerName(localDevBootstrap.playerName);
+    }
+
+    void handleJoin('player', toLegacyHashJoinTag(localDevBootstrap.joinTag), {
+      pin: localDevBootstrap.pin,
+      playerName: localDevBootstrap.playerName,
+    });
+  }, [authLoading, playerName, sessionBusy, uid, view]);
+
   const handleClaimHandout = async (handoutId, playerId) => {
     try {
       if (sessionDocId) {
@@ -1196,6 +1428,161 @@ export default function TomeVaultApp() {
     } catch (err) {
       console.error('Campagne sessienummer bijwerken mislukt:', err);
     }
+  };
+
+  const buildPreparationPayload = (preparation = {}) => ({
+    name: String(preparation.name || '').trim() || 'Naamloos personage',
+    subtitle: String(preparation.subtitle || '').trim(),
+    bio: String(preparation.bio || '').trim(),
+    imageUrl: typeof preparation.imageUrl === 'string' && !preparation.imageUrl.startsWith('blob:') ? preparation.imageUrl : null,
+    hp: Number(preparation.hp ?? 0),
+    maxHp: Number(preparation.maxHp ?? preparation.hp ?? 0),
+    ac: Number(preparation.ac ?? 10),
+    initMod: Number(preparation.initMod ?? 0),
+    customStats: sanitizeCustomStats(preparation.customStats),
+    sourceUid: String(preparation.sourceUid || '').trim() || null,
+    sourceType: String(preparation.sourceType || '').trim() || 'manual',
+    updatedAt: serverTimestamp(),
+  });
+
+  const handleSavePreparationRemote = async (draft, pendingFile) => {
+    if (!sessionDocId || role !== 'gm' || !uid) {
+      throw new Error('Geen actieve GM-sessie voor voorbereidingen.');
+    }
+
+    let imageUrl = typeof draft?.imageUrl === 'string' && !draft.imageUrl.startsWith('blob:') ? draft.imageUrl : null;
+
+    if (pendingFile) {
+      try {
+        const ext = pendingFile.name.split('.').pop();
+        const fileName = `${draft?.id || Date.now()}.${ext}`;
+        imageUrl = await uploadImageToStorage(pendingFile, `users/${uid}/preparations/${fileName}`);
+      } catch (err) {
+        console.error('Voorbereidingsavatar uploaden mislukt:', err);
+        imageUrl = draft?.id ? (preparations.find((item) => item.id === draft.id)?.imageUrl || null) : null;
+      }
+    }
+
+    const payload = buildPreparationPayload({ ...draft, imageUrl });
+
+    if (draft?.id) {
+      await updateDoc(doc(db, 'sessions', sessionDocId, 'characterTemplates', draft.id), payload);
+      return draft.id;
+    }
+
+    const created = await addDoc(collection(db, 'sessions', sessionDocId, 'characterTemplates'), {
+      ...payload,
+      createdAt: serverTimestamp(),
+      createdByUid: uid,
+      assignedToUid: null,
+      assignmentStatus: 'unassigned',
+      offeredAt: null,
+      respondedAt: null,
+    });
+
+    return created.id;
+  };
+
+  const handleDeletePreparationRemote = async (preparationOrId) => {
+    const preparationId = typeof preparationOrId === 'string' ? preparationOrId : preparationOrId?.id;
+    if (!sessionDocId || !preparationId || role !== 'gm') return;
+
+    await deleteDoc(doc(db, 'sessions', sessionDocId, 'characterTemplates', preparationId));
+  };
+
+  const handleAssignPreparationRemote = async (preparationId, targetUid) => {
+    if (!sessionDocId || role !== 'gm' || !preparationId || !targetUid) return;
+
+    await updateDoc(doc(db, 'sessions', sessionDocId, 'characterTemplates', preparationId), {
+      assignedToUid: targetUid,
+      assignmentStatus: 'pending',
+      offeredAt: serverTimestamp(),
+      respondedAt: null,
+      updatedAt: serverTimestamp(),
+    });
+  };
+
+  const handleRestorePreparationBackup = async (backup) => {
+    if (!sessionDocId || role !== 'gm' || !backup?.playerUid) return;
+
+    await updateDoc(doc(db, 'sessions', sessionDocId, 'players', backup.playerUid), {
+      nickname: backup.snapshot.name || 'Avonturier',
+      subtitle: backup.snapshot.subtitle || '',
+      hp: backup.snapshot.hp ?? 0,
+      maxHp: backup.snapshot.maxHp ?? backup.snapshot.hp ?? 0,
+      ac: backup.snapshot.ac ?? 10,
+      initMod: backup.snapshot.initMod ?? 0,
+      bio: backup.snapshot.bio || '',
+      customStats: backup.snapshot.customStats || [],
+      avatarUrl: backup.snapshot.avatarUrl || null,
+      updatedAt: serverTimestamp(),
+    });
+
+    await updateDoc(doc(db, 'sessions', sessionDocId, 'preparationBackups', backup.id), {
+      restoredAt: serverTimestamp(),
+    });
+  };
+
+  const handleAcceptPreparationOffer = async () => {
+    if (!sessionDocId || !uid || !pendingPreparationOffer) return;
+
+    const currentPlayer = party.find((member) => member.id === uid && member.isNpc !== true) || {};
+    const previousSnapshot = buildPreparationBackupSnapshot(currentPlayer, {
+      name: playerName || displayName || 'Avonturier',
+    });
+
+    await addDoc(collection(db, 'sessions', sessionDocId, 'preparationBackups'), {
+      playerUid: uid,
+      playerName: previousSnapshot.name || 'Avonturier',
+      templateId: pendingPreparationOffer.id,
+      templateName: pendingPreparationOffer.name || 'Naamloos personage',
+      snapshot: previousSnapshot,
+      createdAt: serverTimestamp(),
+      restoredAt: null,
+    });
+
+    await updateDoc(doc(db, 'sessions', sessionDocId, 'players', uid), {
+      nickname: pendingPreparationOffer.name || previousSnapshot.name || 'Avonturier',
+      subtitle: pendingPreparationOffer.subtitle || '',
+      hp: pendingPreparationOffer.hp ?? 0,
+      maxHp: pendingPreparationOffer.maxHp ?? pendingPreparationOffer.hp ?? 0,
+      ac: pendingPreparationOffer.ac ?? 10,
+      initMod: pendingPreparationOffer.initMod ?? 0,
+      bio: pendingPreparationOffer.bio || '',
+      customStats: pendingPreparationOffer.customStats || [],
+      avatarUrl: pendingPreparationOffer.imageUrl || null,
+      updatedAt: serverTimestamp(),
+    });
+
+    await updateDoc(doc(db, 'sessions', sessionDocId, 'characterTemplates', pendingPreparationOffer.id), {
+      assignmentStatus: 'accepted',
+      respondedAt: serverTimestamp(),
+      updatedAt: serverTimestamp(),
+    });
+
+    const nextName = pendingPreparationOffer.name || previousSnapshot.name || 'Avonturier';
+    setPlayerName(nextName);
+    setDisplayName(nextName);
+    if (auth.currentUser && nextName) {
+      try {
+        await updateProfile(auth.currentUser, { displayName: nextName });
+      } catch (err) {
+        console.warn('Auth displayName bijwerken voor voorbereiding mislukt:', err);
+      }
+    }
+    setPendingPreparationOffer(null);
+  };
+
+  const handleRejectPreparationOffer = async () => {
+    if (!sessionDocId || !uid || !pendingPreparationOffer) return;
+
+    await updateDoc(doc(db, 'sessions', sessionDocId, 'characterTemplates', pendingPreparationOffer.id), {
+      assignmentStatus: 'rejected',
+      respondedAt: serverTimestamp(),
+      updatedAt: serverTimestamp(),
+    });
+
+    setPendingPreparationOffer(null);
   };
 
   const buildHandoutPayload = (handout = {}) => ({
@@ -1325,6 +1712,11 @@ export default function TomeVaultApp() {
         console.error('Profiel opslaan fout:', err);
       }
     }
+  };
+
+  const handleOpenPreparationFromCharacter = (character) => {
+    if (!character || role !== 'gm') return;
+    setSelectedPreparation(snapshotPreparationFromCharacter(character));
   };
 
   const handleTransferGm = async (targetMember) => {
@@ -1564,8 +1956,6 @@ export default function TomeVaultApp() {
           onHideRecentSession={handleHideRecentSession}
           onRestoreRecentSession={handleRestoreRecentSession}
           onDeleteRecentSession={handleDeleteRecentSession}
-          onQuickTestGm={handleQuickTestGm}
-          onQuickTestPlayer={handleQuickTestPlayer}
           recentSessions={recentSessions}
           playerName={playerName}
           setPlayerName={setPlayerName}
@@ -1607,10 +1997,11 @@ export default function TomeVaultApp() {
           onToggleParty={() => setIsPartyOpen(!isPartyOpen)}
           onOpenShare={() => setShowShareModal(true)}
           onOpenProfile={() => setProfileTarget(party.find(p => p.id === CURRENT_PLAYER_ID))}
+          onOpenSettings={() => setIsSettingsOpen(true)}
         />
         
         <div className="flex flex-1 overflow-hidden relative">
-          <Sidebar activeTab={activeTab} setActiveTab={setActiveTab} onOpenSettings={() => setIsSettingsOpen(true)} />
+          <Sidebar activeTab={activeTab} setActiveTab={setActiveTab} onOpenSettings={() => setIsSettingsOpen(true)} role={role} />
           
           <main className="flex-1 overflow-y-auto p-4 md:p-6 pb-24 md:pb-6 relative no-scrollbar">
             <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-96 bg-amber-900/5 blur-[100px] pointer-events-none" />
@@ -1653,6 +2044,18 @@ export default function TomeVaultApp() {
                   onUpdateItemAmount={handleUpdateItemAmount}
                   onDeleteItem={handleDeleteItem}
                   onAdjustWallet={handleAdjustWallet}
+                />
+              )}
+              {activeTab === 'preparations' && role === 'gm' && (
+                <PreparationsView
+                  templates={preparations}
+                  backups={preparationBackups}
+                  party={party}
+                  onCreatePreparation={() => setSelectedPreparation('new')}
+                  onEditPreparation={(preparation) => setSelectedPreparation(preparation)}
+                  onDeletePreparation={(preparation) => handleDeletePreparationRemote(preparation)}
+                  onAssignPreparation={(preparation) => setAssigningPreparation(preparation)}
+                  onRestoreBackup={handleRestorePreparationBackup}
                 />
               )}
               {activeTab === 'notes' && (
@@ -1720,7 +2123,41 @@ export default function TomeVaultApp() {
           currentPlayerId={CURRENT_PLAYER_ID}
           onSave={handleProfileSave}
           onTransferGm={handleTransferGm}
+          onSaveAsPreparation={handleOpenPreparationFromCharacter}
           chatColor={getCharacterChatColor(profileTarget)}
+        />
+
+        <PreparationModal
+          isOpen={selectedPreparation !== null}
+          preparation={selectedPreparation === 'new' ? null : selectedPreparation}
+          onClose={() => setSelectedPreparation(null)}
+          onSave={async (draft, pendingFile) => {
+            await handleSavePreparationRemote(draft, pendingFile);
+            setSelectedPreparation(null);
+          }}
+          onDelete={async (preparationId) => {
+            if (!window.confirm('Verwijder deze voorbereiding definitief?')) return;
+            await handleDeletePreparationRemote(preparationId);
+            setSelectedPreparation(null);
+          }}
+        />
+
+        <PlayerPickerModal
+          isOpen={!!assigningPreparation}
+          players={party.filter((member) => member.isNpc !== true)}
+          preparation={assigningPreparation}
+          onClose={() => setAssigningPreparation(null)}
+          onAssign={async (targetUid) => {
+            await handleAssignPreparationRemote(assigningPreparation?.id, targetUid);
+            setAssigningPreparation(null);
+          }}
+        />
+
+        <PreparationOfferModal
+          isOpen={role === 'player' && !!pendingPreparationOffer}
+          preparation={pendingPreparationOffer}
+          onAccept={handleAcceptPreparationOffer}
+          onReject={handleRejectPreparationOffer}
         />
 
         <AddItemModal

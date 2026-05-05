@@ -21,7 +21,7 @@ const CHAT_ACCENT_COLORS = {
   cyan: '#22d3ee',
 };
 
-function CharacterProfileModal({ isOpen, onClose, character, role, currentPlayerId, onSave, onTransferGm, chatColor }) {
+function CharacterProfileModal({ isOpen, onClose, character, role, currentPlayerId, onSave, onTransferGm, onSaveAsPreparation, chatColor }) {
   const [formData, setFormData] = useState({});
   const [pendingAvatarFile, setPendingAvatarFile] = useState(null);
   const [confirmTransfer, setConfirmTransfer] = useState(false);
@@ -42,6 +42,7 @@ function CharacterProfileModal({ isOpen, onClose, character, role, currentPlayer
   const isMine = character.id === currentPlayerId;
   const canEdit = isGM || isMine;
   const canTransferGm = isGM && !isMine && !character.isNpc;
+  const canSaveAsPreparation = isGM && !character.isNpc;
   const bannerAccent = CHAT_ACCENT_COLORS[chatColor] || null;
 
   const handleChange = (field, value) => {
@@ -205,6 +206,21 @@ function CharacterProfileModal({ isOpen, onClose, character, role, currentPlayer
                     </div>
                   </div>
                 )}
+              </div>
+            )}
+
+            {canSaveAsPreparation && (
+              <div className="rounded-lg border border-stone-800/70 bg-stone-950/50 p-3">
+                <button
+                  type="button"
+                  onClick={() => onSaveAsPreparation?.(character)}
+                  className="w-full rounded-lg border border-stone-700 bg-stone-900/70 px-3 py-2 text-xs font-fantasy tracking-wider text-stone-200 transition-colors hover:border-amber-700/50 hover:text-amber-300"
+                >
+                  Bewaar huidig profiel als voorbereiding
+                </button>
+                <p className="mt-2 text-[11px] leading-relaxed text-stone-500">
+                  Slaat naam, rol of titel, avatar, profielwaarden, verborgen eigenschappen en bio op in de GM-bibliotheek.
+                </p>
               </div>
             )}
 

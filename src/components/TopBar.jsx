@@ -1,7 +1,7 @@
 import React from 'react';
-import { Flame, Share2, Pause, Music, Volume2, Swords, User, LogOut } from 'lucide-react';
+import { Flame, Share2, Pause, Music, Volume2, Swords, User, LogOut, Settings } from 'lucide-react';
 
-export default function TopBar({ role, sessionId, sessionNumber, onLogout, isMusicPlaying, setIsMusicPlaying, onToggleParty, onOpenShare, onOpenProfile }) {
+export default function TopBar({ role, sessionId, sessionNumber, onLogout, isMusicPlaying, setIsMusicPlaying, onToggleParty, onOpenShare, onOpenProfile, onOpenSettings }) {
   return (
     <header className="h-14 md:h-16 bg-stone-900/80 backdrop-blur border-b border-stone-800 flex items-center justify-between px-3 md:px-5 shrink-0 z-30">
       <div className="flex items-center gap-2 md:gap-3 min-w-0">
@@ -72,6 +72,14 @@ export default function TopBar({ role, sessionId, sessionNumber, onLogout, isMus
               <User className="w-5 h-5" />
             </button>
           )}
+
+          <button
+            onClick={onOpenSettings}
+            className="h-9 w-9 flex items-center justify-center md:hidden hover:bg-stone-800 rounded-md text-stone-400 hover:text-amber-400 transition-colors"
+            title="Configuratie"
+          >
+            <Settings className="w-5 h-5" />
+          </button>
 
           <button 
             onClick={onToggleParty} 

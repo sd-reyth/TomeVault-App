@@ -9,7 +9,6 @@ import {
   ShieldCheck,
   Sparkles,
   Swords,
-  Terminal,
   Trash2,
   Users,
   Wand2,
@@ -23,8 +22,6 @@ export default function LandingScreen({
   onHideRecentSession,
   onRestoreRecentSession,
   onDeleteRecentSession,
-  onQuickTestGm,
-  onQuickTestPlayer,
   recentSessions,
   playerName,
   setPlayerName,
@@ -737,30 +734,6 @@ export default function LandingScreen({
         </div>
       )}
 
-      <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-20 flex items-center gap-3 opacity-40 hover:opacity-100 transition-opacity bg-stone-950/80 p-2 rounded-lg border border-stone-800 backdrop-blur-sm">
-        <div className="text-[10px] font-sans text-stone-500 uppercase tracking-widest flex items-center gap-1.5 mr-2">
-          <Terminal className="w-3.5 h-3.5" /> Test Modus
-        </div>
-        <button 
-          onClick={() => {
-            if (uid) onQuickTestGm?.();
-          }}
-          disabled={!uid || sessionBusy}
-          className="text-[10px] font-bold text-amber-600 hover:text-amber-400 uppercase tracking-wider bg-stone-900 px-3 py-1.5 rounded border border-stone-800 hover:border-amber-900/50 transition-colors"
-        >
-          GM
-        </button>
-        <button 
-          onClick={() => {
-            if (!playerName) setPlayerName('Elara');
-            if (uid) onQuickTestPlayer?.();
-          }}
-          disabled={!uid || sessionBusy}
-          className="text-[10px] font-bold text-indigo-400 hover:text-indigo-300 uppercase tracking-wider bg-stone-900 px-3 py-1.5 rounded border border-stone-800 hover:border-indigo-900/50 transition-colors"
-        >
-          Speler
-        </button>
-      </div>
     </div>
   );
 }

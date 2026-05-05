@@ -49,9 +49,3 @@ export function formatLastEditedLabel(ts) {
     minute: '2-digit',
   });
 }
-
-export function getPersonalTestJoinTag(uid) {
-  const safeUid = String(uid || 'guest').replace(/[^a-zA-Z0-9]/g, '').toLowerCase();
-  const shard = safeUid.slice(0, 6) || 'guest';
-  return `test-${shard}#0000`;
-}
