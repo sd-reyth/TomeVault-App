@@ -14,15 +14,143 @@
 .hide-arrows::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
 .hide-arrows { appearance: textfield; -moz-appearance: textfield; }
 
+.ambience-slider {
+  appearance: none;
+  height: 0.4rem;
+  border-radius: 999px;
+  background: linear-gradient(90deg, rgba(245, 158, 11, 0.75), rgba(120, 53, 15, 0.45));
+  outline: none;
+}
+
+.ambience-slider::-webkit-slider-runnable-track {
+  height: 0.4rem;
+  border-radius: 999px;
+  background: linear-gradient(90deg, rgba(245, 158, 11, 0.72), rgba(120, 53, 15, 0.4));
+}
+
+.ambience-slider::-webkit-slider-thumb {
+  appearance: none;
+  width: 1rem;
+  height: 1rem;
+  margin-top: -0.3rem;
+  border: 1px solid rgba(251, 191, 36, 0.35);
+  border-radius: 999px;
+  background: #fef3c7;
+  box-shadow: 0 0 0 4px rgba(245, 158, 11, 0.16);
+}
+
+.ambience-slider::-moz-range-track {
+  height: 0.4rem;
+  border: none;
+  border-radius: 999px;
+  background: linear-gradient(90deg, rgba(245, 158, 11, 0.72), rgba(120, 53, 15, 0.4));
+}
+
+.ambience-slider::-moz-range-thumb {
+  width: 1rem;
+  height: 1rem;
+  border: 1px solid rgba(251, 191, 36, 0.35);
+  border-radius: 999px;
+  background: #fef3c7;
+  box-shadow: 0 0 0 4px rgba(245, 158, 11, 0.16);
+}
+
 /* iPhone notch safe area */
 .pb-safe { padding-bottom: env(safe-area-inset-bottom, 0px); }
 
 /* Radial vignette overlay for background */
 .bg-texture {
   background-image:
-    radial-gradient(circle at 18% 14%, rgba(245, 158, 11, 0.06), transparent 24%),
-    radial-gradient(circle at 82% 18%, rgba(99, 102, 241, 0.05), transparent 20%),
-    radial-gradient(circle at center, transparent 0%, rgba(0, 0, 0, 0.44) 100%);
+    radial-gradient(circle at 18% 14%, rgba(245, 158, 11, 0.04), transparent 24%),
+    radial-gradient(circle at 82% 18%, rgba(99, 102, 241, 0.04), transparent 20%),
+    radial-gradient(circle at center, transparent 0%, rgba(0, 0, 0, 0.56) 100%);
+}
+
+.landing-video-backdrop {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at center, rgba(28, 25, 23, 0.1), rgba(5, 4, 3, 0.88)),
+    #050403;
+}
+
+.landing-video-element {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center center;
+  filter: brightness(0.58) saturate(0.98) contrast(1);
+}
+
+.landing-video-darkener {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(180deg, rgba(8, 6, 5, 0.1) 0%, rgba(8, 6, 5, 0.22) 42%, rgba(4, 3, 3, 0.44) 100%),
+    linear-gradient(90deg, rgba(4, 3, 2, 0.08) 0%, transparent 20%, transparent 80%, rgba(4, 3, 2, 0.12) 100%);
+}
+
+.landing-video-vignette {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(circle at 50% 18%, transparent 0%, rgba(0, 0, 0, 0.04) 44%, rgba(0, 0, 0, 0.38) 100%),
+    radial-gradient(circle at 22% 18%, rgba(245, 158, 11, 0.05), transparent 24%);
+}
+
+.landing-ambience-dock {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.85rem;
+  border: 1px solid rgba(68, 64, 60, 0.64);
+  border-radius: 999px;
+  padding: 0.7rem 0.85rem;
+  background: rgba(12, 10, 9, 0.68);
+  backdrop-filter: blur(14px);
+  box-shadow: 0 16px 32px rgba(0, 0, 0, 0.22);
+}
+
+.landing-ambience-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: 2.7rem;
+  border: 1px solid rgba(68, 64, 60, 0.82);
+  border-radius: 999px;
+  padding: 0.65rem 0.95rem;
+  color: #d6d3d1;
+  background: rgba(28, 25, 23, 0.88);
+  font-family: 'Cinzel', serif;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  transition:
+    transform 180ms ease,
+    border-color 180ms ease,
+    background-color 180ms ease,
+    color 180ms ease,
+    box-shadow 180ms ease;
+}
+
+.landing-ambience-button:hover {
+  transform: translateY(-1px);
+  color: #f5f5f4;
+  border-color: rgba(245, 158, 11, 0.46);
+}
+
+.landing-ambience-button-active {
+  color: #fff7ed;
+  border-color: rgba(245, 158, 11, 0.34);
+  background: linear-gradient(135deg, rgba(120, 53, 15, 0.9), rgba(146, 64, 14, 0.82));
+  box-shadow: 0 12px 28px rgba(120, 53, 15, 0.24);
 }
 
 .landing-content-rail {
@@ -32,37 +160,16 @@
 .landing-hero {
   position: relative;
   isolation: isolate;
-  overflow: hidden;
-  background:
-    radial-gradient(circle at 14% 18%, rgba(245, 158, 11, 0.13), transparent 24%),
-    linear-gradient(180deg, rgba(28, 25, 23, 0.48) 0%, rgba(12, 10, 9, 0.18) 58%, rgba(12, 10, 9, 0) 100%);
+  overflow: visible;
+  background: transparent;
 }
 
 .landing-hero::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  border-radius: inherit;
-  border: 1px solid rgba(68, 64, 60, 0.34);
-  background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.03), transparent 28%),
-    linear-gradient(90deg, rgba(41, 37, 36, 0.18), transparent 68%);
-  pointer-events: none;
-  z-index: 0;
+  display: none;
 }
 
 .landing-hero::after {
-  content: "";
-  position: absolute;
-  right: -7rem;
-  top: 3rem;
-  width: 24rem;
-  height: 24rem;
-  border-radius: 999px;
-  background: radial-gradient(circle, rgba(79, 70, 229, 0.12), transparent 70%);
-  filter: blur(18px);
-  pointer-events: none;
-  z-index: 0;
+  display: none;
 }
 
 .landing-hero > :not(.absolute) {
@@ -74,10 +181,10 @@
   position: relative;
   isolation: isolate;
   overflow: hidden;
-  border: 1px solid rgba(68, 64, 60, 0.42);
-  background: linear-gradient(180deg, rgba(28, 25, 23, 0.56) 0%, rgba(12, 10, 9, 0.84) 100%);
-  backdrop-filter: blur(18px);
-  box-shadow: 0 18px 56px rgba(0, 0, 0, 0.22);
+  border: 1px solid rgba(87, 83, 78, 0.24);
+  background: linear-gradient(180deg, rgba(28, 25, 23, 0.18) 0%, rgba(12, 10, 9, 0.46) 100%);
+  backdrop-filter: blur(10px);
+  box-shadow: 0 16px 34px rgba(0, 0, 0, 0.18);
 }
 
 .landing-surface::before {
@@ -86,8 +193,8 @@
   inset: 1px;
   border-radius: inherit;
   background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.024), transparent 26%),
-    linear-gradient(315deg, rgba(245, 158, 11, 0.03), transparent 56%);
+    linear-gradient(180deg, rgba(255, 255, 255, 0.016), transparent 26%),
+    linear-gradient(315deg, rgba(245, 158, 11, 0.02), transparent 56%);
   pointer-events: none;
   z-index: 0;
 }
@@ -97,13 +204,20 @@
   z-index: 1;
 }
 
+.landing-copy-rail {
+  position: relative;
+  padding: 1.25rem 0;
+  border-top: 1px solid rgba(87, 83, 78, 0.24);
+  border-bottom: 1px solid rgba(87, 83, 78, 0.24);
+}
+
 .landing-panel {
   position: relative;
   isolation: isolate;
   overflow: hidden;
-  border: 1px solid rgba(68, 64, 60, 0.48);
-  background: linear-gradient(180deg, rgba(24, 22, 20, 0.64) 0%, rgba(12, 10, 9, 0.88) 100%);
-  backdrop-filter: blur(18px);
+  border: 1px solid rgba(87, 83, 78, 0.34);
+  background: linear-gradient(180deg, rgba(24, 22, 20, 0.4) 0%, rgba(12, 10, 9, 0.78) 100%);
+  backdrop-filter: blur(14px);
   box-shadow: 0 18px 56px rgba(0, 0, 0, 0.24);
 }
 
@@ -237,9 +351,9 @@
   position: relative;
   isolation: isolate;
   overflow: hidden;
-  border-radius: 1.75rem;
-  padding: 1.2rem;
-  box-shadow: 0 18px 44px rgba(0, 0, 0, 0.18);
+  border-radius: 1.5rem;
+  padding: 1rem;
+  box-shadow: 0 14px 26px rgba(0, 0, 0, 0.14);
   transition:
     transform 220ms ease,
     border-color 220ms ease,
@@ -263,7 +377,7 @@
 
 .landing-session-card:hover {
   transform: translateY(-2px);
-  box-shadow: 0 22px 54px rgba(0, 0, 0, 0.24);
+  box-shadow: 0 18px 34px rgba(0, 0, 0, 0.2);
 }
 
 .landing-grid {
@@ -414,12 +528,17 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .landing-video-element {
+    display: none;
+  }
+
   .landing-panel-hover,
   .landing-button,
   .landing-action-button,
   .landing-input,
   .landing-role-toggle-button,
-  .landing-session-card {
+  .landing-session-card,
+  .landing-ambience-button {
     transition: none;
   }
 
@@ -428,8 +547,28 @@
   .landing-action-button:hover,
   .landing-input:focus,
   .landing-role-toggle-button:hover,
-  .landing-session-card:hover {
+  .landing-session-card:hover,
+  .landing-ambience-button:hover {
     transform: none;
+  }
+}
+
+@media (min-width: 960px) and (min-aspect-ratio: 5/4) {
+  .landing-video-element {
+    object-fit: contain;
+  }
+}
+
+@media (max-width: 767px), (max-aspect-ratio: 4/5) {
+  .landing-video-element {
+    object-fit: cover;
+    object-position: center center;
+  }
+}
+
+@media (max-width: 480px) and (orientation: portrait) {
+  .landing-video-element {
+    object-position: 58% center;
   }
 }
 

@@ -1,13 +1,15 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import { Flame, Share2, Pause, Music, Volume2, Swords, User, LogOut, Settings } from 'lucide-react';
+import AmbiencePanel from './AmbiencePanel';
 import RuntimeBadge from './RuntimeBadge';
 import { COMBAT_STATUS, getTurnApproachRatio, getTurnsUntilMember, sortPartyByInitiative } from '../lib/battleUtils';
 
-export default function TopBar({ role, sessionId, sessionNumber, combatStatus, currentTurnId, initiativeOrder, party, currentPlayerId, onLogout, isMusicPlaying, setIsMusicPlaying, onToggleParty, onOpenShare, onOpenProfile, onOpenSettings, runtimeBadge }) {
+export default function TopBar({ role, sessionId, sessionNumber, combatStatus, currentTurnId, initiativeOrder, party, currentPlayerId, onLogout, ambience, onToggleAmbiencePanel, onCloseAmbiencePanel, onToggleAmbiencePlayback, onSelectAmbienceTrack, onSetSessionAmbienceVolume, onSetListenerAmbienceVolume, onUnlockAmbienceAudio, onToggleParty, onOpenShare, onOpenProfile, onOpenSettings, runtimeBadge }) {
   const sortedParty = sortPartyByInitiative(Array.isArray(party) ? party : [], Array.isArray(initiativeOrder) ? initiativeOrder : []);
   const turnsUntilMine = getTurnsUntilMember(sortedParty, initiativeOrder, currentTurnId, currentPlayerId);
   const turnApproachRatio = getTurnApproachRatio(sortedParty, initiativeOrder, currentTurnId, currentPlayerId);
   const isMyTurn = combatStatus === COMBAT_STATUS.ACTIVE && currentTurnId === currentPlayerId;
+  const ambienceShellRef = useRef(null);
   const PartyIcon = combatStatus === COMBAT_STATUS.IDLE
     ? Flame
     : (combatStatus === COMBAT_STATUS.PAUSED ? Pause : Swords);
@@ -19,9 +21,36 @@ export default function TopBar({ role, sessionId, sessionNumber, combatStatus, c
       : (combatStatus === COMBAT_STATUS.PAUSED
         ? 'Open slagorde - gevecht gepauzeerd'
         : (turnsUntilMine === null ? 'Open slagorde - gevecht actief' : `Open slagorde - nog ${turnsUntilMine} beurt(en)`)));
+  const ambienceTitle = ambience?.currentTrack?.scene || 'Sferen';
+  const ambienceSubtitle = ambience?.isPlaying ? 'Live aan tafel' : 'Sfeer staat klaar';
+  const ambienceFillWidth = `${Math.max(0, Math.min(100, Number(ambience?.sessionVolume) || 0))}%`;
+
+  useEffect(() => {
+    if (!ambience?.isOpen) return undefined;
+
+    const handlePointerDown = (event) => {
+      if (ambienceShellRef.current && !ambienceShellRef.current.contains(event.target)) {
+        onCloseAmbiencePanel();
+      }
+    };
+
+    const handleKeyDown = (event) => {
+      if (event.key === 'Escape') {
+        onCloseAmbiencePanel();
+      }
+    };
+
+    document.addEventListener('mousedown', handlePointerDown);
+    document.addEventListener('keydown', handleKeyDown);
+
+    return () => {
+      document.removeEventListener('mousedown', handlePointerDown);
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [ambience?.isOpen, onCloseAmbiencePanel]);
 
   return (
-    <header className="h-14 md:h-16 bg-stone-900/80 backdrop-blur border-b border-stone-800 flex items-center justify-between px-3 md:px-5 shrink-0 z-30">
+    <header className="relative h-14 md:h-16 bg-stone-900/80 backdrop-blur border-b border-stone-800 flex items-center justify-between px-3 md:px-5 shrink-0 z-30">
       <div className="flex items-center gap-2 md:gap-3 min-w-0">
         <Flame className="w-5 h-5 md:w-6 md:h-6 text-amber-600" />
         <span className="font-bold text-lg md:text-xl tracking-widest text-stone-100 font-fantasy hidden sm:block">
@@ -65,21 +94,50 @@ export default function TopBar({ role, sessionId, sessionNumber, combatStatus, c
       </div>
 
       <div className="flex items-center gap-1 md:gap-2 shrink-0">
-        {role === 'gm' && (
-          <div className="h-9 flex items-center gap-1 md:gap-2 bg-stone-950/90 border border-stone-800 rounded-lg px-1.5 md:px-2 shadow-inner mr-0.5 md:mr-1">
-            <button 
-              onClick={() => setIsMusicPlaying(!isMusicPlaying)}
-              className={`w-7 h-7 md:w-8 md:h-8 flex items-center justify-center rounded-md transition-colors ${isMusicPlaying ? 'text-amber-500 bg-amber-950/30' : 'text-stone-400 hover:text-stone-200 hover:bg-stone-800'}`}
-              title={isMusicPlaying ? "Stop Taverne Muziek" : "Speel Taverne Muziek"}
-            >
-              {isMusicPlaying ? <Pause className="w-3 h-3 md:w-4 md:h-4" /> : <Music className="w-3 h-3 md:w-4 md:h-4" />}
-            </button>
-            <div className="w-12 md:w-24 h-1.5 bg-stone-800 rounded-full overflow-hidden border border-stone-900">
-              <div className="w-2/3 h-full bg-amber-600" />
+        <div ref={ambienceShellRef} className="relative mr-0.5 md:mr-1">
+          <button
+            type="button"
+            onClick={onToggleAmbiencePanel}
+            className={`h-9 flex items-center gap-2 rounded-xl border px-2.5 md:px-3 shadow-inner transition-colors ${ambience?.isPlaying ? 'border-amber-700/50 bg-amber-950/35 text-amber-100' : 'border-stone-800 bg-stone-950/90 text-stone-300 hover:border-stone-700 hover:text-stone-100'}`}
+            title={ambience?.isPlaying ? 'Open actieve sessiesfeer' : 'Open sferenpaneel'}
+          >
+            <span className="relative flex h-7 w-7 items-center justify-center rounded-lg bg-black/20">
+              <span className={`absolute right-1.5 top-1.5 h-1.5 w-1.5 rounded-full ${ambience?.isPlaying ? 'bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.7)]' : 'bg-stone-500'}`} />
+              {ambience?.isPlaying ? <Pause className="h-3.5 w-3.5" /> : <Music className="h-3.5 w-3.5" />}
+            </span>
+
+            <div className="hidden md:block text-left">
+              <div className="text-[9px] uppercase tracking-[0.22em] text-stone-500">{ambienceTitle}</div>
+              <div className="mt-0.5 font-fantasy text-[11px] tracking-[0.14em] text-current">{ambienceSubtitle}</div>
             </div>
-            <Volume2 className="w-3 h-3 md:w-4 md:h-4 text-stone-500 ml-0.5 md:ml-1" />
-          </div>
-        )}
+
+            <div className="hidden xl:flex items-center gap-1.5 pl-2 border-l border-stone-800/80">
+              <div className="h-1.5 w-12 overflow-hidden rounded-full border border-stone-900 bg-stone-900">
+                <div className="h-full rounded-full bg-amber-500" style={{ width: ambienceFillWidth }} />
+              </div>
+              <Volume2 className="h-3.5 w-3.5 text-stone-500" />
+            </div>
+          </button>
+
+          <AmbiencePanel
+            role={role}
+            isOpen={ambience?.isOpen === true}
+            currentTrack={ambience?.currentTrack}
+            isPlaying={ambience?.isPlaying === true}
+            sessionVolume={ambience?.sessionVolume ?? 0}
+            listenerVolume={ambience?.listenerVolume ?? 0}
+            verifiedTracks={ambience?.verifiedTracks || []}
+            archivedTracks={ambience?.archivedTracks || []}
+            needsAudioUnlock={ambience?.needsAudioUnlock === true}
+            ambienceError={ambience?.ambienceError || ''}
+            onClose={onCloseAmbiencePanel}
+            onTogglePlayback={onToggleAmbiencePlayback}
+            onSelectTrack={onSelectAmbienceTrack}
+            onSessionVolumeChange={onSetSessionAmbienceVolume}
+            onListenerVolumeChange={onSetListenerAmbienceVolume}
+            onUnlockAudio={onUnlockAmbienceAudio}
+          />
+        </div>
 
         <div className="flex items-center gap-1 md:gap-2 pl-2 md:pl-2.5 border-l border-stone-800/70">
           <div className="text-right hidden sm:block">

@@ -1,9 +1,8 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   AlertTriangle,
   ArrowRight,
   BookOpen,
-  Clock3,
   DoorOpen,
   Flame,
   LogOut,
@@ -12,11 +11,44 @@ import {
   Swords,
   Trash2,
   Users,
+  Volume2,
+  VolumeX,
   Wand2,
   X,
 } from 'lucide-react';
 import { getJoinTagLookupVariants } from '../lib/sessionUtils';
+import landingBackgroundVideo from '../../Video/landingBG.mp4';
 import RuntimeBadge from './RuntimeBadge';
+
+const LANDING_AMBIENCE_ENABLED_STORAGE_KEY = 'tomevault:landing:ambience-enabled';
+const LANDING_AMBIENCE_VOLUME_STORAGE_KEY = 'tomevault:landing:ambience-volume';
+const DEFAULT_LANDING_AMBIENCE_VOLUME = 12;
+
+function clampLandingAmbienceVolume(value, fallback = DEFAULT_LANDING_AMBIENCE_VOLUME) {
+  const numericValue = Number(value);
+  if (!Number.isFinite(numericValue)) return fallback;
+  return Math.max(0, Math.min(24, Math.round(numericValue)));
+}
+
+function loadStoredLandingAmbienceEnabled() {
+  if (typeof window === 'undefined') return false;
+
+  try {
+    return window.localStorage.getItem(LANDING_AMBIENCE_ENABLED_STORAGE_KEY) === '1';
+  } catch (_) {
+    return false;
+  }
+}
+
+function loadStoredLandingAmbienceVolume() {
+  if (typeof window === 'undefined') return DEFAULT_LANDING_AMBIENCE_VOLUME;
+
+  try {
+    return clampLandingAmbienceVolume(window.localStorage.getItem(LANDING_AMBIENCE_VOLUME_STORAGE_KEY));
+  } catch (_) {
+    return DEFAULT_LANDING_AMBIENCE_VOLUME;
+  }
+}
 
 function getLandingJoinContext() {
   if (typeof window === 'undefined') {
@@ -59,16 +91,21 @@ export default function LandingScreen({
   onBackfillMemberships,
   runtimeBadge,
 }) {
+  const landingVideoRef = useRef(null);
   const [sessionCode, setSessionCode] = useState('');
   const [sessionPin, setSessionPin] = useState('');
   const [gmSessionName, setGmSessionName] = useState('');
   const [gmSessionPin, setGmSessionPin] = useState('');
   const [showHiddenSessions, setShowHiddenSessions] = useState(false);
+  const [landingAmbienceEnabled, setLandingAmbienceEnabled] = useState(loadStoredLandingAmbienceEnabled);
+  const [landingAmbienceVolume, setLandingAmbienceVolume] = useState(loadStoredLandingAmbienceVolume);
+  const [landingAmbienceRequiresGesture, setLandingAmbienceRequiresGesture] = useState(false);
 
   const [localGmError, setLocalGmError] = useState('');
   const [localPlayerError, setLocalPlayerError] = useState('');
 
   const [emailMode, setEmailMode] = useState('login');
+  const [showEmailAuthForm, setShowEmailAuthForm] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -81,6 +118,7 @@ export default function LandingScreen({
   const [contactName, setContactName] = useState('');
   const [contactEmail, setContactEmail] = useState('');
   const [contactMessage, setContactMessage] = useState('');
+  const [showContactForm, setShowContactForm] = useState(false);
   const [{ inviteCode, isJoinPath }] = useState(() => getLandingJoinContext());
   const [activeRoleTab, setActiveRoleTab] = useState(() => {
     const initialContext = getLandingJoinContext();
@@ -222,32 +260,115 @@ export default function LandingScreen({
     window.localStorage.setItem('tv_landing_role', activeRoleTab);
   }, [activeRoleTab, rolePreferenceLocked]);
 
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    try {
+      window.localStorage.setItem(LANDING_AMBIENCE_ENABLED_STORAGE_KEY, landingAmbienceEnabled ? '1' : '0');
+    } catch (_) {
+      // Ignore storage failures and keep local state as source of truth.
+    }
+  }, [landingAmbienceEnabled]);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    try {
+      window.localStorage.setItem(LANDING_AMBIENCE_VOLUME_STORAGE_KEY, String(landingAmbienceVolume));
+    } catch (_) {
+      // Ignore storage failures and keep local state as source of truth.
+    }
+  }, [landingAmbienceVolume]);
+
+  useEffect(() => {
+    if (authError || localAuthError) {
+      setShowEmailAuthForm(true);
+    }
+  }, [authError, localAuthError]);
+
+  useEffect(() => {
+    const video = landingVideoRef.current;
+    if (!video) return;
+
+    video.volume = clampLandingAmbienceVolume(landingAmbienceVolume) / 100;
+    video.defaultMuted = !landingAmbienceEnabled;
+    video.muted = !landingAmbienceEnabled;
+
+    const playAttempt = video.play();
+    if (!playAttempt || typeof playAttempt.then !== 'function') {
+      return;
+    }
+
+    playAttempt
+      .then(() => {
+        if (landingAmbienceEnabled) {
+          setLandingAmbienceRequiresGesture(false);
+        }
+      })
+      .catch(() => {
+        if (!landingAmbienceEnabled) return;
+        video.muted = true;
+        setLandingAmbienceEnabled(false);
+        setLandingAmbienceRequiresGesture(true);
+      });
+  }, [landingAmbienceEnabled, landingAmbienceVolume]);
+
   const handleRoleToggle = (nextRole) => {
     setActiveRoleTab(nextRole);
     setRolePreferenceLocked(true);
   };
 
-  const featureHighlights = [
+  const handleToggleLandingAmbience = async () => {
+    const video = landingVideoRef.current;
+    if (!video) {
+      setLandingAmbienceEnabled((current) => !current);
+      return;
+    }
+
+    if (landingAmbienceEnabled) {
+      video.muted = true;
+      setLandingAmbienceEnabled(false);
+      setLandingAmbienceRequiresGesture(false);
+      return;
+    }
+
+    try {
+      video.muted = false;
+      video.volume = clampLandingAmbienceVolume(landingAmbienceVolume) / 100;
+      await video.play();
+      setLandingAmbienceEnabled(true);
+      setLandingAmbienceRequiresGesture(false);
+    } catch (_) {
+      video.muted = true;
+      setLandingAmbienceEnabled(false);
+      setLandingAmbienceRequiresGesture(true);
+    }
+  };
+
+  const handleLandingAmbienceVolumeChange = (event) => {
+    const nextVolume = clampLandingAmbienceVolume(event.target.value);
+    setLandingAmbienceVolume(nextVolume);
+
+    if (landingVideoRef.current) {
+      landingVideoRef.current.volume = nextVolume / 100;
+    }
+  };
+
+  const compactFeatureHighlights = [
     {
       icon: BookOpen,
-      title: 'Handouts zonder omweg',
-      body: 'Deel lore, clues en kaarten zonder dat de tafel stilvalt.',
-      iconClassName: 'text-amber-500',
-      shellClassName: 'border-amber-900/30 bg-amber-950/10',
+      label: 'Handouts',
+      accentClassName: 'text-amber-400',
     },
     {
       icon: Wand2,
-      title: 'Realtime samen spelen',
-      body: 'Chat, notities en sessiestatus blijven voor iedereen synchroon.',
-      iconClassName: 'text-indigo-400',
-      shellClassName: 'border-indigo-900/30 bg-indigo-950/10',
+      label: 'Realtime',
+      accentClassName: 'text-indigo-400',
     },
     {
       icon: ShieldCheck,
-      title: 'Duidelijke rollen',
-      body: 'GM en spelers delen dezelfde wereld, zonder door elkaar heen te werken.',
-      iconClassName: 'text-emerald-400',
-      shellClassName: 'border-emerald-900/30 bg-emerald-950/10',
+      label: 'Rollen',
+      accentClassName: 'text-emerald-400',
     },
   ];
 
@@ -303,79 +424,18 @@ export default function LandingScreen({
     window.location.href = `mailto:hello@tomevault.app?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
   };
 
-  const heroProofs = !uid
-    ? ['Handouts die echt sfeer dragen', 'Realtime voor de hele tafel', 'Doorgaan als Gast zonder drempel']
-    : showSessionHub
-      ? ['Jouw laatste sessies staan klaar', 'Keer terug als speler of GM', 'Alles voelt alsof je aan tafel aanschuift']
-      : ['De tafel wordt alvast klaargezet', 'Je laatst gespeelde wereld wordt nagekeken', 'We leiden je zo terug de campagne in'];
-
-  const roleStory = activeRoleTab === 'gm'
-    ? {
-        kicker: 'Voor de verteller',
-        title: 'Open de deur naar een nieuwe campagne',
-        body: 'Zet de toon met een sessienaam, sluit de poort met een PIN en nodig de rest van de tafel uit wanneer jij klaar bent.',
-        shellClassName: 'border-amber-900/40 bg-amber-950/12',
-        accentClassName: 'text-amber-300',
-        lines: ['Veilige PIN om je tafel besloten te houden', 'Direct klaar om spelers uit te nodigen', 'Past bij one-shots en lange campagnes'],
-      }
-    : {
-        kicker: 'Voor de speler',
-        title: 'Schuif weer aan bij de groep',
-        body: 'Gebruik je naam en sessiecode om meteen terug in het verhaal te vallen. Bekende werelden laat TomeVault herkennen zonder extra ruis.',
-        shellClassName: 'border-indigo-900/40 bg-indigo-950/12',
-        accentClassName: 'text-indigo-300',
-        lines: ['Sessiecode direct ingevuld bij uitnodigingscontext', 'Bekende werelden kunnen zonder PIN verder', 'Werkt voor terugkerende spelers en nieuwe gasten'],
-      };
-
-  const rolePreview = activeRoleTab === 'gm' ? (
-    <div className={`landing-preview-fragment ${roleStory.shellClassName}`}>
-      <div className="landing-kicker text-amber-400">Voorproef</div>
-      <div className="mt-3 rounded-[24px] border border-amber-900/35 bg-stone-950/65 p-4 shadow-[0_18px_44px_rgba(0,0,0,0.28)]">
-        <div className="flex items-center justify-between gap-3">
-          <div>
-            <div className="text-xs uppercase tracking-[0.24em] text-amber-500/80">De Herberg van Sintels</div>
-            <div className="mt-2 font-fantasy text-lg tracking-[0.12em] text-stone-100">Wereld in voorbereiding</div>
-          </div>
-          <div className="rounded-full border border-amber-800/50 bg-amber-950/35 px-3 py-1 text-[10px] uppercase tracking-[0.2em] text-amber-200">GM</div>
-        </div>
-        <div className="mt-4 space-y-2 text-sm text-stone-300 font-story">
-          <div className="rounded-2xl border border-stone-800/70 bg-stone-900/70 px-4 py-3">Campagnenaam: klaar om spelers te ontvangen</div>
-          <div className="rounded-2xl border border-stone-800/70 bg-stone-900/70 px-4 py-3">PIN ingesteld om de tafel besloten te houden</div>
-        </div>
-      </div>
-    </div>
-  ) : (
-    <div className={`landing-preview-fragment ${roleStory.shellClassName}`}>
-      <div className="landing-kicker text-indigo-400">Voorproef</div>
-      <div className="mt-3 space-y-3 rounded-[24px] border border-indigo-900/35 bg-stone-950/65 p-4 shadow-[0_18px_44px_rgba(0,0,0,0.28)]">
-        <div className="rounded-[20px] border border-stone-800/70 bg-stone-900/75 px-4 py-3">
-          <div className="text-[10px] uppercase tracking-[0.2em] text-stone-500">Laatste regel aan tafel</div>
-          <div className="mt-2 font-story text-sm leading-6 text-stone-200">“De deur kraakte open en iedereen keek tegelijk naar de kaart op tafel.”</div>
-        </div>
-        <div className="rounded-[20px] border border-indigo-900/35 bg-indigo-950/22 px-4 py-3">
-          <div className="text-[10px] uppercase tracking-[0.2em] text-indigo-300/80">Uitnodiging</div>
-          <div className="mt-2 font-fantasy text-base tracking-[0.12em] text-stone-100">Code klaar om in te vullen</div>
-          <div className="mt-1 text-sm text-stone-300 font-story">{inviteCode ? inviteCode.toUpperCase() : 'Voer je sessiecode in en pak de draad weer op.'}</div>
-        </div>
-      </div>
-    </div>
-  );
+  const landingAmbienceLabel = 'Geluid';
+  const showHeroHighlights = !uid || showSessionHub;
 
   const recentSessionsSection = uid && showSessionHub ? (
-    <section className="w-full">
-      <div className="landing-surface rounded-[32px] p-5 md:p-6 lg:p-7">
-        <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
-          <div className="space-y-2">
-            <div className="landing-kicker text-amber-500">Haardvuur</div>
-            <h2 className="text-2xl md:text-3xl font-fantasy tracking-[0.12em] text-stone-100">Pak het verhaal weer op</h2>
-            <p className="max-w-2xl text-sm md:text-base text-stone-400 font-story leading-relaxed">
-              {displayedRecentSessions.length > 0
-                ? 'Je laatst bezochte werelden staan al klaar. Eén klik en je schuift weer aan alsof de dobbelstenen nog warm zijn.'
-                : 'Zodra je een wereld opent of herstelt, verschijnt hier je vertrouwde route terug naar tafel.'}
-            </p>
-          </div>
+    <section className="mx-auto w-full max-w-5xl">
+      <div className="landing-surface rounded-[26px] p-4 md:p-5 lg:p-6">
+        <div className="text-center">
+          <div className="landing-kicker text-amber-500">Recente sessies</div>
+          <h2 className="mt-1 text-xl md:text-2xl font-fantasy tracking-[0.12em] text-stone-100">Hervat snel</h2>
+        </div>
 
-          <div className="flex flex-wrap gap-2">
+        <div className="mt-4 flex flex-wrap justify-center gap-2">
             <button
               type="button"
               onClick={() => onBackfillMemberships?.()}
@@ -394,15 +454,14 @@ export default function LandingScreen({
                 {showHiddenSessions ? 'Verberg verborgen' : `Toon verborgen (${hiddenRecentCount})`}
               </button>
             ) : null}
-          </div>
         </div>
 
         {displayedRecentSessions.length === 0 ? (
-          <div className="mt-5 rounded-[28px] border border-dashed border-stone-800/70 bg-stone-950/40 px-5 py-8 text-center">
-            <p className="text-base text-stone-300 font-story italic">Nog geen recente sessies gevonden voor dit account.</p>
+          <div className="mt-4 rounded-[22px] border border-dashed border-stone-800/70 bg-stone-950/35 px-4 py-6 text-center">
+            <p className="text-sm text-stone-300 font-story italic">Nog geen recente sessies.</p>
           </div>
         ) : (
-          <div className="mt-6 grid gap-4 md:grid-cols-2">
+          <div className="mt-4 grid gap-3">
             {displayedRecentSessions.map((session) => {
               const displayCode = session.joinTag || session.sessionId;
               const roleLabel = session.role === 'dm' ? 'GM' : 'Speler';
@@ -423,23 +482,16 @@ export default function LandingScreen({
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0">
                       <div className="truncate text-lg font-fantasy text-stone-100">{session.sessionName || 'Naamloze Sessie'}</div>
-                      <div className="mt-1 truncate text-[11px] uppercase tracking-[0.18em] text-stone-500">Code {displayCode}</div>
+                      <div className="mt-2 flex flex-wrap items-center gap-2 text-[11px] uppercase tracking-[0.18em] text-stone-500">
+                        <span>Code {displayCode}</span>
+                        <span className="text-stone-700">•</span>
+                        <span>{session.updatedAtLabel}</span>
+                      </div>
                     </div>
                     <span className={`landing-chip ${roleAccent}`}>{roleLabel}</span>
                   </div>
 
-                  <p className="mt-3 text-sm leading-6 text-stone-300 font-story">
-                    {session.role === 'dm'
-                      ? 'De tafel die jij bewaakt staat nog klaar. Keer terug als verteller en open de wereld precies waar je bleef.'
-                      : 'Jouw stoel aan tafel wacht nog. Spring direct terug naar de groep zonder opnieuw door menu’s te dwalen.'}
-                  </p>
-
-                  <div className="mt-3 flex items-center gap-2 text-sm text-stone-400 font-story leading-relaxed">
-                    <Clock3 className="h-4 w-4 shrink-0 text-stone-500" />
-                    <span>Laatst gezien: {session.updatedAtLabel}</span>
-                  </div>
-
-                  <div className="mt-5 flex flex-wrap gap-2">
+                  <div className="mt-4 flex flex-wrap gap-2">
                     <button
                       type="button"
                       onClick={() => onResumeRecentSession?.(session, defaultAsRole)}
@@ -478,84 +530,142 @@ export default function LandingScreen({
     </section>
   ) : null;
 
+  const landingAboutSection = !uid ? (
+    <section className="landing-copy-rail mx-auto w-full max-w-5xl">
+      <div className="grid gap-8 md:grid-cols-2 md:gap-10">
+        <div className="space-y-2 text-center md:text-left">
+          <div className="landing-kicker text-amber-500">Wat is TomeVault</div>
+          <p className="text-sm md:text-base text-stone-300 font-story leading-relaxed">
+            Een rustige digitale tafel waar handouts, chat, notities en sessies samenkomen zonder dashboard-chaos.
+          </p>
+        </div>
+        <div className="space-y-2 text-center md:text-left">
+          <div className="landing-kicker text-emerald-400">Wie zijn wij</div>
+          <p className="text-sm md:text-base text-stone-300 font-story leading-relaxed">
+            We bouwen TomeVault voor groepen die sfeer, focus en duidelijkheid belangrijker vinden dan drukke tooling.
+          </p>
+        </div>
+      </div>
+    </section>
+  ) : null;
+
   return (
     <div className="relative min-h-screen overflow-x-hidden bg-stone-950 bg-texture">
+      <div className="landing-video-backdrop" aria-hidden="true">
+        <video
+          ref={landingVideoRef}
+          className="landing-video-element"
+          src={landingBackgroundVideo}
+          autoPlay
+          loop
+          playsInline
+          muted
+          preload="auto"
+          disablePictureInPicture
+        />
+        <div className="landing-video-darkener" />
+        <div className="landing-video-vignette" />
+      </div>
+
       {runtimeBadge ? (
         <div className="absolute right-4 top-4 z-20">
           <RuntimeBadge runtimeBadge={runtimeBadge} />
         </div>
       ) : null}
 
-      <div className="pointer-events-none absolute inset-x-0 top-0 h-72 bg-[radial-gradient(circle_at_top,_rgba(245,158,11,0.14),_transparent_60%)]" />
-      <div className="pointer-events-none absolute left-1/2 top-24 h-[28rem] w-[28rem] -translate-x-1/2 rounded-full bg-amber-900/12 blur-[130px]" />
-      <div className="pointer-events-none absolute right-[-8%] top-56 h-80 w-80 rounded-full bg-indigo-900/10 blur-[120px]" />
-      <div className="pointer-events-none absolute left-[6%] top-[26rem] h-72 w-72 rounded-full bg-emerald-900/8 blur-[120px]" />
+      <div className="fixed bottom-4 right-4 z-30 max-w-[calc(100vw-2rem)]">
+        <div className="landing-ambience-dock">
+          <button
+            type="button"
+            onClick={handleToggleLandingAmbience}
+            title="De achtergrondvideo speelt altijd. Geluid blijft zacht en start pas na een tik."
+            className={`landing-ambience-button ${landingAmbienceEnabled ? 'landing-ambience-button-active' : ''}`}
+          >
+            {landingAmbienceEnabled ? <Volume2 className="h-4 w-4" /> : <VolumeX className="h-4 w-4" />}
+            <span className="hidden sm:inline">{landingAmbienceLabel}</span>
+          </button>
+          {landingAmbienceEnabled ? (
+            <div className="flex min-w-[8.75rem] items-center gap-3">
+              <span className="text-[10px] uppercase tracking-[0.22em] text-stone-500">Volume</span>
+              <input
+                type="range"
+                min="0"
+                max="24"
+                step="1"
+                value={landingAmbienceVolume}
+                onChange={handleLandingAmbienceVolumeChange}
+                className="ambience-slider w-24 sm:w-28"
+                aria-label="Volume van sfeergeluid"
+              />
+            </div>
+          ) : null}
+        </div>
+      </div>
 
       <div className="landing-content-rail relative z-10 mx-auto flex w-full max-w-6xl flex-col gap-5 px-4 pb-14 pt-12 sm:px-6 md:gap-6 md:pt-20">
-        <section className="landing-hero rounded-[34px] px-5 py-6 md:px-8 md:py-8 lg:px-9 lg:py-10">
-          <div className="absolute inset-x-0 top-0 h-56 bg-[radial-gradient(circle_at_top,_rgba(245,158,11,0.12),_transparent_72%)] pointer-events-none" />
-          <div className="absolute right-0 top-10 hidden h-44 w-44 rounded-full border border-stone-800/70 bg-stone-950/35 blur-3xl lg:block" />
-
-          <div className={`relative z-10 grid gap-8 ${uid ? 'lg:grid-cols-[1.2fr_0.8fr] lg:items-start' : 'xl:grid-cols-[1.1fr_0.9fr] xl:items-start'}`}>
-            <div className="max-w-3xl space-y-6">
-              <div className="flex flex-wrap items-center gap-2.5">
-                <div className="landing-chip border-amber-900/40 bg-amber-950/18 text-amber-200">
-                  <Flame className="h-3.5 w-3.5" />
-                  TomeVault
+        <section className="landing-hero mx-auto w-full max-w-5xl px-5 py-6 md:px-7 md:py-8 lg:px-8 lg:py-10">
+          <div className="relative z-10 mx-auto flex w-full max-w-5xl flex-col items-center gap-7 text-center">
+            <div className="max-w-3xl space-y-5">
+              {uid ? (
+                <div className="flex flex-wrap items-center justify-center gap-2.5">
+                  <div className="landing-chip border-emerald-900/45 bg-emerald-950/18 text-emerald-200">
+                    {resolvedDisplayName}
+                  </div>
                 </div>
-                <div className={`landing-chip ${uid ? 'border-emerald-900/45 bg-emerald-950/18 text-emerald-200' : 'border-stone-700/65 bg-stone-950/55 text-stone-200'}`}>
-                  {uid ? `Verbonden als ${resolvedDisplayName}` : 'Digitale herberg voor tabletop groepen'}
-                </div>
-              </div>
+              ) : null}
 
-              <div className="space-y-4">
+              <div className="space-y-3">
                 {!uid ? (
                   <>
                     <h1 className="max-w-4xl text-5xl leading-[0.9] font-fantasy tracking-[0.08em] text-stone-100 sm:text-6xl lg:text-7xl xl:text-[5.15rem]">
                       TOME<span className="text-amber-500">VAULT</span>
                     </h1>
-                    <p className="max-w-2xl text-base md:text-xl text-stone-300 font-story leading-relaxed">
-                      Schuif aan in een warme digitale herberg voor campagnes die handouts, chat, notities en sessiebeheer bij elkaar willen houden zonder dashboard-ruis.
+                    <p className="max-w-2xl text-base md:text-lg text-stone-300 font-story leading-relaxed">
+                      Handouts, chat en sessies op een rustige plek.
                     </p>
                   </>
                 ) : showSessionHub ? (
                   <>
                     <div className="landing-kicker text-emerald-400">Welkom terug</div>
                     <h1 className="max-w-4xl text-4xl leading-[0.96] font-fantasy tracking-[0.08em] text-stone-100 sm:text-5xl lg:text-6xl">
-                      Welkom terug aan tafel, <span className="text-amber-400">{resolvedDisplayName}</span>.
+                      Alles staat klaar.
                     </h1>
-                    <p className="max-w-2xl text-base md:text-xl text-stone-300 font-story leading-relaxed">
-                      Je wereld, je notities en je laatste verhalen staan al klaar. Kies of je opnieuw aanschuift als speler of de deur opent als verteller.
+                    <p className="max-w-2xl text-base md:text-lg text-stone-300 font-story leading-relaxed">
+                      Hervat een bekende wereld of open direct een nieuwe.
                     </p>
                   </>
                 ) : (
                   <>
                     <div className="landing-kicker text-emerald-400">Verbonden</div>
                     <h1 className="max-w-4xl text-4xl leading-[0.96] font-fantasy tracking-[0.08em] text-stone-100 sm:text-5xl lg:text-6xl">
-                      De haard brandt al.
+                      Even geduld.
                     </h1>
-                    <p className="max-w-2xl text-base md:text-xl text-stone-300 font-story leading-relaxed">
-                      We zoeken je laatst gebruikte wereld op zodat je zo weer verder kunt waar het verhaal de vorige keer stilviel.
+                    <p className="max-w-2xl text-base md:text-lg text-stone-300 font-story leading-relaxed">
+                      We zoeken je laatste sessie erbij.
                     </p>
                   </>
                 )}
               </div>
 
-              <div className="flex flex-wrap gap-2.5">
-                {heroProofs.map((proof) => (
-                  <span key={proof} className="landing-chip border-stone-700/60 bg-stone-950/55 text-stone-200">
-                    {proof}
-                  </span>
-                ))}
-              </div>
+              {showHeroHighlights ? (
+                <div className="flex flex-wrap justify-center gap-2">
+                  {compactFeatureHighlights.map((feature) => {
+                    const Icon = feature.icon;
+                    return (
+                      <span key={feature.label} className="landing-chip border-stone-700/60 bg-stone-950/45 text-stone-200">
+                        <Icon className={`h-3.5 w-3.5 ${feature.accentClassName}`} />
+                        {feature.label}
+                      </span>
+                    );
+                  })}
+                </div>
+              ) : null}
             </div>
 
             {!uid ? (
-              <div className="landing-surface rounded-[30px] p-5 md:p-6">
-                <div className="landing-kicker text-amber-500">Start hier</div>
-                <h2 className="mt-2 text-2xl font-fantasy tracking-[0.12em] text-stone-100">Log in en open je tafel</h2>
-
-                <div className="mt-5 space-y-3">
+              <div className="landing-surface w-full max-w-[34rem] rounded-[22px] p-5 md:p-6 text-left lg:max-w-[36rem]">
+                <div className="landing-kicker text-amber-500 text-center">Schuif aan</div>
+                <div className="mt-4 space-y-3">
                   <button
                     type="button"
                     onClick={onSignInGoogle}
@@ -575,71 +685,83 @@ export default function LandingScreen({
                 </div>
 
                 {inviteCode || isJoinPath ? (
-                  <div className="mt-4 rounded-[22px] border border-indigo-900/35 bg-indigo-950/18 px-4 py-3 text-sm text-indigo-100 font-story leading-relaxed">
-                    Uitnodiging herkend{inviteCode ? ` voor code ${inviteCode.toUpperCase()}` : ''}. Log in en je schuift direct naar de spelerstoel.
+                  <div className="mt-4 rounded-[20px] border border-indigo-900/35 bg-indigo-950/18 px-4 py-3 text-sm text-indigo-100 font-story leading-relaxed">
+                    Uitnodiging herkend{inviteCode ? ` voor ${inviteCode.toUpperCase()}` : ''}.
                   </div>
                 ) : null}
 
-                <form onSubmit={handleEmailAuth} className="mt-5 border-t border-stone-800/70 pt-5">
-                  <div className="flex rounded-2xl border border-stone-800/90 bg-stone-950/80 p-1">
-                    <button
-                      type="button"
-                      onClick={() => setEmailMode('login')}
-                      className={`flex-1 rounded-xl px-3 py-2 text-xs uppercase tracking-[0.18em] transition-colors ${emailMode === 'login' ? 'bg-stone-800 text-stone-100' : 'text-stone-400 hover:text-stone-200'}`}
-                    >
-                      Inloggen
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setEmailMode('signup')}
-                      className={`flex-1 rounded-xl px-3 py-2 text-xs uppercase tracking-[0.18em] transition-colors ${emailMode === 'signup' ? 'bg-stone-800 text-stone-100' : 'text-stone-400 hover:text-stone-200'}`}
-                    >
-                      Aanmaken
-                    </button>
-                  </div>
+                <div className="mt-4 flex flex-wrap gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setShowEmailAuthForm((value) => !value)}
+                    className="landing-action-button border-stone-700/80 bg-stone-950/70 text-stone-200 hover:border-amber-700/40 hover:text-amber-200"
+                  >
+                    {showEmailAuthForm ? 'Verberg e-mail' : 'Gebruik e-mail'}
+                  </button>
+                </div>
 
-                  <div className="mt-4 space-y-3">
-                    {emailMode === 'signup' ? (
+                {showEmailAuthForm ? (
+                  <form onSubmit={handleEmailAuth} className="mt-4 border-t border-stone-800/70 pt-4">
+                    <div className="flex rounded-2xl border border-stone-800/90 bg-stone-950/80 p-1">
+                      <button
+                        type="button"
+                        onClick={() => setEmailMode('login')}
+                        className={`flex-1 rounded-xl px-3 py-2 text-xs uppercase tracking-[0.18em] transition-colors ${emailMode === 'login' ? 'bg-stone-800 text-stone-100' : 'text-stone-400 hover:text-stone-200'}`}
+                      >
+                        Inloggen
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setEmailMode('signup')}
+                        className={`flex-1 rounded-xl px-3 py-2 text-xs uppercase tracking-[0.18em] transition-colors ${emailMode === 'signup' ? 'bg-stone-800 text-stone-100' : 'text-stone-400 hover:text-stone-200'}`}
+                      >
+                        Aanmaken
+                      </button>
+                    </div>
+
+                    <div className="mt-4 space-y-3">
+                      {emailMode === 'signup' ? (
+                        <input
+                          type="text"
+                          placeholder="Weergavenaam"
+                          value={authName}
+                          onChange={(e) => setAuthName(e.target.value)}
+                          className="landing-input landing-input-amber"
+                        />
+                      ) : null}
                       <input
-                        type="text"
-                        placeholder="Weergavenaam"
-                        value={authName}
-                        onChange={(e) => setAuthName(e.target.value)}
+                        type="email"
+                        placeholder="jij@email.com"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
                         className="landing-input landing-input-amber"
                       />
-                    ) : null}
-                    <input
-                      type="email"
-                      placeholder="jij@email.com"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      className="landing-input landing-input-amber"
-                    />
-                    <input
-                      type="password"
-                      placeholder="Wachtwoord"
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      className="landing-input landing-input-amber"
-                    />
-                    {emailMode === 'signup' ? (
                       <input
                         type="password"
-                        placeholder="Bevestig wachtwoord"
-                        value={confirmPassword}
-                        onChange={(e) => setConfirmPassword(e.target.value)}
+                        placeholder="Wachtwoord"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
                         className="landing-input landing-input-amber"
                       />
-                    ) : null}
-                    <button
-                      type="submit"
-                      disabled={authLoading || sessionBusy}
-                      className="landing-button landing-button-muted w-full disabled:opacity-60"
-                    >
-                      {emailMode === 'signup' ? 'Account Aanmaken' : 'Inloggen met E-mail'}
-                    </button>
-                  </div>
-                </form>
+                      {emailMode === 'signup' ? (
+                        <input
+                          type="password"
+                          placeholder="Bevestig wachtwoord"
+                          value={confirmPassword}
+                          onChange={(e) => setConfirmPassword(e.target.value)}
+                          className="landing-input landing-input-amber"
+                        />
+                      ) : null}
+                      <button
+                        type="submit"
+                        disabled={authLoading || sessionBusy}
+                        className="landing-button landing-button-muted w-full disabled:opacity-60"
+                      >
+                        {emailMode === 'signup' ? 'Account Aanmaken' : 'Inloggen met E-mail'}
+                      </button>
+                    </div>
+                  </form>
+                ) : null}
 
                 {(authError || localAuthError) ? (
                   <div className="mt-4 rounded-2xl border border-rose-900/50 bg-rose-950/35 px-4 py-3 text-sm text-rose-200">
@@ -648,61 +770,45 @@ export default function LandingScreen({
                 ) : null}
               </div>
             ) : showSessionHub ? (
-              <div className="landing-surface rounded-[30px] p-5 md:p-6">
-                <div className="landing-kicker text-emerald-400">Je plek aan tafel</div>
-                <h2 className="mt-2 text-2xl font-fantasy tracking-[0.12em] text-stone-100">Alles staat voor je klaar</h2>
-                <p className="mt-3 text-sm md:text-base text-stone-400 font-story leading-relaxed">
-                  {activeRecentSessions.length > 0
-                    ? 'Hervat direct een bekende wereld of kies hieronder of je vandaag vooral speelt of leidt.'
-                    : 'Je bent verbonden. Kies hieronder hoe je vandaag de wereld wilt betreden.'}
-                </p>
-                <div className="mt-5 grid gap-3 sm:grid-cols-3">
-                  <div className="rounded-[22px] border border-stone-800/70 bg-stone-950/55 px-4 py-4">
-                    <div className="text-[10px] uppercase tracking-[0.22em] text-stone-500">Actieve routes</div>
-                    <div className="mt-2 font-fantasy text-2xl tracking-[0.12em] text-stone-100">{activeRecentSessions.length}</div>
-                  </div>
-                  <div className="rounded-[22px] border border-amber-900/35 bg-amber-950/16 px-4 py-4">
-                    <div className="text-[10px] uppercase tracking-[0.22em] text-amber-400/80">GM</div>
-                    <div className="mt-2 font-fantasy text-2xl tracking-[0.12em] text-amber-100">{gmRecentCount}</div>
-                  </div>
-                  <div className="rounded-[22px] border border-indigo-900/35 bg-indigo-950/16 px-4 py-4">
-                    <div className="text-[10px] uppercase tracking-[0.22em] text-indigo-300/80">Speler</div>
-                    <div className="mt-2 font-fantasy text-2xl tracking-[0.12em] text-indigo-100">{playerRecentCount}</div>
-                  </div>
+              <div className="flex flex-col items-center gap-4">
+                <div className="flex flex-wrap justify-center gap-2">
+                  <span className="landing-chip border-stone-700/60 bg-stone-950/55 text-stone-200">{activeRecentSessions.length} sessies</span>
+                  {gmRecentCount > 0 ? (
+                    <span className="landing-chip border-amber-900/50 bg-amber-950/20 text-amber-200">{gmRecentCount} GM</span>
+                  ) : null}
+                  {playerRecentCount > 0 ? (
+                    <span className="landing-chip border-indigo-900/50 bg-indigo-950/20 text-indigo-200">{playerRecentCount} speler</span>
+                  ) : null}
                 </div>
-                <div className="mt-5">
-                  <button
-                    type="button"
-                    onClick={() => onSignOut?.()}
-                    className="landing-action-button border-rose-900/50 bg-rose-950/25 text-rose-200 hover:border-rose-700/60 hover:bg-rose-950/40 hover:text-rose-100"
-                  >
-                    <LogOut className="mr-2 h-4 w-4" />
-                    Log uit
-                  </button>
-                </div>
+                <button
+                  type="button"
+                  onClick={() => onSignOut?.()}
+                  className="landing-action-button border-rose-900/50 bg-rose-950/25 text-rose-200 hover:border-rose-700/60 hover:bg-rose-950/40 hover:text-rose-100"
+                >
+                  <LogOut className="mr-2 h-4 w-4" />
+                  Log uit
+                </button>
               </div>
             ) : (
-              <div className="landing-surface rounded-[30px] p-5 md:p-6">
-                <div className="landing-kicker text-emerald-400">Verbonden</div>
-                <h2 className="mt-2 text-2xl font-fantasy tracking-[0.12em] text-stone-100">Even geduld</h2>
-                <p className="mt-3 text-sm md:text-base text-stone-400 font-story leading-relaxed">
-                  {sessionBusy
-                    ? 'We proberen je meest recente sessie direct te openen.'
-                    : 'We laden je sessies om te bepalen of je direct terug de wereld in kunt.'}
-                </p>
-              </div>
+              <p className="max-w-xl text-sm md:text-base text-stone-400 font-story leading-relaxed">
+                {sessionBusy
+                  ? 'We proberen je meest recente sessie direct te openen.'
+                  : 'We laden je sessies om te bepalen of je direct terug de wereld in kunt.'}
+              </p>
             )}
           </div>
         </section>
 
+        {landingAboutSection}
+
         {sessionError ? (
-          <div className="rounded-2xl border border-rose-900/50 bg-rose-950/35 px-4 py-3 text-sm text-rose-200">
+          <div className="mx-auto w-full max-w-5xl rounded-2xl border border-rose-900/50 bg-rose-950/35 px-4 py-3 text-sm text-rose-200">
             {sessionError}
           </div>
         ) : null}
 
         {sessionInfo ? (
-          <div className="rounded-2xl border border-emerald-900/50 bg-emerald-950/35 px-4 py-3 text-sm text-emerald-200">
+          <div className="mx-auto w-full max-w-5xl rounded-2xl border border-emerald-900/50 bg-emerald-950/35 px-4 py-3 text-sm text-emerald-200">
             {sessionInfo}
           </div>
         ) : null}
@@ -710,53 +816,46 @@ export default function LandingScreen({
         {recentSessionsSection}
 
         {showSessionHub ? (
-          <section className="landing-surface rounded-[32px] p-5 md:p-6 lg:p-7">
-            <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-              <div className="max-w-2xl">
-                <div className="landing-kicker text-stone-400">Kies je stoel aan tafel</div>
-                <h2 className="mt-2 text-2xl md:text-3xl font-fantasy tracking-[0.12em] text-stone-100">Start een wereld of schuif weer aan</h2>
-                <p className="mt-3 text-sm md:text-base text-stone-400 font-story leading-relaxed">
-                  Één rustige actieruimte is genoeg. Kies eerst je rol, daarna laten we alleen zien wat op dit moment relevant is.
-                </p>
+          <section className={`mx-auto w-full max-w-5xl landing-surface rounded-[26px] p-4 md:p-5 lg:p-6 ${activeRoleTab === 'gm' ? 'border-amber-900/30' : 'border-indigo-900/30'}`}>
+            <div className="text-center">
+              <div>
+                <div className="landing-kicker text-stone-400">Acties</div>
+                <h2 className="mt-1 text-xl md:text-2xl font-fantasy tracking-[0.12em] text-stone-100">
+                  {activeRoleTab === 'gm' ? 'Start een sessie' : 'Sluit aan bij een wereld'}
+                </h2>
               </div>
 
-              <div className="landing-role-toggle">
-                <button
-                  type="button"
-                  onClick={() => handleRoleToggle('player')}
-                  className={`landing-role-toggle-button ${activeRoleTab === 'player' ? 'landing-role-toggle-button-indigo' : ''}`}
-                >
-                  Speler
-                </button>
-                <button
-                  type="button"
-                  onClick={() => handleRoleToggle('gm')}
-                  className={`landing-role-toggle-button ${activeRoleTab === 'gm' ? 'landing-role-toggle-button-amber' : ''}`}
-                >
-                  Game Master
-                </button>
+              <div className="mt-4 flex justify-center">
+                <div className="landing-role-toggle">
+                  <button
+                    type="button"
+                    onClick={() => handleRoleToggle('player')}
+                    className={`landing-role-toggle-button ${activeRoleTab === 'player' ? 'landing-role-toggle-button-indigo' : ''}`}
+                  >
+                    Speler
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleRoleToggle('gm')}
+                    className={`landing-role-toggle-button ${activeRoleTab === 'gm' ? 'landing-role-toggle-button-amber' : ''}`}
+                  >
+                    Game Master
+                  </button>
+                </div>
               </div>
             </div>
 
-            <div className="mt-6 grid gap-6 lg:grid-cols-[1.05fr_0.95fr] lg:items-start">
-              <div className={`landing-surface rounded-[28px] p-5 md:p-6 ${activeRoleTab === 'gm' ? 'border-amber-900/40 bg-amber-950/10' : 'border-indigo-900/40 bg-indigo-950/10'}`}>
-                <div className="flex items-start gap-4">
-                  <div className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border ${activeRoleTab === 'gm' ? 'border-amber-900/50 bg-amber-950/30' : 'border-indigo-900/50 bg-indigo-950/30'}`}>
-                    {activeRoleTab === 'gm' ? <Swords className="h-6 w-6 text-amber-500" /> : <Users className="h-6 w-6 text-indigo-400" />}
-                  </div>
-                  <div>
-                    <div className={`landing-kicker ${activeRoleTab === 'gm' ? 'text-amber-500' : 'text-indigo-400'}`}>{activeRoleTab === 'gm' ? 'Game Master' : 'Speler'}</div>
-                    <h3 className="mt-2 text-2xl font-fantasy tracking-[0.12em] text-stone-100">{activeRoleTab === 'gm' ? 'Start een sessie' : 'Sluit aan bij een wereld'}</h3>
-                    <p className="mt-3 text-sm md:text-base text-stone-400 font-story leading-relaxed">
-                      {activeRoleTab === 'gm'
-                        ? 'Geef je campagne een naam, zet een PIN en open direct een nieuwe tafel voor je groep.'
-                        : 'Gebruik je naam, sessiecode en PIN om meteen terug aan tafel te zitten.'}
-                    </p>
-                  </div>
+            <div className="mx-auto mt-5 w-full max-w-[34rem] lg:max-w-[38rem]">
+              <div className="flex items-center justify-center gap-3">
+                <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl border ${activeRoleTab === 'gm' ? 'border-amber-900/50 bg-amber-950/30' : 'border-indigo-900/50 bg-indigo-950/30'}`}>
+                  {activeRoleTab === 'gm' ? <Swords className="h-5 w-5 text-amber-500" /> : <Users className="h-5 w-5 text-indigo-400" />}
                 </div>
+                <div className={`landing-kicker ${activeRoleTab === 'gm' ? 'text-amber-500' : 'text-indigo-400'}`}>{activeRoleTab === 'gm' ? 'Game Master' : 'Speler'}</div>
+              </div>
 
+              <div className="mt-4">
                 {activeRoleTab === 'gm' ? (
-                  <div className="mt-6 grid gap-3">
+                  <div className="grid gap-3">
                     <input
                       type="text"
                       placeholder="Sessienaam"
@@ -786,7 +885,7 @@ export default function LandingScreen({
                     ) : null}
                   </div>
                 ) : (
-                  <div className="mt-6 grid gap-3">
+                  <div className="grid gap-3">
                     <input
                       type="text"
                       placeholder="Je karakternaam"
@@ -829,94 +928,55 @@ export default function LandingScreen({
                   </div>
                 )}
               </div>
-
-              <div className="self-stretch">
-                <div className="landing-kicker text-stone-500">Waarom dit helpt</div>
-                <h3 className="mt-2 text-xl font-fantasy tracking-[0.12em] text-stone-100">{roleStory.title}</h3>
-                <p className="mt-3 text-sm md:text-base text-stone-400 font-story leading-relaxed">{roleStory.body}</p>
-                <div className="mt-4 space-y-2 text-sm font-story text-stone-300">
-                  {roleStory.lines.map((line) => (
-                    <div key={line} className="flex items-start gap-2 rounded-2xl border border-stone-800/70 bg-stone-950/45 px-4 py-3">
-                      <span className={`mt-0.5 h-2.5 w-2.5 rounded-full ${activeRoleTab === 'gm' ? 'bg-amber-400' : 'bg-indigo-400'}`} />
-                      <span>{line}</span>
-                    </div>
-                  ))}
-                </div>
-                <div className="mt-5">{rolePreview}</div>
-              </div>
             </div>
           </section>
         ) : null}
 
-        <section className="space-y-4">
-          <div>
-            <div className="landing-kicker text-amber-500">Waarom groepen TomeVault gebruiken</div>
-            <h2 className="mt-2 text-2xl md:text-3xl font-fantasy tracking-[0.12em] text-stone-100">Minder systeemgevoel, meer kampvuursfeer</h2>
-            <p className="mt-3 max-w-2xl text-sm md:text-base text-stone-400 font-story leading-relaxed">
-              Geen overvolle cockpit, maar kleine duidelijke signalen die je herinneren aan wat er op tafel gebeurt: een gedeelde notitie, een handout die opduikt, een wereld die op je wacht.
-            </p>
+        <section className="mx-auto w-full max-w-xl pt-1 text-center">
+          <div className="flex justify-center">
+            <button
+              type="button"
+              onClick={() => setShowContactForm((value) => !value)}
+              className="landing-action-button border-emerald-900/50 bg-emerald-950/20 text-emerald-200 hover:border-emerald-700/60 hover:text-emerald-100"
+            >
+              <Mail className="mr-2 h-4 w-4" />
+              {showContactForm ? 'Verberg feedback' : 'Feedback'}
+            </button>
           </div>
 
-          <div className="grid gap-4 md:grid-cols-3">
-            {featureHighlights.map((feature) => {
-              const Icon = feature.icon;
-
-              return (
-                <div key={feature.title} className={`landing-surface rounded-[28px] p-5 md:p-6 ${feature.shellClassName}`}>
-                  <div className={`flex h-11 w-11 items-center justify-center rounded-2xl border border-stone-800/70 bg-stone-950/60 ${feature.iconClassName}`}>
-                    <Icon className="h-5 w-5" />
-                  </div>
-                  <h4 className="mt-4 text-base md:text-lg font-fantasy text-stone-100 tracking-[0.12em]">{feature.title}</h4>
-                  <p className="mt-2 text-sm text-stone-400 font-story leading-relaxed">{feature.body}</p>
-                </div>
-              );
-            })}
-          </div>
-        </section>
-
-        <section className="landing-surface rounded-[32px] p-5 md:p-6 lg:p-7">
-          <div className="grid gap-6 lg:grid-cols-[0.82fr_1.18fr] lg:items-start">
-            <div>
-              <div className="flex items-center gap-2">
-                <Mail className="h-4 w-4 text-emerald-400" />
-                <div className="landing-kicker text-emerald-400">Contact</div>
-              </div>
-              <h2 className="mt-2 text-2xl md:text-3xl font-fantasy tracking-[0.12em] text-stone-100">Stuur ons je feedback</h2>
-              <p className="mt-3 max-w-xl text-sm md:text-base text-stone-400 font-story leading-relaxed">
-                Heb je feedback of een feature-idee? Laat een bericht achter. We houden deze landing bewust kort en duidelijk, en diezelfde helderheid willen we ook in de rest van de app.
-              </p>
+          {showContactForm ? (
+            <div className="landing-surface mt-4 rounded-[24px] p-4 md:p-5">
+              <form onSubmit={handleContactSubmit} className="grid gap-3 md:grid-cols-2 text-left">
+                <input
+                  type="text"
+                  value={contactName}
+                  onChange={(e) => setContactName(e.target.value)}
+                  placeholder="Je naam"
+                  className="landing-input landing-input-emerald"
+                />
+                <input
+                  type="email"
+                  value={contactEmail}
+                  onChange={(e) => setContactEmail(e.target.value)}
+                  placeholder="E-mail"
+                  className="landing-input landing-input-emerald"
+                />
+                <textarea
+                  value={contactMessage}
+                  onChange={(e) => setContactMessage(e.target.value)}
+                  rows={4}
+                  placeholder="Bericht"
+                  className="landing-input landing-input-emerald md:col-span-2 resize-none"
+                />
+                <button
+                  type="submit"
+                  className="landing-button landing-button-emerald md:col-span-2"
+                >
+                  Verstuur via E-mail
+                </button>
+              </form>
             </div>
-
-            <form onSubmit={handleContactSubmit} className="grid gap-3 md:grid-cols-2">
-              <input
-                type="text"
-                value={contactName}
-                onChange={(e) => setContactName(e.target.value)}
-                placeholder="Je naam"
-                className="landing-input landing-input-emerald"
-              />
-              <input
-                type="email"
-                value={contactEmail}
-                onChange={(e) => setContactEmail(e.target.value)}
-                placeholder="E-mail"
-                className="landing-input landing-input-emerald"
-              />
-              <textarea
-                value={contactMessage}
-                onChange={(e) => setContactMessage(e.target.value)}
-                rows={5}
-                placeholder="Waar kunnen we je mee helpen?"
-                className="landing-input landing-input-emerald md:col-span-2 resize-none"
-              />
-              <button
-                type="submit"
-                className="landing-button landing-button-emerald md:col-span-2 md:w-fit"
-              >
-                Verstuur via E-mail
-              </button>
-            </form>
-          </div>
+          ) : null}
         </section>
       </div>
 

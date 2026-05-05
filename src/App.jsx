@@ -1,5 +1,4 @@
 ﻿import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { Music } from 'lucide-react';
 import {
   onAuthStateChanged,
   signInWithPopup,
@@ -60,6 +59,15 @@ import {
   normalizeCombatStatus,
   sortPartyByInitiative,
 } from './lib/battleUtils';
+import {
+  buildAmbienceSessionPatch,
+  clampAmbienceVolume,
+  DEFAULT_AMBIENCE_STATE,
+  getAmbienceTrackById,
+  getArchivedAmbienceTracks,
+  getVerifiedAmbienceTracks,
+  normalizeAmbienceState,
+} from './lib/ambienceLibrary';
 import LandingScreen from './components/LandingScreen';
 import TopBar from './components/TopBar';
 import DamageModal from './components/DamageModal';
@@ -121,6 +129,17 @@ async function writeMembership({ uid, sessionId, role, sessionName, joinTag }) {
     status: 'active',
     updatedAt: serverTimestamp(),
   }, { merge: true });
+}
+
+function loadStoredListenerAmbienceVolume() {
+  if (typeof window === 'undefined') return 82;
+
+  try {
+    const raw = window.localStorage.getItem('tomevault:ambience:listener-volume');
+    return clampAmbienceVolume(raw, 82);
+  } catch (_) {
+    return 82;
+  }
 }
 
 const CHAT_ACCENT_COLORS = {
@@ -307,8 +326,13 @@ export default function TomeVaultApp() {
   const [notes, setNotes] = useState(MOCK_NOTES);
   const [preparations, setPreparations] = useState([]);
   const [preparationBackups, setPreparationBackups] = useState([]);
-  const [isMusicPlaying, setIsMusicPlaying] = useState(false);
-  const tavernAudioRef = useRef(null);
+  const [sessionAmbience, setSessionAmbience] = useState(() => ({ ...DEFAULT_AMBIENCE_STATE }));
+  const [isAmbiencePanelOpen, setIsAmbiencePanelOpen] = useState(false);
+  const [needsAudioUnlock, setNeedsAudioUnlock] = useState(false);
+  const [ambienceError, setAmbienceError] = useState('');
+  const [listenerAmbienceVolume, setListenerAmbienceVolume] = useState(loadStoredListenerAmbienceVolume);
+  const ambienceAudioRef = useRef(null);
+  const sessionAmbienceRef = useRef({ ...DEFAULT_AMBIENCE_STATE });
   const isClearingInventorySectionsRef = useRef(false);
   const lastInventorySectionCleanupSignatureRef = useRef('');
   const isBackfillingInventoryDescriptionsRef = useRef(false);
@@ -363,6 +387,29 @@ export default function TomeVaultApp() {
     () => getRuntimeBadgeState({ role, localDevBootstrap }),
     [localDevBootstrap, role]
   );
+  const verifiedAmbienceTracks = getVerifiedAmbienceTracks();
+  const archivedAmbienceTracks = getArchivedAmbienceTracks();
+  const currentAmbienceTrack = getAmbienceTrackById(sessionAmbience.trackId);
+  const effectiveAmbienceVolume = useMemo(() => {
+    const sessionVolume = clampAmbienceVolume(sessionAmbience.masterVolume, DEFAULT_AMBIENCE_STATE.masterVolume) / 100;
+    const listenerVolume = clampAmbienceVolume(listenerAmbienceVolume, 82) / 100;
+    return Math.max(0, Math.min(1, sessionVolume * listenerVolume));
+  }, [listenerAmbienceVolume, sessionAmbience.masterVolume]);
+
+  const resetAmbienceState = () => {
+    const nextDefault = { ...DEFAULT_AMBIENCE_STATE };
+    sessionAmbienceRef.current = nextDefault;
+    setSessionAmbience(nextDefault);
+    setIsAmbiencePanelOpen(false);
+    setNeedsAudioUnlock(false);
+    setAmbienceError('');
+
+    const audio = ambienceAudioRef.current;
+    if (audio) {
+      audio.pause();
+      audio.currentTime = 0;
+    }
+  };
 
   const applyLocalCombatState = (nextCombatState) => {
     const normalized = normalizeCombatSessionState(nextCombatState);
@@ -545,7 +592,7 @@ export default function TomeVaultApp() {
           ...buildCombatSessionPatch(DEFAULT_COMBAT_STATE),
           createdAt: serverTimestamp(),
           updatedAt: serverTimestamp(),
-          ambience: { track: 'tavern', volume: 0.6, isPlaying: false },
+          ambience: buildAmbienceSessionPatch(DEFAULT_AMBIENCE_STATE, { includeStartedAt: true }),
           isOneShot: false,
         };
 
@@ -842,7 +889,7 @@ export default function TomeVaultApp() {
           setCampaignSessionNumber(1);
           setSessionDocId('');
           setView('landing');
-          setIsMusicPlaying(false);
+          resetAmbienceState();
           setIsPartyOpen(false);
           resetCombatState();
         }
@@ -874,7 +921,7 @@ export default function TomeVaultApp() {
     setCampaignSessionNumber(1);
     setSessionDocId('');
     setView('landing');
-    setIsMusicPlaying(false);
+    resetAmbienceState();
     setIsPartyOpen(false);
     resetCombatState();
   };
@@ -888,7 +935,7 @@ export default function TomeVaultApp() {
     setCampaignSessionNumber(1);
     setSessionDocId('');
     setView('landing');
-    setIsMusicPlaying(false);
+    resetAmbienceState();
     setIsPartyOpen(false);
     resetCombatState();
   };
@@ -943,32 +990,106 @@ export default function TomeVaultApp() {
   };
 
   useEffect(() => {
-    const audio = new Audio('/audio/Tavern - Music and Ambience.mp3');
+    const audio = new Audio();
     audio.loop = true;
-    audio.volume = 0.35;
-    tavernAudioRef.current = audio;
+    audio.preload = 'auto';
+
+    const handleAudioError = () => {
+      setAmbienceError('De gekozen track kon niet geladen worden. Controleer de asset of bronvermelding.');
+    };
+
+    audio.addEventListener('error', handleAudioError);
+    ambienceAudioRef.current = audio;
 
     return () => {
+      audio.removeEventListener('error', handleAudioError);
       audio.pause();
       audio.currentTime = 0;
-      tavernAudioRef.current = null;
+      audio.src = '';
+      ambienceAudioRef.current = null;
     };
   }, []);
 
   useEffect(() => {
-    const audio = tavernAudioRef.current;
-    if (!audio) return;
+    sessionAmbienceRef.current = sessionAmbience;
+  }, [sessionAmbience]);
 
-    if (isMusicPlaying) {
-      audio.play().catch((err) => {
-        console.warn('Muziek kon niet starten:', err);
-        setIsMusicPlaying(false);
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    try {
+      window.localStorage.setItem('tomevault:ambience:listener-volume', String(listenerAmbienceVolume));
+    } catch (_) {
+      // no-op
+    }
+  }, [listenerAmbienceVolume]);
+
+  useEffect(() => {
+    const audio = ambienceAudioRef.current;
+    if (!audio) return undefined;
+
+    const selectedTrack = getAmbienceTrackById(sessionAmbience.trackId);
+    const targetSrc = typeof window === 'undefined'
+      ? selectedTrack.filePath
+      : new URL(selectedTrack.filePath, window.location.origin).href;
+    const trackChanged = audio.src !== targetSrc;
+
+    const syncPlaybackPosition = () => {
+      if (!sessionAmbience.startedAtMs || !Number.isFinite(audio.duration) || audio.duration <= 0) return;
+
+      const elapsedSeconds = Math.max(0, (Date.now() - sessionAmbience.startedAtMs) / 1000);
+      const nextPosition = elapsedSeconds % audio.duration;
+
+      if (Number.isFinite(nextPosition) && Math.abs(audio.currentTime - nextPosition) > 1.2) {
+        audio.currentTime = nextPosition;
+      }
+    };
+
+    const attemptPlayback = () => {
+      audio.volume = effectiveAmbienceVolume;
+
+      if (!sessionAmbience.isPlaying) {
+        audio.pause();
+        return;
+      }
+
+      syncPlaybackPosition();
+      audio.play().then(() => {
+        setNeedsAudioUnlock(false);
+        setAmbienceError('');
+      }).catch((err) => {
+        console.warn('Ambience kon niet starten:', err);
+        setNeedsAudioUnlock(true);
+        setAmbienceError('Klik op Audio inschakelen om browserblokkades voor de sessiesfeer op te heffen.');
       });
-      return;
+    };
+
+    if (trackChanged) {
+      audio.pause();
+      audio.src = selectedTrack.filePath;
+      audio.load();
     }
 
-    audio.pause();
-  }, [isMusicPlaying]);
+    audio.volume = effectiveAmbienceVolume;
+
+    if (trackChanged && audio.readyState < 1) {
+      const handleLoadedMetadata = () => {
+        attemptPlayback();
+      };
+
+      audio.addEventListener('loadedmetadata', handleLoadedMetadata, { once: true });
+      if (!sessionAmbience.isPlaying) {
+        audio.pause();
+      }
+
+      return () => {
+        audio.removeEventListener('loadedmetadata', handleLoadedMetadata);
+      };
+    }
+
+    attemptPlayback();
+    return undefined;
+  }, [effectiveAmbienceVolume, sessionAmbience]);
 
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, (user) => {
@@ -989,6 +1110,7 @@ export default function TomeVaultApp() {
         setSessionDocId('');
         setView('landing');
         setRecentSessions([]);
+        resetAmbienceState();
       }
       setAuthLoading(false);
     });
@@ -1069,6 +1191,7 @@ export default function TomeVaultApp() {
     setPreparations([]);
     setPreparationBackups([]);
     setPendingPreparationOffer(null);
+    resetAmbienceState();
     lastInventorySectionCleanupSignatureRef.current = '';
     isClearingInventorySectionsRef.current = false;
     lastInventoryDescriptionBackfillSignatureRef.current = '';
@@ -1088,6 +1211,7 @@ export default function TomeVaultApp() {
       onSnapshot(doc(db, 'sessions', sid), (snap) => {
         const s = snap.data() || {};
         setCampaignSessionNumber(Number(s.campaignSessionNumber || 1));
+        setSessionAmbience(normalizeAmbienceState(s.ambience));
         applyLocalCombatState(normalizeCombatSessionState(s));
       })
     );
@@ -1590,6 +1714,91 @@ export default function TomeVaultApp() {
       });
     } catch (err) {
       console.error('Campagne sessienummer bijwerken mislukt:', err);
+    }
+  };
+
+  const persistSessionAmbience = async (nextAmbience, { refreshStartedAt = false } = {}) => {
+    if (!sessionDocId || role !== 'gm') return;
+
+    const normalized = normalizeAmbienceState({
+      ...sessionAmbienceRef.current,
+      ...nextAmbience,
+      updatedBy: uid || null,
+    });
+    const optimisticAmbience = {
+      ...normalized,
+      startedAtMs: refreshStartedAt ? Date.now() : normalized.startedAtMs,
+      updatedBy: uid || null,
+    };
+
+    sessionAmbienceRef.current = optimisticAmbience;
+    setSessionAmbience(optimisticAmbience);
+    setAmbienceError('');
+
+    try {
+      await updateDoc(doc(db, 'sessions', sessionDocId), {
+        ambience: buildAmbienceSessionPatch(optimisticAmbience, { includeStartedAt: true }),
+        updatedAt: serverTimestamp(),
+      });
+    } catch (err) {
+      console.error('Ambience bijwerken mislukt:', err);
+      setAmbienceError('Sessie-sfeer opslaan is mislukt. Controleer Firestore en probeer opnieuw.');
+    }
+  };
+
+  const handleToggleAmbiencePlayback = () => {
+    if (role !== 'gm') return;
+
+    const shouldStart = !sessionAmbienceRef.current.isPlaying;
+    void persistSessionAmbience(
+      {
+        isPlaying: shouldStart,
+      },
+      { refreshStartedAt: shouldStart }
+    );
+  };
+
+  const handleSelectAmbienceTrack = (trackId) => {
+    if (role !== 'gm') return;
+
+    const resolvedTrack = getAmbienceTrackById(trackId);
+    const refreshStartedAt = sessionAmbienceRef.current.isPlaying && sessionAmbienceRef.current.trackId !== resolvedTrack.id;
+
+    void persistSessionAmbience(
+      {
+        trackId: resolvedTrack.id,
+      },
+      { refreshStartedAt }
+    );
+  };
+
+  const handleSetSessionAmbienceVolume = (nextVolume) => {
+    if (role !== 'gm') return;
+
+    void persistSessionAmbience({
+      masterVolume: clampAmbienceVolume(nextVolume, sessionAmbienceRef.current.masterVolume),
+    });
+  };
+
+  const handleUnlockAmbienceAudio = async () => {
+    const audio = ambienceAudioRef.current;
+    if (!audio) return;
+
+    setAmbienceError('');
+
+    if (!sessionAmbienceRef.current.isPlaying) {
+      setNeedsAudioUnlock(false);
+      return;
+    }
+
+    try {
+      audio.volume = effectiveAmbienceVolume;
+      await audio.play();
+      setNeedsAudioUnlock(false);
+    } catch (err) {
+      console.warn('Audio unlock mislukt:', err);
+      setNeedsAudioUnlock(true);
+      setAmbienceError('De browser houdt audio nog tegen. Probeer opnieuw na een expliciete klik.');
     }
   };
 
@@ -2502,8 +2711,24 @@ export default function TomeVaultApp() {
           party={party}
           currentPlayerId={CURRENT_PLAYER_ID}
           onLogout={handleLeaveSession} 
-          isMusicPlaying={isMusicPlaying} 
-          setIsMusicPlaying={setIsMusicPlaying} 
+          ambience={{
+            isOpen: isAmbiencePanelOpen,
+            currentTrack: currentAmbienceTrack,
+            isPlaying: sessionAmbience.isPlaying,
+            sessionVolume: sessionAmbience.masterVolume,
+            listenerVolume: listenerAmbienceVolume,
+            verifiedTracks: verifiedAmbienceTracks,
+            archivedTracks: archivedAmbienceTracks,
+            needsAudioUnlock,
+            ambienceError,
+          }}
+          onToggleAmbiencePanel={() => setIsAmbiencePanelOpen((prev) => !prev)}
+          onCloseAmbiencePanel={() => setIsAmbiencePanelOpen(false)}
+          onToggleAmbiencePlayback={handleToggleAmbiencePlayback}
+          onSelectAmbienceTrack={handleSelectAmbienceTrack}
+          onSetSessionAmbienceVolume={handleSetSessionAmbienceVolume}
+          onSetListenerAmbienceVolume={(nextVolume) => setListenerAmbienceVolume(clampAmbienceVolume(nextVolume, listenerAmbienceVolume))}
+          onUnlockAmbienceAudio={handleUnlockAmbienceAudio}
           onToggleParty={() => setIsPartyOpen(!isPartyOpen)}
           onOpenShare={() => setShowShareModal(true)}
           onOpenProfile={() => setProfileTarget(party.find(p => p.id === CURRENT_PLAYER_ID))}
