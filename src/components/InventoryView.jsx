@@ -4,30 +4,76 @@ import { resolveDisplayAvatar } from '../lib/placeholders';
 import { getHandoutIcon } from '../lib/handoutUtils';
 import WalletSection from './WalletSection';
 
-const DEFAULT_SECTION = 'Uitrusting & Items';
+function ItemCard({ item, role, currentPlayerId, canManageInventory, onUpdateItemAmount, onDeleteItem }) {
+  const description = String(item.desc || '').replace(/\s+/g, ' ').trim();
 
-function InventoryView({ role, inventory, wallets, party, currentPlayerId, handouts, onUnclaim, onOpenHandout, onOpenAddItem, onUpdateItemAmount, onDeleteItem, onMoveItemSection, onAdjustWallet }) {
+  return (
+    <div className="bg-stone-950/60 border border-stone-800 rounded-lg p-3 flex items-start gap-3 shadow-sm transition-colors hover:border-stone-700">
+      <div className="w-10 h-10 rounded bg-stone-900 border border-stone-700 flex items-center justify-center shrink-0 shadow-inner overflow-hidden">
+        {item.imageUrl ? (
+          <img src={item.imageUrl} alt="" className="w-full h-full object-cover scale-[1.25]" />
+        ) : (
+          <Package className="w-5 h-5 text-stone-500" />
+        )}
+      </div>
+
+      <div className="flex-1 min-w-0">
+        <div className="flex justify-between items-start gap-2 mb-1">
+          <span className="font-bold text-stone-200 font-fantasy tracking-wide text-sm leading-tight pr-2">{item.name}</span>
+          <div className="flex items-center gap-1.5 md:gap-2 shrink-0">
+            <span className="text-[10px] font-bold text-amber-600 bg-amber-950/40 border border-amber-900/30 px-1.5 py-0.5 rounded shadow-sm">x{item.amount}</span>
+            {(role === 'gm' || item.ownerId === currentPlayerId) && (
+              <div className="flex items-center gap-1 bg-stone-900/70 border border-stone-800 rounded px-1 py-0.5">
+                {role === 'gm' && (
+                  <>
+                    <button
+                      type="button"
+                      onClick={() => onUpdateItemAmount?.(item.id, Math.max(1, Number(item.amount || 1) - 1))}
+                      className="w-4 h-4 md:w-5 md:h-5 rounded border border-stone-700 text-stone-400 hover:text-rose-400 hover:border-rose-800 text-[10px] md:text-xs leading-none"
+                      title="Verlaag aantal"
+                    >
+                      -
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => onUpdateItemAmount?.(item.id, Number(item.amount || 0) + 1)}
+                      className="w-4 h-4 md:w-5 md:h-5 rounded border border-stone-700 text-stone-400 hover:text-emerald-400 hover:border-emerald-800 text-[10px] md:text-xs leading-none"
+                      title="Verhoog aantal"
+                    >
+                      +
+                    </button>
+                  </>
+                )}
+                <button
+                  type="button"
+                  onClick={() => onDeleteItem?.(item.id)}
+                  className="p-0.5 md:p-1 text-stone-500 hover:text-rose-500 hover:bg-stone-900 rounded transition-colors"
+                  title="Verwijder item"
+                >
+                  <Trash2 className="w-3 h-3 md:w-3.5 md:h-3.5" />
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {description && (
+          <p className="max-w-[44ch] text-[12px] md:text-[13px] text-stone-300/85 font-story leading-[1.75] text-left line-clamp-3 pr-1">
+            {description}
+          </p>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function InventoryView({ role, inventory, wallets, party, currentPlayerId, handouts, onUnclaim, onOpenHandout, onOpenAddItem, onUpdateItemAmount, onDeleteItem, onAdjustWallet }) {
   const [searchByPlayer, setSearchByPlayer] = useState({});
   const [filterByPlayer, setFilterByPlayer] = useState({});
-  const [newSectionByPlayer, setNewSectionByPlayer] = useState({});
-  const [customSectionsByPlayer, setCustomSectionsByPlayer] = useState({});
-  const [draggedItemId, setDraggedItemId] = useState(null);
-  const [draggedOverSection, setDraggedOverSection] = useState(null);
 
   const playersToShow = role === 'gm'
     ? party.filter((p) => !p.isNpc)
     : party.filter((p) => p.id === currentPlayerId);
-
-  const addCustomSection = (playerId) => {
-    const raw = String(newSectionByPlayer[playerId] || '').trim();
-    if (!raw) return;
-    setCustomSectionsByPlayer((prev) => {
-      const existing = prev[playerId] || [];
-      if (existing.includes(raw)) return prev;
-      return { ...prev, [playerId]: [...existing, raw] };
-    });
-    setNewSectionByPlayer((prev) => ({ ...prev, [playerId]: '' }));
-  };
 
   const categoryOptions = useMemo(() => [
     { value: 'all', label: 'Alles' },
@@ -70,6 +116,7 @@ function InventoryView({ role, inventory, wallets, party, currentPlayerId, hando
           const playerItems = inventory.filter((i) => i.ownerId === player.id);
           const playerWallet = wallets[player.id] || { platinum: 0, gold: 0, silver: 0, bronze: 0 };
           const playerClaimedHandouts = (handouts || []).filter((h) => h.claimedBy === player.id);
+          const canManageInventory = role === 'gm' || player.id === currentPlayerId;
 
           const search = String(searchByPlayer[player.id] || '').toLowerCase();
           const filter = String(filterByPlayer[player.id] || 'all').toLowerCase();
@@ -80,12 +127,6 @@ function InventoryView({ role, inventory, wallets, party, currentPlayerId, hando
             const matchesFilter = filter === 'all' || String(item.category || 'overig').toLowerCase() === filter;
             return matchesSearch && matchesFilter;
           });
-
-          const sections = [
-            DEFAULT_SECTION,
-            ...Array.from(new Set(playerItems.map((item) => String(item.section || DEFAULT_SECTION).trim()).filter(Boolean))),
-            ...Array.from(new Set(customSectionsByPlayer[player.id] || [])),
-          ];
 
           return (
             <div key={player.id} className="bg-stone-900/40 border border-stone-800/60 rounded-xl p-4 md:p-6 backdrop-blur-sm relative shadow-md">
@@ -135,154 +176,33 @@ function InventoryView({ role, inventory, wallets, party, currentPlayerId, hando
                   </div>
                 )}
 
-                {sections.map((section) => {
-                  const sectionItems = filteredItems.filter((item) => String(item.section || DEFAULT_SECTION).trim() === section);
-                  const sectionKey = `${player.id}-${section}`;
-                  const isDropTarget = draggedOverSection === sectionKey;
-                  return (
-                    <div
-                      key={sectionKey}
-                      onDragEnter={(e) => {
-                        e.preventDefault();
-                        if (!draggedItemId) return;
-                        setDraggedOverSection(sectionKey);
-                      }}
-                      onDragOver={(e) => {
-                        e.preventDefault();
-                        if (!draggedItemId) return;
-                        setDraggedOverSection(sectionKey);
-                      }}
-                      onDragLeave={() => {
-                        if (draggedOverSection === sectionKey) setDraggedOverSection(null);
-                      }}
-                      onDrop={(e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        if (!draggedItemId) return;
-                        onMoveItemSection?.(draggedItemId, section);
-                        setDraggedOverSection(null);
-                        setDraggedItemId(null);
-                      }}
-                      className={`mb-4 rounded-lg border p-3 transition-all ${isDropTarget ? 'border-amber-700/70 bg-amber-950/20 shadow-[0_0_0_1px_rgba(180,83,9,0.28)]' : 'border-stone-800/70 bg-stone-950/25'}`}
-                    >
-                      <div className="flex items-center justify-between mb-2">
-                        <div className="flex items-center gap-2 min-w-0">
-                          <span className={`text-[10px] font-bold uppercase tracking-widest ${isDropTarget ? 'text-amber-400' : 'text-stone-500'}`}>{section}</span>
-                          {draggedItemId && isDropTarget && (
-                            <span className="text-[10px] text-amber-500/90 font-story italic">Loslaten om hier te plaatsen</span>
-                          )}
-                        </div>
-                        <span className="text-[10px] text-stone-600">{sectionItems.length} items</span>
-                      </div>
+                <div className="mb-4 rounded-lg border border-stone-800/70 bg-stone-950/25 p-3">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-[10px] font-bold uppercase tracking-widest text-stone-500">Items</span>
+                    <span className="text-[10px] text-stone-600">{filteredItems.length} items</span>
+                  </div>
 
-                      {sectionItems.length > 0 ? (
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4">
-                          {sectionItems.map((item) => (
-                            <div
-                              key={item.id}
-                              draggable={role === 'gm' || item.ownerId === currentPlayerId}
-                              onDragStart={() => setDraggedItemId(item.id)}
-                              onDragEnd={() => {
-                                setDraggedItemId(null);
-                                setDraggedOverSection(null);
-                              }}
-                              className={`bg-stone-950/60 border rounded-lg p-3 flex items-start gap-3 shadow-sm transition-colors cursor-grab active:cursor-grabbing ${draggedItemId === item.id ? 'border-amber-700/70 opacity-60' : 'border-stone-800 hover:border-stone-700'}`}
-                            >
-                              <div className="w-10 h-10 rounded bg-stone-900 border border-stone-700 flex items-center justify-center shrink-0 shadow-inner overflow-hidden">
-                                {item.imageUrl ? (
-                                  <img src={item.imageUrl} alt="" className="w-full h-full object-cover scale-[1.25]" />
-                                ) : (
-                                  <Package className="w-5 h-5 text-stone-500" />
-                                )}
-                              </div>
-
-                              <div className="flex-1 min-w-0">
-                                <div className="flex justify-between items-start gap-2 mb-1">
-                                  <span className="font-bold text-stone-200 font-fantasy tracking-wide text-sm truncate">{item.name}</span>
-                                  <div className="flex items-center gap-1.5 md:gap-2 shrink-0">
-                                    <span className="text-[10px] font-bold text-amber-600 bg-amber-950/40 border border-amber-900/30 px-1.5 py-0.5 rounded shadow-sm">x{item.amount}</span>
-                                    {(role === 'gm' || item.ownerId === currentPlayerId) && (
-                                      <div className="flex items-center gap-1 bg-stone-900/70 border border-stone-800 rounded px-1 py-0.5">
-                                        {role === 'gm' && (
-                                          <>
-                                            <button
-                                              type="button"
-                                              onClick={() => onUpdateItemAmount?.(item.id, Math.max(1, Number(item.amount || 1) - 1))}
-                                              className="w-4 h-4 md:w-5 md:h-5 rounded border border-stone-700 text-stone-400 hover:text-rose-400 hover:border-rose-800 text-[10px] md:text-xs leading-none"
-                                              title="Verlaag aantal"
-                                            >
-                                              -
-                                            </button>
-                                            <button
-                                              type="button"
-                                              onClick={() => onUpdateItemAmount?.(item.id, Number(item.amount || 0) + 1)}
-                                              className="w-4 h-4 md:w-5 md:h-5 rounded border border-stone-700 text-stone-400 hover:text-emerald-400 hover:border-emerald-800 text-[10px] md:text-xs leading-none"
-                                              title="Verhoog aantal"
-                                            >
-                                              +
-                                            </button>
-                                          </>
-                                        )}
-                                        <button
-                                          type="button"
-                                          onClick={() => onDeleteItem?.(item.id)}
-                                          className="p-0.5 md:p-1 text-stone-500 hover:text-rose-500 hover:bg-stone-900 rounded transition-colors"
-                                          title="Verwijder item"
-                                        >
-                                          <Trash2 className="w-3 h-3 md:w-3.5 md:h-3.5" />
-                                        </button>
-                                      </div>
-                                    )}
-                                  </div>
-                                </div>
-
-                                <p className="text-[11px] md:text-xs text-stone-400 font-story leading-relaxed line-clamp-2">{item.desc}</p>
-
-                                {(role === 'gm' || item.ownerId === currentPlayerId) && (
-                                  <select
-                                    value={item.section || DEFAULT_SECTION}
-                                    onChange={(e) => onMoveItemSection?.(item.id, e.target.value)}
-                                    className="mt-2 w-full h-7 bg-stone-950/80 border border-stone-800 rounded px-2 text-[10px] text-stone-400 focus:outline-none focus:border-amber-700/50"
-                                  >
-                                    {sections.map((opt) => (
-                                      <option key={opt} value={opt}>{opt}</option>
-                                    ))}
-                                  </select>
-                                )}
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      ) : (
-                        <div className={`text-center py-4 border border-dashed rounded-lg transition-colors ${isDropTarget ? 'border-amber-700/60 bg-amber-950/20' : 'border-stone-800 bg-stone-950/30'}`}>
-                          <p className={`text-xs font-story italic ${isDropTarget ? 'text-amber-400/90' : 'text-stone-600'}`}>Sleep items hierheen of voeg er toe aan deze sectie.</p>
-                        </div>
-                      )}
+                  {filteredItems.length > 0 ? (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4">
+                      {filteredItems.map((item) => (
+                        <ItemCard
+                          key={item.id}
+                          item={item}
+                          role={role}
+                          currentPlayerId={currentPlayerId}
+                          canManageInventory={canManageInventory}
+                          onUpdateItemAmount={onUpdateItemAmount}
+                          onDeleteItem={onDeleteItem}
+                        />
+                      ))}
                     </div>
-                  );
-                })}
-
-                <div className="mt-2 mb-4 rounded-xl border border-stone-800/70 bg-stone-950/25 p-3 md:p-4">
-                  <div className="flex items-center justify-between gap-3 mb-3">
-                    <span className="text-[10px] font-bold text-stone-500 uppercase tracking-widest">Nieuwe sectie</span>
-                    <span className="text-[10px] text-stone-600 font-story italic">Maak eerst een sectie, sleep daarna items erheen.</span>
-                  </div>
-                  <div className="flex gap-2">
-                    <input
-                      type="text"
-                      value={newSectionByPlayer[player.id] || ''}
-                      onChange={(e) => setNewSectionByPlayer((prev) => ({ ...prev, [player.id]: e.target.value }))}
-                      placeholder="Nieuwe sectienaam"
-                      className="h-9 flex-1 bg-stone-950/70 border border-stone-800 rounded-lg px-3 text-xs text-stone-300 focus:outline-none focus:border-amber-600/50"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => addCustomSection(player.id)}
-                      className="h-9 px-3 rounded-lg border border-amber-800/40 bg-amber-900/20 text-amber-300 hover:bg-amber-800/30 text-xs font-fantasy tracking-wider"
-                    >
-                      Sectie +
-                    </button>
-                  </div>
+                  ) : (
+                    <div className="text-center py-4 border border-dashed border-stone-800 bg-stone-950/30 rounded-lg">
+                      <p className="text-xs font-story italic text-stone-600">
+                        {playerItems.length > 0 ? 'Geen items gevonden voor deze filters.' : 'Nog geen items in deze inventaris.'}
+                      </p>
+                    </div>
+                  )}
                 </div>
 
                 {playerClaimedHandouts.length > 0 && (

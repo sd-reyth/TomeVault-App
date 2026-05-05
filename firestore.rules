@@ -168,6 +168,19 @@ service cloud.firestore {
                               );
       }
 
+      // Inventory section metadata (order + empty custom sections)
+      match /inventorySections/{sectionId} {
+        allow read: if request.auth != null;
+
+        allow write: if isGM(sessionId);
+
+        allow create: if request.auth != null
+                      && request.resource.data.ownerId == request.auth.uid;
+
+        allow update, delete: if request.auth != null
+                              && resource.data.ownerId == request.auth.uid;
+      }
+
       // Notifications (per-player, in-app)
       match /notifications/{notifId} {
         allow read: if request.auth != null;

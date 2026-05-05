@@ -113,7 +113,7 @@ function CharacterProfileModal({ isOpen, onClose, character, role, currentPlayer
                   <img
                     src={displayAvatar}
                     alt="Portret"
-                    className="w-full h-full object-cover object-center scale-[1.08]"
+                    className="w-full h-full object-cover object-center scale-[1.18]"
                   />
                   {canEdit && (
                     <div className="absolute inset-0 flex items-center justify-center bg-stone-950/60 opacity-0 group-hover:opacity-100 transition-opacity">

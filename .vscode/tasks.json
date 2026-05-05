@@ -1,0 +1,141 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "build tomevault",
+			"type": "shell",
+			"command": "npm.cmd",
+			"args": [
+				"run",
+				"build"
+			],
+			"isBackground": false,
+			"group": "build"
+		},
+		{
+			"label": "deploy tomevault hosting",
+			"type": "shell",
+			"command": "firebase.cmd",
+			"args": [
+				"deploy",
+				"--only",
+				"hosting"
+			],
+			"isBackground": false
+		},
+		{
+			"label": "build tomevault legacy-section-fix",
+			"type": "shell",
+			"command": "npm.cmd",
+			"args": [
+				"run",
+				"build"
+			],
+			"isBackground": false,
+			"group": "build"
+		},
+		{
+			"label": "deploy tomevault hosting legacy-section-fix",
+			"type": "shell",
+			"command": "firebase.cmd",
+			"args": [
+				"deploy",
+				"--only",
+				"hosting"
+			],
+			"isBackground": false
+		},
+		{
+			"label": "build tomevault no-sections",
+			"type": "shell",
+			"command": "npm.cmd",
+			"args": [
+				"run",
+				"build"
+			],
+			"isBackground": false,
+			"group": "build"
+		},
+		{
+			"label": "deploy tomevault no-sections",
+			"type": "shell",
+			"command": "firebase.cmd",
+			"args": [
+				"deploy",
+				"--only",
+				"hosting"
+			],
+			"isBackground": false,
+			"group": "build"
+		},
+		{
+			"label": "build tomevault typography polish",
+			"type": "shell",
+			"command": "npm.cmd",
+			"args": [
+				"run",
+				"build"
+			],
+			"isBackground": false,
+			"group": "build"
+		},
+		{
+			"label": "deploy tomevault typography polish",
+			"type": "shell",
+			"command": "firebase.cmd",
+			"args": [
+				"deploy",
+				"--only",
+				"hosting"
+			],
+			"isBackground": false,
+			"group": "build"
+		},
+		{
+			"label": "build tomevault inventory backfill",
+			"type": "shell",
+			"command": "npm.cmd",
+			"args": [
+				"run",
+				"build"
+			],
+			"isBackground": false,
+			"group": "build"
+		},
+		{
+			"label": "deploy tomevault inventory backfill",
+			"type": "shell",
+			"command": "firebase.cmd",
+			"args": [
+				"deploy",
+				"--only",
+				"hosting"
+			],
+			"isBackground": false,
+			"group": "build"
+		},
+		{
+			"label": "build tomevault add item modal fix",
+			"type": "shell",
+			"command": "npm.cmd",
+			"args": [
+				"run",
+				"build"
+			],
+			"isBackground": false,
+			"group": "build"
+		},
+		{
+			"label": "deploy tomevault add item modal fix",
+			"type": "shell",
+			"command": "firebase.cmd",
+			"args": [
+				"deploy",
+				"--only",
+				"hosting"
+			],
+			"isBackground": false,
+			"group": "build"
+		}
+	]
+}

@@ -123,6 +123,14 @@ const CHAT_ACCENT_COLORS = {
   cyan: '#22d3ee',
 };
 
+function normalizeInventorySectionName(sectionName) {
+  return String(sectionName || '').trim();
+}
+
+function hasNonEmptyText(value) {
+  return typeof value === 'string' && value.trim().length > 0;
+}
+
 // --- COMPONENTEN ---
 
 export default function TomeVaultApp() {
@@ -148,10 +156,15 @@ export default function TomeVaultApp() {
   const [party, setParty] = useState(MOCK_PARTY);
   const [chat, setChat] = useState(MOCK_CHAT);
   const [inventory, setInventory] = useState(MOCK_INVENTORY);
+  const [inventoryLoaded, setInventoryLoaded] = useState(false);
   const [wallets, setWallets] = useState(MOCK_WALLETS);
   const [notes, setNotes] = useState(MOCK_NOTES);
   const [isMusicPlaying, setIsMusicPlaying] = useState(false);
   const tavernAudioRef = useRef(null);
+  const isClearingInventorySectionsRef = useRef(false);
+  const lastInventorySectionCleanupSignatureRef = useRef('');
+  const isBackfillingInventoryDescriptionsRef = useRef(false);
+  const lastInventoryDescriptionBackfillSignatureRef = useRef('');
 
   // Firebase auth state
   const [uid, setUid] = useState(null);
@@ -526,6 +539,7 @@ export default function TomeVaultApp() {
         await deleteDocsInSubcollection(membership.sessionId, 'handouts');
         await deleteDocsInSubcollection(membership.sessionId, 'players');
         await deleteDocsInSubcollection(membership.sessionId, 'inventory');
+        await deleteDocsInSubcollection(membership.sessionId, 'inventorySections');
         await deleteDocsInSubcollection(membership.sessionId, 'notifications');
         await deleteDocsInSubcollection(membership.sessionId, 'chatMessages');
         await deleteDocsInSubcollection(membership.sessionId, 'characterTemplates');
@@ -753,8 +767,13 @@ export default function TomeVaultApp() {
     setParty([]);
     setChat([]);
     setInventory([]);
+    setInventoryLoaded(false);
     setWallets({});
     setNotes([]);
+    lastInventorySectionCleanupSignatureRef.current = '';
+    isClearingInventorySectionsRef.current = false;
+    lastInventoryDescriptionBackfillSignatureRef.current = '';
+    isBackfillingInventoryDescriptionsRef.current = false;
 
     const toIsoTime = (ts) => {
       const ms = ts?.toMillis ? ts.toMillis() : Date.now();
@@ -848,19 +867,25 @@ export default function TomeVaultApp() {
       onSnapshot(collection(db, 'sessions', sid, 'inventory'), (snap) => {
         const incoming = snap.docs.map((d) => {
           const i = d.data() || {};
+          const desc = typeof i.desc === 'string' ? i.desc : '';
+          const legacyDescription = typeof i.description === 'string' ? i.description : '';
+
           return {
             id: d.id,
             ownerId: i.ownerUid || i.ownerId || 'p1',
             name: i.name || 'Onbekend item',
-            desc: i.description || i.desc || '',
+            desc: desc || legacyDescription || '',
+            legacyDescription,
+            needsDescriptionBackfill: !hasNonEmptyText(desc) && hasNonEmptyText(legacyDescription),
             amount: Number(i.amount ?? 1),
             imageUrl: i.imageUrl || i.avatarUrl || null,
             category: String(i.category || 'overig').toLowerCase(),
-            section: i.section || 'Uitrusting & Items',
+            section: normalizeInventorySectionName(i.section),
           };
         });
 
         setInventory(incoming);
+        setInventoryLoaded(true);
       })
     );
 
@@ -917,6 +942,97 @@ export default function TomeVaultApp() {
       });
     };
   }, [sessionDocId, view]);
+
+  useEffect(() => {
+    if (!sessionDocId || view !== 'dashboard' || !inventoryLoaded) return;
+    if (isClearingInventorySectionsRef.current) return;
+
+    const sectionedItems = inventory.filter((item) => normalizeInventorySectionName(item.section));
+
+    if (sectionedItems.length === 0) {
+      lastInventorySectionCleanupSignatureRef.current = '';
+      return;
+    }
+
+    const signature = sectionedItems
+      .map((item) => `${item.id}:${normalizeInventorySectionName(item.section).toLowerCase()}`)
+      .sort()
+      .join('|');
+
+    if (lastInventorySectionCleanupSignatureRef.current === signature) return;
+
+    lastInventorySectionCleanupSignatureRef.current = signature;
+    isClearingInventorySectionsRef.current = true;
+
+    const sectionedIds = new Set(sectionedItems.map((item) => item.id));
+    setInventory((prev) => prev.map((item) => (sectionedIds.has(item.id) ? { ...item, section: '' } : item)));
+
+    (async () => {
+      try {
+        const batch = writeBatch(db);
+        sectionedItems.forEach((item) => {
+          batch.update(doc(db, 'sessions', sessionDocId, 'inventory', item.id), {
+            section: '',
+            updatedAt: serverTimestamp(),
+          });
+        });
+        await batch.commit();
+      } catch (err) {
+        console.error('Inventaris-secties opschonen mislukt:', err);
+      } finally {
+        isClearingInventorySectionsRef.current = false;
+      }
+    })();
+  }, [inventory, inventoryLoaded, sessionDocId, view]);
+
+  useEffect(() => {
+    if (!sessionDocId || view !== 'dashboard' || !inventoryLoaded) return;
+    if (isBackfillingInventoryDescriptionsRef.current) return;
+
+    const itemsNeedingDescriptionBackfill = inventory.filter((item) => item.needsDescriptionBackfill);
+
+    if (itemsNeedingDescriptionBackfill.length === 0) {
+      lastInventoryDescriptionBackfillSignatureRef.current = '';
+      return;
+    }
+
+    const signature = itemsNeedingDescriptionBackfill
+      .map((item) => `${item.id}:${String(item.legacyDescription || '').trim()}`)
+      .sort()
+      .join('|');
+
+    if (lastInventoryDescriptionBackfillSignatureRef.current === signature) return;
+
+    lastInventoryDescriptionBackfillSignatureRef.current = signature;
+    isBackfillingInventoryDescriptionsRef.current = true;
+
+    const itemIds = new Set(itemsNeedingDescriptionBackfill.map((item) => item.id));
+    setInventory((prev) => prev.map((item) => {
+      if (!itemIds.has(item.id)) return item;
+      return {
+        ...item,
+        desc: item.legacyDescription || item.desc || '',
+        needsDescriptionBackfill: false,
+      };
+    }));
+
+    (async () => {
+      try {
+        const batch = writeBatch(db);
+        itemsNeedingDescriptionBackfill.forEach((item) => {
+          batch.set(doc(db, 'sessions', sessionDocId, 'inventory', item.id), {
+            desc: item.legacyDescription || '',
+            updatedAt: serverTimestamp(),
+          }, { merge: true });
+        });
+        await batch.commit();
+      } catch (err) {
+        console.error('Legacy item-beschrijvingen backfillen mislukt:', err);
+      } finally {
+        isBackfillingInventoryDescriptionsRef.current = false;
+      }
+    })();
+  }, [inventory, inventoryLoaded, sessionDocId, view]);
 
   const handleSignInGoogle = async () => {
     setAuthError('');
@@ -1286,6 +1402,8 @@ export default function TomeVaultApp() {
       }
     }
 
+    finalItem = { ...finalItem, section: '' };
+
     setInventory([...inventory, { ...finalItem, id: tempId }]);
     setIsAddItemModalOpen(false);
     if (sessionDocId) {
@@ -1298,7 +1416,7 @@ export default function TomeVaultApp() {
           amount: Number(newItem.amount) || 1,
           imageUrl: finalItem.imageUrl || null,
           category: String(newItem.category || 'overig').toLowerCase(),
-          section: newItem.section || 'Uitrusting & Items',
+          section: '',
           createdAt: serverTimestamp(),
           updatedAt: serverTimestamp(),
         });
@@ -1340,23 +1458,6 @@ export default function TomeVaultApp() {
         console.error('Item verwijderen fout:', err);
         setInventory(previousInventory);
       }
-    }
-  };
-
-  const handleMoveItemSection = async (itemId, nextSection) => {
-    const safeSection = String(nextSection || '').trim() || 'Uitrusting & Items';
-    const previousInventory = inventory;
-    setInventory((prev) => prev.map((item) => (item.id === itemId ? { ...item, section: safeSection } : item)));
-
-    if (!sessionDocId) return;
-    try {
-      await updateDoc(doc(db, 'sessions', sessionDocId, 'inventory', itemId), {
-        section: safeSection,
-        updatedAt: serverTimestamp(),
-      });
-    } catch (err) {
-      console.error('Item sectie verplaatsen mislukt:', err);
-      setInventory(previousInventory);
     }
   };
 
@@ -1551,7 +1652,6 @@ export default function TomeVaultApp() {
                   onOpenAddItem={() => setIsAddItemModalOpen(true)}
                   onUpdateItemAmount={handleUpdateItemAmount}
                   onDeleteItem={handleDeleteItem}
-                  onMoveItemSection={handleMoveItemSection}
                   onAdjustWallet={handleAdjustWallet}
                 />
               )}

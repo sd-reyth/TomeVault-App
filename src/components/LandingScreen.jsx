@@ -1,5 +1,20 @@
 import React, { useState } from 'react';
-import { AlertTriangle, Flame, Swords, Terminal, Trash2, Users, X } from 'lucide-react';
+import {
+  AlertTriangle,
+  BookOpen,
+  Crown,
+  Flame,
+  Mail,
+  Map,
+  ShieldCheck,
+  Sparkles,
+  Swords,
+  Terminal,
+  Trash2,
+  Users,
+  Wand2,
+  X,
+} from 'lucide-react';
 import { getJoinTagLookupVariants } from '../lib/sessionUtils';
 
 export default function LandingScreen({
@@ -46,6 +61,9 @@ export default function LandingScreen({
   const [deleteSessionNameInput, setDeleteSessionNameInput] = useState('');
   const [deleteError, setDeleteError] = useState('');
   const [showGmDeleteWarning, setShowGmDeleteWarning] = useState(false);
+  const [contactName, setContactName] = useState('');
+  const [contactEmail, setContactEmail] = useState('');
+  const [contactMessage, setContactMessage] = useState('');
 
   const generateSessionCode = () => {
     const words = ['DRAAK', 'WOLF', 'ZWAARD', 'SCHILD', 'MAGIE', 'KROON', 'RAAF', 'SCHADUW', 'VUUR', 'KELK'];
@@ -169,6 +187,20 @@ export default function LandingScreen({
     if (!deleteTarget) return;
     onDeleteRecentSession?.(deleteTarget);
     closeDeleteFlow();
+  };
+
+  const handleContactSubmit = (e) => {
+    e.preventDefault();
+    const subject = `Contact via TomeVault website - ${contactName || 'Onbekend'}`;
+    const body = [
+      `Naam: ${contactName || '-'}`,
+      `E-mail: ${contactEmail || '-'}`,
+      '',
+      'Bericht:',
+      contactMessage || '-',
+    ].join('\n');
+
+    window.location.href = `mailto:hello@tomevault.app?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
   };
 
   return (
@@ -386,6 +418,137 @@ export default function LandingScreen({
             )}
           </div>
         </div>
+      </div>
+
+      <div className="w-full max-w-5xl z-10 pb-10 space-y-6 md:space-y-8">
+        <section className="bg-stone-900/55 backdrop-blur-sm border border-stone-800 rounded-2xl p-6 md:p-8 shadow-2xl relative overflow-hidden">
+          <div className="absolute -top-16 -right-8 w-56 h-56 bg-indigo-700/10 blur-[90px] rounded-full pointer-events-none" />
+          <div className="flex items-center gap-2 mb-3">
+            <Sparkles className="w-4 h-4 text-amber-500" />
+            <h3 className="text-stone-100 font-fantasy tracking-wider text-lg md:text-xl">Wat Is TomeVault?</h3>
+          </div>
+          <p className="text-stone-300 font-story leading-relaxed text-sm md:text-base max-w-4xl">
+            TomeVault is een digitale tafel voor tabletop-campagnes. Het combineert handouts, partybeheer, chat, inventaris en notities in één gedeelde spelruimte.
+            De focus ligt op overzicht, sfeer en snelheid tijdens sessies, zodat zowel GM als spelers minder tijd kwijt zijn aan tooling en meer tijd overhouden voor het verhaal.
+          </p>
+        </section>
+
+        <section className="grid md:grid-cols-2 xl:grid-cols-4 gap-4 md:gap-5">
+          <div className="bg-stone-900/55 border border-stone-800 rounded-xl p-4 md:p-5 shadow-xl">
+            <BookOpen className="w-5 h-5 text-amber-500 mb-3" />
+            <h4 className="text-stone-100 font-fantasy text-sm tracking-wider mb-2">Handouts & Lore</h4>
+            <p className="text-stone-400 font-story text-xs md:text-sm leading-relaxed">Publiceer clues, kaarten en documenten per sessie met reveal-, claim- en GM-inzichtlagen.</p>
+          </div>
+          <div className="bg-stone-900/55 border border-stone-800 rounded-xl p-4 md:p-5 shadow-xl">
+            <Wand2 className="w-5 h-5 text-indigo-400 mb-3" />
+            <h4 className="text-stone-100 font-fantasy text-sm tracking-wider mb-2">Realtime Spelsessie</h4>
+            <p className="text-stone-400 font-story text-xs md:text-sm leading-relaxed">Werk met chat, partijstatus en notities die direct synchroniseren voor iedereen in de wereld.</p>
+          </div>
+          <div className="bg-stone-900/55 border border-stone-800 rounded-xl p-4 md:p-5 shadow-xl">
+            <Map className="w-5 h-5 text-emerald-400 mb-3" />
+            <h4 className="text-stone-100 font-fantasy text-sm tracking-wider mb-2">Inventaris & Economie</h4>
+            <p className="text-stone-400 font-story text-xs md:text-sm leading-relaxed">Beheer uitrusting en valuta per speler in een snelle, overzichtelijke inventaris voor lange campagnes.</p>
+          </div>
+          <div className="bg-stone-900/55 border border-stone-800 rounded-xl p-4 md:p-5 shadow-xl">
+            <ShieldCheck className="w-5 h-5 text-rose-400 mb-3" />
+            <h4 className="text-stone-100 font-fantasy text-sm tracking-wider mb-2">Veilige Rollen</h4>
+            <p className="text-stone-400 font-story text-xs md:text-sm leading-relaxed">GM- en spelerrechten zijn gescheiden, inclusief overdracht- en sessiebeheer met beveiligde flows.</p>
+          </div>
+        </section>
+
+        <section className="bg-stone-900/55 backdrop-blur-sm border border-stone-800 rounded-2xl p-6 md:p-8 shadow-2xl">
+          <h3 className="text-stone-100 font-fantasy tracking-wider text-lg md:text-xl mb-4">Hoe Gebruik Je Het?</h3>
+          <div className="grid md:grid-cols-3 gap-4 md:gap-5">
+            <div className="rounded-xl border border-stone-800 bg-stone-950/40 p-4">
+              <div className="text-[10px] uppercase tracking-[0.2em] text-amber-600 mb-2">Stap 1</div>
+              <h4 className="text-stone-100 font-fantasy text-sm mb-2">Start of Join</h4>
+              <p className="text-stone-400 font-story text-xs md:text-sm leading-relaxed">Maak als GM een sessie aan of sluit als speler aan met code en optioneel PIN.</p>
+            </div>
+            <div className="rounded-xl border border-stone-800 bg-stone-950/40 p-4">
+              <div className="text-[10px] uppercase tracking-[0.2em] text-indigo-400 mb-2">Stap 2</div>
+              <h4 className="text-stone-100 font-fantasy text-sm mb-2">Speel In Realtime</h4>
+              <p className="text-stone-400 font-story text-xs md:text-sm leading-relaxed">Gebruik chat, handouts, partijkaarten en notities als gedeelde speeltafel.</p>
+            </div>
+            <div className="rounded-xl border border-stone-800 bg-stone-950/40 p-4">
+              <div className="text-[10px] uppercase tracking-[0.2em] text-emerald-400 mb-2">Stap 3</div>
+              <h4 className="text-stone-100 font-fantasy text-sm mb-2">Hervat Later</h4>
+              <p className="text-stone-400 font-story text-xs md:text-sm leading-relaxed">Pak campagnes snel weer op via Recente Sessies, zonder opnieuw te configureren.</p>
+            </div>
+          </div>
+        </section>
+
+        <section className="grid md:grid-cols-2 gap-4 md:gap-5">
+          <div className="bg-stone-900/55 border border-stone-800 rounded-2xl p-6 md:p-7 shadow-2xl">
+            <div className="flex items-center gap-2 mb-3">
+              <Users className="w-4 h-4 text-indigo-400" />
+              <h3 className="text-stone-100 font-fantasy tracking-wider text-lg">Wie Wij Zijn</h3>
+            </div>
+            <p className="text-stone-400 font-story text-sm leading-relaxed">
+              Wij bouwen TomeVault als toolkit voor moderne tabletop-groepen die sfeer willen behouden maar geen chaos in tooling willen.
+              Onze focus ligt op praktische features, duidelijke UX en het ondersteunen van campagnes die weken of maanden lopen.
+            </p>
+          </div>
+
+          <div className="bg-stone-900/55 border border-stone-800 rounded-2xl p-6 md:p-7 shadow-2xl">
+            <div className="flex items-center gap-2 mb-3">
+              <Crown className="w-4 h-4 text-amber-500" />
+              <h3 className="text-stone-100 font-fantasy tracking-wider text-lg">Premium Concept</h3>
+            </div>
+            <p className="text-stone-400 font-story text-sm leading-relaxed mb-4">
+              Premium-plannen zitten nog in conceptfase, maar denk aan extra storage, geavanceerde campagne-analytics en uitgebreide assets.
+            </p>
+            <div className="grid grid-cols-3 gap-2 text-center">
+              <div className="rounded-lg border border-stone-800 bg-stone-950/40 py-2 px-1">
+                <div className="text-[10px] text-stone-500 uppercase tracking-widest">Free</div>
+              </div>
+              <div className="rounded-lg border border-amber-900/50 bg-amber-950/20 py-2 px-1">
+                <div className="text-[10px] text-amber-500 uppercase tracking-widest">Pro</div>
+              </div>
+              <div className="rounded-lg border border-indigo-900/50 bg-indigo-950/20 py-2 px-1">
+                <div className="text-[10px] text-indigo-400 uppercase tracking-widest">Guild</div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section className="bg-stone-900/55 border border-stone-800 rounded-2xl p-6 md:p-8 shadow-2xl">
+          <div className="flex items-center gap-2 mb-3">
+            <Mail className="w-4 h-4 text-emerald-400" />
+            <h3 className="text-stone-100 font-fantasy tracking-wider text-lg md:text-xl">Contact</h3>
+          </div>
+          <p className="text-stone-400 font-story text-sm mb-4 leading-relaxed">
+            Feedback, partnership of feature-idee? Laat een bericht achter. We reageren doorgaans binnen enkele werkdagen.
+          </p>
+          <form onSubmit={handleContactSubmit} className="grid md:grid-cols-2 gap-3">
+            <input
+              type="text"
+              value={contactName}
+              onChange={(e) => setContactName(e.target.value)}
+              placeholder="Je naam"
+              className="w-full bg-stone-950/80 border border-stone-700 rounded-lg px-3 py-2.5 text-sm text-stone-200 placeholder-stone-600 focus:outline-none focus:border-emerald-600/50 transition-colors"
+            />
+            <input
+              type="email"
+              value={contactEmail}
+              onChange={(e) => setContactEmail(e.target.value)}
+              placeholder="E-mail"
+              className="w-full bg-stone-950/80 border border-stone-700 rounded-lg px-3 py-2.5 text-sm text-stone-200 placeholder-stone-600 focus:outline-none focus:border-emerald-600/50 transition-colors"
+            />
+            <textarea
+              value={contactMessage}
+              onChange={(e) => setContactMessage(e.target.value)}
+              rows={4}
+              placeholder="Waar kunnen we je mee helpen?"
+              className="md:col-span-2 w-full bg-stone-950/80 border border-stone-700 rounded-lg px-3 py-2.5 text-sm text-stone-200 placeholder-stone-600 focus:outline-none focus:border-emerald-600/50 transition-colors resize-none"
+            />
+            <button
+              type="submit"
+              className="md:col-span-2 w-full md:w-auto md:justify-self-start px-5 py-2.5 rounded-lg border border-emerald-700/50 bg-emerald-900/30 hover:bg-emerald-800/40 text-emerald-300 font-fantasy tracking-wider text-sm transition-colors"
+            >
+              Verstuur via E-mail
+            </button>
+          </form>
+        </section>
       </div>
 
       {uid && (

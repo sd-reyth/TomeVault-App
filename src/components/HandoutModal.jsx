@@ -275,10 +275,10 @@ function HandoutModal({ isOpen, onClose, handout, role, onSave, onDelete }) {
                 )}
               </div>
               
-              <div className="w-full font-story text-stone-200 text-[15px] md:text-[17px] leading-[1.8] tracking-[0.01em]">
-                <div className="space-y-4 md:space-y-5 break-words">
+              <div className="w-full max-w-[70ch] mx-auto text-left font-story text-stone-200/95 text-[15px] md:text-[17px] leading-[1.9] tracking-[0.01em]">
+                <div className="space-y-4 md:space-y-5 break-words border-t border-stone-800/70 pt-6 md:pt-7">
                   {(paragraphs.length ? paragraphs : [normalizeParagraph(formData.content || '')]).map((paragraph, index) => (
-                    <p key={`${index}-${paragraph.slice(0, 24)}`}>
+                    <p key={`${index}-${paragraph.slice(0, 24)}`} className="text-stone-200/95">
                       {paragraph}
                     </p>
                   ))}
