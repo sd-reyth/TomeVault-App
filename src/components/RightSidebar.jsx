@@ -194,6 +194,7 @@ function RightSidebar({
   const turnsUntilMine = getTurnsUntilMember(sortedParty, initiativeOrder, currentTurnId, currentPlayerId);
   const turnApproachRatio = getTurnApproachRatio(sortedParty, initiativeOrder, currentTurnId, currentPlayerId);
   const isMyTurn = battleActive && currentTurnId === currentPlayerId;
+  const currentTurnMember = sortedParty.find((member) => member.id === currentTurnId) || null;
   const showPlayerRollPanel = role === 'player'
     && combatStatus === COMBAT_STATUS.IDLE
     && myCharacter
@@ -559,9 +560,58 @@ function RightSidebar({
 
   const statusActionLabel = isGm
     ? (combatStatus === COMBAT_STATUS.IDLE
-      ? 'Start'
-      : (combatStatus === COMBAT_STATUS.PAUSED ? 'Hervat' : 'Pauzeer'))
+      ? 'Start gevecht'
+      : (combatStatus === COMBAT_STATUS.PAUSED ? 'Hervat gevecht' : 'Pauzeer gevecht'))
     : null;
+
+  const gmStatusLine = (() => {
+    if (combatStatus === COMBAT_STATUS.IDLE) return 'Klaar om de slagorde actief te maken.';
+    if (combatStatus === COMBAT_STATUS.PAUSED) {
+      return currentTurnMember ? `Gepauzeerd bij ${currentTurnMember.name}.` : 'Gepauzeerd voor beheer van de slagorde.';
+    }
+    return currentTurnMember ? `Aan zet: ${currentTurnMember.name}.` : 'Gevecht actief.';
+  })();
+
+  const playerStatusPrimaryLine = (() => {
+    if (combatStatus === COMBAT_STATUS.IDLE) {
+      return myCharacter?.init === null
+        ? 'Je initiative staat nog open.'
+        : 'Je staat klaar voor de volgende start.';
+    }
+
+    if (combatStatus === COMBAT_STATUS.PAUSED) {
+      return currentTurnMember
+        ? `Gepauzeerd tijdens ${currentTurnMember.name}.`
+        : 'De GM past de slagorde aan.';
+    }
+
+    if (isMyTurn) return 'Jij bent nu aan zet.';
+    return currentTurnMember ? `${currentTurnMember.name} is nu aan zet.` : 'Gevecht actief.';
+  })();
+
+  const playerStatusSecondaryLine = (() => {
+    if (combatStatus === COMBAT_STATUS.IDLE) {
+      return myCharacter?.init === null
+        ? 'Vul je initiative in zodra de GM gaat starten.'
+        : 'Wacht op het startsein van de GM.';
+    }
+
+    if (combatStatus === COMBAT_STATUS.PAUSED) {
+      return 'Je beurtvolgorde blijft bewaard tot de GM hervat.';
+    }
+
+    if (turnsUntilMine === null) {
+      return `Ronde ${turnRound} loopt.`;
+    }
+
+    if (isMyTurn) {
+      return `Ronde ${turnRound} · handel nu.`;
+    }
+
+    return turnsUntilMine === 1
+      ? 'Nog 1 beurt tot jij aan zet bent.'
+      : `Nog ${turnsUntilMine} beurten tot jij aan zet bent.`;
+  })();
 
   return (
     <>
@@ -593,57 +643,86 @@ function RightSidebar({
         </button>
 
         <div className="mt-14 border-b border-stone-800 bg-stone-900/85 px-3.5 py-3 md:mt-0 md:px-4 md:py-3.5">
-          <button
-            type="button"
-            disabled={!isGm || isActionBusy}
-            onClick={handleStatusAction}
-            className={`relative w-full rounded-2xl border px-4 py-4 text-left shadow-[0_0_18px_rgba(0,0,0,0.2)] transition-all ${
-              combatStatus === COMBAT_STATUS.IDLE
-                ? 'border-amber-900/50 bg-gradient-to-r from-stone-950 to-stone-900 hover:border-amber-700/60 hover:from-stone-900 hover:to-stone-950'
-                : (combatStatus === COMBAT_STATUS.PAUSED
-                  ? 'border-stone-700/80 bg-gradient-to-r from-stone-950 to-stone-900 hover:border-amber-700/40'
-                  : 'border-amber-700/60 bg-gradient-to-r from-amber-950/45 to-stone-950 hover:border-amber-500/70')
-            } ${!isGm ? 'cursor-default' : ''} ${isMyTurn ? 'ring-1 ring-amber-500/60 shadow-[0_0_22px_rgba(245,158,11,0.18)]' : ''}`}
-          >
-            <div className="flex items-center gap-3">
-              <div className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border ${combatStatus === COMBAT_STATUS.ACTIVE ? 'border-amber-700/60 bg-amber-950/35 text-amber-300' : 'border-stone-700/70 bg-stone-950/70 text-amber-500'} ${isMyTurn ? 'animate-pulse' : ''}`}>
-                <StatusIcon className="h-5 w-5" />
-              </div>
+          <div className="relative">
+            {isGm ? (
+              <button
+                type="button"
+                disabled={isActionBusy}
+                onClick={handleStatusAction}
+                className={`w-full rounded-2xl border px-4 py-4 text-left shadow-[0_0_18px_rgba(0,0,0,0.2)] transition-all ${
+                  combatStatus === COMBAT_STATUS.IDLE
+                    ? 'border-amber-900/50 bg-gradient-to-r from-stone-950 to-stone-900 hover:border-amber-700/60 hover:from-stone-900 hover:to-stone-950'
+                    : (combatStatus === COMBAT_STATUS.PAUSED
+                      ? 'border-stone-700/80 bg-gradient-to-r from-stone-950 to-stone-900 hover:border-amber-700/40'
+                      : 'border-amber-700/60 bg-gradient-to-r from-amber-950/45 to-stone-950 hover:border-amber-500/70')
+                } ${isActionBusy ? 'cursor-wait opacity-80' : ''}`}
+              >
+                <div className="flex items-center gap-3 pr-18 md:pr-24">
+                  <div className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border ${combatStatus === COMBAT_STATUS.ACTIVE ? 'border-amber-700/60 bg-amber-950/35 text-amber-300' : 'border-stone-700/70 bg-stone-950/70 text-amber-500'}`}>
+                    <StatusIcon className="h-5 w-5" />
+                  </div>
 
-              <div className="min-w-0 flex-1">
-                <div className="flex flex-wrap items-center gap-2 pr-18 md:pr-20">
-                  <span className="font-fantasy text-base tracking-[0.18em] text-stone-100 md:text-lg">{statusTitle}</span>
-                  {combatInProgress ? (
-                    <span className="rounded-full border border-amber-900/50 bg-amber-950/35 px-2.5 py-1 text-[9px] font-bold uppercase tracking-[0.18em] text-amber-400 shadow-inner">
-                      Ronde {turnRound}
-                    </span>
-                  ) : null}
+                  <div className="min-w-0 flex-1">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className="font-fantasy text-base tracking-[0.18em] text-stone-100 md:text-lg">{statusTitle}</span>
+                      {combatInProgress ? (
+                        <span className="rounded-full border border-amber-900/50 bg-amber-950/35 px-2.5 py-1 text-[9px] font-bold uppercase tracking-[0.18em] text-amber-400 shadow-inner">
+                          Ronde {turnRound}
+                        </span>
+                      ) : null}
+                    </div>
+                    <p className="mt-1 text-xs leading-5 text-stone-400 md:text-[13px] md:leading-6">{gmStatusLine}</p>
+                  </div>
+
                   {statusActionLabel ? (
-                    <span className="rounded-full border border-stone-700/70 bg-stone-950/70 px-2.5 py-1 text-[9px] font-bold uppercase tracking-[0.2em] text-stone-400">
+                    <span className="ml-auto hidden shrink-0 rounded-full border border-amber-800/40 bg-amber-950/35 px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.2em] text-amber-200 sm:inline-flex">
                       {statusActionLabel}
                     </span>
                   ) : null}
                 </div>
-                <p className="mt-1 pr-2 text-xs leading-5 text-stone-400 md:text-[13px] md:leading-6">{statusSubtitle}</p>
-              </div>
+              </button>
+            ) : (
+              <div className={`w-full rounded-2xl border px-4 py-4 text-left shadow-[0_0_18px_rgba(0,0,0,0.2)] ${
+                combatStatus === COMBAT_STATUS.IDLE
+                  ? 'border-amber-900/50 bg-gradient-to-r from-stone-950 to-stone-900'
+                  : (combatStatus === COMBAT_STATUS.PAUSED
+                    ? 'border-stone-700/80 bg-gradient-to-r from-stone-950 to-stone-900'
+                    : 'border-amber-700/60 bg-gradient-to-r from-amber-950/45 to-stone-950')
+              } ${isMyTurn ? 'ring-1 ring-amber-500/60 shadow-[0_0_22px_rgba(245,158,11,0.18)]' : ''}`}>
+                <div className="flex items-start gap-3 pr-12">
+                  <div className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border ${combatStatus === COMBAT_STATUS.ACTIVE ? 'border-amber-700/60 bg-amber-950/35 text-amber-300' : 'border-stone-700/70 bg-stone-950/70 text-amber-500'} ${isMyTurn ? 'animate-pulse' : ''}`}>
+                    <StatusIcon className="h-5 w-5" />
+                  </div>
 
-              {role === 'player' && combatInProgress ? (
-                <StatusTurnIndicator
-                  turnsUntil={turnsUntilMine}
-                  ratio={turnApproachRatio}
-                  isCurrentTurn={isMyTurn}
-                />
-              ) : null}
-            </div>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className="font-fantasy text-base tracking-[0.18em] text-stone-100 md:text-lg">{statusTitle}</span>
+                      {combatInProgress ? (
+                        <span className="rounded-full border border-amber-900/50 bg-amber-950/35 px-2.5 py-1 text-[9px] font-bold uppercase tracking-[0.18em] text-amber-400 shadow-inner">
+                          Ronde {turnRound}
+                        </span>
+                      ) : null}
+                    </div>
+                    <p className="mt-2 text-sm leading-6 text-stone-200">{playerStatusPrimaryLine}</p>
+                    <p className="mt-1 text-xs leading-5 text-stone-400 md:text-[13px] md:leading-6">{playerStatusSecondaryLine}</p>
+                  </div>
+
+                  {combatInProgress ? (
+                    <StatusTurnIndicator
+                      turnsUntil={turnsUntilMine}
+                      ratio={turnApproachRatio}
+                      isCurrentTurn={isMyTurn}
+                    />
+                  ) : null}
+                </div>
+              </div>
+            )}
 
             <div className="absolute right-3 top-3 flex items-center gap-1.5">
               {role === 'gm' ? (
                 <button
                   type="button"
-                  onClick={(event) => {
-                    event.stopPropagation();
-                    setShowInfo((value) => !value);
-                  }}
+                  onClick={() => setShowInfo((value) => !value)}
                   className={`inline-flex h-8 w-8 items-center justify-center rounded-full border transition-colors ${showInfo ? 'border-amber-800/50 bg-amber-950/30 text-amber-300' : 'border-stone-800 bg-stone-950/70 text-stone-400 hover:text-amber-300'}`}
                   title={showInfo ? 'Verberg slagorde-info' : 'Toon slagorde-info'}
                 >
@@ -653,10 +732,7 @@ function RightSidebar({
 
               <button
                 type="button"
-                onClick={(event) => {
-                  event.stopPropagation();
-                  setIsPinned?.(!isPinned);
-                }}
+                onClick={() => setIsPinned?.(!isPinned)}
                 className={`hidden rounded-md p-1.5 transition-colors md:flex lg:hidden ${
                   isPinned
                     ? 'bg-amber-950/30 text-amber-500 hover:bg-amber-950/50'
@@ -668,16 +744,13 @@ function RightSidebar({
               </button>
               <button
                 type="button"
-                onClick={(event) => {
-                  event.stopPropagation();
-                  onClose?.();
-                }}
+                onClick={() => onClose?.()}
                 className={`rounded-md p-1 text-stone-400 transition-colors hover:bg-stone-800 hover:text-rose-400 ${isPinned ? 'hidden' : 'lg:hidden'}`}
               >
                 <X className="h-5 w-5" />
               </button>
             </div>
-          </button>
+          </div>
 
           {showPlayerRollPanel ? (
             <div className="mt-3 rounded-xl border border-amber-900/40 bg-stone-950/55 px-3 py-3 shadow-inner">

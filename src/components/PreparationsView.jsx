@@ -94,20 +94,18 @@ export default function PreparationsView({
   };
 
   return (
-    <section className="flex h-full flex-col gap-5">
-      <header className="relative overflow-hidden rounded-2xl border border-amber-900/30 bg-gradient-to-br from-stone-950 via-stone-900 to-amber-950/30 p-5 shadow-[0_20px_60px_rgba(0,0,0,0.28)] md:p-6">
-        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(245,158,11,0.14),transparent_40%),radial-gradient(circle_at_bottom_left,rgba(120,53,15,0.26),transparent_45%)]" />
-        <div className="relative z-10 flex flex-col gap-5 md:flex-row md:items-end md:justify-between">
-          <div className="max-w-2xl">
-            <h1 className="font-fantasy text-3xl tracking-[0.08em] text-stone-100 md:text-4xl">Personages</h1>
-            <p className="mt-3 max-w-xl text-sm leading-7 text-stone-400 md:text-[15px]">
-              Bewaar hier complete voorbereidende profielen met avatar, profielwaarden, verborgen eigenschappen en lore,
-              zodat je ze later soepel aan een speler kunt koppelen.
+    <section className="flex h-full flex-col gap-4 md:gap-5">
+      <header className="border-b border-stone-800/50 pb-4 md:pb-6">
+        <div className="flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
+          <div className="max-w-2xl min-w-0">
+            <h1 className="text-2xl font-bold tracking-wider text-stone-100 font-fantasy md:text-3xl">Voorbereidingen</h1>
+            <p className="mt-1 text-xs text-stone-400 font-story italic md:mt-2 md:text-sm">
+              Volledige karakterprofielen die je bewaart, verfijnt en later soepel aan een speler koppelt.
             </p>
           </div>
 
-          <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
-            <label className="flex min-w-0 items-center gap-2 rounded-xl border border-stone-800 bg-stone-950/80 px-3 py-2.5 shadow-inner sm:min-w-[260px]">
+          <div className="flex w-full flex-col gap-2 sm:flex-row sm:items-center xl:w-auto">
+            <label className="flex min-w-0 flex-1 items-center gap-2 rounded-xl border border-stone-800 bg-stone-950/80 px-3 py-2.5 shadow-inner xl:min-w-[300px]">
               <Search className="h-4 w-4 shrink-0 text-stone-500" />
               <input
                 type="search"
@@ -120,7 +118,7 @@ export default function PreparationsView({
             <button
               type="button"
               onClick={onCreatePreparation}
-              className="inline-flex items-center justify-center gap-2 rounded-xl bg-amber-600 px-5 py-3 text-sm font-fantasy tracking-[0.16em] text-stone-950 shadow-[0_14px_32px_rgba(217,119,6,0.28)] transition-colors hover:bg-amber-500"
+              className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-amber-700 to-amber-600 px-5 py-3 text-sm font-fantasy tracking-[0.16em] text-stone-100 shadow-[0_14px_32px_rgba(217,119,6,0.22)] transition-colors hover:from-amber-600 hover:to-amber-500 sm:w-auto"
             >
               <Plus className="h-4 w-4" />
               Nieuw
@@ -129,7 +127,7 @@ export default function PreparationsView({
         </div>
       </header>
 
-      <div className="grid gap-5 xl:grid-cols-[minmax(0,1.2fr)_320px]">
+      <div className="grid items-start gap-4 xl:grid-cols-[minmax(0,1.2fr)_320px] xl:gap-5">
         <div className="min-h-[360px] rounded-2xl border border-stone-800/80 bg-stone-950/55 p-4 shadow-inner md:p-5">
           <div className="flex flex-col gap-3 border-b border-stone-800/80 pb-4 sm:flex-row sm:items-start sm:justify-between">
             <div className="min-w-0">
@@ -222,7 +220,7 @@ export default function PreparationsView({
                         <button
                           type="button"
                           onClick={() => onEditPreparation?.(preparation)}
-                          className="rounded-lg border border-stone-700 bg-stone-900/70 px-3 py-2 text-xs font-fantasy tracking-[0.14em] text-stone-200 transition-colors hover:border-amber-700/50 hover:text-amber-300"
+                          className="flex-1 rounded-lg border border-stone-700 bg-stone-900/70 px-3 py-2 text-xs font-fantasy tracking-[0.14em] text-stone-200 transition-colors hover:border-amber-700/50 hover:text-amber-300 sm:flex-none"
                         >
                           Bewerken
                         </button>
@@ -230,14 +228,14 @@ export default function PreparationsView({
                           type="button"
                           onClick={() => onAssignPreparation?.(preparation)}
                           disabled={activePlayers.length === 0}
-                          className="rounded-lg border border-amber-800/40 bg-amber-950/30 px-3 py-2 text-xs font-fantasy tracking-[0.14em] text-amber-200 transition-colors hover:bg-amber-900/40 disabled:cursor-not-allowed disabled:border-stone-800 disabled:bg-stone-900/40 disabled:text-stone-600"
+                          className="flex-1 rounded-lg border border-amber-800/40 bg-amber-950/30 px-3 py-2 text-xs font-fantasy tracking-[0.14em] text-amber-200 transition-colors hover:bg-amber-900/40 disabled:cursor-not-allowed disabled:border-stone-800 disabled:bg-stone-900/40 disabled:text-stone-600 sm:flex-none"
                         >
                           Toewijzen aan speler
                         </button>
                         <button
                           type="button"
                           onClick={() => handleDelete(preparation)}
-                          className="rounded-lg border border-rose-900/40 bg-rose-950/20 px-3 py-2 text-xs font-fantasy tracking-[0.14em] text-rose-200 transition-colors hover:bg-rose-900/30"
+                          className="flex-1 rounded-lg border border-rose-900/40 bg-rose-950/20 px-3 py-2 text-xs font-fantasy tracking-[0.14em] text-rose-200 transition-colors hover:bg-rose-900/30 sm:flex-none"
                         >
                           Verwijderen
                         </button>
@@ -250,7 +248,7 @@ export default function PreparationsView({
           )}
         </div>
 
-        <aside className="rounded-2xl border border-stone-800/80 bg-stone-950/55 p-4 shadow-inner md:p-5">
+        <aside className="rounded-2xl border border-stone-800/80 bg-stone-950/55 p-4 shadow-inner md:p-5 xl:sticky xl:top-4">
           <div className="flex items-center justify-between gap-3 text-stone-100">
             <div className="flex items-center gap-2">
               <ShieldCheck className="h-4 w-4 text-emerald-400" />
@@ -266,7 +264,7 @@ export default function PreparationsView({
             </button>
           </div>
 
-          <div className="mt-4 grid grid-cols-2 gap-2">
+          <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-4 xl:grid-cols-2">
             {[
               { label: 'Klaar', value: readyCount },
               { label: 'Open', value: pendingTemplates.length },
@@ -319,7 +317,7 @@ export default function PreparationsView({
             {backups.length === 0 ? (
               <p className="mt-4 text-sm leading-7 text-stone-500">Na een acceptatie verschijnt hier automatisch een terugzetpunt.</p>
             ) : (
-              <div className="mt-4 space-y-3">
+              <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-1">
                 {backups.map((backup) => (
                   <article key={backup.id} className="rounded-xl border border-stone-800 bg-stone-950/60 p-3">
                     <p className="text-[11px] uppercase tracking-[0.16em] text-stone-500">
@@ -335,7 +333,7 @@ export default function PreparationsView({
                     <button
                       type="button"
                       onClick={() => handleRestore(backup)}
-                      className="mt-3 rounded-lg border border-stone-700 bg-stone-900/70 px-3 py-2 text-xs font-fantasy tracking-[0.14em] text-stone-200 transition-colors hover:border-amber-700/50 hover:text-amber-300"
+                      className="mt-3 w-full rounded-lg border border-stone-700 bg-stone-900/70 px-3 py-2 text-xs font-fantasy tracking-[0.14em] text-stone-200 transition-colors hover:border-amber-700/50 hover:text-amber-300"
                     >
                       Zet terug
                     </button>

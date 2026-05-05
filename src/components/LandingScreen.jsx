@@ -4,7 +4,7 @@ import {
   ArrowRight,
   BookOpen,
   DoorOpen,
-  Flame,
+  Eye,
   LogOut,
   Mail,
   ShieldCheck,
@@ -23,6 +23,7 @@ import RuntimeBadge from './RuntimeBadge';
 const LANDING_AMBIENCE_ENABLED_STORAGE_KEY = 'tomevault:landing:ambience-enabled';
 const LANDING_AMBIENCE_VOLUME_STORAGE_KEY = 'tomevault:landing:ambience-volume';
 const DEFAULT_LANDING_AMBIENCE_VOLUME = 12;
+const TOMEVAULT_LOGO_SRC = '/references/tomeVaultLogo1.png';
 
 function clampLandingAmbienceVolume(value, fallback = DEFAULT_LANDING_AMBIENCE_VOLUME) {
   const numericValue = Number(value);
@@ -90,6 +91,7 @@ export default function LandingScreen({
   showSessionHub,
   onBackfillMemberships,
   runtimeBadge,
+  theme,
 }) {
   const landingVideoRef = useRef(null);
   const [sessionCode, setSessionCode] = useState('');
@@ -232,7 +234,7 @@ export default function LandingScreen({
   const activeRecentSessions = (recentSessions || []).filter((s) => s.status !== 'hidden');
   const gmRecentCount = activeRecentSessions.filter((s) => s.role === 'dm').length;
   const playerRecentCount = activeRecentSessions.filter((s) => s.role !== 'dm').length;
-  const resolvedDisplayName = String(displayName || playerName || 'Avonturier').trim() || 'Avonturier';
+  const resolvedLandingTheme = uid ? (theme || 'amber') : 'amber';
 
   useEffect(() => {
     if (inviteCode) {
@@ -372,6 +374,27 @@ export default function LandingScreen({
     },
   ];
 
+  const landingFeatureCards = [
+    {
+      icon: BookOpen,
+      title: 'Perkament zonder omweg',
+      description: 'Deel lore, aanwijzingen en kaarten over tafel zonder het rollenspel te breken.',
+      iconClassName: 'text-amber-400 border-amber-800/45 bg-amber-950/18',
+    },
+    {
+      icon: Wand2,
+      title: 'Echte tijd, echte magie',
+      description: 'Chat, notities en de status van de wereld blijven voor elke speler synchroon.',
+      iconClassName: 'text-indigo-400 border-indigo-800/45 bg-indigo-950/18',
+    },
+    {
+      icon: ShieldCheck,
+      title: 'Orde in de chaos',
+      description: 'Spelleider en spelers delen dezelfde herberg, met eigen afgeschermde rollen.',
+      iconClassName: 'text-emerald-400 border-emerald-800/45 bg-emerald-950/18',
+    },
+  ];
+
   const closeDeleteFlow = () => {
     setDeleteTarget(null);
     setDeleteSessionNameInput('');
@@ -425,14 +448,16 @@ export default function LandingScreen({
   };
 
   const landingAmbienceLabel = 'Geluid';
-  const showHeroHighlights = !uid || showSessionHub;
+  const showHeroHighlights = !uid;
 
   const recentSessionsSection = uid && showSessionHub ? (
     <section className="mx-auto w-full max-w-5xl">
       <div className="landing-surface rounded-[26px] p-4 md:p-5 lg:p-6">
-        <div className="text-center">
-          <div className="landing-kicker text-amber-500">Recente sessies</div>
-          <h2 className="mt-1 text-xl md:text-2xl font-fantasy tracking-[0.12em] text-stone-100">Hervat snel</h2>
+        <div className="flex items-center justify-center gap-3 text-center">
+          <div className="landing-logo-shell h-11 w-11 shrink-0">
+            <img src={TOMEVAULT_LOGO_SRC} alt="TomeVault logo" className="landing-logo" />
+          </div>
+          <h2 className="text-xl md:text-2xl font-fantasy tracking-[0.12em] text-stone-100">Recente sessies</h2>
         </div>
 
         <div className="mt-4 flex flex-wrap justify-center gap-2">
@@ -549,8 +574,139 @@ export default function LandingScreen({
     </section>
   ) : null;
 
+  const landingFeatureSection = !uid ? (
+    <section className="mx-auto w-full max-w-6xl pt-3 md:pt-5">
+      <div className="landing-panel rounded-[32px] px-5 py-8 md:px-7 md:py-10 lg:px-10">
+        <div className="text-center">
+          <h2 className="text-3xl font-fantasy tracking-[0.18em] text-stone-100 md:text-4xl">
+            Wat biedt de Waard?
+          </h2>
+          <div className="mx-auto mt-5 h-px w-28 bg-gradient-to-r from-transparent via-amber-700/50 to-transparent" />
+        </div>
+
+        <div className="mt-8 grid gap-10 md:grid-cols-3 md:gap-6 lg:gap-10">
+          {landingFeatureCards.map((feature) => {
+            const Icon = feature.icon;
+
+            return (
+              <article key={feature.title} className="mx-auto flex max-w-xs flex-col items-center gap-4 text-center">
+                <div className={`flex h-18 w-18 items-center justify-center rounded-[18px] border ${feature.iconClassName}`}>
+                  <Icon className="h-8 w-8" />
+                </div>
+                <div className="space-y-3">
+                  <h3 className="text-xl font-story font-semibold text-stone-100 md:text-2xl">
+                    {feature.title}
+                  </h3>
+                  <p className="text-sm font-story leading-relaxed text-stone-400 md:text-base">
+                    {feature.description}
+                  </p>
+                </div>
+              </article>
+            );
+          })}
+        </div>
+      </div>
+    </section>
+  ) : null;
+
+  const landingShowcaseSection = !uid ? (
+    <section className="mx-auto w-full max-w-6xl pt-5 md:pt-7">
+      <div className="flex items-center justify-center gap-3 text-amber-800/75">
+        <span className="h-px w-20 bg-gradient-to-r from-transparent via-amber-700/40 to-transparent md:w-24" />
+        <span className="h-2 w-2 rotate-45 border border-current" />
+        <span className="h-2 w-2 rotate-45 border border-current opacity-80" />
+        <span className="h-2 w-2 rotate-45 border border-current" />
+        <span className="h-px w-20 bg-gradient-to-r from-transparent via-amber-700/40 to-transparent md:w-24" />
+      </div>
+
+      <div className="mt-8 text-center">
+        <h2 className="text-4xl font-fantasy tracking-[0.18em] text-stone-100 md:text-5xl lg:text-6xl">
+          Aanschouw de Tafel
+        </h2>
+        <p className="mx-auto mt-4 max-w-3xl text-base font-story leading-relaxed text-stone-400 md:text-lg">
+          Werp de dobbelstenen of bekijk het perkament. De herberg wacht.
+        </p>
+      </div>
+
+      <div className="mt-8 landing-panel rounded-[32px] p-3 md:p-5 lg:p-6">
+        <div className="overflow-hidden rounded-[28px] border border-amber-900/30 bg-[rgba(18,11,8,0.82)] shadow-[0_24px_60px_rgba(0,0,0,0.24)]">
+          <div className="flex items-center gap-3 border-b border-amber-900/20 px-4 py-4 md:px-5">
+            <div className="flex items-center gap-2">
+              <span className="h-2.5 w-2.5 rounded-full bg-amber-900/60" />
+              <span className="h-2.5 w-2.5 rounded-full bg-amber-800/45" />
+              <span className="h-2.5 w-2.5 rounded-full bg-amber-700/35" />
+            </div>
+            <div className="flex items-center gap-2 text-[11px] uppercase tracking-[0.26em] text-stone-500 md:text-xs">
+              <BookOpen className="h-3.5 w-3.5 text-amber-400" />
+              Kelder van de Goblin Koning
+            </div>
+          </div>
+
+          <div className="grid min-h-[28rem] lg:grid-cols-[18rem_minmax(0,1fr)]">
+            <div className="flex flex-col justify-between border-b border-amber-900/20 bg-[rgba(24,14,10,0.74)] lg:border-b-0 lg:border-r lg:border-amber-900/20">
+              <div className="space-y-4 px-4 py-5 md:px-5 md:py-6">
+                <div className="max-w-[14rem] rounded-[14px] border border-amber-900/30 bg-[rgba(40,21,11,0.7)] px-4 py-3 text-left font-story text-sm leading-relaxed text-stone-200">
+                  Jullie horen een zwaar gerommel uit de diepte...
+                </div>
+
+                <div>
+                  <div className="text-[10px] uppercase tracking-[0.24em] text-indigo-400">Reyth</div>
+                  <div className="mt-2 max-w-[14rem] rounded-[14px] border border-indigo-900/35 bg-indigo-950/22 px-4 py-4 text-left font-story text-sm leading-relaxed text-stone-100">
+                    Ik trek mijn zwaard en ga voor de deur staan.
+                  </div>
+                </div>
+
+                <div>
+                  <div className="text-[10px] uppercase tracking-[0.24em] text-emerald-400">Jij</div>
+                  <div className="mt-2 flex max-w-[14rem] items-center gap-4 rounded-[14px] border border-emerald-900/30 bg-[rgba(23,18,12,0.82)] px-3 py-3">
+                    <div className="flex h-12 w-12 items-center justify-center rounded-xl border border-emerald-900/40 bg-stone-950/80 text-3xl font-semibold text-emerald-400">
+                      16
+                    </div>
+                    <div className="font-story text-sm italic text-stone-400">Werpt een steen...</div>
+                  </div>
+                </div>
+
+                <div className="pt-1 text-center font-story text-xs italic text-stone-500">
+                  Je rolt de perkamentrol open.
+                </div>
+              </div>
+
+              <div className="grid grid-cols-[1fr_auto] gap-0 border-t border-amber-900/20 bg-stone-950/55 p-3">
+                <div className="flex min-h-11 items-center rounded-l-[14px] border border-r-0 border-amber-900/25 px-4 font-story text-sm text-stone-500">
+                  Schrijf met de veer...
+                </div>
+                <button
+                  type="button"
+                  className="flex min-h-11 items-center justify-center rounded-r-[14px] border border-amber-900/25 bg-amber-950/22 px-4 text-stone-300 transition-colors hover:bg-amber-900/28 hover:text-stone-100"
+                  aria-label="Voorbeeldactie versturen"
+                >
+                  <ArrowRight className="h-4 w-4" />
+                </button>
+              </div>
+            </div>
+
+            <div className="landing-grid flex items-center justify-center bg-[radial-gradient(circle_at_top,rgba(120,53,15,0.12),transparent_42%),rgba(10,7,6,0.92)] px-4 py-6 md:px-6 lg:px-8">
+              <div className="w-full max-w-[27rem] rounded-[28px] border border-amber-900/25 bg-[rgba(34,18,10,0.76)] p-5 md:p-6">
+                <div className="landing-preview-fragment flex min-h-[14rem] items-center justify-center rounded-[24px] border border-amber-900/18 bg-[rgba(20,10,5,0.72)] p-6 md:min-h-[15rem]">
+                  <div className="flex flex-col items-center gap-4 text-center">
+                    <div className="flex h-16 w-16 items-center justify-center rounded-full border border-amber-900/30 bg-amber-950/18">
+                      <Eye className="h-9 w-9 text-amber-500" />
+                    </div>
+                    <div className="text-sm font-fantasy uppercase tracking-[0.26em] text-stone-200 md:text-base">
+                      Open de verzegelde rol
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  ) : null;
+
   return (
-    <div className="relative min-h-screen overflow-x-hidden bg-stone-950 bg-texture">
+    <div data-landing-theme={resolvedLandingTheme} className="landing-root relative min-h-screen overflow-x-hidden bg-stone-950 bg-texture">
       <div className="landing-video-backdrop" aria-hidden="true">
         <video
           ref={landingVideoRef}
@@ -606,17 +762,14 @@ export default function LandingScreen({
         <section className="landing-hero mx-auto w-full max-w-5xl px-5 py-6 md:px-7 md:py-8 lg:px-8 lg:py-10">
           <div className="relative z-10 mx-auto flex w-full max-w-5xl flex-col items-center gap-7 text-center">
             <div className="max-w-3xl space-y-5">
-              {uid ? (
-                <div className="flex flex-wrap items-center justify-center gap-2.5">
-                  <div className="landing-chip border-emerald-900/45 bg-emerald-950/18 text-emerald-200">
-                    {resolvedDisplayName}
-                  </div>
-                </div>
-              ) : null}
-
               <div className="space-y-3">
                 {!uid ? (
                   <>
+                    <div className="flex justify-center">
+                      <div className="landing-logo-shell h-24 w-24 md:h-28 md:w-28 lg:h-32 lg:w-32">
+                        <img src={TOMEVAULT_LOGO_SRC} alt="TomeVault logo" className="landing-logo" />
+                      </div>
+                    </div>
                     <h1 className="max-w-4xl text-5xl leading-[0.9] font-fantasy tracking-[0.08em] text-stone-100 sm:text-6xl lg:text-7xl xl:text-[5.15rem]">
                       TOME<span className="text-amber-500">VAULT</span>
                     </h1>
@@ -626,17 +779,25 @@ export default function LandingScreen({
                   </>
                 ) : showSessionHub ? (
                   <>
-                    <div className="landing-kicker text-emerald-400">Welkom terug</div>
+                    <div className="flex justify-center">
+                      <div className="landing-logo-shell h-18 w-18 md:h-20 md:w-20">
+                        <img src={TOMEVAULT_LOGO_SRC} alt="TomeVault logo" className="landing-logo" />
+                      </div>
+                    </div>
                     <h1 className="max-w-4xl text-4xl leading-[0.96] font-fantasy tracking-[0.08em] text-stone-100 sm:text-5xl lg:text-6xl">
-                      Alles staat klaar.
+                      Kies je volgende stap.
                     </h1>
                     <p className="max-w-2xl text-base md:text-lg text-stone-300 font-story leading-relaxed">
-                      Hervat een bekende wereld of open direct een nieuwe.
+                      Hervat een wereld of open meteen een nieuwe sessie.
                     </p>
                   </>
                 ) : (
                   <>
-                    <div className="landing-kicker text-emerald-400">Verbonden</div>
+                    <div className="flex justify-center">
+                      <div className="landing-logo-shell h-18 w-18 md:h-20 md:w-20">
+                        <img src={TOMEVAULT_LOGO_SRC} alt="TomeVault logo" className="landing-logo" />
+                      </div>
+                    </div>
                     <h1 className="max-w-4xl text-4xl leading-[0.96] font-fantasy tracking-[0.08em] text-stone-100 sm:text-5xl lg:text-6xl">
                       Even geduld.
                     </h1>
@@ -771,15 +932,6 @@ export default function LandingScreen({
               </div>
             ) : showSessionHub ? (
               <div className="flex flex-col items-center gap-4">
-                <div className="flex flex-wrap justify-center gap-2">
-                  <span className="landing-chip border-stone-700/60 bg-stone-950/55 text-stone-200">{activeRecentSessions.length} sessies</span>
-                  {gmRecentCount > 0 ? (
-                    <span className="landing-chip border-amber-900/50 bg-amber-950/20 text-amber-200">{gmRecentCount} GM</span>
-                  ) : null}
-                  {playerRecentCount > 0 ? (
-                    <span className="landing-chip border-indigo-900/50 bg-indigo-950/20 text-indigo-200">{playerRecentCount} speler</span>
-                  ) : null}
-                </div>
                 <button
                   type="button"
                   onClick={() => onSignOut?.()}
@@ -801,6 +953,10 @@ export default function LandingScreen({
 
         {landingAboutSection}
 
+        {landingFeatureSection}
+
+        {landingShowcaseSection}
+
         {sessionError ? (
           <div className="mx-auto w-full max-w-5xl rounded-2xl border border-rose-900/50 bg-rose-950/35 px-4 py-3 text-sm text-rose-200">
             {sessionError}
@@ -818,12 +974,9 @@ export default function LandingScreen({
         {showSessionHub ? (
           <section className={`mx-auto w-full max-w-5xl landing-surface rounded-[26px] p-4 md:p-5 lg:p-6 ${activeRoleTab === 'gm' ? 'border-amber-900/30' : 'border-indigo-900/30'}`}>
             <div className="text-center">
-              <div>
-                <div className="landing-kicker text-stone-400">Acties</div>
-                <h2 className="mt-1 text-xl md:text-2xl font-fantasy tracking-[0.12em] text-stone-100">
-                  {activeRoleTab === 'gm' ? 'Start een sessie' : 'Sluit aan bij een wereld'}
-                </h2>
-              </div>
+              <h2 className="text-xl md:text-2xl font-fantasy tracking-[0.12em] text-stone-100">
+                {activeRoleTab === 'gm' ? 'Start een sessie' : 'Sluit aan bij een wereld'}
+              </h2>
 
               <div className="mt-4 flex justify-center">
                 <div className="landing-role-toggle">
@@ -846,14 +999,7 @@ export default function LandingScreen({
             </div>
 
             <div className="mx-auto mt-5 w-full max-w-[34rem] lg:max-w-[38rem]">
-              <div className="flex items-center justify-center gap-3">
-                <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl border ${activeRoleTab === 'gm' ? 'border-amber-900/50 bg-amber-950/30' : 'border-indigo-900/50 bg-indigo-950/30'}`}>
-                  {activeRoleTab === 'gm' ? <Swords className="h-5 w-5 text-amber-500" /> : <Users className="h-5 w-5 text-indigo-400" />}
-                </div>
-                <div className={`landing-kicker ${activeRoleTab === 'gm' ? 'text-amber-500' : 'text-indigo-400'}`}>{activeRoleTab === 'gm' ? 'Game Master' : 'Speler'}</div>
-              </div>
-
-              <div className="mt-4">
+              <div className="mt-1">
                 {activeRoleTab === 'gm' ? (
                   <div className="grid gap-3">
                     <input

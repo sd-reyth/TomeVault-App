@@ -2686,6 +2686,7 @@ export default function TomeVaultApp() {
           showSessionHub={showLandingSessionHub}
           onBackfillMemberships={handleBackfillMemberships}
           runtimeBadge={runtimeBadge}
+          theme={theme}
       />
     );
   }
