@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { X, ImagePlus, Eye, EyeOff, Hand, Trash2 } from 'lucide-react';
+import { X, ImagePlus, Eye, EyeOff, Hand, Trash2, UserPlus } from 'lucide-react';
 import { getHandoutIcon } from '../lib/handoutUtils';
 import { getAllPlaceholderImages, suggestHandoutImages } from '../lib/placeholders';
 
-function HandoutModal({ isOpen, onClose, handout, role, onSave, onDelete }) {
+function HandoutModal({ isOpen, onClose, handout, role, onSave, onDelete, onAddToInitiative, canAddToInitiative }) {
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState({
-    title: '', type: 'clue', content: '', secret: '', isRevealed: false, imageUrl: null, claimable: false, claimedBy: null
+    title: '', type: 'clue', content: '', secret: '', isRevealed: false, imageUrl: null, claimable: false, claimedBy: null,
+    npcSubtitle: 'Vijand', npcHp: 15, npcAc: 12, npcInitMod: 2,
   });
   const [pendingFile, setPendingFile] = useState(null);
   const [showAllPlaceholders, setShowAllPlaceholders] = useState(false);
@@ -19,7 +20,7 @@ function HandoutModal({ isOpen, onClose, handout, role, onSave, onDelete }) {
         setFormData({ ...handout });
         setIsEditing(false); 
       } else {
-        setFormData({ title: '', type: 'clue', content: '', secret: '', isRevealed: false, imageUrl: null, claimable: false, claimedBy: null });
+        setFormData({ title: '', type: 'clue', content: '', secret: '', isRevealed: false, imageUrl: null, claimable: false, claimedBy: null, npcSubtitle: 'Vijand', npcHp: 15, npcAc: 12, npcInitMod: 2 });
         setIsEditing(true); 
       }
     }
@@ -177,7 +178,11 @@ function HandoutModal({ isOpen, onClose, handout, role, onSave, onDelete }) {
                   <label className="block text-[10px] font-bold text-stone-500 uppercase tracking-widest mb-1.5">Type</label>
                   <select 
                     value={formData.type} 
-                    onChange={e => setFormData({...formData, type: e.target.value})}
+                    onChange={e => setFormData((prev) => ({
+                      ...prev,
+                      type: e.target.value,
+                      claimable: e.target.value === 'npc' ? false : prev.claimable,
+                    }))}
                     className="w-full bg-stone-950/50 border border-stone-800 rounded-lg px-4 py-3 text-sm font-fantasy tracking-wider text-stone-300 focus:outline-none focus:border-amber-600/50 transition-colors appearance-none"
                   >
                     <option value="clue">Clue / Document</option>
@@ -187,6 +192,58 @@ function HandoutModal({ isOpen, onClose, handout, role, onSave, onDelete }) {
                   </select>
                 </div>
               </div>
+
+              {formData.type === 'npc' && (
+                <div className="rounded-xl border border-rose-900/30 bg-rose-950/10 p-4">
+                  <div className="mb-3 flex items-center justify-between gap-3">
+                    <div>
+                      <div className="text-[10px] font-bold uppercase tracking-widest text-rose-500">NPC Gevechtsprofiel</div>
+                      <p className="mt-1 text-xs leading-5 text-stone-500">Deze gegevens worden gebruikt wanneer je deze handout als NPC aan de initiative order toevoegt.</p>
+                    </div>
+                  </div>
+                  <div className="mb-3">
+                    <label className="block text-[10px] font-bold text-stone-500 uppercase tracking-widest mb-1.5">Label</label>
+                    <input
+                      type="text"
+                      value={formData.npcSubtitle || ''}
+                      onChange={e => setFormData({ ...formData, npcSubtitle: e.target.value })}
+                      placeholder="Bijv. Aartsvijand"
+                      className="w-full bg-stone-950/60 border border-stone-800 rounded-lg px-4 py-2.5 text-sm font-story text-stone-200 placeholder-stone-600 focus:outline-none focus:border-rose-800 transition-colors"
+                    />
+                  </div>
+                  <div className="grid grid-cols-3 gap-3">
+                    <div>
+                      <label className="block text-[10px] font-bold text-stone-500 uppercase tracking-widest mb-1.5">HP</label>
+                      <input
+                        type="number"
+                        min="0"
+                        value={formData.npcHp ?? 15}
+                        onChange={e => setFormData({ ...formData, npcHp: e.target.value })}
+                        className="hide-arrows w-full bg-stone-950/60 border border-stone-800 rounded-lg px-3 py-2.5 text-sm text-stone-200 focus:outline-none focus:border-rose-800 transition-colors text-center"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[10px] font-bold text-stone-500 uppercase tracking-widest mb-1.5">AC</label>
+                      <input
+                        type="number"
+                        min="0"
+                        value={formData.npcAc ?? 12}
+                        onChange={e => setFormData({ ...formData, npcAc: e.target.value })}
+                        className="hide-arrows w-full bg-stone-950/60 border border-stone-800 rounded-lg px-3 py-2.5 text-sm text-stone-200 focus:outline-none focus:border-rose-800 transition-colors text-center"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[10px] font-bold text-stone-500 uppercase tracking-widest mb-1.5">Init Mod</label>
+                      <input
+                        type="number"
+                        value={formData.npcInitMod ?? 2}
+                        onChange={e => setFormData({ ...formData, npcInitMod: e.target.value })}
+                        className="hide-arrows w-full bg-stone-950/60 border border-stone-800 rounded-lg px-3 py-2.5 text-sm text-stone-200 focus:outline-none focus:border-rose-800 transition-colors text-center"
+                      />
+                    </div>
+                  </div>
+                </div>
+              )}
 
               <div>
                 <label className="block text-[10px] font-bold text-stone-500 uppercase tracking-widest mb-1.5 flex justify-between">
@@ -234,21 +291,33 @@ function HandoutModal({ isOpen, onClose, handout, role, onSave, onDelete }) {
                   </div>
                 </div>
 
-                <div className="flex items-center gap-3 bg-stone-950/30 border border-stone-800/50 p-3 rounded-lg">
-                  <button 
-                    type="button"
-                    onClick={() => setFormData({...formData, claimable: !formData.claimable})}
-                    className={`p-2 rounded transition-colors shrink-0 ${formData.claimable ? 'bg-amber-900/40 text-amber-500' : 'bg-stone-900 text-stone-500 hover:text-stone-300'}`}
-                  >
-                    <Hand className="w-5 h-5" />
-                  </button>
-                  <div className="flex flex-col min-w-0">
-                    <span className="text-sm font-fantasy tracking-wider text-stone-200">Claimbaar</span>
-                    <span className="text-[10px] text-stone-500 font-story truncate" title={formData.claimable ? 'Spelers kunnen dit object claimen naar hun schatkamer.' : 'Dit object kan niet geclaimd worden.'}>
-                      {formData.claimable ? 'Kan geclaimd worden.' : 'Kan niet geclaimd worden.'}
-                    </span>
+                {formData.type !== 'npc' ? (
+                  <div className="flex items-center gap-3 bg-stone-950/30 border border-stone-800/50 p-3 rounded-lg">
+                    <button 
+                      type="button"
+                      onClick={() => setFormData({...formData, claimable: !formData.claimable})}
+                      className={`p-2 rounded transition-colors shrink-0 ${formData.claimable ? 'bg-amber-900/40 text-amber-500' : 'bg-stone-900 text-stone-500 hover:text-stone-300'}`}
+                    >
+                      <Hand className="w-5 h-5" />
+                    </button>
+                    <div className="flex flex-col min-w-0">
+                      <span className="text-sm font-fantasy tracking-wider text-stone-200">Claimbaar</span>
+                      <span className="text-[10px] text-stone-500 font-story truncate" title={formData.claimable ? 'Spelers kunnen dit object claimen naar hun schatkamer.' : 'Dit object kan niet geclaimd worden.'}>
+                        {formData.claimable ? 'Kan geclaimd worden.' : 'Kan niet geclaimd worden.'}
+                      </span>
+                    </div>
                   </div>
-                </div>
+                ) : (
+                  <div className="flex items-center gap-3 bg-stone-950/30 border border-stone-800/50 p-3 rounded-lg opacity-80">
+                    <div className="p-2 rounded shrink-0 bg-stone-900 text-stone-500">
+                      <Hand className="w-5 h-5" />
+                    </div>
+                    <div className="flex flex-col min-w-0">
+                      <span className="text-sm font-fantasy tracking-wider text-stone-200">Claimbaar</span>
+                      <span className="text-[10px] text-stone-500 font-story truncate">NPC-handouts zijn altijd niet-claimable.</span>
+                    </div>
+                  </div>
+                )}
               </div>
 
             </form>
@@ -284,6 +353,34 @@ function HandoutModal({ isOpen, onClose, handout, role, onSave, onDelete }) {
                   ))}
                 </div>
               </div>
+
+              {isGM && formData.type === 'npc' && (
+                <div className="mx-auto w-full max-w-[70ch] rounded-xl border border-rose-900/30 bg-rose-950/10 p-4">
+                  <div className="mb-3 text-[10px] font-bold uppercase tracking-[0.18em] text-rose-500">NPC Gevechtsprofiel</div>
+                  <div className="grid grid-cols-3 gap-3 text-center">
+                    <div className="rounded-lg border border-stone-800 bg-stone-950/60 px-3 py-2.5">
+                      <div className="text-[10px] uppercase tracking-[0.18em] text-stone-500">HP</div>
+                      <div className="mt-1 font-fantasy text-lg tracking-[0.14em] text-stone-100">{Number(formData.npcHp ?? 15) || 15}</div>
+                    </div>
+                    <div className="rounded-lg border border-stone-800 bg-stone-950/60 px-3 py-2.5">
+                      <div className="text-[10px] uppercase tracking-[0.18em] text-stone-500">AC</div>
+                      <div className="mt-1 font-fantasy text-lg tracking-[0.14em] text-stone-100">{Number(formData.npcAc ?? 12) || 12}</div>
+                    </div>
+                    <div className="rounded-lg border border-stone-800 bg-stone-950/60 px-3 py-2.5">
+                      <div className="text-[10px] uppercase tracking-[0.18em] text-stone-500">Init Mod</div>
+                      <div className="mt-1 font-fantasy text-lg tracking-[0.14em] text-stone-100">{(Number(formData.npcInitMod ?? 2) || 0) >= 0 ? `+${Number(formData.npcInitMod ?? 2) || 0}` : Number(formData.npcInitMod ?? 2) || 0}</div>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => onAddToInitiative?.(formData)}
+                    disabled={!canAddToInitiative}
+                    className={`mt-4 flex w-full items-center justify-center gap-2 rounded-lg border px-4 py-3 text-sm font-fantasy tracking-[0.14em] transition-colors ${canAddToInitiative ? 'border-rose-900/50 bg-gradient-to-r from-rose-800 to-rose-700 text-stone-100 hover:from-rose-700 hover:to-rose-600' : 'cursor-not-allowed border-stone-800 bg-stone-950/50 text-stone-500'}`}
+                  >
+                    <UserPlus className="w-4 h-4" /> {canAddToInitiative ? 'Voeg toe aan slagorde' : 'Pauzeer gevecht om toe te voegen'}
+                  </button>
+                </div>
+              )}
 
               {isGM && formData.secret && (
                 <div className="mt-4 bg-stone-950/80 border border-amber-900/40 rounded-xl p-5 shadow-[inset_0_0_20px_rgba(0,0,0,0.5)] relative overflow-hidden">

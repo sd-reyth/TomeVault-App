@@ -49,6 +49,17 @@ import {
   formatLastEditedLabel,
 } from './lib/sessionUtils';
 import { getLocalDevBootstrapConfig, getRuntimeBadgeState } from './lib/runtimeContext';
+import {
+  COMBAT_JOIN_REQUEST_STATUS,
+  COMBAT_PARTICIPATION_STATUS,
+  COMBAT_STATUS,
+  filterCombatParticipants,
+  getNextTurnId,
+  normalizeCombatJoinRequestStatus,
+  normalizeCombatParticipation,
+  normalizeCombatStatus,
+  sortPartyByInitiative,
+} from './lib/battleUtils';
 import LandingScreen from './components/LandingScreen';
 import TopBar from './components/TopBar';
 import DamageModal from './components/DamageModal';
@@ -232,6 +243,40 @@ function buildPreparationBackupSnapshot(player = {}, fallbacks = {}) {
   };
 }
 
+const DEFAULT_COMBAT_STATE = {
+  status: COMBAT_STATUS.IDLE,
+  currentTurnId: null,
+  turnRound: 1,
+  initiativeOrder: [],
+};
+
+function normalizeCombatSessionState(sessionData = {}) {
+  const fallbackStatus = sessionData?.battleActive ? COMBAT_STATUS.ACTIVE : COMBAT_STATUS.IDLE;
+  const status = normalizeCombatStatus(sessionData?.combatStatus || fallbackStatus);
+
+  return {
+    status,
+    currentTurnId: typeof sessionData?.currentTurnId === 'string' && sessionData.currentTurnId.trim()
+      ? sessionData.currentTurnId
+      : null,
+    turnRound: Math.max(1, Number(sessionData?.turnRound) || 1),
+    initiativeOrder: Array.isArray(sessionData?.initiativeOrder)
+      ? sessionData.initiativeOrder.filter((id) => typeof id === 'string' && id.trim())
+      : [],
+  };
+}
+
+function buildCombatSessionPatch(combatState = {}) {
+  const normalized = normalizeCombatSessionState(combatState);
+  return {
+    battleActive: normalized.status === COMBAT_STATUS.ACTIVE,
+    combatStatus: normalized.status,
+    currentTurnId: normalized.currentTurnId,
+    turnRound: normalized.turnRound,
+    initiativeOrder: normalized.initiativeOrder,
+  };
+}
+
 // --- COMPONENTEN ---
 
 export default function TomeVaultApp() {
@@ -283,11 +328,22 @@ export default function TomeVaultApp() {
   const [recentSessions, setRecentSessions] = useState([]);
   const [recentSessionsLoaded, setRecentSessionsLoaded] = useState(false);
   const autoResumeAttemptRef = useRef('');
+  const latestActiveRecentSession = recentSessions.find((session) => session?.status !== 'hidden') || null;
+  const showLandingSessionHub = Boolean(
+    uid &&
+    view === 'landing' &&
+    !sessionDocId &&
+    !sessionBusy &&
+    autoResumeAttemptRef.current === uid
+  );
   
   // State voor Gevechtstracker
-  const [battleActive, setBattleActive] = useState(false);
+  const [combatStatus, setCombatStatus] = useState(COMBAT_STATUS.IDLE);
   const [currentTurnId, setCurrentTurnId] = useState(null);
   const [turnRound, setTurnRound] = useState(1);
+  const [initiativeOrder, setInitiativeOrder] = useState([]);
+  const battleActive = combatStatus === COMBAT_STATUS.ACTIVE;
+  const battlePaused = combatStatus === COMBAT_STATUS.PAUSED;
 
   // State voor mobiele lay-out en modals
   const [isPartyOpen, setIsPartyOpen] = useState(false);
@@ -307,6 +363,77 @@ export default function TomeVaultApp() {
     () => getRuntimeBadgeState({ role, localDevBootstrap }),
     [localDevBootstrap, role]
   );
+
+  const applyLocalCombatState = (nextCombatState) => {
+    const normalized = normalizeCombatSessionState(nextCombatState);
+    setCombatStatus(normalized.status);
+    setCurrentTurnId(normalized.currentTurnId);
+    setTurnRound(normalized.turnRound);
+    setInitiativeOrder(normalized.initiativeOrder);
+    return normalized;
+  };
+
+  const resetCombatState = () => {
+    applyLocalCombatState(DEFAULT_COMBAT_STATE);
+  };
+
+  const persistCombatState = async (nextCombatState) => {
+    const normalized = applyLocalCombatState(nextCombatState);
+    if (sessionDocId) {
+      await updateDoc(doc(db, 'sessions', sessionDocId), {
+        ...buildCombatSessionPatch(normalized),
+        updatedAt: serverTimestamp(),
+      });
+    }
+    return normalized;
+  };
+
+  const currentCombatState = {
+    status: combatStatus,
+    currentTurnId,
+    turnRound,
+    initiativeOrder,
+  };
+
+  const buildCombatStateAfterExcludingMember = (memberId, nextParty) => {
+    const shouldUpdateCombat = currentTurnId === memberId || initiativeOrder.includes(memberId);
+
+    if (!shouldUpdateCombat) {
+      return {
+        shouldUpdateCombat: false,
+        nextCombatState: currentCombatState,
+      };
+    }
+
+    const activeMembersBefore = sortPartyByInitiative(filterCombatParticipants(party), initiativeOrder)
+      .filter((member) => Number.isFinite(Number(member.init)));
+    const activeMembersAfter = sortPartyByInitiative(filterCombatParticipants(nextParty), initiativeOrder)
+      .filter((member) => Number.isFinite(Number(member.init)));
+    const removedIndex = activeMembersBefore.findIndex((member) => member.id === memberId);
+    const wrapped = removedIndex >= activeMembersAfter.length;
+
+    const nextCombatState = {
+      status: activeMembersAfter.length > 0 ? combatStatus : COMBAT_STATUS.IDLE,
+      currentTurnId,
+      turnRound: activeMembersAfter.length > 0 ? turnRound : 1,
+      initiativeOrder: initiativeOrder.filter((id) => id !== memberId),
+    };
+
+    if (currentTurnId === memberId) {
+      nextCombatState.currentTurnId = activeMembersAfter.length > 0
+        ? (activeMembersAfter[removedIndex]?.id || activeMembersAfter[0]?.id || null)
+        : null;
+
+      if (wrapped && combatStatus === COMBAT_STATUS.ACTIVE && activeMembersAfter.length > 0) {
+        nextCombatState.turnRound = turnRound + 1;
+      }
+    }
+
+    return {
+      shouldUpdateCombat: true,
+      nextCombatState,
+    };
+  };
 
   useEffect(() => {
     if (!localDevBootstrap || localDevBootstrap.roleSource !== 'host-default' || localDevBootstrapFallbackWarnedRef.current) return;
@@ -372,9 +499,22 @@ export default function TomeVaultApp() {
 
           if (existing) {
             const existingData = existing.data() || {};
-            if (existingData.gmUid !== uid) {
+            const allowLocalDevTakeover = options.allowLocalDevTakeover === true;
+
+            if (existingData.gmUid !== uid && !allowLocalDevTakeover) {
               setSessionError('Deze testsessie is al in gebruik door een andere GM.');
               return;
+            }
+
+            if (existingData.gmUid !== uid && allowLocalDevTakeover) {
+              await updateDoc(doc(db, 'sessions', existing.id), {
+                gmUid: uid,
+                name: sessionName,
+                pinHash,
+                joinTag,
+                updatedAt: serverTimestamp(),
+              });
+              setSessionInfo('Lokale testsessie overgenomen van een eerdere testgebruiker.');
             }
 
             await writeMembership({
@@ -402,7 +542,7 @@ export default function TomeVaultApp() {
           pinHash,
           gmUid: uid,
           campaignSessionNumber: 1,
-          battleActive: false,
+          ...buildCombatSessionPatch(DEFAULT_COMBAT_STATE),
           createdAt: serverTimestamp(),
           updatedAt: serverTimestamp(),
           ambience: { track: 'tavern', volume: 0.6, isPlaying: false },
@@ -483,14 +623,21 @@ export default function TomeVaultApp() {
       const existingPlayerSnap = await getDoc(existingPlayerRef);
       const resolvedNick = String(existingPlayerSnap.data()?.nickname || nick).trim() || 'Avonturier';
 
-      await setDoc(existingPlayerRef, {
+      const playerPayload = {
         nickname: resolvedNick,
         joinedAt: serverTimestamp(),
         lastSeenAt: serverTimestamp(),
         isNpc: false,
         isRevealed: true,
         initiative: null,
-      }, { merge: true });
+      };
+
+      if (!existingPlayerSnap.exists()) {
+        playerPayload.combatParticipation = COMBAT_PARTICIPATION_STATUS.ACTIVE;
+        playerPayload.combatJoinRequestStatus = COMBAT_JOIN_REQUEST_STATUS.NONE;
+      }
+
+      await setDoc(existingPlayerRef, playerPayload, { merge: true });
 
       await writeMembership({
         uid,
@@ -560,14 +707,21 @@ export default function TomeVaultApp() {
       const existingPlayerSnap = await getDoc(existingPlayerRef);
       const resolvedNick = String(existingPlayerSnap.data()?.nickname || nick).trim() || 'Avonturier';
 
-      await setDoc(existingPlayerRef, {
+      const playerPayload = {
         nickname: resolvedNick,
         joinedAt: serverTimestamp(),
         lastSeenAt: serverTimestamp(),
         isNpc: false,
         isRevealed: true,
         initiative: null,
-      }, { merge: true });
+      };
+
+      if (!existingPlayerSnap.exists()) {
+        playerPayload.combatParticipation = COMBAT_PARTICIPATION_STATUS.ACTIVE;
+        playerPayload.combatJoinRequestStatus = COMBAT_JOIN_REQUEST_STATUS.NONE;
+      }
+
+      await setDoc(existingPlayerRef, playerPayload, { merge: true });
 
       await writeMembership({
         uid,
@@ -682,6 +836,7 @@ export default function TomeVaultApp() {
         setSessionInfo(`Campagne ${sessionName} is definitief verwijderd.`);
 
         if (sessionDocId === membership.sessionId) {
+          autoResumeAttemptRef.current = uid || autoResumeAttemptRef.current;
           setRole(null);
           setSessionId('');
           setCampaignSessionNumber(1);
@@ -689,7 +844,7 @@ export default function TomeVaultApp() {
           setView('landing');
           setIsMusicPlaying(false);
           setIsPartyOpen(false);
-          setBattleActive(false);
+          resetCombatState();
         }
 
         return;
@@ -713,6 +868,7 @@ export default function TomeVaultApp() {
     } catch (err) {
       console.error('Logout fout:', err);
     }
+    autoResumeAttemptRef.current = '';
     setRole(null);
     setSessionId('');
     setCampaignSessionNumber(1);
@@ -720,7 +876,21 @@ export default function TomeVaultApp() {
     setView('landing');
     setIsMusicPlaying(false);
     setIsPartyOpen(false);
-    setBattleActive(false);
+    resetCombatState();
+  };
+
+  const handleLeaveSession = () => {
+    autoResumeAttemptRef.current = uid || autoResumeAttemptRef.current;
+    setSessionError('');
+    setSessionInfo('');
+    setRole(null);
+    setSessionId('');
+    setCampaignSessionNumber(1);
+    setSessionDocId('');
+    setView('landing');
+    setIsMusicPlaying(false);
+    setIsPartyOpen(false);
+    resetCombatState();
   };
 
   const handleBackfillMemberships = async () => {
@@ -803,12 +973,14 @@ export default function TomeVaultApp() {
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, (user) => {
       if (user) {
+        autoResumeAttemptRef.current = '';
         const inferredName = user.displayName || user.email?.split('@')[0] || 'Avonturier';
         setUid(user.uid);
         setIsGuest(user.isAnonymous);
         setDisplayName(inferredName);
         setPlayerName((prev) => prev || inferredName);
       } else {
+        autoResumeAttemptRef.current = '';
         setUid(null);
         setIsGuest(true);
         setDisplayName('');
@@ -871,16 +1043,15 @@ export default function TomeVaultApp() {
     if (view !== 'landing' || sessionDocId) return;
     if (autoResumeAttemptRef.current === uid) return;
 
-    const latestActiveSession = recentSessions.find((session) => session?.status !== 'hidden');
-    if (!latestActiveSession) {
+    if (!latestActiveRecentSession) {
       autoResumeAttemptRef.current = uid;
       return;
     }
 
     autoResumeAttemptRef.current = uid;
-    const preferredRole = latestActiveSession.role === 'dm' ? 'gm' : 'player';
-    handleResumeRecentSession(latestActiveSession, preferredRole);
-  }, [authLoading, recentSessions, recentSessionsLoaded, sessionBusy, sessionDocId, uid, view]);
+    const preferredRole = latestActiveRecentSession.role === 'dm' ? 'gm' : 'player';
+    handleResumeRecentSession(latestActiveRecentSession, preferredRole);
+  }, [authLoading, latestActiveRecentSession, recentSessionsLoaded, sessionBusy, sessionDocId, uid, view]);
 
   useEffect(() => {
     if (!sessionDocId || view !== 'dashboard') return undefined;
@@ -917,6 +1088,7 @@ export default function TomeVaultApp() {
       onSnapshot(doc(db, 'sessions', sid), (snap) => {
         const s = snap.data() || {};
         setCampaignSessionNumber(Number(s.campaignSessionNumber || 1));
+        applyLocalCombatState(normalizeCombatSessionState(s));
       })
     );
 
@@ -934,6 +1106,10 @@ export default function TomeVaultApp() {
             claimable: h.claimable === true,
             claimedBy: h.claimedByUid || h.claimedBy || null,
             imageUrl: h.imageUrl || null,
+            npcSubtitle: h.npcSubtitle || 'Vijand',
+            npcHp: Number(h.npcHp ?? 15),
+            npcAc: Number(h.npcAc ?? 12),
+            npcInitMod: Number(h.npcInitMod ?? 2),
           };
         });
 
@@ -959,6 +1135,8 @@ export default function TomeVaultApp() {
             avatar: p.avatarUrl || p.avatar || null,
             bio: p.bio || '',
             customStats: Array.isArray(p.customStats) ? p.customStats : [],
+            combatParticipation: normalizeCombatParticipation(p.combatParticipation),
+            combatJoinRequestStatus: normalizeCombatJoinRequestStatus(p.combatJoinRequestStatus),
           };
         });
 
@@ -1275,6 +1453,7 @@ export default function TomeVaultApp() {
         defaultPin: localDevBootstrap.pin,
         fixedJoinTag: localDevBootstrap.joinTag,
         forceSessionName: localDevBootstrap.sessionName,
+        allowLocalDevTakeover: true,
       });
       return;
     }
@@ -1575,9 +1754,13 @@ export default function TomeVaultApp() {
     publicContent: handout.content || '',
     secretContent: handout.secret || '',
     revealed: handout.isRevealed === true,
-    claimable: handout.claimable === true,
+    claimable: handout.type === 'npc' ? false : handout.claimable === true,
     claimedByUid: handout.claimedBy || null,
     imageUrl: handout.imageUrl || null,
+    npcSubtitle: String(handout.npcSubtitle || 'Vijand').trim() || 'Vijand',
+    npcHp: Math.max(0, Number(handout.npcHp) || 0),
+    npcAc: Math.max(0, Number(handout.npcAc) || 10),
+    npcInitMod: Number(handout.npcInitMod) || 0,
     updatedAt: serverTimestamp(),
   });
 
@@ -1645,6 +1828,208 @@ export default function TomeVaultApp() {
         console.error('Stat update fout:', err);
       }
     }
+  };
+
+  const handleAddNpcFromHandout = async (handout) => {
+    if (!handout || role !== 'gm' || combatStatus === COMBAT_STATUS.ACTIVE) return;
+
+    await handleAddNpcSave({
+      name: handout.title || 'Naamloze NPC',
+      subtitle: handout.npcSubtitle || 'Vijand',
+      hp: Number(handout.npcHp ?? 15) || 15,
+      maxHp: Number(handout.npcHp ?? 15) || 15,
+      ac: Number(handout.npcAc ?? 12) || 12,
+      initMod: Number(handout.npcInitMod ?? 2) || 0,
+      avatar: handout.imageUrl || null,
+      bio: handout.content || '',
+    });
+
+    setSelectedHandout(null);
+    setIsPartyOpen(true);
+  };
+
+  const handleBatchUpdateInitiatives = async (initiativeUpdates = []) => {
+    if (!Array.isArray(initiativeUpdates) || initiativeUpdates.length === 0) return party;
+
+    const previousParty = party;
+    const updateMap = new Map(
+      initiativeUpdates
+        .filter((entry) => entry?.id)
+        .map((entry) => [entry.id, Number.isFinite(Number(entry.init)) ? Number(entry.init) : null])
+    );
+
+    if (updateMap.size === 0) return party;
+
+    const nextParty = party.map((member) => (
+      updateMap.has(member.id)
+        ? { ...member, init: updateMap.get(member.id) }
+        : member
+    ));
+
+    setParty(nextParty);
+
+    if (sessionDocId) {
+      try {
+        const batch = writeBatch(db);
+        updateMap.forEach((initValue, memberId) => {
+          batch.set(doc(db, 'sessions', sessionDocId, 'players', memberId), {
+            initiative: initValue,
+            updatedAt: serverTimestamp(),
+          }, { merge: true });
+        });
+        await batch.commit();
+      } catch (err) {
+        console.error('Initiatives batch update fout:', err);
+        setParty(previousParty);
+        throw err;
+      }
+    }
+
+    return nextParty;
+  };
+
+  const handleStartCombat = async ({ initiativeUpdates = [], nextInitiativeOrder = [] } = {}) => {
+    const previousParty = party;
+    const previousCombatState = currentCombatState;
+    const updateMap = new Map(
+      initiativeUpdates
+        .filter((entry) => entry?.id)
+        .map((entry) => [entry.id, Number.isFinite(Number(entry.init)) ? Number(entry.init) : null])
+    );
+
+    const nextParty = party.map((member) => (
+      updateMap.has(member.id)
+        ? { ...member, init: updateMap.get(member.id) }
+        : member
+    ));
+
+    const resolvedOrder = (Array.isArray(nextInitiativeOrder) && nextInitiativeOrder.length > 0
+      ? nextInitiativeOrder
+      : sortPartyByInitiative(filterCombatParticipants(nextParty))
+          .filter((member) => Number.isFinite(Number(member.init)))
+          .map((member) => member.id)
+    );
+
+    const nextCombatState = {
+      status: COMBAT_STATUS.ACTIVE,
+      currentTurnId: resolvedOrder[0] || null,
+      turnRound: 1,
+      initiativeOrder: resolvedOrder,
+    };
+
+    setParty(nextParty);
+    applyLocalCombatState(nextCombatState);
+
+    if (sessionDocId) {
+      try {
+        const batch = writeBatch(db);
+        updateMap.forEach((initValue, memberId) => {
+          batch.set(doc(db, 'sessions', sessionDocId, 'players', memberId), {
+            initiative: initValue,
+            updatedAt: serverTimestamp(),
+          }, { merge: true });
+        });
+        batch.update(doc(db, 'sessions', sessionDocId), {
+          ...buildCombatSessionPatch(nextCombatState),
+          updatedAt: serverTimestamp(),
+        });
+        await batch.commit();
+      } catch (err) {
+        console.error('Gevecht starten fout:', err);
+        setParty(previousParty);
+        applyLocalCombatState(previousCombatState);
+        throw err;
+      }
+    }
+
+    return { nextParty, nextCombatState };
+  };
+
+  const handlePauseCombat = async () => persistCombatState({
+    ...currentCombatState,
+    status: COMBAT_STATUS.PAUSED,
+  });
+
+  const handleResumeCombat = async ({ nextInitiativeOrder = initiativeOrder, initiativeUpdates = [] } = {}) => {
+    const previousParty = party;
+    const previousCombatState = currentCombatState;
+    const updateMap = new Map(
+      initiativeUpdates
+        .filter((entry) => entry?.id)
+        .map((entry) => [entry.id, Number.isFinite(Number(entry.init)) ? Number(entry.init) : null])
+    );
+
+    const nextParty = party.map((member) => (
+      updateMap.has(member.id)
+        ? { ...member, init: updateMap.get(member.id) }
+        : member
+    ));
+
+    const resolvedOrder = (Array.isArray(nextInitiativeOrder) && nextInitiativeOrder.length > 0
+      ? nextInitiativeOrder
+      : sortPartyByInitiative(filterCombatParticipants(nextParty), initiativeOrder)
+          .filter((member) => Number.isFinite(Number(member.init)))
+          .map((member) => member.id)
+    );
+
+    const nextCombatState = {
+      ...currentCombatState,
+      status: COMBAT_STATUS.ACTIVE,
+      currentTurnId: resolvedOrder.includes(currentTurnId) ? currentTurnId : (resolvedOrder[0] || null),
+      initiativeOrder: resolvedOrder,
+    };
+
+    setParty(nextParty);
+    applyLocalCombatState(nextCombatState);
+
+    if (sessionDocId) {
+      try {
+        const batch = writeBatch(db);
+        updateMap.forEach((initValue, memberId) => {
+          batch.set(doc(db, 'sessions', sessionDocId, 'players', memberId), {
+            initiative: initValue,
+            updatedAt: serverTimestamp(),
+          }, { merge: true });
+        });
+        batch.update(doc(db, 'sessions', sessionDocId), {
+          ...buildCombatSessionPatch(nextCombatState),
+          updatedAt: serverTimestamp(),
+        });
+        await batch.commit();
+      } catch (err) {
+        console.error('Gevecht hervatten fout:', err);
+        setParty(previousParty);
+        applyLocalCombatState(previousCombatState);
+        throw err;
+      }
+    }
+
+    return nextCombatState;
+  };
+
+  const handleEndCombat = async () => persistCombatState({
+    status: COMBAT_STATUS.IDLE,
+    currentTurnId: null,
+    turnRound: 1,
+    initiativeOrder,
+  });
+
+  const handleAdvanceTurn = async () => {
+    const activeMembers = sortPartyByInitiative(filterCombatParticipants(party), initiativeOrder)
+      .filter((member) => Number.isFinite(Number(member.init)));
+
+    if (activeMembers.length === 0) return null;
+
+    const currentIndex = activeMembers.findIndex((member) => member.id === currentTurnId);
+    const nextTurnId = getNextTurnId(activeMembers, currentTurnId, initiativeOrder);
+    const wrappedRound = currentIndex === -1 || currentIndex === activeMembers.length - 1;
+
+    return persistCombatState({
+      ...currentCombatState,
+      status: COMBAT_STATUS.ACTIVE,
+      currentTurnId: nextTurnId,
+      turnRound: wrappedRound ? turnRound + 1 : turnRound,
+    });
   };
 
   const handleDamageModalSave = async (memberId, newHp) => {
@@ -1739,7 +2124,7 @@ export default function TomeVaultApp() {
 
   const handleAddNpcSave = async (npcData) => {
     const tempId = 'n' + Date.now();
-    setParty([...party, { ...npcData, id: tempId, isNpc: true, init: null }]);
+    setParty([...party, { ...npcData, id: tempId, isNpc: true, init: null, bio: npcData.bio || '' }]);
     setIsNpcModalOpen(false);
     if (sessionDocId) {
       try {
@@ -1752,8 +2137,11 @@ export default function TomeVaultApp() {
           initMod: npcData.initMod ?? 0,
           initiative: null,
           isNpc: true,
+          combatParticipation: COMBAT_PARTICIPATION_STATUS.ACTIVE,
+          combatJoinRequestStatus: COMBAT_JOIN_REQUEST_STATUS.NONE,
           isRevealed: true,
           avatarUrl: npcData.avatar || null,
+          bio: npcData.bio || '',
           createdAt: serverTimestamp(),
           updatedAt: serverTimestamp(),
         });
@@ -1882,15 +2270,145 @@ export default function TomeVaultApp() {
 
   const handleDeleteNpc = async (npcId) => {
     const previousParty = party;
-    setParty((prev) => prev.filter((p) => p.id !== npcId));
+    const previousCombatState = currentCombatState;
+    const nextParty = party.filter((member) => member.id !== npcId);
+    const { shouldUpdateCombat, nextCombatState } = buildCombatStateAfterExcludingMember(npcId, nextParty);
+
+    setParty(nextParty);
+    if (shouldUpdateCombat) {
+      applyLocalCombatState(nextCombatState);
+    }
 
     if (sessionDocId) {
       try {
-        await deleteDoc(doc(db, 'sessions', sessionDocId, 'players', npcId));
+        const batch = writeBatch(db);
+        batch.delete(doc(db, 'sessions', sessionDocId, 'players', npcId));
+        if (shouldUpdateCombat) {
+          batch.update(doc(db, 'sessions', sessionDocId), {
+            ...buildCombatSessionPatch(nextCombatState),
+            updatedAt: serverTimestamp(),
+          });
+        }
+        await batch.commit();
       } catch (err) {
         console.error('NPC verwijderen fout:', err);
         setParty(previousParty);
+        if (shouldUpdateCombat) {
+          applyLocalCombatState(previousCombatState);
+        }
       }
+    }
+  };
+
+  const handleKickPlayerFromCombat = async (playerId) => {
+    if (role !== 'gm' || !sessionDocId || !playerId) return;
+
+    const targetMember = party.find((member) => member.id === playerId);
+    if (!targetMember || targetMember.isNpc || targetMember.id === uid) return;
+    if (targetMember.combatParticipation === COMBAT_PARTICIPATION_STATUS.REMOVED) return;
+
+    const previousParty = party;
+    const previousCombatState = currentCombatState;
+    const nextParty = party.map((member) => (
+      member.id === playerId
+        ? {
+            ...member,
+            combatParticipation: COMBAT_PARTICIPATION_STATUS.REMOVED,
+            combatJoinRequestStatus: COMBAT_JOIN_REQUEST_STATUS.NONE,
+          }
+        : member
+    ));
+    const { shouldUpdateCombat, nextCombatState } = buildCombatStateAfterExcludingMember(playerId, nextParty);
+
+    setParty(nextParty);
+    if (shouldUpdateCombat) {
+      applyLocalCombatState(nextCombatState);
+    }
+
+    try {
+      const batch = writeBatch(db);
+      batch.set(doc(db, 'sessions', sessionDocId, 'players', playerId), {
+        combatParticipation: COMBAT_PARTICIPATION_STATUS.REMOVED,
+        combatJoinRequestStatus: COMBAT_JOIN_REQUEST_STATUS.NONE,
+        updatedAt: serverTimestamp(),
+      }, { merge: true });
+
+      if (shouldUpdateCombat) {
+        batch.update(doc(db, 'sessions', sessionDocId), {
+          ...buildCombatSessionPatch(nextCombatState),
+          updatedAt: serverTimestamp(),
+        });
+      }
+
+      await batch.commit();
+    } catch (err) {
+      console.error('Speler uit gevecht verwijderen fout:', err);
+      setParty(previousParty);
+      if (shouldUpdateCombat) {
+        applyLocalCombatState(previousCombatState);
+      }
+      throw err;
+    }
+  };
+
+  const handleRequestCombatJoin = async (playerId) => {
+    if (!sessionDocId || !playerId || combatStatus === COMBAT_STATUS.ACTIVE) return;
+
+    const targetMember = party.find((member) => member.id === playerId);
+    if (!targetMember || targetMember.isNpc) return;
+    if (targetMember.combatParticipation !== COMBAT_PARTICIPATION_STATUS.REMOVED) return;
+    if (targetMember.combatJoinRequestStatus === COMBAT_JOIN_REQUEST_STATUS.PENDING) return;
+
+    const previousParty = party;
+    const nextParty = party.map((member) => (
+      member.id === playerId
+        ? { ...member, combatJoinRequestStatus: COMBAT_JOIN_REQUEST_STATUS.PENDING }
+        : member
+    ));
+
+    setParty(nextParty);
+
+    try {
+      await updateDoc(doc(db, 'sessions', sessionDocId, 'players', playerId), {
+        combatJoinRequestStatus: COMBAT_JOIN_REQUEST_STATUS.PENDING,
+        updatedAt: serverTimestamp(),
+      });
+    } catch (err) {
+      console.error('Meedoen-verzoek fout:', err);
+      setParty(previousParty);
+      throw err;
+    }
+  };
+
+  const handleResolveCombatJoinRequest = async (playerId, approve) => {
+    if (role !== 'gm' || !sessionDocId || !playerId || combatStatus === COMBAT_STATUS.ACTIVE) return;
+
+    const targetMember = party.find((member) => member.id === playerId);
+    if (!targetMember || targetMember.isNpc) return;
+
+    const previousParty = party;
+    const nextParty = party.map((member) => (
+      member.id === playerId
+        ? {
+            ...member,
+            combatParticipation: approve ? COMBAT_PARTICIPATION_STATUS.ACTIVE : COMBAT_PARTICIPATION_STATUS.REMOVED,
+            combatJoinRequestStatus: COMBAT_JOIN_REQUEST_STATUS.NONE,
+          }
+        : member
+    ));
+
+    setParty(nextParty);
+
+    try {
+      await updateDoc(doc(db, 'sessions', sessionDocId, 'players', playerId), {
+        combatParticipation: approve ? COMBAT_PARTICIPATION_STATUS.ACTIVE : COMBAT_PARTICIPATION_STATUS.REMOVED,
+        combatJoinRequestStatus: COMBAT_JOIN_REQUEST_STATUS.NONE,
+        updatedAt: serverTimestamp(),
+      });
+    } catch (err) {
+      console.error('Meedoen-verzoek beantwoorden fout:', err);
+      setParty(previousParty);
+      throw err;
     }
   };
 
@@ -1952,9 +2470,11 @@ export default function TomeVaultApp() {
           onSignInGuest={handleSignInGuest}
           onSignInEmail={handleSignInEmail}
           onSignUpEmail={handleSignUpEmail}
+          onSignOut={handleLogout}
           sessionError={sessionError}
           sessionInfo={sessionInfo}
           sessionBusy={sessionBusy}
+          showSessionHub={showLandingSessionHub}
           onBackfillMemberships={handleBackfillMemberships}
           runtimeBadge={runtimeBadge}
       />
@@ -1976,7 +2496,12 @@ export default function TomeVaultApp() {
           role={role} 
           sessionId={sessionId}
           sessionNumber={campaignSessionNumber}
-          onLogout={handleLogout} 
+          combatStatus={combatStatus}
+          currentTurnId={currentTurnId}
+          initiativeOrder={initiativeOrder}
+          party={party}
+          currentPlayerId={CURRENT_PLAYER_ID}
+          onLogout={handleLeaveSession} 
           isMusicPlaying={isMusicPlaying} 
           setIsMusicPlaying={setIsMusicPlaying} 
           onToggleParty={() => setIsPartyOpen(!isPartyOpen)}
@@ -2060,16 +2585,22 @@ export default function TomeVaultApp() {
 
           <RightSidebar 
             party={party} 
-            setParty={setParty} 
             role={role} 
             isOpen={isPartyOpen} 
             onClose={() => setIsPartyOpen(false)}
-            battleActive={battleActive}
-            setBattleActive={setBattleActive}
+            combatStatus={combatStatus}
             currentTurnId={currentTurnId}
-            setCurrentTurnId={setCurrentTurnId}
             turnRound={turnRound}
-            setTurnRound={setTurnRound}
+            initiativeOrder={initiativeOrder}
+            onStartCombat={handleStartCombat}
+            onPauseCombat={handlePauseCombat}
+            onResumeCombat={handleResumeCombat}
+            onEndCombat={handleEndCombat}
+            onAdvanceTurn={handleAdvanceTurn}
+            onRollAllInitiative={handleBatchUpdateInitiatives}
+            onKickPlayerFromCombat={handleKickPlayerFromCombat}
+            onRequestCombatJoin={handleRequestCombatJoin}
+            onResolveCombatJoinRequest={handleResolveCombatJoinRequest}
             onOpenNpcModal={() => setIsNpcModalOpen(true)}
             onOpenDamageModal={(member) => setDamageTarget(member)}
             onOpenProfile={(member) => setProfileTarget(member)}
@@ -2159,6 +2690,8 @@ export default function TomeVaultApp() {
           isOpen={!!selectedHandout}
           handout={selectedHandout === 'new' ? null : selectedHandout}
           role={role}
+          canAddToInitiative={role === 'gm' && combatStatus !== COMBAT_STATUS.ACTIVE}
+          onAddToInitiative={handleAddNpcFromHandout}
           onClose={() => setSelectedHandout(null)}
           onSave={async (updatedHandout, pendingFile) => {
             let finalHandout = { ...updatedHandout };
@@ -2212,7 +2745,7 @@ export default function TomeVaultApp() {
           onClose={() => setIsSettingsOpen(false)}
           playerName={playerName}
           role={role}
-          onLogout={handleLogout}
+          onLogout={handleLeaveSession}
           theme={theme}
           sessionNumber={campaignSessionNumber}
           onSaveSettings={handleSaveSettings}

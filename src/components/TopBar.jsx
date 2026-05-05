@@ -1,8 +1,25 @@
 import React from 'react';
 import { Flame, Share2, Pause, Music, Volume2, Swords, User, LogOut, Settings } from 'lucide-react';
 import RuntimeBadge from './RuntimeBadge';
+import { COMBAT_STATUS, getTurnApproachRatio, getTurnsUntilMember, sortPartyByInitiative } from '../lib/battleUtils';
 
-export default function TopBar({ role, sessionId, sessionNumber, onLogout, isMusicPlaying, setIsMusicPlaying, onToggleParty, onOpenShare, onOpenProfile, onOpenSettings, runtimeBadge }) {
+export default function TopBar({ role, sessionId, sessionNumber, combatStatus, currentTurnId, initiativeOrder, party, currentPlayerId, onLogout, isMusicPlaying, setIsMusicPlaying, onToggleParty, onOpenShare, onOpenProfile, onOpenSettings, runtimeBadge }) {
+  const sortedParty = sortPartyByInitiative(Array.isArray(party) ? party : [], Array.isArray(initiativeOrder) ? initiativeOrder : []);
+  const turnsUntilMine = getTurnsUntilMember(sortedParty, initiativeOrder, currentTurnId, currentPlayerId);
+  const turnApproachRatio = getTurnApproachRatio(sortedParty, initiativeOrder, currentTurnId, currentPlayerId);
+  const isMyTurn = combatStatus === COMBAT_STATUS.ACTIVE && currentTurnId === currentPlayerId;
+  const PartyIcon = combatStatus === COMBAT_STATUS.IDLE
+    ? Flame
+    : (combatStatus === COMBAT_STATUS.PAUSED ? Pause : Swords);
+  const partyIndicatorAngle = `${Math.round(Math.max(0, Math.min(1, turnApproachRatio || 0)) * 360)}deg`;
+  const partyButtonTitle = combatStatus === COMBAT_STATUS.IDLE
+    ? 'Open slagorde - ruststand'
+    : (isMyTurn
+      ? 'Open slagorde - jouw beurt'
+      : (combatStatus === COMBAT_STATUS.PAUSED
+        ? 'Open slagorde - gevecht gepauzeerd'
+        : (turnsUntilMine === null ? 'Open slagorde - gevecht actief' : `Open slagorde - nog ${turnsUntilMine} beurt(en)`)));
+
   return (
     <header className="h-14 md:h-16 bg-stone-900/80 backdrop-blur border-b border-stone-800 flex items-center justify-between px-3 md:px-5 shrink-0 z-30">
       <div className="flex items-center gap-2 md:gap-3 min-w-0">
@@ -86,10 +103,24 @@ export default function TopBar({ role, sessionId, sessionNumber, onLogout, isMus
 
           <button 
             onClick={onToggleParty} 
-            className="h-9 w-9 flex items-center justify-center lg:hidden rounded-md text-stone-400 hover:text-amber-400 hover:bg-stone-800 transition-colors"
-            title="Open Slagorde"
+            className="relative h-9 w-9 flex items-center justify-center lg:hidden rounded-md text-stone-400 hover:text-amber-400 hover:bg-stone-800 transition-colors"
+            title={partyButtonTitle}
           >
-            <Swords className="w-5 h-5" />
+            <PartyIcon className={`w-5 h-5 ${combatStatus !== COMBAT_STATUS.IDLE ? 'text-amber-400' : ''}`} />
+            {role === 'player' && combatStatus !== COMBAT_STATUS.IDLE ? (
+              <span className={`pointer-events-none absolute -right-0.5 -top-0.5 flex h-4 w-4 items-center justify-center rounded-full border ${isMyTurn ? 'border-amber-400 shadow-[0_0_10px_rgba(245,158,11,0.5)]' : 'border-stone-700'}`}>
+                <span
+                  className="absolute inset-0 rounded-full"
+                  style={{
+                    background: isMyTurn
+                      ? 'var(--color-amber-500)'
+                      : `conic-gradient(var(--color-amber-500) 0deg ${partyIndicatorAngle}, rgba(255,255,255,0.12) ${partyIndicatorAngle} 360deg)`,
+                  }}
+                />
+                <span className="absolute inset-[2px] rounded-full bg-stone-950" />
+                <span className={`relative z-10 block h-1.5 w-1.5 rounded-full ${isMyTurn ? 'bg-amber-200 animate-pulse' : 'bg-stone-300'}`} />
+              </span>
+            ) : null}
           </button>
 
           <button onClick={onLogout} className="h-9 w-9 flex items-center justify-center hover:bg-stone-800 rounded-md text-stone-400 hover:text-rose-400 transition-colors" title="Verlaat Sessie">

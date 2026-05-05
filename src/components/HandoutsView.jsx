@@ -155,6 +155,20 @@ function HandoutsView({ role, handouts, onToggleVisibility, onOpenHandout, onCre
               <p className={`text-stone-400 font-story leading-relaxed ${viewMode === 'grid' ? 'text-xs md:text-sm mb-3 md:mb-4 line-clamp-3' : 'text-[11px] md:text-xs line-clamp-1 md:line-clamp-2 pr-12'}`}>
                 {handout.content}
               </p>
+
+              {role === 'gm' && handout.type === 'npc' && (
+                <div className={`flex flex-wrap gap-1.5 ${viewMode === 'grid' ? 'mb-3' : 'mb-1 pr-12'}`}>
+                  <span className="rounded border border-rose-900/30 bg-rose-950/20 px-2 py-1 text-[9px] font-bold uppercase tracking-[0.16em] text-rose-300">
+                    HP {Number(handout.npcHp ?? 15) || 15}
+                  </span>
+                  <span className="rounded border border-stone-800 bg-stone-950/70 px-2 py-1 text-[9px] font-bold uppercase tracking-[0.16em] text-stone-300">
+                    AC {Number(handout.npcAc ?? 12) || 12}
+                  </span>
+                  <span className="rounded border border-amber-900/30 bg-amber-950/20 px-2 py-1 text-[9px] font-bold uppercase tracking-[0.16em] text-amber-300">
+                    Init {(Number(handout.npcInitMod ?? 2) || 0) >= 0 ? `+${Number(handout.npcInitMod ?? 2) || 0}` : Number(handout.npcInitMod ?? 2) || 0}
+                  </span>
+                </div>
+              )}
               
               {role === 'gm' && handout.secret && (
                 <div className={`${viewMode === 'grid' ? 'mt-auto p-2.5 md:p-3' : 'mt-1 py-1 px-2 flex items-center gap-2 mr-12'} bg-stone-950/80 border-l-2 border-amber-700 rounded-r text-amber-500/90 font-story italic shadow-inner overflow-hidden`}>

@@ -40,12 +40,52 @@ export async function sha256(text) {
   return Array.from(new Uint8Array(hash)).map((b) => b.toString(16).padStart(2, '0')).join('');
 }
 
-export function formatLastEditedLabel(ts) {
-  const ms = ts?.toMillis ? ts.toMillis() : Date.now();
-  return new Date(ms).toLocaleString('nl-NL', {
-    day: '2-digit',
-    month: '2-digit',
+function formatTime(date) {
+  return new Intl.DateTimeFormat('nl-NL', {
     hour: '2-digit',
     minute: '2-digit',
-  });
+  }).format(date);
+}
+
+function formatDate(date, includeYear = false) {
+  return new Intl.DateTimeFormat('nl-NL', {
+    day: 'numeric',
+    month: 'long',
+    ...(includeYear ? { year: 'numeric' } : {}),
+  }).format(date);
+}
+
+function formatWeekday(date) {
+  const weekday = new Intl.DateTimeFormat('nl-NL', { weekday: 'long' }).format(date);
+  return weekday.charAt(0).toUpperCase() + weekday.slice(1);
+}
+
+export function formatLastEditedLabel(ts) {
+  const ms = ts?.toMillis ? ts.toMillis() : Date.now();
+  const date = new Date(ms);
+
+  if (Number.isNaN(date.getTime())) {
+    return 'Onlangs';
+  }
+
+  const now = new Date();
+  const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const dateStart = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+  const dayDifference = Math.round((todayStart.getTime() - dateStart.getTime()) / 86400000);
+  const timeLabel = formatTime(date);
+
+  if (dayDifference <= 0) {
+    return `Vandaag om ${timeLabel}`;
+  }
+
+  if (dayDifference === 1) {
+    return `${date.getHours() >= 18 ? 'Gisteravond' : 'Gisteren'} om ${timeLabel}`;
+  }
+
+  if (dayDifference < 7) {
+    return `${formatWeekday(date)} om ${timeLabel}`;
+  }
+
+  const includeYear = date.getFullYear() !== now.getFullYear();
+  return `${formatDate(date, includeYear)} om ${timeLabel}`;
 }
