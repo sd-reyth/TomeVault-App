@@ -310,43 +310,6 @@ export default function PreparationsView({
 
           <div className="mt-6 border-t border-stone-800/80 pt-4">
             <div className="flex items-center justify-between gap-3">
-              <h3 className="font-fantasy text-sm uppercase tracking-[0.14em] text-stone-200">Open aanbiedingen</h3>
-              <span className="rounded-full border border-stone-800 bg-stone-950/70 px-2.5 py-1 text-[10px] uppercase tracking-[0.16em] text-stone-500">
-                {pendingTemplates.length}
-              </span>
-            </div>
-
-            {pendingTemplates.length === 0 ? (
-              <p className="mt-4 text-sm leading-7 text-stone-500">Niemand hoeft nu iets te beantwoorden.</p>
-            ) : (
-              <div className="mt-4 space-y-3">
-                {pendingTemplates.slice(0, 3).map((preparation) => {
-                  const assignedPlayer = party.find((member) => member.id === preparation.assignedToUid);
-                  return (
-                    <article key={preparation.id} className="rounded-xl border border-stone-800 bg-stone-950/60 p-3">
-                      <div className="flex items-center justify-between gap-3">
-                        <div className="min-w-0">
-                          <div className="truncate text-sm font-medium text-stone-200">{preparation.name || 'Naamloos personage'}</div>
-                          <div className="mt-1 text-xs uppercase tracking-[0.16em] text-stone-600">
-                            voor {assignedPlayer?.name || 'speler'}
-                          </div>
-                        </div>
-                        <span className="rounded-full border border-amber-900/40 bg-amber-950/30 px-2 py-1 text-[10px] font-bold uppercase tracking-[0.16em] text-amber-300">
-                          Open
-                        </span>
-                      </div>
-                      <p className="mt-2 text-xs uppercase tracking-[0.16em] text-stone-500">
-                        verstuurd {formatPreparationTime(preparation.offeredAtMs)}
-                      </p>
-                    </article>
-                  );
-                })}
-              </div>
-            )}
-          </div>
-
-          <div className="mt-6 border-t border-stone-800/80 pt-4">
-            <div className="flex items-center justify-between gap-3">
               <h3 className="font-fantasy text-sm uppercase tracking-[0.14em] text-stone-200">Herstelpunten</h3>
               <span className="rounded-full border border-stone-800 bg-stone-950/70 px-2.5 py-1 text-[10px] uppercase tracking-[0.16em] text-stone-500">
                 {backups.length}
@@ -359,11 +322,13 @@ export default function PreparationsView({
               <div className="mt-4 space-y-3">
                 {backups.map((backup) => (
                   <article key={backup.id} className="rounded-xl border border-stone-800 bg-stone-950/60 p-3">
-                    <div className="text-sm font-medium text-stone-200">{backup.playerName || 'Onbekende speler'}</div>
+                    <p className="text-[11px] uppercase tracking-[0.16em] text-stone-500">
+                      Opgeslagen {formatPreparationTime(backup.createdAtMs)}
+                    </p>
+                    <div className="mt-2 text-sm font-medium text-stone-200">{backup.playerName || 'Onbekende speler'}</div>
                     <div className="mt-1 text-xs uppercase tracking-[0.16em] text-stone-600">via {backup.templateName || 'Naamloze voorbereiding'}</div>
-                    <p className="mt-2 text-sm leading-6 text-stone-500">Opgeslagen {formatPreparationTime(backup.createdAtMs)}</p>
                     {backup.restoredAtMs ? (
-                      <p className="mt-2 text-xs uppercase tracking-[0.16em] text-emerald-400">
+                      <p className="mt-3 text-[11px] uppercase tracking-[0.16em] text-emerald-400">
                         Hersteld {formatPreparationTime(backup.restoredAtMs)}
                       </p>
                     ) : null}

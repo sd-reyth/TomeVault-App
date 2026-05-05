@@ -15,6 +15,7 @@ import {
   X,
 } from 'lucide-react';
 import { getJoinTagLookupVariants } from '../lib/sessionUtils';
+import RuntimeBadge from './RuntimeBadge';
 
 export default function LandingScreen({
   onJoin,
@@ -38,6 +39,7 @@ export default function LandingScreen({
   sessionInfo,
   sessionBusy,
   onBackfillMemberships,
+  runtimeBadge,
 }) {
   const [sessionCode, setSessionCode] = useState('');
   const [sessionPin, setSessionPin] = useState('');
@@ -202,6 +204,12 @@ export default function LandingScreen({
 
   return (
     <div className="min-h-screen bg-stone-950 flex flex-col items-center justify-center p-4 sm:p-6 relative overflow-x-hidden bg-texture">
+      {runtimeBadge ? (
+        <div className="absolute right-4 top-4 z-20">
+          <RuntimeBadge runtimeBadge={runtimeBadge} />
+        </div>
+      ) : null}
+
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] md:w-[800px] h-[600px] md:h-[800px] bg-amber-900/20 blur-[100px] md:blur-[150px] rounded-full pointer-events-none" />
 
       <div className="w-full max-w-4xl z-10 mb-6 mt-12 md:mt-20">

@@ -6,7 +6,9 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "preview:host": "vite preview --host 0.0.0.0",
+    "deploy:hosting": "firebase deploy --only hosting"
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.2.4",

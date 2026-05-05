@@ -102,16 +102,19 @@ export default function Sidebar({ activeTab, setActiveTab, onOpenSettings, role 
             </button>
           )
         })}
-      </nav>
-      
-      <div className={`hidden w-full border-t border-stone-800/70 pt-3 pb-1 md:block ${isCollapsed ? 'px-2' : 'px-3'}`}>
-        <button onClick={onOpenSettings} className={`w-full rounded-lg border border-transparent text-stone-400 transition-all font-fantasy tracking-wider hover:border-stone-700/80 hover:bg-stone-800/80 hover:text-stone-200 ${isCollapsed ? 'flex min-h-[58px] items-center justify-center px-2 py-3' : 'flex min-h-[54px] items-center gap-3 px-3 py-3.5'}`}>
-          <span className={`flex items-center justify-center rounded-md border border-stone-800 bg-stone-950/50 shrink-0 ${isCollapsed ? 'h-10 w-10' : 'h-9 w-9'}`}>
-            <Settings className="w-4 h-4 opacity-80" />
+
+        <button
+          type="button"
+          onClick={onOpenSettings}
+          title="Configuratie"
+          className={`relative hidden min-h-[48px] min-w-0 flex-1 flex-col items-center justify-center rounded-lg p-2 transition-all font-fantasy tracking-wider md:flex md:w-full md:flex-none ${isCollapsed ? 'md:min-h-[58px] md:px-2 md:py-3' : 'md:min-h-[54px] md:flex-row md:justify-start md:gap-3 md:px-3 md:py-3.5'} text-stone-400 hover:bg-stone-800/80 hover:text-stone-200 border border-transparent`}
+        >
+          <span className={`hidden shrink-0 items-center justify-center rounded-md border transition-colors md:flex ${isCollapsed ? 'h-10 w-10' : 'h-9 w-9'} border-stone-800 bg-stone-950/50 text-stone-500`}>
+            <Settings className="w-4 h-4" />
           </span>
-          <span className={`${isCollapsed ? 'hidden' : 'block'} text-[15px] uppercase tracking-[0.12em]`}>Configuratie</span>
+          <span className={`${isCollapsed ? 'hidden' : 'hidden md:block'} text-[15px] uppercase md:tracking-[0.12em]`}>Configuratie</span>
         </button>
-      </div>
+      </nav>
 
       <button
         type="button"

@@ -9,8 +9,8 @@
 5. Build output: dist/
 6. Hosting config: firebase.json (public = dist)
 7. Statische assets: placeholders/, references/, audio/
-8. Legacy bestanden: _archive/legacy-pre-react/
-9. Deploy: firebase deploy
+8. Runtime helpers: src/lib/runtimeContext.js
+9. Deploy: npm run deploy:hosting
 10. Voor wijzigingen altijd eerst build-check doen
 
 Dit project gebruikt een moderne structuur:
@@ -79,7 +79,7 @@ Belangrijk:
 - root-bestanden zoals index.html, package.json, firebase.json en vite.config.js horen juist in root te blijven.
 - deze zijn nodig voor tooling en deploy, ook al staat veel app-code in src.
 
-## 6) Wat is actief vs archief
+## 6) Wat is actief
 
 Actief (belangrijk):
 - src/
@@ -99,8 +99,9 @@ Tijdelijk/gegenereerd:
 - node_modules/
 - .firebase/
 
-Legacy (mag later handmatig weg):
-- _archive/legacy-pre-react/
+Niet langer gebruiken als bronbestand:
+- losse root-prototypes buiten src/
+- oude singlefile research builds
 
 ## 7) Snelle mentale checklist
 
@@ -115,5 +116,25 @@ Als je iets wilt aanpassen:
 
 1. Feature aanpassen in src/App.jsx
 2. npm run build draaien
-3. Als build ok is: deploy
-4. Pas als alles stabiel is: handmatig legacy archief verwijderen
+3. npm run preview:host gebruiken voor een lokale build-check op localhost/127.0.0.1
+4. Als build ok is: npm run deploy:hosting
+5. Daarna een korte live smoke check doen
+
+## 9) Lokale Rollen Expliciet Maken
+
+Gebruik voor lokale test-URLs altijd expliciet `devRole`, zodat GM/speler niet meer stilzwijgend van hostname afhangen.
+
+Voorbeelden:
+- GM lokaal: http://127.0.0.1:4173/?dev=1&devRole=gm&devSession=Dev%20Lab&devTag=dev-lab-4321&devPin=1234
+- Speler lokaal: http://localhost:4173/?dev=1&devRole=player&devSession=Dev%20Lab&devTag=dev-lab-4321&devPin=1234&devName=Elara
+
+Waarom twee origins:
+- localhost en 127.0.0.1 delen geen browser-auth-state of local storage.
+- Daardoor kun je GM en speler tegelijk open houden zonder elkaar te overschrijven.
+
+Praktische checkvolgorde:
+1. localhost of 127.0.0.1 met expliciete `devRole`
+2. npm run build
+3. npm run preview:host
+4. npm run deploy:hosting
+5. live smoke check

@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect, useRef } from 'react';
+﻿import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Music } from 'lucide-react';
 import {
   onAuthStateChanged,
@@ -48,6 +48,7 @@ import {
   sha256,
   formatLastEditedLabel,
 } from './lib/sessionUtils';
+import { getLocalDevBootstrapConfig, getRuntimeBadgeState } from './lib/runtimeContext';
 import LandingScreen from './components/LandingScreen';
 import TopBar from './components/TopBar';
 import DamageModal from './components/DamageModal';
@@ -144,37 +145,6 @@ function sanitizeCustomStats(value) {
       value: Number(entry?.value ?? 0) || 0,
     }))
     .filter((entry) => entry.name.length > 0);
-}
-
-function isLocalDevHost() {
-  if (typeof window === 'undefined') return false;
-  const host = String(window.location.hostname || '').toLowerCase();
-  return host === 'localhost' || host === '127.0.0.1';
-}
-
-function getLocalDevBootstrapConfig() {
-  if (!isLocalDevHost() || typeof window === 'undefined') return null;
-
-  const params = new URLSearchParams(window.location.search);
-  const rawDev = String(params.get('dev') || '').trim().toLowerCase();
-  if (!rawDev) return null;
-
-  const defaultRole = window.location.hostname === '127.0.0.1' ? 'gm' : 'player';
-  const rawRole = String(params.get('role') || params.get('devRole') || '').trim().toLowerCase();
-  const role = String(rawRole || (rawDev === 'gm' || rawDev === 'player' ? rawDev : defaultRole)).trim().toLowerCase();
-  if (!['gm', 'player'].includes(role)) return null;
-
-  const joinTag = rawDev === '1' || rawDev === 'gm' || rawDev === 'player'
-    ? String(params.get('tag') || params.get('devTag') || 'dev-lab-0000').trim()
-    : rawDev;
-
-  return {
-    role,
-    joinTag: joinTag || 'dev-lab-0000',
-    pin: String(params.get('pin') || params.get('devPin') || '1234').trim() || '1234',
-    sessionName: String(params.get('session') || params.get('devSession') || 'Dev Lab').trim() || 'Dev Lab',
-    playerName: String(params.get('name') || params.get('devName') || 'Elara').trim() || 'Elara',
-  };
 }
 
 function normalizePreparationDoc(docSnap) {
@@ -299,6 +269,7 @@ export default function TomeVaultApp() {
   const isBackfillingInventoryDescriptionsRef = useRef(false);
   const lastInventoryDescriptionBackfillSignatureRef = useRef('');
   const localDevBootstrapRef = useRef({ key: '', lastAuthAttemptAt: 0, lastJoinAttemptAt: 0 });
+  const localDevBootstrapFallbackWarnedRef = useRef(false);
 
   // Firebase auth state
   const [uid, setUid] = useState(null);
@@ -331,6 +302,20 @@ export default function TomeVaultApp() {
   const [assigningPreparation, setAssigningPreparation] = useState(null);
   const [pendingPreparationOffer, setPendingPreparationOffer] = useState(null);
   const [campaignSessionNumber, setCampaignSessionNumber] = useState(1);
+  const localDevBootstrap = useMemo(() => getLocalDevBootstrapConfig(), []);
+  const runtimeBadge = useMemo(
+    () => getRuntimeBadgeState({ role, localDevBootstrap }),
+    [localDevBootstrap, role]
+  );
+
+  useEffect(() => {
+    if (!localDevBootstrap || localDevBootstrap.roleSource !== 'host-default' || localDevBootstrapFallbackWarnedRef.current) return;
+
+    console.warn(
+      '[TomeVault] Local dev bootstrap defaulted role from host. Add devRole=gm or devRole=player to make local test URLs explicit.'
+    );
+    localDevBootstrapFallbackWarnedRef.current = true;
+  }, [localDevBootstrap]);
 
   useEffect(() => {
     if (role !== 'gm' && activeTab === 'preparations') {
@@ -1254,7 +1239,6 @@ export default function TomeVaultApp() {
   };
 
   useEffect(() => {
-    const localDevBootstrap = getLocalDevBootstrapConfig();
     if (!localDevBootstrap || view !== 'landing' || authLoading || sessionBusy) return;
 
     const bootstrapKey = [
@@ -1303,7 +1287,7 @@ export default function TomeVaultApp() {
       pin: localDevBootstrap.pin,
       playerName: localDevBootstrap.playerName,
     });
-  }, [authLoading, playerName, sessionBusy, uid, view]);
+  }, [authLoading, localDevBootstrap, playerName, sessionBusy, uid, view]);
 
   const handleClaimHandout = async (handoutId, playerId) => {
     try {
@@ -1972,6 +1956,7 @@ export default function TomeVaultApp() {
           sessionInfo={sessionInfo}
           sessionBusy={sessionBusy}
           onBackfillMemberships={handleBackfillMemberships}
+          runtimeBadge={runtimeBadge}
       />
     );
   }
@@ -1998,6 +1983,7 @@ export default function TomeVaultApp() {
           onOpenShare={() => setShowShareModal(true)}
           onOpenProfile={() => setProfileTarget(party.find(p => p.id === CURRENT_PLAYER_ID))}
           onOpenSettings={() => setIsSettingsOpen(true)}
+          runtimeBadge={runtimeBadge}
         />
         
         <div className="flex flex-1 overflow-hidden relative">

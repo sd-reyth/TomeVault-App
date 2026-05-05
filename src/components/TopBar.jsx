@@ -1,7 +1,8 @@
 import React from 'react';
 import { Flame, Share2, Pause, Music, Volume2, Swords, User, LogOut, Settings } from 'lucide-react';
+import RuntimeBadge from './RuntimeBadge';
 
-export default function TopBar({ role, sessionId, sessionNumber, onLogout, isMusicPlaying, setIsMusicPlaying, onToggleParty, onOpenShare, onOpenProfile, onOpenSettings }) {
+export default function TopBar({ role, sessionId, sessionNumber, onLogout, isMusicPlaying, setIsMusicPlaying, onToggleParty, onOpenShare, onOpenProfile, onOpenSettings, runtimeBadge }) {
   return (
     <header className="h-14 md:h-16 bg-stone-900/80 backdrop-blur border-b border-stone-800 flex items-center justify-between px-3 md:px-5 shrink-0 z-30">
       <div className="flex items-center gap-2 md:gap-3 min-w-0">
@@ -41,6 +42,8 @@ export default function TopBar({ role, sessionId, sessionNumber, onLogout, isMus
           >
             <Share2 className="w-3.5 h-3.5 md:w-4 md:h-4" />
           </button>
+
+          {runtimeBadge ? <RuntimeBadge runtimeBadge={runtimeBadge} compact className="hidden lg:block" /> : null}
         </div>
       </div>
 
