@@ -1,11 +1,62 @@
-import React, { useEffect } from 'react';
-import { Swords, X, Pin, PinOff, Flame, Dice5, UserPlus, Trash2, ChevronRight } from 'lucide-react';
+import React, { useEffect, useRef, useState } from 'react';
+import { Swords, X, Pin, PinOff, Flame, Dice5, UserPlus, Trash2, ChevronRight, Info } from 'lucide-react';
 import { resolveDisplayAvatar } from '../lib/placeholders';
 import EditableStat from './EditableStat';
 
+const RIGHT_SIDEBAR_DEFAULT_WIDTH = 288;
+const RIGHT_SIDEBAR_MIN_WIDTH = 248;
+const RIGHT_SIDEBAR_MAX_WIDTH = 380;
+const RIGHT_SIDEBAR_STORAGE_KEY = 'tomevault.battleSidebarWidth';
+
+function clampBattleSidebarWidth(width) {
+  return Math.min(RIGHT_SIDEBAR_MAX_WIDTH, Math.max(RIGHT_SIDEBAR_MIN_WIDTH, width));
+}
+
 function RightSidebar({ party, setParty, role, isOpen, onClose, battleActive, setBattleActive, currentTurnId, setCurrentTurnId, turnRound, setTurnRound, onOpenNpcModal, onOpenDamageModal, onOpenProfile, currentPlayerId, onUpdateStat, isPinned, setIsPinned, onRemoveNpc }) {
+  const [showInfo, setShowInfo] = useState(false);
+  const [sidebarWidth, setSidebarWidth] = useState(RIGHT_SIDEBAR_DEFAULT_WIDTH);
+  const [isDragging, setIsDragging] = useState(false);
+  const dragStateRef = useRef({ startX: 0, startWidth: RIGHT_SIDEBAR_DEFAULT_WIDTH });
   
   const sortedParty = [...party].sort((a, b) => (b.init || 0) - (a.init || 0));
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const storedWidth = Number(window.localStorage.getItem(RIGHT_SIDEBAR_STORAGE_KEY));
+    if (storedWidth) {
+      setSidebarWidth(clampBattleSidebarWidth(storedWidth));
+    }
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    window.localStorage.setItem(RIGHT_SIDEBAR_STORAGE_KEY, String(sidebarWidth));
+  }, [sidebarWidth]);
+
+  useEffect(() => {
+    if (!isDragging) return undefined;
+
+    const handleMouseMove = (event) => {
+      const delta = dragStateRef.current.startX - event.clientX;
+      setSidebarWidth(clampBattleSidebarWidth(dragStateRef.current.startWidth + delta));
+    };
+
+    const handleMouseUp = () => {
+      setIsDragging(false);
+    };
+
+    document.body.style.userSelect = 'none';
+    document.body.style.cursor = 'col-resize';
+    window.addEventListener('mousemove', handleMouseMove);
+    window.addEventListener('mouseup', handleMouseUp);
+
+    return () => {
+      document.body.style.userSelect = '';
+      document.body.style.cursor = '';
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('mouseup', handleMouseUp);
+    };
+  }, [isDragging]);
 
   useEffect(() => {
     if (battleActive && !currentTurnId && sortedParty.length > 0 && sortedParty[0].init !== null) {
@@ -67,6 +118,15 @@ function RightSidebar({ party, setParty, role, isOpen, onClose, battleActive, se
   const myCharacter = party.find(p => p.id === currentPlayerId);
   const showPlayerRollPanel = role === 'player' && battleActive && myCharacter && myCharacter.init === null;
 
+  const handleResizeStart = (event) => {
+    if (typeof window === 'undefined' || window.innerWidth < 1024) return;
+    dragStateRef.current = {
+      startX: event.clientX,
+      startWidth: sidebarWidth,
+    };
+    setIsDragging(true);
+  };
+
   return (
     <>
       {isOpen && !isPinned && (
@@ -76,18 +136,37 @@ function RightSidebar({ party, setParty, role, isOpen, onClose, battleActive, se
         />
       )}
       
-      <aside className={`
+      <aside style={{ '--battle-sidebar-width': `${sidebarWidth}px` }} className={`
         fixed top-0 right-0 h-full w-80 bg-stone-900/95 border-l border-stone-800 flex flex-col z-50 transition-transform duration-300 ease-in-out backdrop-blur-md shadow-2xl
         ${(isOpen || isPinned) ? 'translate-x-0' : 'translate-x-full'}
-        ${isPinned ? 'md:relative md:translate-x-0 md:z-0 md:bg-stone-900/50 md:shadow-none md:w-72' : ''}
-        lg:relative lg:translate-x-0 lg:w-72 lg:z-0 lg:bg-stone-900/50 lg:shadow-none lg:flex
+        ${isPinned ? 'md:relative md:translate-x-0 md:z-0 md:bg-stone-900/50 md:shadow-none md:w-[var(--battle-sidebar-width)] md:min-w-[var(--battle-sidebar-width)] md:max-w-[var(--battle-sidebar-width)]' : ''}
+        lg:relative lg:translate-x-0 lg:z-0 lg:flex lg:w-[var(--battle-sidebar-width)] lg:min-w-[var(--battle-sidebar-width)] lg:max-w-[var(--battle-sidebar-width)] lg:bg-stone-900/50 lg:shadow-none
       `}>
         <div className="absolute top-0 left-0 w-1 h-full bg-gradient-to-b from-stone-800 via-stone-900 to-stone-800 hidden lg:block" />
+        <button
+          type="button"
+          aria-label="Sleep om slagordebreedte aan te passen"
+          onMouseDown={handleResizeStart}
+          onDoubleClick={() => setSidebarWidth(RIGHT_SIDEBAR_DEFAULT_WIDTH)}
+          className="absolute left-0 top-0 hidden h-full w-3 translate-x-1/2 cursor-col-resize lg:block"
+        >
+          <span className={`absolute left-1/2 top-1/2 h-16 w-[3px] -translate-x-1/2 -translate-y-1/2 rounded-full transition-colors ${isDragging ? 'bg-amber-500 shadow-[0_0_12px_rgba(245,158,11,0.45)]' : 'bg-stone-800 hover:bg-stone-700'}`} />
+        </button>
         
         <div className="px-3.5 py-3 md:px-4 md:py-3.5 border-b border-stone-800 bg-stone-900/85 flex justify-between items-center mt-14 md:mt-0 min-h-[58px]">
-          <h3 className="font-fantasy font-bold text-stone-200 flex items-center gap-2 tracking-[0.16em] uppercase text-sm">
-            <Swords className="w-4 h-4 text-amber-600" /> Slagorde
-          </h3>
+          <div className="flex items-center gap-2">
+            <div className="flex h-9 w-9 items-center justify-center rounded-lg border border-amber-900/40 bg-stone-950/60 text-amber-500 shadow-inner">
+              <Swords className="w-4 h-4" />
+            </div>
+            <button
+              type="button"
+              onClick={() => setShowInfo((value) => !value)}
+              className={`inline-flex h-9 w-9 items-center justify-center rounded-full border transition-colors ${showInfo ? 'border-amber-800/50 bg-amber-950/30 text-amber-300' : 'border-stone-800 bg-stone-950/70 text-stone-400 hover:text-amber-300'}`}
+              title={showInfo ? 'Verberg slagorde-info' : 'Toon slagorde-info'}
+            >
+              <Info className="w-4 h-4" />
+            </button>
+          </div>
           
           <div className="flex items-center gap-1.5 shrink-0">
             {role === 'gm' && (
@@ -125,6 +204,20 @@ function RightSidebar({ party, setParty, role, isOpen, onClose, battleActive, se
         </div>
         
         <div className="flex-1 overflow-y-auto px-3.5 py-3.5 md:px-4 md:py-4 space-y-3 no-scrollbar">
+          {showInfo && (
+            <div className="rounded-xl border border-stone-800 bg-stone-950/60 p-4">
+              <div className="text-[10px] font-bold uppercase tracking-[0.18em] text-stone-500">Slagorde info</div>
+              <div className="mt-3 space-y-2">
+                {[
+                  'Start Gevecht zet de ronde terug en wist tijdelijke initiatieven.',
+                  'Rol Allen vult de hele volgorde direct in voor de huidige groep.',
+                  'NPC voegt snel een tijdelijke bondgenoot of vijand toe aan de lijst.',
+                ].map((line) => (
+                  <p key={line} className="text-sm leading-6 text-stone-500">{line}</p>
+                ))}
+              </div>
+            </div>
+          )}
           
           {showPlayerRollPanel && (
             <div className="p-4 bg-amber-950/30 border border-amber-500/50 rounded-lg mb-4 shadow-[0_0_15px_rgba(245,158,11,0.1)] relative overflow-hidden">
@@ -156,9 +249,7 @@ function RightSidebar({ party, setParty, role, isOpen, onClose, battleActive, se
             <div className="h-full min-h-[220px] rounded-xl border border-dashed border-stone-800 bg-stone-950/30 flex items-center justify-center px-6 text-center shadow-inner mt-1">
               <div>
                 <div className="text-[10px] uppercase tracking-[0.24em] text-stone-600 font-bold mb-2">Nog leeg</div>
-                <p className="text-sm text-stone-500 font-story italic leading-relaxed">
-                  Zodra spelers of NPC&apos;s aan de sessie hangen verschijnt hier de slagorde.
-                </p>
+                <p className="text-sm text-stone-500 font-story italic leading-relaxed">Open info voor snelle uitleg over deze kolom.</p>
               </div>
             </div>
           )}

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Crown, Plus, Search, ShieldCheck } from 'lucide-react';
+import { Crown, Info, Plus, Search, ShieldCheck } from 'lucide-react';
 import { resolveDisplayAvatar } from '../lib/placeholders';
 
 function formatPreparationTime(ms) {
@@ -71,6 +71,7 @@ export default function PreparationsView({
   onRestoreBackup,
 }) {
   const [query, setQuery] = useState('');
+  const [showInfo, setShowInfo] = useState(false);
   const activePlayers = party.filter((member) => !member.isNpc);
   const pendingTemplates = templates.filter((entry) => entry.assignmentStatus === 'pending');
   const readyCount = templates.filter((entry) => entry.assignmentStatus === 'unassigned').length;
@@ -98,11 +99,7 @@ export default function PreparationsView({
         <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(245,158,11,0.14),transparent_40%),radial-gradient(circle_at_bottom_left,rgba(120,53,15,0.26),transparent_45%)]" />
         <div className="relative z-10 flex flex-col gap-5 md:flex-row md:items-end md:justify-between">
           <div className="max-w-2xl">
-            <div className="inline-flex items-center gap-2 rounded-full border border-amber-800/40 bg-amber-950/30 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.22em] text-amber-300">
-              <Crown className="h-3.5 w-3.5" />
-              GM Voorbereidingen
-            </div>
-            <h1 className="mt-4 font-fantasy text-3xl tracking-[0.08em] text-stone-100 md:text-4xl">Personages</h1>
+            <h1 className="font-fantasy text-3xl tracking-[0.08em] text-stone-100 md:text-4xl">Personages</h1>
             <p className="mt-3 max-w-xl text-sm leading-7 text-stone-400 md:text-[15px]">
               Bewaar hier complete voorbereidende profielen met avatar, profielwaarden, verborgen eigenschappen en lore,
               zodat je ze later soepel aan een speler kunt koppelen.
@@ -123,10 +120,10 @@ export default function PreparationsView({
             <button
               type="button"
               onClick={onCreatePreparation}
-              className="inline-flex items-center justify-center gap-2 rounded-xl bg-amber-600 px-4 py-2.5 text-sm font-fantasy tracking-[0.14em] text-stone-950 shadow-[0_10px_30px_rgba(217,119,6,0.28)] transition-colors hover:bg-amber-500"
+              className="inline-flex items-center justify-center gap-2 rounded-xl bg-amber-600 px-5 py-3 text-sm font-fantasy tracking-[0.16em] text-stone-950 shadow-[0_14px_32px_rgba(217,119,6,0.28)] transition-colors hover:bg-amber-500"
             >
               <Plus className="h-4 w-4" />
-              Nieuw profiel
+              Nieuw
             </button>
           </div>
         </div>
@@ -139,19 +136,9 @@ export default function PreparationsView({
               <h2 className="font-fantasy text-lg uppercase tracking-[0.14em] text-stone-100">Bibliotheek</h2>
               <p className="mt-1 text-sm leading-6 text-stone-500">Profielen die klaarstaan om te verfijnen, bewaren of uit te delen.</p>
             </div>
-            <div className="flex flex-wrap items-center gap-2 sm:justify-end">
-              <span className="rounded-full border border-stone-800 bg-stone-950/70 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.18em] text-stone-500">
-                {filteredTemplates.length} in beeld
-              </span>
-              <button
-                type="button"
-                onClick={onCreatePreparation}
-                className="inline-flex items-center justify-center gap-2 rounded-lg border border-amber-800/40 bg-amber-950/30 px-3 py-2 text-xs font-fantasy tracking-[0.14em] text-amber-200 transition-colors hover:bg-amber-900/40"
-              >
-                <Plus className="h-3.5 w-3.5" />
-                Nieuw profiel
-              </button>
-            </div>
+            <span className="rounded-full border border-stone-800 bg-stone-950/70 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.18em] text-stone-500">
+              {filteredTemplates.length} in beeld
+            </span>
           </div>
 
           {filteredTemplates.length === 0 ? (
@@ -171,14 +158,11 @@ export default function PreparationsView({
                 <button
                   type="button"
                   onClick={onCreatePreparation}
-                  className="inline-flex items-center justify-center gap-2 rounded-xl bg-amber-600 px-4 py-2.5 text-sm font-fantasy tracking-[0.14em] text-stone-950 shadow-[0_10px_30px_rgba(217,119,6,0.22)] transition-colors hover:bg-amber-500"
+                  className="inline-flex min-w-[220px] items-center justify-center gap-2 rounded-xl bg-amber-600 px-5 py-3 text-sm font-fantasy tracking-[0.16em] text-stone-950 shadow-[0_14px_32px_rgba(217,119,6,0.22)] transition-colors hover:bg-amber-500"
                 >
                   <Plus className="h-4 w-4" />
-                  Nieuw profiel aanmaken
+                  Nieuw
                 </button>
-                <span className="text-[11px] uppercase tracking-[0.18em] text-stone-600">
-                  Daarna kies je op de kaart simpelweg Toewijzen aan speler.
-                </span>
               </div>
             </div>
           ) : (
@@ -267,9 +251,19 @@ export default function PreparationsView({
         </div>
 
         <aside className="rounded-2xl border border-stone-800/80 bg-stone-950/55 p-4 shadow-inner md:p-5">
-          <div className="flex items-center gap-2 text-stone-100">
-            <ShieldCheck className="h-4 w-4 text-emerald-400" />
-            <h2 className="font-fantasy text-lg uppercase tracking-[0.14em]">Overzicht</h2>
+          <div className="flex items-center justify-between gap-3 text-stone-100">
+            <div className="flex items-center gap-2">
+              <ShieldCheck className="h-4 w-4 text-emerald-400" />
+              <h2 className="font-fantasy text-lg uppercase tracking-[0.14em]">Overzicht</h2>
+            </div>
+            <button
+              type="button"
+              onClick={() => setShowInfo((value) => !value)}
+              className={`inline-flex h-9 w-9 items-center justify-center rounded-full border transition-colors ${showInfo ? 'border-amber-800/50 bg-amber-950/30 text-amber-300' : 'border-stone-800 bg-stone-950/70 text-stone-400 hover:text-amber-300'}`}
+              title={showInfo ? 'Verberg extra uitleg' : 'Toon extra uitleg'}
+            >
+              <Info className="h-4 w-4" />
+            </button>
           </div>
 
           <div className="mt-4 grid grid-cols-2 gap-2">
@@ -286,32 +280,33 @@ export default function PreparationsView({
             ))}
           </div>
 
-          <div className="mt-4 flex flex-wrap gap-2">
-            {['Inventaris blijft', 'Wallet blijft', 'Notities blijven'].map((pill) => (
-              <span
-                key={pill}
-                className="rounded-full border border-stone-800 bg-stone-900/70 px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.16em] text-stone-400"
-              >
-                {pill}
-              </span>
-            ))}
-          </div>
+          {showInfo ? (
+            <div className="mt-4 rounded-xl border border-stone-800 bg-stone-950/60 p-4">
+              <div className="flex flex-wrap gap-2">
+                {['Inventaris blijft', 'Wallet blijft', 'Notities blijven'].map((pill) => (
+                  <span
+                    key={pill}
+                    className="rounded-full border border-stone-800 bg-stone-900/70 px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.16em] text-stone-400"
+                  >
+                    {pill}
+                  </span>
+                ))}
+              </div>
 
-          <div className="mt-6 rounded-xl border border-stone-800 bg-stone-950/60 p-4">
-            <div className="text-[10px] font-bold uppercase tracking-[0.18em] text-stone-500">Zo werkt toewijzen</div>
-            <div className="mt-3 space-y-3">
-              {[
-                { title: '1. Nieuw profiel', body: 'Maak een voorbereiding aan of bewaar een bestaand spelersprofiel.' },
-                { title: '2. Werk het profiel af', body: 'Controleer avatar, stats, verborgen eigenschappen en lore.' },
-                { title: '3. Kies Toewijzen aan speler', body: 'Selecteer daarna direct de speler aan wie je dit personage wilt aanbieden.' },
-              ].map((step) => (
-                <article key={step.title} className="rounded-lg border border-stone-800/80 bg-stone-950/50 p-3">
-                  <div className="text-xs font-fantasy uppercase tracking-[0.14em] text-stone-200">{step.title}</div>
-                  <p className="mt-2 text-sm leading-6 text-stone-500">{step.body}</p>
-                </article>
-              ))}
+              <div className="mt-4 space-y-3">
+                {[
+                  { title: '1. Nieuw', body: 'Maak een voorbereiding aan of bewaar een bestaand spelersprofiel.' },
+                  { title: '2. Werk het af', body: 'Controleer avatar, stats, verborgen eigenschappen en lore.' },
+                  { title: '3. Toewijzen aan speler', body: 'Selecteer daarna direct de speler aan wie je dit personage wilt aanbieden.' },
+                ].map((step) => (
+                  <article key={step.title} className="rounded-lg border border-stone-800/80 bg-stone-950/50 p-3">
+                    <div className="text-xs font-fantasy uppercase tracking-[0.14em] text-stone-200">{step.title}</div>
+                    <p className="mt-2 text-sm leading-6 text-stone-500">{step.body}</p>
+                  </article>
+                ))}
+              </div>
             </div>
-          </div>
+          ) : null}
 
           <div className="mt-6 border-t border-stone-800/80 pt-4">
             <div className="flex items-center justify-between gap-3">
