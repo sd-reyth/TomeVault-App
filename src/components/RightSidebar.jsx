@@ -9,6 +9,7 @@ import {
   Pause,
   Pin,
   PinOff,
+  Skull,
   Swords,
   Trash2,
   UserPlus,
@@ -99,6 +100,33 @@ function StatusTurnIndicator({ turnsUntil, ratio, isCurrentTurn }) {
   );
 }
 
+function TurnClockBadge({ turnsUntil, ratio, isCurrentTurn }) {
+  const safeRatio = Math.max(0, Math.min(1, Number(ratio) || 0));
+  const angle = `${Math.round(safeRatio * 360)}deg`;
+
+  return (
+    <div
+      className={`relative flex h-7 w-7 shrink-0 items-center justify-center rounded-full border ${
+        isCurrentTurn
+          ? 'border-amber-500/80 shadow-[0_0_10px_rgba(245,158,11,0.35)]'
+          : 'border-stone-700/80'
+      }`}
+      title={isCurrentTurn ? 'Nu aan zet' : `Nog ${turnsUntil ?? '-'} beurt(en)`}
+    >
+      <div
+        className="absolute inset-0 rounded-full"
+        style={{
+          background: `conic-gradient(var(--color-amber-500) 0deg ${angle}, rgba(255,255,255,0.08) ${angle} 360deg)`,
+        }}
+      />
+      <div className="absolute inset-[2px] rounded-full bg-stone-950/90" />
+      <span className={`relative z-10 text-[9px] font-fantasy tracking-[0.14em] ${isCurrentTurn ? 'text-amber-100' : 'text-stone-300'}`}>
+        {isCurrentTurn ? 'NU' : (turnsUntil ?? '-')}
+      </span>
+    </div>
+  );
+}
+
 function OverlayDialog({ title, description, children, onClose, actions, showCloseButton = true }) {
   return (
     <div className="fixed inset-0 z-[70] flex items-center justify-center bg-stone-950/80 p-4 backdrop-blur-sm">
@@ -163,6 +191,7 @@ function RightSidebar({
   const [tieResolutionState, setTieResolutionState] = useState(null);
   const [kickTarget, setKickTarget] = useState(null);
   const [joinApprovalTarget, setJoinApprovalTarget] = useState(null);
+  const [endCombatConfirmOpen, setEndCombatConfirmOpen] = useState(false);
   const dragStateRef = useRef({ startX: 0, startWidth: RIGHT_SIDEBAR_DEFAULT_WIDTH });
 
   const isGm = role === 'gm';
@@ -396,11 +425,12 @@ function RightSidebar({
   };
 
   const handleEndCombatClick = async () => {
-    if (!battlePaused || isActionBusy) return;
+    if (!combatInProgress || isActionBusy) return;
     setStatusError('');
     setIsActionBusy(true);
     try {
       await onEndCombat?.();
+      setEndCombatConfirmOpen(false);
     } catch (error) {
       console.error('Gevecht beëindigen fout:', error);
       setStatusError('Gevecht beëindigen is mislukt.');
@@ -645,43 +675,56 @@ function RightSidebar({
         <div className="mt-14 border-b border-stone-800 bg-stone-900/85 px-3.5 py-3 md:mt-0 md:px-4 md:py-3.5">
           <div className="relative">
             {isGm ? (
-              <button
-                type="button"
-                disabled={isActionBusy}
-                onClick={handleStatusAction}
+              <div
                 className={`w-full rounded-2xl border px-4 py-4 text-left shadow-[0_0_18px_rgba(0,0,0,0.2)] transition-all ${
                   combatStatus === COMBAT_STATUS.IDLE
                     ? 'border-amber-900/50 bg-gradient-to-r from-stone-950 to-stone-900 hover:border-amber-700/60 hover:from-stone-900 hover:to-stone-950'
                     : (combatStatus === COMBAT_STATUS.PAUSED
                       ? 'border-stone-700/80 bg-gradient-to-r from-stone-950 to-stone-900 hover:border-amber-700/40'
                       : 'border-amber-700/60 bg-gradient-to-r from-amber-950/45 to-stone-950 hover:border-amber-500/70')
-                } ${isActionBusy ? 'cursor-wait opacity-80' : ''}`}
+                } ${isActionBusy ? 'opacity-80' : ''}`}
               >
-                <div className="flex items-center gap-3 pr-18 md:pr-24">
-                  <div className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border ${combatStatus === COMBAT_STATUS.ACTIVE ? 'border-amber-700/60 bg-amber-950/35 text-amber-300' : 'border-stone-700/70 bg-stone-950/70 text-amber-500'}`}>
+                <div className="flex items-center gap-3">
+                  <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border ${combatStatus === COMBAT_STATUS.ACTIVE ? 'border-amber-700/60 bg-amber-950/35 text-amber-300' : 'border-stone-700/70 bg-stone-950/70 text-amber-500'}`}>
                     <StatusIcon className="h-5 w-5" />
                   </div>
 
                   <div className="min-w-0 flex-1">
                     <div className="flex flex-wrap items-center gap-2">
-                      <span className="font-fantasy text-base tracking-[0.18em] text-stone-100 md:text-lg">{statusTitle}</span>
+                      <span className="font-fantasy text-sm tracking-[0.18em] text-stone-100 md:text-base">{statusTitle}</span>
                       {combatInProgress ? (
                         <span className="rounded-full border border-amber-900/50 bg-amber-950/35 px-2.5 py-1 text-[9px] font-bold uppercase tracking-[0.18em] text-amber-400 shadow-inner">
                           Ronde {turnRound}
                         </span>
                       ) : null}
                     </div>
-                    <p className="mt-1 text-sm leading-6 text-stone-300 md:text-[13px] md:leading-6">{gmStatusLine}</p>
-                    <p className="mt-1 text-xs leading-5 text-stone-500 md:text-[12px] md:leading-5">{statusSubtitle}</p>
+                    <p className="mt-1 text-xs leading-5 text-stone-300 md:text-[13px] md:leading-6">{gmStatusLine}</p>
                   </div>
-
-                  {statusActionLabel ? (
-                    <span className="ml-auto hidden shrink-0 rounded-full border border-amber-800/40 bg-amber-950/35 px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.2em] text-amber-200 sm:inline-flex">
-                      {statusActionLabel}
-                    </span>
-                  ) : null}
                 </div>
-              </button>
+
+                <div className="mt-3 grid grid-cols-[1fr_auto] gap-2">
+                  {statusActionLabel ? (
+                    <button
+                      type="button"
+                      disabled={isActionBusy}
+                      onClick={handleStatusAction}
+                      className={`h-9 rounded-lg border text-xs font-fantasy uppercase tracking-[0.16em] transition-colors ${combatStatus === COMBAT_STATUS.ACTIVE ? 'border-amber-700/60 bg-amber-950/35 text-amber-200 hover:border-amber-500/70 hover:bg-amber-900/35' : 'border-stone-700 bg-stone-950 text-stone-200 hover:border-amber-700/60 hover:text-amber-300'} ${isActionBusy ? 'cursor-wait opacity-70' : ''}`}
+                    >
+                      {statusActionLabel}
+                    </button>
+                  ) : <div />}
+
+                  <button
+                    type="button"
+                    onClick={() => setEndCombatConfirmOpen(true)}
+                    disabled={!combatInProgress || isActionBusy}
+                    className={`inline-flex h-9 w-9 items-center justify-center rounded-lg border transition-colors ${combatInProgress && !isActionBusy ? 'border-rose-700/70 bg-rose-950/40 text-rose-300 hover:border-rose-500/80 hover:bg-rose-900/40 hover:text-rose-100' : 'cursor-not-allowed border-stone-800 bg-stone-950/60 text-stone-600'}`}
+                    title={combatInProgress ? 'Beëindig gevecht direct' : 'Nog geen gevecht om te beëindigen'}
+                  >
+                    <Skull className="h-4 w-4" />
+                  </button>
+                </div>
+              </div>
             ) : (
               <div className={`w-full rounded-2xl border px-4 py-4 text-left shadow-[0_0_18px_rgba(0,0,0,0.2)] ${
                 combatStatus === COMBAT_STATUS.IDLE
@@ -831,6 +874,12 @@ function RightSidebar({
 
           {sortedParty.map((member) => {
             const isCurrentTurn = combatInProgress && member.id === currentTurnId;
+            const turnsUntilMember = combatInProgress
+              ? getTurnsUntilMember(sortedParty, initiativeOrder, currentTurnId, member.id)
+              : null;
+            const turnRatioMember = combatInProgress
+              ? getTurnApproachRatio(sortedParty, initiativeOrder, currentTurnId, member.id)
+              : 0;
             const initiativeEditable = isGm
               ? combatStatus !== COMBAT_STATUS.ACTIVE
               : (combatStatus === COMBAT_STATUS.IDLE && member.id === currentPlayerId);
@@ -890,14 +939,23 @@ function RightSidebar({
                     <span className={`mr-2 truncate font-fantasy text-sm tracking-wider ${member.isNpc ? 'text-rose-400' : 'text-amber-100'}`}>
                       {member.name}
                     </span>
-                    <span className={`shrink-0 rounded border bg-stone-950 px-2 py-0.5 font-serif text-xs font-bold ${member.isNpc ? 'border-rose-900/50 text-rose-500' : 'border-amber-900/50 text-amber-500'} ${isCurrentTurn ? 'bg-stone-900 shadow-inner' : ''}`}>
-                      <EditableStat
-                        value={member.init}
-                        onChange={(value) => onUpdateStat?.(member.id, 'init', value)}
-                        disabled={!initiativeEditable}
-                        title={initiativeEditable ? 'Bewerk initiative' : 'Initiative score'}
-                      />
-                    </span>
+                    <div className="flex items-center gap-1.5">
+                      {combatInProgress ? (
+                        <TurnClockBadge
+                          turnsUntil={turnsUntilMember}
+                          ratio={turnRatioMember}
+                          isCurrentTurn={isCurrentTurn}
+                        />
+                      ) : null}
+                      <span className={`shrink-0 rounded border bg-stone-950 px-2 py-0.5 font-serif text-xs font-bold ${member.isNpc ? 'border-rose-900/50 text-rose-500' : 'border-amber-900/50 text-amber-500'} ${isCurrentTurn ? 'bg-stone-900 shadow-inner' : ''}`}>
+                        <EditableStat
+                          value={member.init}
+                          onChange={(value) => onUpdateStat?.(member.id, 'init', value)}
+                          disabled={!initiativeEditable}
+                          title={initiativeEditable ? 'Bewerk initiative' : 'Initiative score'}
+                        />
+                      </span>
+                    </div>
                   </div>
 
                   <div className="mt-0.5 flex gap-1.5 font-sans text-[10px] md:gap-2 md:text-[11px]">
@@ -968,19 +1026,40 @@ function RightSidebar({
               </button>
             ) : null}
 
-            {battlePaused ? (
+          </div>
+        ) : null}
+      </aside>
+
+      {endCombatConfirmOpen ? (
+        <OverlayDialog
+          title="Gevecht direct beëindigen"
+          description="Dit zet de tracker terug naar ruststand. Initiative-volgorde en actieve beurt worden gestopt."
+          onClose={() => setEndCombatConfirmOpen(false)}
+          actions={(
+            <>
+              <button
+                type="button"
+                onClick={() => setEndCombatConfirmOpen(false)}
+                className="rounded-lg px-4 py-2 text-sm text-stone-400 transition-colors hover:text-stone-200"
+              >
+                Annuleer
+              </button>
               <button
                 type="button"
                 onClick={handleEndCombatClick}
                 disabled={isActionBusy}
-                className="flex h-10 w-full items-center justify-center gap-2 rounded-lg border border-rose-900/50 bg-rose-950/30 text-xs font-fantasy uppercase tracking-[0.16em] text-rose-300 transition-colors hover:bg-rose-900/40 disabled:cursor-not-allowed disabled:opacity-60"
+                className="inline-flex items-center gap-2 rounded-lg border border-rose-700/70 bg-rose-950/40 px-4 py-2 text-sm font-fantasy tracking-[0.12em] text-rose-200 transition-colors hover:border-rose-500/80 hover:bg-rose-900/40 disabled:opacity-60"
               >
-                Beëindig Gevecht
+                <Skull className="h-4 w-4" /> Beëindig
               </button>
-            ) : null}
+            </>
+          )}
+        >
+          <div className="rounded-xl border border-rose-900/40 bg-rose-950/20 px-3 py-3 text-sm leading-6 text-rose-200">
+            Gebruik dit alleen wanneer je het gevecht volledig wilt afbreken. Pauzeren kan nog steeds via de hoofdactieknop.
           </div>
-        ) : null}
-      </aside>
+        </OverlayDialog>
+      ) : null}
 
       {pendingMissingAction ? (
         <OverlayDialog
