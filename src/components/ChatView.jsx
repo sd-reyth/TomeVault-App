@@ -175,8 +175,8 @@ function ChatView({ chat, setChat, role, uid, playerName, onSendMessageRemote, o
 
       {/* Color picker overlay */}
       {showColorPicker && (
-        <div className="absolute inset-0 bg-stone-950/85 z-30 flex items-center justify-center p-4 backdrop-blur-sm">
-          <div className="bg-stone-900 border border-stone-700/60 rounded-2xl p-5 md:p-6 max-w-xs w-full shadow-2xl">
+        <div className="absolute inset-0 bg-stone-950/85 z-30 flex items-start justify-center overflow-y-auto p-4 backdrop-blur-sm">
+          <div className="bg-stone-900 border border-stone-700/60 rounded-2xl p-4 md:p-6 max-w-xs w-full shadow-2xl my-auto shrink-0">
             <div className="flex justify-between items-center mb-1">
               <h3 className="font-fantasy text-stone-100 text-sm tracking-wider uppercase">Kies jouw kleur</h3>
               {chatColor && (

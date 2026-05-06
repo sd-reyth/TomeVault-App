@@ -66,6 +66,45 @@ function getLandingJoinContext() {
   };
 }
 
+function BackfillButton({ onBackfillMemberships }) {
+  const [loading, setLoading] = useState(false);
+  const [done, setDone] = useState(false);
+
+  const handleClick = async () => {
+    setLoading(true);
+    setDone(false);
+    try {
+      await onBackfillMemberships?.();
+    } finally {
+      setLoading(false);
+      setDone(true);
+    }
+  };
+
+  return (
+    <button
+      type="button"
+      onClick={handleClick}
+      disabled={loading}
+      className="landing-action-button border-stone-700/80 bg-stone-950/75 text-stone-300 hover:border-amber-700/50 hover:text-amber-200 disabled:opacity-70 inline-flex items-center gap-2"
+    >
+      {loading ? (
+        <>
+          <svg className="h-3.5 w-3.5 animate-spin text-amber-400" viewBox="0 0 24 24" fill="none">
+            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z" />
+          </svg>
+          Sessies herstellen…
+        </>
+      ) : done ? (
+        'Klaar — ververs de pagina als je sessie er niet bij staat'
+      ) : (
+        'Herstel oudere sessies'
+      )}
+    </button>
+  );
+}
+
 export default function LandingScreen({
   onJoin,
   onResumeRecentSession,
@@ -804,6 +843,11 @@ export default function LandingScreen({
                     <p className="max-w-2xl text-base md:text-lg text-stone-300 font-story leading-relaxed">
                       We zoeken je laatste sessie erbij.
                     </p>
+                    {uid && (
+                      <div className="mt-4">
+                        <BackfillButton onBackfillMemberships={onBackfillMemberships} />
+                      </div>
+                    )}
                   </>
                 )}
               </div>

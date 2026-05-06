@@ -256,7 +256,7 @@ export default function PreparationsView({
             </button>
           </div>
 
-          <div className="mt-4 grid grid-flow-col auto-cols-[minmax(132px,1fr)] gap-2 overflow-x-auto pb-1 no-scrollbar sm:grid-cols-4 sm:grid-flow-row sm:auto-cols-auto sm:overflow-visible sm:pb-0 xl:grid-cols-2">
+          <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-4 xl:grid-cols-2">
             {[
               { label: 'Klaar', value: readyCount },
               { label: 'Open', value: pendingTemplates.length },

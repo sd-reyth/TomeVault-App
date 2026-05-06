@@ -72,8 +72,42 @@ export function isLegacyEmptyProfilePlaceholder(url) {
   return LEGACY_PROFILE_PICKABLE_PLACEHOLDERS.includes(url);
 }
 
+export function normalizeAvatarUrl(url) {
+  const raw = String(url || '').trim();
+  if (!raw) return null;
+
+  if (raw.startsWith('blob:')) return null;
+
+  if (raw.startsWith('/placeholders/') || raw.startsWith('/references/')) return raw;
+  if (raw.startsWith('placeholders/') || raw.startsWith('references/')) return `/${raw}`;
+
+  if (raw.startsWith('/emptyProfilePictures/')) {
+    return `/placeholders${raw}`;
+  }
+  if (raw.startsWith('emptyProfilePictures/')) {
+    return `/placeholders/${raw}`;
+  }
+
+  try {
+    const parsed = new URL(raw, 'https://tomevault.local');
+    const pathname = parsed.pathname || '';
+
+    if (pathname.startsWith('/placeholders/') || pathname.startsWith('/references/')) {
+      return pathname;
+    }
+    if (pathname.startsWith('/emptyProfilePictures/')) {
+      return `/placeholders${pathname}`;
+    }
+  } catch (_) {
+    // Leave non-URL values untouched.
+  }
+
+  return raw;
+}
+
 export function resolveDisplayAvatar(url, id) {
-  if (url && !url.startsWith('blob:') && !isLegacyEmptyProfilePlaceholder(url)) return url;
+  const normalizedUrl = normalizeAvatarUrl(url);
+  if (normalizedUrl && !isLegacyEmptyProfilePlaceholder(normalizedUrl)) return normalizedUrl;
   const hash = String(id || '').split('').reduce((acc, c) => acc + c.charCodeAt(0), 0);
   return PROFILE_RANDOM_PLACEHOLDERS[hash % PROFILE_RANDOM_PLACEHOLDERS.length];
 }

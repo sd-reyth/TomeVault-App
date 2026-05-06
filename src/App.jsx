@@ -68,6 +68,7 @@ import {
   getVerifiedAmbienceTracks,
   normalizeAmbienceState,
 } from './lib/ambienceLibrary';
+import { normalizeAvatarUrl } from './lib/placeholders';
 import LandingScreen from './components/LandingScreen';
 import QRJoinScreen from './components/QRJoinScreen';
 import TopBar from './components/TopBar';
@@ -85,6 +86,7 @@ import NotesView from './components/NotesView';
 import EditableStat from './components/EditableStat';
 import SettingsModal from './components/SettingsModal';
 import SessionManageModal from './components/SessionManageModal';
+import SourcelistModal from './components/SourcelistModal';
 import AddItemModal from './components/AddItemModal';
 import HandoutModal from './components/HandoutModal';
 import CharacterProfileModal from './components/CharacterProfileModal';
@@ -190,7 +192,7 @@ function normalizePreparationDoc(docSnap) {
     name: String(data.name || '').trim() || 'Naamloos personage',
     subtitle: String(data.subtitle || '').trim(),
     bio: String(data.bio || '').trim(),
-    imageUrl: String(data.imageUrl || data.avatarUrl || '').trim() || null,
+    imageUrl: normalizeAvatarUrl(data.imageUrl || data.avatarUrl),
     hp: Number(data.hp ?? data.hitPoints ?? 0),
     maxHp: Number(data.maxHp ?? data.maxHitPoints ?? data.hp ?? data.hitPoints ?? 0),
     ac: Number(data.ac ?? data.armorClass ?? 10),
@@ -224,7 +226,7 @@ function normalizePreparationBackupDoc(docSnap) {
       name: String(snapshot.name || '').trim(),
       subtitle: String(snapshot.subtitle || '').trim(),
       bio: String(snapshot.bio || '').trim(),
-      avatarUrl: String(snapshot.avatarUrl || '').trim() || null,
+      avatarUrl: normalizeAvatarUrl(snapshot.avatarUrl),
       hp: Number(snapshot.hp ?? 0),
       maxHp: Number(snapshot.maxHp ?? snapshot.hp ?? 0),
       ac: Number(snapshot.ac ?? 10),
@@ -239,7 +241,7 @@ function snapshotPreparationFromCharacter(character = {}) {
     name: String(character.name || '').trim(),
     subtitle: String(character.subtitle || '').trim(),
     bio: String(character.bio || '').trim(),
-    imageUrl: String(character.avatar || '').trim() || null,
+    imageUrl: normalizeAvatarUrl(character.avatar),
     hp: Number(character.hp ?? 0),
     maxHp: Number(character.maxHp ?? character.hp ?? 0),
     ac: Number(character.ac ?? 10),
@@ -255,7 +257,7 @@ function buildPreparationBackupSnapshot(player = {}, fallbacks = {}) {
     name: String(player.name || fallbacks.name || '').trim(),
     subtitle: String(player.subtitle || fallbacks.subtitle || '').trim(),
     bio: String(player.bio || fallbacks.bio || '').trim(),
-    avatarUrl: String(player.avatar || fallbacks.avatarUrl || '').trim() || null,
+    avatarUrl: normalizeAvatarUrl(player.avatar || fallbacks.avatarUrl),
     hp: Number(player.hp ?? fallbacks.hp ?? 0),
     maxHp: Number(player.maxHp ?? fallbacks.maxHp ?? player.hp ?? fallbacks.hp ?? 0),
     ac: Number(player.ac ?? fallbacks.ac ?? 10),
@@ -270,6 +272,54 @@ const DEFAULT_COMBAT_STATE = {
   turnRound: 1,
   initiativeOrder: [],
 };
+
+const ACTIVE_SESSION_STORAGE_KEY = 'tomevault:active-session:v1';
+const APP_BACK_GUARD_KEY = '__tvInAppGuard';
+
+function readPersistedActiveSession() {
+  if (typeof window === 'undefined') return null;
+
+  try {
+    const raw = window.sessionStorage.getItem(ACTIVE_SESSION_STORAGE_KEY);
+    if (!raw) return null;
+
+    const parsed = JSON.parse(raw);
+    if (!parsed || parsed.view !== 'dashboard') return null;
+    if (!['gm', 'player'].includes(parsed.role)) return null;
+    if (!String(parsed.sessionDocId || '').trim()) return null;
+
+    return {
+      view: 'dashboard',
+      role: parsed.role,
+      sessionId: String(parsed.sessionId || '').trim(),
+      sessionDocId: String(parsed.sessionDocId || '').trim(),
+      activeTab: String(parsed.activeTab || 'handouts').trim() || 'handouts',
+      playerName: String(parsed.playerName || '').trim(),
+    };
+  } catch (_) {
+    return null;
+  }
+}
+
+function clearPersistedActiveSession() {
+  if (typeof window === 'undefined') return;
+
+  try {
+    window.sessionStorage.removeItem(ACTIVE_SESSION_STORAGE_KEY);
+  } catch (_) {
+    // no-op
+  }
+}
+
+function writePersistedActiveSession(payload) {
+  if (typeof window === 'undefined') return;
+
+  try {
+    window.sessionStorage.setItem(ACTIVE_SESSION_STORAGE_KEY, JSON.stringify(payload));
+  } catch (_) {
+    // no-op
+  }
+}
 
 function normalizeCombatSessionState(sessionData = {}) {
   const fallbackStatus = sessionData?.battleActive ? COMBAT_STATUS.ACTIVE : COMBAT_STATUS.IDLE;
@@ -301,13 +351,14 @@ function buildCombatSessionPatch(combatState = {}) {
 // --- COMPONENTEN ---
 
 export default function TomeVaultApp() {
-  const [view, setView] = useState('landing');
-  const [role, setRole] = useState(null);
-  const [sessionId, setSessionId] = useState('');
-  const [sessionDocId, setSessionDocId] = useState('');
+  const persistedActiveSession = useMemo(() => readPersistedActiveSession(), []);
+  const [view, setView] = useState(() => persistedActiveSession?.view || 'landing');
+  const [role, setRole] = useState(() => persistedActiveSession?.role || null);
+  const [sessionId, setSessionId] = useState(() => persistedActiveSession?.sessionId || '');
+  const [sessionDocId, setSessionDocId] = useState(() => persistedActiveSession?.sessionDocId || '');
   const [showShareModal, setShowShareModal] = useState(false);
-  const [activeTab, setActiveTab] = useState('handouts');
-  const [playerName, setPlayerName] = useState('');
+  const [activeTab, setActiveTab] = useState(() => persistedActiveSession?.activeTab || 'handouts');
+  const [playerName, setPlayerName] = useState(() => persistedActiveSession?.playerName || '');
 
   // Detect QR invite code from URL on mount (once, never changes)
   const [qrInviteCode] = useState(() => {
@@ -380,6 +431,28 @@ export default function TomeVaultApp() {
   const [initiativeOrder, setInitiativeOrder] = useState([]);
   const battleActive = combatStatus === COMBAT_STATUS.ACTIVE;
   const battlePaused = combatStatus === COMBAT_STATUS.PAUSED;
+  const leaveSessionRef = useRef(() => {});
+  const appBackStackRef = useRef([]);
+  const appBackTrackerRef = useRef({
+    initialized: false,
+    activeTab: 'handouts',
+    isPartyOpen: false,
+    isAmbiencePanelOpen: false,
+    showShareModal: false,
+    isSettingsOpen: false,
+    isSessionPanelOpen: false,
+    isSourcelistOpen: false,
+    isNpcModalOpen: false,
+    isAddItemModalOpen: false,
+    hasDamageModal: false,
+    hasProfileModal: false,
+    hasHandoutModal: false,
+    hasPreparationModal: false,
+    hasAssignPreparationModal: false,
+    hasPreparationOfferModal: false,
+  });
+  const isHandlingInAppBackRef = useRef(false);
+  const hasBackGuardRef = useRef(false);
 
   // State voor mobiele lay-out en modals
   const [isPartyOpen, setIsPartyOpen] = useState(false);
@@ -388,6 +461,7 @@ export default function TomeVaultApp() {
   const [isAddItemModalOpen, setIsAddItemModalOpen] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isSessionPanelOpen, setIsSessionPanelOpen] = useState(false);
+  const [isSourcelistOpen, setIsSourcelistOpen] = useState(false);
   const [damageTarget, setDamageTarget] = useState(null);
   const [profileTarget, setProfileTarget] = useState(null);
   const [selectedHandout, setSelectedHandout] = useState(null);
@@ -959,6 +1033,9 @@ export default function TomeVaultApp() {
     resetAmbienceState();
     setIsPartyOpen(false);
     resetCombatState();
+    appBackStackRef.current = [];
+    appBackTrackerRef.current.initialized = false;
+    hasBackGuardRef.current = false;
   };
 
   const handleLeaveSession = () => {
@@ -973,7 +1050,13 @@ export default function TomeVaultApp() {
     resetAmbienceState();
     setIsPartyOpen(false);
     resetCombatState();
+    clearPersistedActiveSession();
+    appBackStackRef.current = [];
+    appBackTrackerRef.current.initialized = false;
+    hasBackGuardRef.current = false;
   };
+
+  leaveSessionRef.current = handleLeaveSession;
 
   const handleBackfillMemberships = async () => {
     if (!uid) return;
@@ -1146,6 +1229,10 @@ export default function TomeVaultApp() {
         setView('landing');
         setRecentSessions([]);
         resetAmbienceState();
+        clearPersistedActiveSession();
+        appBackStackRef.current = [];
+        appBackTrackerRef.current.initialized = false;
+        hasBackGuardRef.current = false;
       }
       setAuthLoading(false);
     });
@@ -1209,6 +1296,197 @@ export default function TomeVaultApp() {
     const preferredRole = latestActiveRecentSession.role === 'dm' ? 'gm' : 'player';
     handleResumeRecentSession(latestActiveRecentSession, preferredRole);
   }, [authLoading, latestActiveRecentSession, recentSessionsLoaded, sessionBusy, sessionDocId, uid, view]);
+
+  useEffect(() => {
+    if (view === 'dashboard' && sessionDocId && role) {
+      writePersistedActiveSession({
+        view: 'dashboard',
+        role,
+        sessionId,
+        sessionDocId,
+        activeTab,
+        playerName,
+        savedAt: Date.now(),
+      });
+      return;
+    }
+
+    if (!authLoading && view === 'landing') {
+      clearPersistedActiveSession();
+    }
+  }, [activeTab, authLoading, playerName, role, sessionDocId, sessionId, view]);
+
+  useEffect(() => {
+    const pushInAppBackAction = (action) => {
+      if (typeof window === 'undefined') return;
+      if (view !== 'dashboard') return;
+      if (isHandlingInAppBackRef.current) return;
+
+      appBackStackRef.current.push(action);
+      window.history.pushState({ [APP_BACK_GUARD_KEY]: true }, '', window.location.href);
+      hasBackGuardRef.current = true;
+    };
+
+    if (view !== 'dashboard') {
+      appBackStackRef.current = [];
+      appBackTrackerRef.current.initialized = false;
+      hasBackGuardRef.current = false;
+      return;
+    }
+
+    const currentState = {
+      activeTab,
+      isPartyOpen,
+      isAmbiencePanelOpen,
+      showShareModal,
+      isSettingsOpen,
+      isSessionPanelOpen,
+      isSourcelistOpen,
+      isNpcModalOpen,
+      isAddItemModalOpen,
+      hasDamageModal: Boolean(damageTarget),
+      hasProfileModal: Boolean(profileTarget),
+      hasHandoutModal: Boolean(selectedHandout),
+      hasPreparationModal: selectedPreparation !== null,
+      hasAssignPreparationModal: Boolean(assigningPreparation),
+      hasPreparationOfferModal: Boolean(pendingPreparationOffer) && role === 'player',
+    };
+
+    if (!hasBackGuardRef.current && typeof window !== 'undefined') {
+      window.history.pushState({ [APP_BACK_GUARD_KEY]: true }, '', window.location.href);
+      hasBackGuardRef.current = true;
+    }
+
+    if (!appBackTrackerRef.current.initialized) {
+      appBackTrackerRef.current = {
+        initialized: true,
+        ...currentState,
+      };
+      return;
+    }
+
+    const previousState = appBackTrackerRef.current;
+
+    if (previousState.activeTab !== currentState.activeTab) {
+      pushInAppBackAction({ type: 'tab', previousTab: previousState.activeTab || 'handouts' });
+    }
+
+    const closableFlags = [
+      ['isPartyOpen', 'party'],
+      ['isAmbiencePanelOpen', 'ambiencePanel'],
+      ['showShareModal', 'shareModal'],
+      ['isSettingsOpen', 'settingsModal'],
+      ['isSessionPanelOpen', 'sessionPanel'],
+      ['isSourcelistOpen', 'sourcelistModal'],
+      ['isNpcModalOpen', 'npcModal'],
+      ['isAddItemModalOpen', 'addItemModal'],
+      ['hasDamageModal', 'damageModal'],
+      ['hasProfileModal', 'profileModal'],
+      ['hasHandoutModal', 'handoutModal'],
+      ['hasPreparationModal', 'preparationModal'],
+      ['hasAssignPreparationModal', 'assignPreparationModal'],
+      ['hasPreparationOfferModal', 'preparationOfferModal'],
+    ];
+
+    closableFlags.forEach(([flagKey, target]) => {
+      if (!previousState[flagKey] && currentState[flagKey]) {
+        pushInAppBackAction({ type: 'close', target });
+      }
+    });
+
+    appBackTrackerRef.current = {
+      initialized: true,
+      ...currentState,
+    };
+  }, [
+    activeTab,
+    assigningPreparation,
+    damageTarget,
+    isAddItemModalOpen,
+    isAmbiencePanelOpen,
+    isNpcModalOpen,
+    isPartyOpen,
+    isSessionPanelOpen,
+    isSettingsOpen,
+    isSourcelistOpen,
+    pendingPreparationOffer,
+    profileTarget,
+    role,
+    selectedHandout,
+    selectedPreparation,
+    showShareModal,
+    view,
+  ]);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return undefined;
+
+    const closeTargetByName = (target) => {
+      if (target === 'handoutModal') {
+        setSelectedHandout(null);
+      } else if (target === 'preparationModal') {
+        setSelectedPreparation(null);
+      } else if (target === 'assignPreparationModal') {
+        setAssigningPreparation(null);
+      } else if (target === 'profileModal') {
+        setProfileTarget(null);
+      } else if (target === 'damageModal') {
+        setDamageTarget(null);
+      } else if (target === 'addItemModal') {
+        setIsAddItemModalOpen(false);
+      } else if (target === 'npcModal') {
+        setIsNpcModalOpen(false);
+      } else if (target === 'settingsModal') {
+        setIsSettingsOpen(false);
+      } else if (target === 'sessionPanel') {
+        setIsSessionPanelOpen(false);
+      } else if (target === 'sourcelistModal') {
+        setIsSourcelistOpen(false);
+      } else if (target === 'shareModal') {
+        setShowShareModal(false);
+      } else if (target === 'ambiencePanel') {
+        setIsAmbiencePanelOpen(false);
+      } else if (target === 'party') {
+        setIsPartyOpen(false);
+      } else if (target === 'preparationOfferModal') {
+        setPendingPreparationOffer(null);
+      }
+    };
+
+    const handlePopState = () => {
+      if (view !== 'dashboard') {
+        hasBackGuardRef.current = false;
+        appBackStackRef.current = [];
+        appBackTrackerRef.current.initialized = false;
+        return;
+      }
+
+      const action = appBackStackRef.current.pop();
+      if (!action) {
+        leaveSessionRef.current();
+        return;
+      }
+
+      isHandlingInAppBackRef.current = true;
+
+      if (action.type === 'tab') {
+        setActiveTab(action.previousTab || 'handouts');
+      }
+
+      if (action.type === 'close') {
+        closeTargetByName(action.target);
+      }
+
+      window.setTimeout(() => {
+        isHandlingInAppBackRef.current = false;
+      }, 0);
+    };
+
+    window.addEventListener('popstate', handlePopState);
+    return () => {
+      window.removeEventListener('popstate', handlePopState);
+    };
+  }, [view]);
 
   useEffect(() => {
     if (!sessionDocId || view !== 'dashboard') return undefined;
@@ -2348,6 +2626,11 @@ export default function TomeVaultApp() {
       }
     }
 
+    finalChar = {
+      ...finalChar,
+      avatar: normalizeAvatarUrl(finalChar.avatar),
+    };
+
     setParty(party.map(p => p.id === finalChar.id ? finalChar : p));
     setProfileTarget(null);
     if (sessionDocId) {
@@ -2834,13 +3117,14 @@ export default function TomeVaultApp() {
           onOpenProfile={() => setProfileTarget(party.find(p => p.id === CURRENT_PLAYER_ID))}
           onOpenSettings={() => setIsSettingsOpen(true)}
           onOpenSessionPanel={() => setIsSessionPanelOpen(true)}
+          onOpenSourcelist={() => setIsSourcelistOpen(true)}
           runtimeBadge={runtimeBadge}
         />
         
         <div className="flex flex-1 overflow-hidden relative">
           <Sidebar activeTab={activeTab} setActiveTab={setActiveTab} onOpenSettings={() => setIsSettingsOpen(true)} role={role} />
           
-          <main className="flex-1 overflow-y-auto p-4 md:p-6 pb-24 md:pb-6 relative no-scrollbar">
+          <main className={`flex-1 overflow-y-auto p-4 md:p-6 relative no-scrollbar ${activeTab === 'chat' ? 'pb-[72px] md:pb-6' : 'pb-[76px] md:pb-6'}`}>
             <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-96 bg-amber-900/5 blur-[100px] pointer-events-none" />
             
             <div className="max-w-[1120px] mx-auto h-full relative z-10">
@@ -3084,6 +3368,13 @@ export default function TomeVaultApp() {
           sessionNumber={campaignSessionNumber}
           onSaveSessionNumber={async (n) => { await handleUpdateCampaignSessionNumber(n); }}
           onOpenShare={() => { setIsSessionPanelOpen(false); setShowShareModal(true); }}
+        />
+
+        <SourcelistModal
+          isOpen={isSourcelistOpen}
+          onClose={() => setIsSourcelistOpen(false)}
+          verifiedTracks={verifiedAmbienceTracks}
+          archivedTracks={archivedAmbienceTracks}
         />
       </div>
   );

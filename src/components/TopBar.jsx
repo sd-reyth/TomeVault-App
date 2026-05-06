@@ -4,7 +4,7 @@ import AmbiencePanel from './AmbiencePanel';
 import RuntimeBadge from './RuntimeBadge';
 import { COMBAT_STATUS, getTurnApproachRatio, getTurnsUntilMember, sortPartyByInitiative } from '../lib/battleUtils';
 
-export default function TopBar({ role, sessionId, sessionNumber, combatStatus, currentTurnId, initiativeOrder, party, currentPlayerId, onLogout, ambience, onToggleAmbiencePanel, onCloseAmbiencePanel, onToggleAmbiencePlayback, onSelectAmbienceTrack, onSetSessionAmbienceVolume, onSetListenerAmbienceVolume, onUnlockAmbienceAudio, onToggleParty, onOpenShare, onOpenProfile, onOpenSettings, onOpenSessionPanel, runtimeBadge }) {
+export default function TopBar({ role, sessionId, sessionNumber, combatStatus, currentTurnId, initiativeOrder, party, currentPlayerId, onLogout, ambience, onToggleAmbiencePanel, onCloseAmbiencePanel, onToggleAmbiencePlayback, onSelectAmbienceTrack, onSetSessionAmbienceVolume, onSetListenerAmbienceVolume, onUnlockAmbienceAudio, onToggleParty, onOpenShare, onOpenProfile, onOpenSettings, onOpenSessionPanel, onOpenSourcelist, runtimeBadge }) {
   const sortedParty = sortPartyByInitiative(Array.isArray(party) ? party : [], Array.isArray(initiativeOrder) ? initiativeOrder : []);
   const turnsUntilMine = getTurnsUntilMember(sortedParty, initiativeOrder, currentTurnId, currentPlayerId);
   const turnApproachRatio = getTurnApproachRatio(sortedParty, initiativeOrder, currentTurnId, currentPlayerId);
@@ -83,14 +83,14 @@ export default function TopBar({ role, sessionId, sessionNumber, combatStatus, c
   return (
     <header className="relative h-14 md:h-16 bg-stone-900/80 backdrop-blur border-b border-stone-800 flex items-center justify-between px-3 md:px-5 shrink-0 z-30">
       <div className="flex items-center gap-2 md:gap-3 min-w-0">
-        <Flame className="w-5 h-5 md:w-6 md:h-6 text-amber-600" />
+        <img src="/references/tomeVaultLogo1.png" alt="TomeVault" className="h-7 w-7 md:h-8 md:w-8 object-contain shrink-0" />
         <span className="font-bold text-lg md:text-xl tracking-widest text-stone-100 font-fantasy hidden sm:block">
           TOME<span className="text-amber-600">VAULT</span>
         </span>
 
         <div className="ml-1 md:ml-3 flex items-center gap-1.5 md:gap-2 min-w-0">
           <div
-            className="h-9 px-2.5 md:px-3 rounded-lg border border-amber-800/40 bg-amber-950/25 shadow-inner flex items-center"
+            className="h-9 px-2.5 md:px-3 rounded-lg border border-amber-800/40 bg-amber-950/25 shadow-inner hidden sm:flex items-center"
             title="Campagne sessienummer"
           >
             <span className="text-[9px] md:text-[10px] uppercase tracking-[0.2em] text-amber-600/80 mr-1.5 hidden md:inline">Sessie</span>
@@ -112,7 +112,7 @@ export default function TopBar({ role, sessionId, sessionNumber, combatStatus, c
                 <span className="absolute w-2.5 h-2.5 rounded-full bg-emerald-500/25" />
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.8)] relative z-10" />
               </span>
-              <span className="font-fantasy text-[10px] md:text-xs tracking-[0.16em] text-amber-400 max-w-[140px] md:max-w-[240px] truncate">
+              <span className="font-fantasy text-[10px] md:text-xs tracking-[0.16em] text-amber-400 max-w-[80px] sm:max-w-[140px] md:max-w-[240px] truncate">
                 {sessionId || '#ONBEKEND'}
               </span>
               <ChevronDown className={`h-3.5 w-3.5 text-stone-500 transition-transform duration-150 shrink-0 ${isSessionMenuOpen ? 'rotate-180 text-amber-500' : ''}`} />
@@ -142,6 +142,14 @@ export default function TopBar({ role, sessionId, sessionNumber, combatStatus, c
                     <Settings className="h-3.5 w-3.5" /> Sessiebeheer
                   </button>
                 ) : null}
+                <div className="my-1 h-px bg-stone-800/80" />
+                <button
+                  type="button"
+                  onClick={() => { onLogout(); setIsSessionMenuOpen(false); }}
+                  className="h-8 w-full inline-flex items-center gap-2 rounded-lg px-2.5 text-xs font-fantasy tracking-[0.08em] text-stone-400 transition-colors hover:bg-rose-950/40 hover:text-rose-300 sm:hidden"
+                >
+                  <LogOut className="h-3.5 w-3.5" /> Verlaat sessie
+                </button>
               </div>
             ) : null}
           </div>
@@ -193,6 +201,7 @@ export default function TopBar({ role, sessionId, sessionNumber, combatStatus, c
             onSessionVolumeChange={onSetSessionAmbienceVolume}
             onListenerVolumeChange={onSetListenerAmbienceVolume}
             onUnlockAudio={onUnlockAmbienceAudio}
+            onOpenSourcelist={onOpenSourcelist}
           />
         </div>
 
@@ -210,7 +219,7 @@ export default function TopBar({ role, sessionId, sessionNumber, combatStatus, c
 
           <button
             onClick={onOpenSettings}
-            className="h-9 w-9 flex items-center justify-center md:hidden hover:bg-stone-800 rounded-lg text-stone-400 hover:text-amber-400 transition-colors"
+            className="h-9 w-9 flex items-center justify-center hidden hover:bg-stone-800 rounded-lg text-stone-400 hover:text-amber-400 transition-colors"
             title="Configuratie"
           >
             <Settings className="w-5 h-5" />
@@ -238,7 +247,7 @@ export default function TopBar({ role, sessionId, sessionNumber, combatStatus, c
             ) : null}
           </button>
 
-          <button onClick={onLogout} className="h-9 w-9 flex items-center justify-center hover:bg-stone-800 rounded-lg text-stone-400 hover:text-rose-400 transition-colors" title="Verlaat Sessie">
+          <button onClick={onLogout} className="h-9 w-9 hidden sm:flex items-center justify-center hover:bg-stone-800 rounded-lg text-stone-400 hover:text-rose-400 transition-colors" title="Verlaat Sessie">
             <LogOut className="w-5 h-5" />
           </button>
         </div>
