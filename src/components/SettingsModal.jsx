@@ -1,17 +1,15 @@
 import React, { useEffect, useState } from 'react';
 import { Save, Settings, X, LogOut } from 'lucide-react';
 
-function SettingsModal({ isOpen, onClose, playerName, role, onLogout, theme, sessionNumber, onSaveSettings }) {
+function SettingsModal({ isOpen, onClose, playerName, role, onLogout, theme, onSaveSettings }) {
   const [draftName, setDraftName] = useState(playerName || '');
   const [draftTheme, setDraftTheme] = useState(theme || 'purple');
-  const [draftSession, setDraftSession] = useState(Math.max(1, Number(sessionNumber) || 1));
 
   useEffect(() => {
     if (!isOpen) return;
     setDraftName(playerName || '');
     setDraftTheme(theme || 'purple');
-    setDraftSession(Math.max(1, Number(sessionNumber) || 1));
-  }, [isOpen, playerName, theme, sessionNumber]);
+  }, [isOpen, playerName, theme]);
 
   if (!isOpen) return null;
 
@@ -25,7 +23,6 @@ function SettingsModal({ isOpen, onClose, playerName, role, onLogout, theme, ses
     await onSaveSettings?.({
       nextPlayerName: draftName,
       nextTheme: draftTheme,
-      nextSessionNumber: draftSession,
     });
     onClose();
   };
@@ -77,36 +74,7 @@ function SettingsModal({ isOpen, onClose, playerName, role, onLogout, theme, ses
             </div>
           </div>
 
-          {role === 'gm' && (
-            <div>
-              <label className="block text-[10px] font-bold text-stone-500 uppercase tracking-widest mb-2">Campagne Sessie</label>
-              <div className="flex items-center gap-2">
-                <button
-                  type="button"
-                  onClick={() => setDraftSession((v) => Math.max(1, Number(v || 1) - 1))}
-                  className="h-9 w-9 rounded-lg border border-stone-700 bg-stone-950/70 text-stone-300 hover:text-amber-400 hover:border-amber-700/50 transition-colors"
-                  title="Vorige sessie"
-                >
-                  -
-                </button>
-                <input
-                  type="number"
-                  min="1"
-                  value={Math.max(1, Number(draftSession) || 1)}
-                  onChange={(e) => setDraftSession(Math.max(1, Number(e.target.value) || 1))}
-                  className="flex-1 h-9 bg-stone-950/80 border border-stone-700 rounded-lg px-3 text-sm text-stone-200 focus:outline-none focus:border-amber-600/50 transition-colors font-fantasy tracking-wider hide-arrows"
-                />
-                <button
-                  type="button"
-                  onClick={() => setDraftSession((v) => (Number(v) || 1) + 1)}
-                  className="h-9 w-9 rounded-lg border border-stone-700 bg-stone-950/70 text-stone-300 hover:text-amber-400 hover:border-amber-700/50 transition-colors"
-                  title="Volgende sessie"
-                >
-                  +
-                </button>
-              </div>
-            </div>
-          )}
+
 
           <div className="pt-3 border-t border-stone-800/50">
             <label className="block text-[10px] font-bold text-stone-500 uppercase tracking-widest mb-3">Sessie Acties</label>

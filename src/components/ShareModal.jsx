@@ -1,13 +1,76 @@
-import React, { useState } from 'react';
-import { QRCode } from 'react-qr-code';
+import React, { useEffect, useRef, useState } from 'react';
+import QRCodeStyling from 'qr-code-styling';
 import { Copy, QrCode, Share2, X } from 'lucide-react';
 import { buildSessionInviteUrl, toLegacyHashJoinTag, toSafeJoinTagForLink } from '../lib/sessionUtils';
+
+const THEME_COLORS = {
+  purple: { dot: '#a78bfa', corner: '#7c3aed', bg: '#0c0a0f' },
+  amber:  { dot: '#f59e0b', corner: '#b45309', bg: '#0c0a09' },
+  green:  { dot: '#4ade80', corner: '#15803d', bg: '#091209' },
+};
+
+function StyledQRCode({ value, theme }) {
+  const containerRef = useRef(null);
+  const qrRef = useRef(null);
+  const colors = THEME_COLORS[theme] || THEME_COLORS.amber;
+
+  useEffect(() => {
+    if (!value) return;
+
+    const qr = new QRCodeStyling({
+      width: 220,
+      height: 220,
+      type: 'svg',
+      data: value,
+      image: '/references/tomeVaultIcon-32.png',
+      dotsOptions: {
+        color: colors.dot,
+        type: 'rounded',
+      },
+      cornersSquareOptions: {
+        color: colors.corner,
+        type: 'extra-rounded',
+      },
+      cornersDotOptions: {
+        color: colors.dot,
+        type: 'dot',
+      },
+      backgroundOptions: {
+        color: colors.bg,
+      },
+      imageOptions: {
+        crossOrigin: 'anonymous',
+        margin: 6,
+        imageSize: 0.28,
+      },
+      qrOptions: {
+        errorCorrectionLevel: 'H',
+      },
+    });
+
+    qrRef.current = qr;
+
+    if (containerRef.current) {
+      containerRef.current.innerHTML = '';
+      qr.append(containerRef.current);
+    }
+  }, [value, theme, colors.dot, colors.corner, colors.bg]);
+
+  return (
+    <div
+      ref={containerRef}
+      className="rounded-2xl overflow-hidden shadow-2xl"
+      style={{ width: 220, height: 220 }}
+    />
+  );
+}
 
 export default function ShareModal({ isOpen, onClose, sessionId, theme }) {
   const [copyFeedback, setCopyFeedback] = useState('');
 
   if (!isOpen) return null;
 
+  const resolvedTheme = theme || 'amber';
   const canonicalSessionCode = toLegacyHashJoinTag(sessionId);
   const scannerSafeCode = toSafeJoinTagForLink(sessionId);
   const joinUrl = buildSessionInviteUrl(sessionId);
@@ -18,14 +81,6 @@ export default function ShareModal({ isOpen, onClose, sessionId, theme }) {
     setCopyFeedback(kind);
     window.setTimeout(() => setCopyFeedback(''), 2000);
   };
-
-  const themeColorMap = {
-    purple: '8b5cf6',
-    amber: 'f59e0b',
-    green: '22c55e',
-  };
-  const resolvedTheme = theme || document.querySelector('[data-theme]')?.getAttribute('data-theme') || 'amber';
-  const qrColor = themeColorMap[resolvedTheme] || 'f59e0b';
 
   return (
     <div className="fixed inset-0 bg-stone-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
@@ -52,14 +107,8 @@ export default function ShareModal({ isOpen, onClose, sessionId, theme }) {
             <div className="mt-2 text-xs leading-5 text-stone-500">QR-veilige variant: {scannerSafeCode}</div>
           </div>
           
-          <div className="bg-white p-4 rounded-xl border border-stone-800 shadow-inner mb-6">
-            <QRCode
-              value={joinUrl}
-              size={192}
-              bgColor="#ffffff"
-              fgColor={`#${qrColor}`}
-              className="w-48 h-48 rounded-lg"
-            />
+          <div className="flex justify-center mb-6">
+            <StyledQRCode value={joinUrl} theme={resolvedTheme} />
           </div>
 
           <div className="w-full rounded-xl border border-stone-800 bg-stone-950/80 px-4 py-3 mb-6">

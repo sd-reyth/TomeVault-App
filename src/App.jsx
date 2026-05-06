@@ -69,6 +69,7 @@ import {
   normalizeAmbienceState,
 } from './lib/ambienceLibrary';
 import LandingScreen from './components/LandingScreen';
+import QRJoinScreen from './components/QRJoinScreen';
 import TopBar from './components/TopBar';
 import DamageModal from './components/DamageModal';
 import ShareModal from './components/ShareModal';
@@ -83,6 +84,7 @@ import InventoryView from './components/InventoryView';
 import NotesView from './components/NotesView';
 import EditableStat from './components/EditableStat';
 import SettingsModal from './components/SettingsModal';
+import SessionManageModal from './components/SessionManageModal';
 import AddItemModal from './components/AddItemModal';
 import HandoutModal from './components/HandoutModal';
 import CharacterProfileModal from './components/CharacterProfileModal';
@@ -306,6 +308,15 @@ export default function TomeVaultApp() {
   const [showShareModal, setShowShareModal] = useState(false);
   const [activeTab, setActiveTab] = useState('handouts');
   const [playerName, setPlayerName] = useState('');
+
+  // Detect QR invite code from URL on mount (once, never changes)
+  const [qrInviteCode] = useState(() => {
+    if (typeof window === 'undefined') return '';
+    const params = new URLSearchParams(window.location.search);
+    return String(params.get('code') || '').trim();
+  });
+  const [qrJoinDone, setQrJoinDone] = useState(false);
+  const showQRJoin = Boolean(qrInviteCode && view === 'landing' && !qrJoinDone);
   const [theme, setTheme] = useState(() => {
     const saved = localStorage.getItem('tv_theme');
     if (saved) {
@@ -376,6 +387,7 @@ export default function TomeVaultApp() {
   const [isNpcModalOpen, setIsNpcModalOpen] = useState(false);
   const [isAddItemModalOpen, setIsAddItemModalOpen] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [isSessionPanelOpen, setIsSessionPanelOpen] = useState(false);
   const [damageTarget, setDamageTarget] = useState(null);
   const [profileTarget, setProfileTarget] = useState(null);
   const [selectedHandout, setSelectedHandout] = useState(null);
@@ -2726,6 +2738,27 @@ export default function TomeVaultApp() {
   };
 
   if (view === 'landing') {
+    // QR-code invite flow — no PIN required
+    if (showQRJoin) {
+      return (
+        <QRJoinScreen
+          inviteCode={qrInviteCode}
+          uid={uid}
+          authLoading={authLoading}
+          sessionBusy={sessionBusy}
+          sessionError={sessionError}
+          onAutoSignIn={handleSignInGuest}
+          onJoin={(playerNameInput, code) => {
+            setQrJoinDone(true);
+            handleJoin('player', code, {
+              skipPin: true,
+              playerName: playerNameInput,
+            });
+          }}
+        />
+      );
+    }
+
     return (
       <LandingScreen
         onJoin={handleJoin}
@@ -2800,6 +2833,7 @@ export default function TomeVaultApp() {
           onOpenShare={() => setShowShareModal(true)}
           onOpenProfile={() => setProfileTarget(party.find(p => p.id === CURRENT_PLAYER_ID))}
           onOpenSettings={() => setIsSettingsOpen(true)}
+          onOpenSessionPanel={() => setIsSessionPanelOpen(true)}
           runtimeBadge={runtimeBadge}
         />
         
@@ -3040,8 +3074,16 @@ export default function TomeVaultApp() {
           role={role}
           onLogout={handleLeaveSession}
           theme={theme}
-          sessionNumber={campaignSessionNumber}
           onSaveSettings={handleSaveSettings}
+        />
+
+        <SessionManageModal
+          isOpen={isSessionPanelOpen}
+          onClose={() => setIsSessionPanelOpen(false)}
+          sessionId={sessionId}
+          sessionNumber={campaignSessionNumber}
+          onSaveSessionNumber={async (n) => { await handleUpdateCampaignSessionNumber(n); }}
+          onOpenShare={() => { setIsSessionPanelOpen(false); setShowShareModal(true); }}
         />
       </div>
   );

@@ -1,10 +1,10 @@
-import React, { useEffect, useRef } from 'react';
-import { Flame, Share2, Pause, Music, Volume2, Swords, User, LogOut, Settings } from 'lucide-react';
+import React, { useEffect, useRef, useState } from 'react';
+import { Flame, Share2, Pause, Music, Volume2, Swords, User, LogOut, Settings, ChevronDown } from 'lucide-react';
 import AmbiencePanel from './AmbiencePanel';
 import RuntimeBadge from './RuntimeBadge';
 import { COMBAT_STATUS, getTurnApproachRatio, getTurnsUntilMember, sortPartyByInitiative } from '../lib/battleUtils';
 
-export default function TopBar({ role, sessionId, sessionNumber, combatStatus, currentTurnId, initiativeOrder, party, currentPlayerId, onLogout, ambience, onToggleAmbiencePanel, onCloseAmbiencePanel, onToggleAmbiencePlayback, onSelectAmbienceTrack, onSetSessionAmbienceVolume, onSetListenerAmbienceVolume, onUnlockAmbienceAudio, onToggleParty, onOpenShare, onOpenProfile, onOpenSettings, runtimeBadge }) {
+export default function TopBar({ role, sessionId, sessionNumber, combatStatus, currentTurnId, initiativeOrder, party, currentPlayerId, onLogout, ambience, onToggleAmbiencePanel, onCloseAmbiencePanel, onToggleAmbiencePlayback, onSelectAmbienceTrack, onSetSessionAmbienceVolume, onSetListenerAmbienceVolume, onUnlockAmbienceAudio, onToggleParty, onOpenShare, onOpenProfile, onOpenSettings, onOpenSessionPanel, runtimeBadge }) {
   const sortedParty = sortPartyByInitiative(Array.isArray(party) ? party : [], Array.isArray(initiativeOrder) ? initiativeOrder : []);
   const turnsUntilMine = getTurnsUntilMember(sortedParty, initiativeOrder, currentTurnId, currentPlayerId);
   const turnApproachRatio = getTurnApproachRatio(sortedParty, initiativeOrder, currentTurnId, currentPlayerId);
@@ -24,6 +24,8 @@ export default function TopBar({ role, sessionId, sessionNumber, combatStatus, c
   const ambienceTitle = ambience?.currentTrack?.scene || 'Sferen';
   const ambienceSubtitle = ambience?.isPlaying ? 'Live aan tafel' : 'Sfeer staat klaar';
   const ambienceFillWidth = `${Math.max(0, Math.min(100, Number(ambience?.sessionVolume) || 0))}%`;
+  const [isSessionMenuOpen, setIsSessionMenuOpen] = useState(false);
+  const sessionMenuRef = useRef(null);
 
   useEffect(() => {
     if (!ambience?.isOpen) return undefined;
@@ -53,6 +55,31 @@ export default function TopBar({ role, sessionId, sessionNumber, combatStatus, c
     };
   }, [ambience?.isOpen, onCloseAmbiencePanel]);
 
+  useEffect(() => {
+    if (!isSessionMenuOpen) return undefined;
+
+    const handlePointerDown = (event) => {
+      const target = event.target;
+      if (sessionMenuRef.current && !sessionMenuRef.current.contains(target)) {
+        setIsSessionMenuOpen(false);
+      }
+    };
+
+    const handleKeyDown = (event) => {
+      if (event.key === 'Escape') {
+        setIsSessionMenuOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handlePointerDown);
+    document.addEventListener('keydown', handleKeyDown);
+
+    return () => {
+      document.removeEventListener('mousedown', handlePointerDown);
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [isSessionMenuOpen]);
+
   return (
     <header className="relative h-14 md:h-16 bg-stone-900/80 backdrop-blur border-b border-stone-800 flex items-center justify-between px-3 md:px-5 shrink-0 z-30">
       <div className="flex items-center gap-2 md:gap-3 min-w-0">
@@ -62,21 +89,6 @@ export default function TopBar({ role, sessionId, sessionNumber, combatStatus, c
         </span>
 
         <div className="ml-1 md:ml-3 flex items-center gap-1.5 md:gap-2 min-w-0">
-          <div className="h-9 max-w-[180px] md:max-w-[250px] px-2.5 md:px-3 rounded-lg border border-stone-700/70 bg-stone-950/70 shadow-inner min-w-0 flex items-center">
-            <div className="flex items-center gap-2 min-w-0">
-              <span className="relative flex items-center justify-center shrink-0">
-                <span className="absolute w-2.5 h-2.5 rounded-full bg-emerald-500/25" />
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.8)] relative z-10" />
-              </span>
-              <span className="text-[9px] md:text-[10px] uppercase tracking-[0.24em] text-stone-500 shrink-0 hidden md:inline">
-                Actieve sessie
-              </span>
-              <span className="font-fantasy text-[10px] md:text-xs tracking-[0.18em] text-amber-400 truncate">
-                {sessionId || '#ONBEKEND'}
-              </span>
-            </div>
-          </div>
-
           <div
             className="h-9 px-2.5 md:px-3 rounded-lg border border-amber-800/40 bg-amber-950/25 shadow-inner flex items-center"
             title="Campagne sessienummer"
@@ -85,15 +97,56 @@ export default function TopBar({ role, sessionId, sessionNumber, combatStatus, c
             <span className="font-fantasy text-[11px] md:text-xs tracking-[0.14em] text-amber-400">#{Math.max(1, Number(sessionNumber) || 1)}</span>
           </div>
 
-          <button
-            onClick={onOpenShare}
-            className="h-9 w-9 flex items-center justify-center rounded-lg border border-stone-700/70 bg-stone-950/70 text-stone-400 hover:text-amber-400 hover:border-amber-700/50 hover:bg-stone-900 transition-colors shadow-inner shrink-0"
-            title="Deel deze sessie"
-          >
-            <Share2 className="w-3.5 h-3.5 md:w-4 md:h-4" />
-          </button>
+          <div ref={sessionMenuRef} className="relative h-9">
+            <button
+              type="button"
+              onClick={() => setIsSessionMenuOpen((open) => !open)}
+              className={`h-full pl-2.5 pr-2 rounded-lg border flex items-center gap-2 transition-colors ${
+                isSessionMenuOpen
+                  ? 'border-amber-700/50 bg-stone-900/90 text-amber-300'
+                  : 'border-stone-700/60 bg-stone-950/60 text-stone-300 hover:border-stone-600/70 hover:text-stone-200'
+              }`}
+              title="Sessiemenu openen"
+            >
+              <span className="relative flex items-center justify-center shrink-0">
+                <span className="absolute w-2.5 h-2.5 rounded-full bg-emerald-500/25" />
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.8)] relative z-10" />
+              </span>
+              <span className="font-fantasy text-[10px] md:text-xs tracking-[0.16em] text-amber-400 max-w-[140px] md:max-w-[240px] truncate">
+                {sessionId || '#ONBEKEND'}
+              </span>
+              <ChevronDown className={`h-3.5 w-3.5 text-stone-500 transition-transform duration-150 shrink-0 ${isSessionMenuOpen ? 'rotate-180 text-amber-500' : ''}`} />
+            </button>
 
-          {runtimeBadge ? <RuntimeBadge runtimeBadge={runtimeBadge} compact className="hidden lg:block" /> : null}
+            {isSessionMenuOpen ? (
+              <div className="absolute left-0 top-[calc(100%+0.4rem)] z-50 w-44 rounded-xl border border-stone-700/70 bg-stone-950/98 p-1.5 shadow-2xl backdrop-blur">
+                <button
+                  type="button"
+                  onClick={() => {
+                    onOpenShare();
+                    setIsSessionMenuOpen(false);
+                  }}
+                  className="h-8 w-full inline-flex items-center gap-2 rounded-lg px-2.5 text-xs font-fantasy tracking-[0.08em] text-stone-300 transition-colors hover:bg-stone-800/80 hover:text-amber-300"
+                >
+                  <Share2 className="h-3.5 w-3.5" /> Deel sessie
+                </button>
+                {role === 'gm' ? (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      onOpenSessionPanel?.();
+                      setIsSessionMenuOpen(false);
+                    }}
+                    className="h-8 w-full inline-flex items-center gap-2 rounded-lg px-2.5 text-xs font-fantasy tracking-[0.08em] text-stone-300 transition-colors hover:bg-stone-800/80 hover:text-amber-300"
+                  >
+                    <Settings className="h-3.5 w-3.5" /> Sessiebeheer
+                  </button>
+                ) : null}
+              </div>
+            ) : null}
+          </div>
+
+          {runtimeBadge ? <RuntimeBadge runtimeBadge={runtimeBadge} compact className="hidden xl:block" /> : null}
         </div>
       </div>
 
