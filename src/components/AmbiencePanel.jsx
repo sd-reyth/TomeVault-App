@@ -43,7 +43,7 @@ export default function AmbiencePanel({
             <button
               type="button"
               onClick={onClose}
-              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-stone-800 bg-stone-900/80 text-stone-400 transition-colors hover:border-stone-700 hover:text-stone-200"
+              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-stone-800 bg-stone-900/80 text-stone-400 transition-colors hover:border-stone-700 hover:text-stone-200"
               title="Sluit sferenpaneel"
             >
               <X className="h-4 w-4" />
@@ -60,7 +60,7 @@ export default function AmbiencePanel({
               <button
                 type="button"
                 onClick={canControlSession ? onTogglePlayback : onUnlockAudio}
-                className={`inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-2xl border px-4 py-3 font-fantasy text-sm tracking-[0.14em] transition-colors sm:w-auto ${isPlaying ? 'border-amber-700/50 bg-amber-950/40 text-amber-100 hover:bg-amber-900/45' : 'border-stone-700 bg-stone-950 text-stone-200 hover:border-amber-700/40 hover:text-amber-100'}`}
+                className={`h-9 inline-flex w-full items-center justify-center gap-2 rounded-lg border px-4 font-fantasy text-sm uppercase tracking-[0.16em] transition-colors sm:w-auto ${isPlaying ? 'border-amber-700/50 bg-amber-950/40 text-amber-100 hover:bg-amber-900/45' : 'border-stone-700 bg-stone-950 text-stone-200 hover:border-amber-700/40 hover:text-amber-100'}`}
                 title={canControlSession ? (isPlaying ? 'Pauzeer sessiesfeer' : 'Start sessiesfeer') : 'Audio inschakelen'}
               >
                 {isPlaying ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
@@ -120,7 +120,7 @@ export default function AmbiencePanel({
             <button
               type="button"
               onClick={onUnlockAudio}
-              className="mt-3 inline-flex items-center gap-2 rounded-xl border border-amber-600/50 bg-amber-800/40 px-3 py-2 text-xs font-semibold uppercase tracking-[0.18em] text-amber-50 transition-colors hover:bg-amber-700/45"
+              className="mt-3 h-9 inline-flex items-center gap-2 rounded-lg border border-amber-600/50 bg-amber-800/40 px-3 text-xs font-semibold uppercase tracking-[0.18em] text-amber-50 transition-colors hover:bg-amber-700/45"
             >
               <Music2 className="h-4 w-4" />
               Audio inschakelen

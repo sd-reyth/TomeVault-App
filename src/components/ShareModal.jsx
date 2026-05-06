@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import QRCode from 'react-qr-code';
+import { QRCode } from 'react-qr-code';
 import { Copy, QrCode, Share2, X } from 'lucide-react';
 import { buildSessionInviteUrl, toLegacyHashJoinTag, toSafeJoinTagForLink } from '../lib/sessionUtils';
 
@@ -70,7 +70,7 @@ export default function ShareModal({ isOpen, onClose, sessionId, theme }) {
           <div className="w-full space-y-3">
             <button 
               onClick={() => handleCopy(canonicalSessionCode, 'code')}
-              className="w-full flex items-center justify-center gap-2 bg-stone-950 hover:bg-stone-800 border border-stone-700 text-stone-200 py-3 rounded-lg font-fantasy tracking-wider text-sm transition-colors"
+              className="h-9 w-full inline-flex items-center justify-center gap-2 rounded-lg border border-stone-700 bg-stone-950 px-4 font-fantasy text-sm uppercase tracking-[0.16em] text-stone-200 transition-colors hover:bg-stone-800"
             >
               <Copy className="w-4 h-4" />
               {copyFeedback === 'code' ? 'Code gekopieerd' : 'Kopieer code'}
@@ -78,7 +78,7 @@ export default function ShareModal({ isOpen, onClose, sessionId, theme }) {
 
             <button 
               onClick={() => handleCopy(joinUrl, 'link')}
-              className="w-full flex items-center justify-center gap-2 bg-stone-950 hover:bg-stone-800 border border-stone-700 text-stone-200 py-3 rounded-lg font-fantasy tracking-wider text-sm transition-colors"
+              className="h-9 w-full inline-flex items-center justify-center gap-2 rounded-lg border border-stone-700 bg-stone-950 px-4 font-fantasy text-sm uppercase tracking-[0.16em] text-stone-200 transition-colors hover:bg-stone-800"
             >
               <Copy className="w-4 h-4" />
               {copyFeedback === 'link' ? 'Link gekopieerd' : 'Kopieer link'}
@@ -88,7 +88,7 @@ export default function ShareModal({ isOpen, onClose, sessionId, theme }) {
               href={`https://wa.me/?text=${encodeURIComponent(waText)}`} 
               target="_blank" 
               rel="noopener noreferrer"
-              className="w-full flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-500 border border-emerald-500 text-white py-3 rounded-lg font-fantasy tracking-wider text-sm transition-colors"
+              className="h-9 w-full inline-flex items-center justify-center gap-2 rounded-lg border border-emerald-500 bg-emerald-600 px-4 font-fantasy text-sm uppercase tracking-[0.16em] text-white transition-colors hover:bg-emerald-500"
             >
               <Share2 className="w-4 h-4" />
               Delen

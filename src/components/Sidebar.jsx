@@ -86,7 +86,7 @@ export default function Sidebar({ activeTab, setActiveTab, onOpenSettings, role 
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
               className={`
-                relative flex min-h-[48px] min-w-0 flex-1 flex-col items-center justify-center rounded-lg p-2 transition-all font-fantasy tracking-wider md:w-full md:flex-none ${isCollapsed ? 'md:min-h-[58px] md:px-2 md:py-3' : 'md:min-h-[54px] md:flex-row md:justify-start md:gap-3 md:px-3 md:py-3.5'}
+                relative flex min-h-[48px] min-w-0 flex-1 flex-col items-center justify-center rounded-lg p-2 transition-all font-fantasy tracking-wider md:w-full md:flex-none ${isCollapsed ? 'md:min-h-[52px] md:px-2 md:py-2.5' : 'md:min-h-[48px] md:flex-row md:justify-start md:gap-3 md:px-3 md:py-2.5'}
                 ${isActive 
                   ? 'text-amber-500 md:bg-gradient-to-r md:from-amber-950/60 md:to-stone-900 md:border md:border-amber-900/40 md:shadow-[inset_0_0_18px_rgba(217,119,6,0.08)]' 
                   : 'text-stone-400 hover:bg-stone-800/80 hover:text-stone-200 border border-transparent'}
@@ -94,7 +94,7 @@ export default function Sidebar({ activeTab, setActiveTab, onOpenSettings, role 
               title={tab.label}
             >
               {isActive && !isCollapsed ? <span className="hidden md:block absolute left-0 top-2 bottom-2 w-[3px] rounded-r bg-amber-500 shadow-[0_0_10px_rgba(245,158,11,0.6)]" /> : null}
-              <span className={`hidden shrink-0 items-center justify-center rounded-md border transition-colors md:flex ${isCollapsed ? 'h-10 w-10' : 'h-9 w-9'} ${isActive ? 'border-amber-800/50 bg-amber-950/40 text-amber-400' : 'border-stone-800 bg-stone-950/50 text-stone-500'}`}>
+              <span className={`hidden shrink-0 items-center justify-center rounded-lg border transition-colors md:flex ${isCollapsed ? 'h-10 w-10' : 'h-9 w-9'} ${isActive ? 'border-amber-800/50 bg-amber-950/40 text-amber-400' : 'border-stone-800 bg-stone-950/50 text-stone-500'}`}>
                 <tab.icon className="w-4 h-4" />
               </span>
               <tab.icon className={`w-5 h-5 md:hidden shrink-0 ${isActive ? 'text-amber-500 drop-shadow-md' : 'opacity-70'}`} />
@@ -107,9 +107,9 @@ export default function Sidebar({ activeTab, setActiveTab, onOpenSettings, role 
           type="button"
           onClick={onOpenSettings}
           title="Configuratie"
-          className={`relative hidden min-h-[48px] min-w-0 flex-1 flex-col items-center justify-center rounded-lg p-2 transition-all font-fantasy tracking-wider md:flex md:w-full md:flex-none ${isCollapsed ? 'md:min-h-[58px] md:px-2 md:py-3' : 'md:min-h-[54px] md:flex-row md:justify-start md:gap-3 md:px-3 md:py-3.5'} text-stone-400 hover:bg-stone-800/80 hover:text-stone-200 border border-transparent`}
+          className={`relative hidden min-h-[48px] min-w-0 flex-1 flex-col items-center justify-center rounded-lg p-2 transition-all font-fantasy tracking-wider md:flex md:w-full md:flex-none ${isCollapsed ? 'md:min-h-[52px] md:px-2 md:py-2.5' : 'md:min-h-[48px] md:flex-row md:justify-start md:gap-3 md:px-3 md:py-2.5'} text-stone-400 hover:bg-stone-800/80 hover:text-stone-200 border border-transparent`}
         >
-          <span className={`hidden shrink-0 items-center justify-center rounded-md border transition-colors md:flex ${isCollapsed ? 'h-10 w-10' : 'h-9 w-9'} border-stone-800 bg-stone-950/50 text-stone-500`}>
+          <span className={`hidden shrink-0 items-center justify-center rounded-lg border transition-colors md:flex ${isCollapsed ? 'h-10 w-10' : 'h-9 w-9'} border-stone-800 bg-stone-950/50 text-stone-500`}>
             <Settings className="w-4 h-4" />
           </span>
           <span className={`${isCollapsed ? 'hidden' : 'hidden md:block'} text-[15px] uppercase md:tracking-[0.12em]`}>Configuratie</span>

@@ -2901,6 +2901,7 @@ export default function TomeVaultApp() {
             isPinned={isSidebarPinned}
             setIsPinned={setIsSidebarPinned}
             onRemoveNpc={handleDeleteNpc}
+            theme={theme}
           />
         </div>
 

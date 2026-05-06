@@ -72,7 +72,7 @@ function HandoutModal({ isOpen, onClose, handout, role, onSave, onDelete, onAddT
               <Icon className="w-4 h-4 text-amber-600" />
             </div>
             <h3 className="font-fantasy font-bold text-stone-200 tracking-wider">
-              {handout ? 'Handout Inspecteren' : 'Nieuwe Handout Vervaardigen'}
+              {handout ? 'Handout Inspecteren' : 'Nieuwe Handout'}
             </h3>
           </div>
           <div className="flex items-center gap-2">
@@ -421,16 +421,16 @@ function HandoutModal({ isOpen, onClose, handout, role, onSave, onDelete, onAddT
                   if (!handout) onClose(); 
                   else setIsEditing(false); 
                 }} 
-                className="px-4 py-2.5 rounded-lg font-fantasy tracking-wider text-sm text-stone-400 hover:text-stone-200 transition-colors"
+                className="h-9 inline-flex items-center justify-center rounded-lg border border-stone-700 bg-stone-800 px-4 font-fantasy text-sm uppercase tracking-[0.16em] text-stone-300 transition-colors hover:bg-stone-700 hover:text-stone-200"
               >
                 Annuleren
               </button>
               <button 
                 form="handout-form"
                 type="submit"
-                className="bg-gradient-to-r from-amber-700 to-amber-600 hover:from-amber-600 hover:to-amber-500 text-stone-100 px-6 py-2.5 rounded-lg font-fantasy tracking-wider text-sm shadow-[0_0_10px_rgba(217,119,6,0.2)] transition-all"
+                className="h-9 inline-flex items-center justify-center gap-2 rounded-lg border border-amber-700/60 bg-gradient-to-r from-amber-700 to-amber-600 px-4 font-fantasy text-sm uppercase tracking-[0.16em] text-stone-100 shadow-sm transition-colors hover:from-amber-600 hover:to-amber-500"
               >
-                {handout ? 'Wijzigingen Opslaan' : 'Vervaardig'}
+                {handout ? 'Opslaan' : 'Nieuw'}
               </button>
             </div>
           </div>

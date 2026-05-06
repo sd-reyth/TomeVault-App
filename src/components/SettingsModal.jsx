@@ -52,7 +52,7 @@ function SettingsModal({ isOpen, onClose, playerName, role, onLogout, theme, ses
               value={draftName}
               onChange={e => setDraftName(e.target.value)}
               placeholder="Je naam aan tafel"
-              className="w-full bg-stone-950/80 border border-stone-700 rounded-lg px-3 py-2.5 text-sm text-stone-200 focus:outline-none focus:border-amber-600/50 transition-colors font-story"
+              className="h-9 w-full bg-stone-950/80 border border-stone-700 rounded-lg px-3 text-sm text-stone-200 focus:outline-none focus:border-amber-600/50 transition-colors font-story"
             />
           </div>
 
@@ -110,23 +110,23 @@ function SettingsModal({ isOpen, onClose, playerName, role, onLogout, theme, ses
 
           <div className="pt-3 border-t border-stone-800/50">
             <label className="block text-[10px] font-bold text-stone-500 uppercase tracking-widest mb-3">Sessie Acties</label>
-            <div className="flex flex-col gap-3">
+            <div className="flex flex-wrap gap-3">
               <button 
                 onClick={() => { onLogout(); onClose(); }}
-                className="w-full flex items-center justify-center gap-2 bg-rose-950/30 hover:bg-rose-900/50 border border-rose-900/50 text-rose-400 py-2.5 rounded-lg font-fantasy tracking-wider text-xs transition-colors"
+                className="h-9 inline-flex items-center justify-center gap-2 rounded-lg border border-rose-900/50 bg-rose-950/30 px-4 font-fantasy text-sm uppercase tracking-[0.16em] text-rose-300 transition-colors hover:bg-rose-900/40"
               >
-                <LogOut className="w-4 h-4" /> Verlaat Sessie
+                <LogOut className="h-4 w-4" /> Verlaat Sessie
               </button>
             </div>
           </div>
 
-          <div className="pt-1 -mt-1">
+          <div className="pt-1 -mt-1 flex justify-end">
             <button
               type="button"
               onClick={handleSave}
-              className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-amber-700 to-amber-600 hover:from-amber-600 hover:to-amber-500 text-stone-100 py-2.5 rounded-lg border border-amber-900/50 font-fantasy tracking-wider text-xs transition-colors shadow-[0_0_10px_rgba(217,119,6,0.2)]"
+              className="h-9 inline-flex items-center justify-center gap-2 rounded-lg border border-amber-700/60 bg-gradient-to-r from-amber-700 to-amber-600 px-4 font-fantasy text-sm uppercase tracking-[0.16em] text-stone-100 shadow-sm transition-colors hover:from-amber-600 hover:to-amber-500"
             >
-              <Save className="w-4 h-4" /> Opslaan
+              <Save className="h-4 w-4" /> Opslaan
             </button>
           </div>
         </div>

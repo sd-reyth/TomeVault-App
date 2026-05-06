@@ -84,7 +84,7 @@ export default function PreparationModal({ isOpen, preparation, onClose, onSave,
           <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI4IiBoZWlnaHQ9IjgiPgo8cmVjdCB3aWR0aD0iOCIgaGVpZ2h0PSI4IiBmaWxsPSIjZmZmIiBmaWxsLW9wYWNpdHk9IjAuMSIvPgo8L3N2Zz4=')] opacity-20 pointer-events-none" />
           <button
             onClick={onClose}
-            className="absolute right-4 top-4 z-10 rounded-md bg-stone-950/50 p-1 text-stone-300 transition-colors hover:text-white"
+            className="absolute right-4 top-4 z-10 rounded-lg bg-stone-950/50 p-1 text-stone-300 transition-colors hover:text-white"
           >
             <X className="h-5 w-5" />
           </button>
@@ -117,7 +117,7 @@ export default function PreparationModal({ isOpen, preparation, onClose, onSave,
             <button
               type="button"
               onClick={handleSave}
-              className="rounded-lg bg-gradient-to-r from-amber-700 to-amber-600 px-4 py-2 font-fantasy text-xs tracking-widest text-stone-100 shadow-lg transition-all hover:from-amber-600 hover:to-amber-500"
+              className="h-9 inline-flex items-center justify-center rounded-lg border border-amber-700/60 bg-gradient-to-r from-amber-700 to-amber-600 px-4 font-fantasy text-xs uppercase tracking-[0.16em] text-stone-100 shadow-sm transition-all hover:from-amber-600 hover:to-amber-500"
             >
               {preparation ? 'Opslaan' : 'Nieuw'}
             </button>

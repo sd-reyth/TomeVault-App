@@ -119,7 +119,7 @@ export default function PreparationsView({
             <button
               type="button"
               onClick={onCreatePreparation}
-              className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-amber-700 to-amber-600 px-5 py-3 text-sm font-fantasy tracking-[0.16em] text-stone-100 shadow-[0_14px_32px_rgba(217,119,6,0.22)] transition-colors hover:from-amber-600 hover:to-amber-500 sm:w-auto"
+              className="h-9 inline-flex w-full items-center justify-center gap-2 rounded-lg border border-amber-700/60 bg-gradient-to-r from-amber-700 to-amber-600 px-4 font-fantasy text-sm uppercase tracking-[0.16em] text-stone-100 shadow-sm transition-colors hover:from-amber-600 hover:to-amber-500 sm:w-auto"
             >
               <Plus className="h-4 w-4" />
               Nieuw
@@ -153,16 +153,7 @@ export default function PreparationsView({
                   ? 'Open Nieuw om een volledig profiel klaar te zetten of bewaar een bestaand spelersprofiel rechtstreeks vanuit het karaktervenster.'
                   : 'Pas je zoekterm aan of open een bestaand profiel om het verder te verfijnen.'}
               </p>
-              <div className="mt-6 flex flex-col items-center gap-3 sm:flex-row">
-                <button
-                  type="button"
-                  onClick={onCreatePreparation}
-                  className="inline-flex min-w-[220px] items-center justify-center gap-2 rounded-xl bg-amber-600 px-5 py-3 text-sm font-fantasy tracking-[0.16em] text-stone-950 shadow-[0_14px_32px_rgba(217,119,6,0.22)] transition-colors hover:bg-amber-500"
-                >
-                  <Plus className="h-4 w-4" />
-                  Nieuw
-                </button>
-              </div>
+              <div className="mt-6 flex flex-col items-center gap-3 sm:flex-row" />
             </div>
           ) : (
             <div className="mt-4 grid gap-3">

@@ -68,14 +68,14 @@ export default function PreparationOfferModal({ isOpen, preparation, onAccept, o
           <button
             type="button"
             onClick={onReject}
-            className="rounded-lg border border-stone-700 bg-stone-900/70 px-4 py-2.5 font-fantasy text-sm tracking-[0.14em] text-stone-300 transition-colors hover:border-rose-900/50 hover:text-rose-300"
+            className="h-9 inline-flex items-center justify-center rounded-lg border border-stone-700 bg-stone-900/70 px-4 font-fantasy text-sm uppercase tracking-[0.16em] text-stone-300 transition-colors hover:border-rose-900/50 hover:text-rose-300"
           >
             Weigeren
           </button>
           <button
             type="button"
             onClick={onAccept}
-            className="rounded-lg bg-gradient-to-r from-amber-700 to-amber-600 px-5 py-2.5 font-fantasy text-sm tracking-[0.14em] text-stone-100 shadow-[0_0_10px_rgba(217,119,6,0.2)] transition-colors hover:from-amber-600 hover:to-amber-500"
+            className="h-9 inline-flex items-center justify-center rounded-lg border border-amber-700/60 bg-gradient-to-r from-amber-700 to-amber-600 px-5 font-fantasy text-sm uppercase tracking-[0.16em] text-stone-100 shadow-sm transition-colors hover:from-amber-600 hover:to-amber-500"
           >
             Neem deze rol aan
           </button>

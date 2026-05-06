@@ -13,7 +13,7 @@ export default function PlayerPickerModal({ isOpen, players, preparation, onClos
             <div className="text-[10px] uppercase tracking-[0.22em] text-stone-500">Toewijzen</div>
             <h2 className="mt-1 font-fantasy text-lg tracking-[0.14em] text-stone-100">Aan wie wil je {preparation?.name || 'dit personage'} aanbieden?</h2>
           </div>
-          <button onClick={onClose} className="rounded-md p-1 text-stone-400 transition-colors hover:bg-stone-800 hover:text-rose-400">
+          <button onClick={onClose} className="rounded-lg p-1 text-stone-400 transition-colors hover:bg-stone-800 hover:text-rose-400">
             <X className="h-5 w-5" />
           </button>
         </div>

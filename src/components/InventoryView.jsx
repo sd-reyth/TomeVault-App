@@ -93,8 +93,8 @@ function InventoryView({ role, inventory, wallets, party, currentPlayerId, hando
           <h2 className="text-2xl md:text-3xl font-bold text-stone-100 tracking-wider font-fantasy">De Schatkamer</h2>
           <p className="text-stone-400 text-xs md:text-sm mt-1 md:mt-2 font-story italic">Goudstukken, uitrusting en magische artefacten.</p>
         </div>
-        <button onClick={onOpenAddItem} className="flex items-center gap-2 bg-gradient-to-r from-amber-800/60 to-amber-700/60 hover:from-amber-700/80 hover:to-amber-600/80 text-stone-100 px-3 py-2 md:px-4 md:py-2 rounded-lg transition-all border border-amber-800/40 shadow-sm font-fantasy text-xs md:text-sm tracking-wider">
-          <Plus className="w-4 h-4 shrink-0" /> <span className="hidden sm:inline">Nieuw Item</span>
+        <button onClick={onOpenAddItem} className="h-9 inline-flex items-center justify-center gap-2 rounded-lg border border-amber-700/60 bg-gradient-to-r from-amber-700 to-amber-600 px-4 font-fantasy text-sm uppercase tracking-[0.16em] text-stone-100 shadow-sm transition-colors hover:from-amber-600 hover:to-amber-500">
+          <Plus className="h-4 w-4 shrink-0" /> <span className="hidden sm:inline">Nieuw</span>
         </button>
       </div>
 

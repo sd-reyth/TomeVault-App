@@ -78,7 +78,7 @@ export default function AddNpcModal({ isOpen, onClose, onSave }) {
               placeholder="Bijv. Goblin Aanvoerder"
               value={name}
               onChange={e => setName(e.target.value)}
-              className="w-full bg-stone-950/80 border border-stone-700 rounded-lg px-3 py-2.5 text-sm text-stone-200 placeholder-stone-600 focus:outline-none focus:border-rose-800 transition-colors font-story"
+              className="w-full h-9 bg-stone-950/80 border border-stone-700 rounded-lg px-3 text-sm text-stone-200 placeholder-stone-600 focus:outline-none focus:border-rose-800 transition-colors font-story"
             />
           </div>
 
@@ -90,7 +90,7 @@ export default function AddNpcModal({ isOpen, onClose, onSave }) {
                 required
                 value={hp}
                 onChange={e => setHp(e.target.value)}
-                className="w-full bg-stone-950/80 border border-stone-700 rounded-lg px-3 py-2.5 text-sm text-stone-200 focus:outline-none focus:border-rose-800 transition-colors font-sans text-center hide-arrows"
+                className="w-full h-9 bg-stone-950/80 border border-stone-700 rounded-lg px-3 text-sm text-stone-200 focus:outline-none focus:border-rose-800 transition-colors font-sans text-center hide-arrows"
               />
             </div>
             <div>
@@ -100,7 +100,7 @@ export default function AddNpcModal({ isOpen, onClose, onSave }) {
                 required
                 value={ac}
                 onChange={e => setAc(e.target.value)}
-                className="w-full bg-stone-950/80 border border-stone-700 rounded-lg px-3 py-2.5 text-sm text-stone-200 focus:outline-none focus:border-rose-800 transition-colors font-sans text-center hide-arrows"
+                className="w-full h-9 bg-stone-950/80 border border-stone-700 rounded-lg px-3 text-sm text-stone-200 focus:outline-none focus:border-rose-800 transition-colors font-sans text-center hide-arrows"
               />
             </div>
             <div>
@@ -110,7 +110,7 @@ export default function AddNpcModal({ isOpen, onClose, onSave }) {
                 required
                 value={initMod}
                 onChange={e => setInitMod(e.target.value)}
-                className="w-full bg-stone-950/80 border border-stone-700 rounded-lg px-3 py-2.5 text-sm text-stone-200 focus:outline-none focus:border-rose-800 transition-colors font-sans text-center hide-arrows"
+                className="w-full h-9 bg-stone-950/80 border border-stone-700 rounded-lg px-3 text-sm text-stone-200 focus:outline-none focus:border-rose-800 transition-colors font-sans text-center hide-arrows"
               />
             </div>
           </div>
@@ -119,13 +119,13 @@ export default function AddNpcModal({ isOpen, onClose, onSave }) {
             <button 
               type="button"
               onClick={onClose}
-              className="flex-1 bg-stone-800 hover:bg-stone-700 border border-stone-700 text-stone-300 py-2.5 rounded-lg font-fantasy tracking-wider text-sm transition-colors"
+              className="h-9 flex-1 inline-flex items-center justify-center bg-stone-800 hover:bg-stone-700 border border-stone-700 text-stone-300 rounded-lg font-fantasy uppercase tracking-[0.16em] text-sm transition-colors"
             >
               Annuleren
             </button>
             <button 
               type="submit"
-              className="flex-1 bg-gradient-to-r from-rose-800 to-rose-700 hover:from-rose-700 hover:to-rose-600 border border-rose-900 text-stone-100 py-2.5 rounded-lg font-fantasy tracking-wider text-sm transition-colors shadow-[0_0_10px_rgba(225,29,72,0.2)]"
+              className="h-9 flex-1 inline-flex items-center justify-center border border-rose-900/60 bg-gradient-to-r from-rose-800 to-rose-700 hover:from-rose-700 hover:to-rose-600 text-stone-100 rounded-lg font-fantasy uppercase tracking-[0.16em] text-sm transition-colors shadow-sm"
             >
               Toevoegen
             </button>

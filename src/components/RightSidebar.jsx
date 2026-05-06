@@ -140,7 +140,7 @@ function OverlayDialog({ title, description, children, onClose, actions, showClo
             <button
               type="button"
               onClick={onClose}
-              className="rounded-md p-1 text-stone-500 transition-colors hover:bg-stone-800 hover:text-rose-400"
+              className="rounded-lg p-1 text-stone-500 transition-colors hover:bg-stone-800 hover:text-rose-400"
             >
               <X className="h-5 w-5" />
             </button>
@@ -181,6 +181,7 @@ function RightSidebar({
   isPinned,
   setIsPinned,
   onRemoveNpc,
+  theme,
 }) {
   const [showInfo, setShowInfo] = useState(false);
   const [sidebarWidth, setSidebarWidth] = useState(RIGHT_SIDEBAR_DEFAULT_WIDTH);
@@ -708,7 +709,17 @@ function RightSidebar({
                       type="button"
                       disabled={isActionBusy}
                       onClick={handleStatusAction}
-                      className={`h-9 rounded-lg border text-xs font-fantasy uppercase tracking-[0.16em] transition-colors ${combatStatus === COMBAT_STATUS.ACTIVE ? 'border-amber-700/60 bg-amber-950/35 text-amber-200 hover:border-amber-500/70 hover:bg-amber-900/35' : 'border-stone-700 bg-stone-950 text-stone-200 hover:border-amber-700/60 hover:text-amber-300'} ${isActionBusy ? 'cursor-wait opacity-70' : ''}`}
+                      className={`h-9 rounded-lg border text-xs font-fantasy uppercase tracking-[0.16em] transition-colors ${
+                        combatStatus === COMBAT_STATUS.ACTIVE
+                          ? 'border-amber-700/60 bg-amber-950/35 text-amber-200 hover:border-amber-500/70 hover:bg-amber-900/35'
+                          : combatStatus === COMBAT_STATUS.IDLE
+                            ? (
+                                theme === 'purple' ? 'border-violet-700/60 bg-gradient-to-r from-violet-700 to-violet-600 text-stone-100 shadow-sm hover:from-violet-600 hover:to-violet-500'
+                                : theme === 'green'  ? 'border-emerald-700/60 bg-gradient-to-r from-emerald-700 to-emerald-600 text-stone-100 shadow-sm hover:from-emerald-600 hover:to-emerald-500'
+                                : 'border-amber-700/60 bg-gradient-to-r from-amber-700 to-amber-600 text-stone-100 shadow-sm hover:from-amber-600 hover:to-amber-500'
+                              )
+                            : 'border-stone-700 bg-stone-950 text-stone-200 hover:border-amber-700/60 hover:text-amber-300'
+                      } ${isActionBusy ? 'cursor-wait opacity-70' : ''}`}
                     >
                       {statusActionLabel}
                     </button>
@@ -996,7 +1007,7 @@ function RightSidebar({
                 type="button"
                 onClick={handleRollAll}
                 disabled={combatInProgress || isActionBusy}
-                className={`h-10 rounded-lg border text-xs font-fantasy uppercase tracking-[0.14em] transition-colors shadow-inner ${combatInProgress ? 'cursor-not-allowed border-stone-800 bg-stone-950/60 text-stone-600' : 'border-stone-700 bg-stone-950 text-stone-300 hover:border-amber-700/50 hover:bg-stone-800 hover:text-amber-500'}`}
+                className={`h-9 rounded-lg border text-xs font-fantasy uppercase tracking-[0.14em] transition-colors shadow-inner ${combatInProgress ? 'cursor-not-allowed border-stone-800 bg-stone-950/60 text-stone-600' : 'border-stone-700 bg-stone-950 text-stone-300 hover:border-amber-700/50 hover:bg-stone-800 hover:text-amber-500'}`}
               >
                 <span className="inline-flex items-center justify-center gap-1.5">
                   <Dice5 className="h-3.5 w-3.5" /> Rol Allen
@@ -1006,7 +1017,7 @@ function RightSidebar({
                 type="button"
                 onClick={onOpenNpcModal}
                 disabled={!canManageRoster || isActionBusy}
-                className={`h-10 rounded-lg border text-xs font-fantasy uppercase tracking-[0.14em] transition-colors shadow-inner ${canManageRoster ? 'border-stone-700 bg-stone-950 text-stone-300 hover:border-amber-700/50 hover:bg-stone-800 hover:text-amber-500' : 'cursor-not-allowed border-stone-800 bg-stone-950/60 text-stone-600'}`}
+                className={`h-9 rounded-lg border text-xs font-fantasy uppercase tracking-[0.14em] transition-colors shadow-inner ${canManageRoster ? 'border-stone-700 bg-stone-950 text-stone-300 hover:border-amber-700/50 hover:bg-stone-800 hover:text-amber-500' : 'cursor-not-allowed border-stone-800 bg-stone-950/60 text-stone-600'}`}
                 title={canManageRoster ? 'Voeg een losse NPC toe' : 'Pauzeer gevecht om NPC’s te beheren'}
               >
                 <span className="inline-flex items-center justify-center gap-1.5">

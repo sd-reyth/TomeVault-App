@@ -29,26 +29,26 @@ function HandoutsView({ role, handouts, onToggleVisibility, onOpenHandout, onCre
           <div className="flex items-center bg-stone-900/80 border border-stone-800 rounded-lg p-1 shrink-0">
             <button 
               onClick={() => setViewMode('list')} 
-              className={`p-1.5 md:p-2 rounded-md transition-colors ${viewMode === 'list' ? 'bg-amber-900/40 text-amber-500 shadow-sm' : 'text-stone-500 hover:text-stone-300'}`}
+              className={`h-9 w-9 inline-flex items-center justify-center rounded-lg border transition-colors ${viewMode === 'list' ? 'border-amber-700/50 bg-amber-900/40 text-amber-500 shadow-sm' : 'border-transparent text-stone-500 hover:border-stone-700 hover:bg-stone-800/70 hover:text-stone-300'}`}
               title="Lijst weergave"
             >
-              <List className="w-4 h-4 md:w-5 md:h-5" />
+              <List className="h-4 w-4" />
             </button>
             <button 
               onClick={() => setViewMode('grid')} 
-              className={`p-1.5 md:p-2 rounded-md transition-colors ${viewMode === 'grid' ? 'bg-amber-900/40 text-amber-500 shadow-sm' : 'text-stone-500 hover:text-stone-300'}`}
+              className={`h-9 w-9 inline-flex items-center justify-center rounded-lg border transition-colors ${viewMode === 'grid' ? 'border-amber-700/50 bg-amber-900/40 text-amber-500 shadow-sm' : 'border-transparent text-stone-500 hover:border-stone-700 hover:bg-stone-800/70 hover:text-stone-300'}`}
               title="Blok weergave"
             >
-              <LayoutGrid className="w-4 h-4 md:w-5 md:h-5" />
+              <LayoutGrid className="h-4 w-4" />
             </button>
           </div>
 
           {role === 'gm' && (
             <button 
               onClick={onCreateHandout}
-              className="flex-1 sm:flex-none flex items-center justify-center gap-2 bg-gradient-to-r from-amber-700 to-amber-600 hover:from-amber-600 hover:to-amber-500 text-stone-100 px-4 py-2.5 sm:py-2 rounded-lg transition-all shadow-[0_0_10px_rgba(217,119,6,0.2)] font-fantasy text-sm tracking-wider"
+              className="h-9 inline-flex flex-1 sm:flex-none items-center justify-center gap-2 rounded-lg border border-amber-700/60 bg-gradient-to-r from-amber-700 to-amber-600 px-4 font-fantasy text-sm uppercase tracking-[0.16em] text-stone-100 shadow-sm transition-colors hover:from-amber-600 hover:to-amber-500"
             >
-              <Plus className="w-4 h-4 shrink-0" /> <span className="truncate">Vervaardig</span>
+              <Plus className="h-4 w-4 shrink-0" /> <span className="truncate">Nieuw</span>
             </button>
           )}
         </div>

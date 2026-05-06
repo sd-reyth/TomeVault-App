@@ -65,7 +65,7 @@ function AddItemModal({ isOpen, onClose, onSave, role, party, currentPlayerId, i
                 <select 
                   value={formData.ownerId} 
                   onChange={e => setFormData({...formData, ownerId: e.target.value})}
-                  className="w-full bg-stone-950/80 border border-stone-700 rounded-lg px-3 py-2.5 text-sm font-fantasy tracking-wider text-stone-200 focus:outline-none focus:border-amber-600/50 transition-colors appearance-none"
+                  className="w-full h-9 bg-stone-950/80 border border-stone-700 rounded-lg px-3 text-sm font-fantasy tracking-wider text-stone-200 focus:outline-none focus:border-amber-600/50 transition-colors appearance-none"
                 >
                   {playerOptions.map(p => (
                     <option key={p.id} value={p.id}>{p.name}</option>
@@ -83,7 +83,7 @@ function AddItemModal({ isOpen, onClose, onSave, role, party, currentPlayerId, i
                 value={formData.name}
                 onChange={e => setFormData({...formData, name: e.target.value})}
                 placeholder="Bijv. Magisch Touw"
-                className="w-full bg-stone-950/80 border border-stone-700 rounded-lg px-3 py-2.5 text-sm text-stone-200 placeholder-stone-600 focus:outline-none focus:border-amber-600/50 transition-colors font-story"
+                className="w-full h-9 bg-stone-950/80 border border-stone-700 rounded-lg px-3 text-sm text-stone-200 placeholder-stone-600 focus:outline-none focus:border-amber-600/50 transition-colors font-story"
               />
             </div>
 
@@ -95,7 +95,7 @@ function AddItemModal({ isOpen, onClose, onSave, role, party, currentPlayerId, i
                 min="1"
                 value={formData.amount}
                 onChange={e => setFormData({...formData, amount: parseInt(e.target.value) || 1})}
-                className="w-full bg-stone-950/80 border border-stone-700 rounded-lg px-3 py-2.5 text-sm text-stone-200 focus:outline-none focus:border-amber-600/50 transition-colors font-sans hide-arrows"
+                className="w-full h-9 bg-stone-950/80 border border-stone-700 rounded-lg px-3 text-sm text-stone-200 focus:outline-none focus:border-amber-600/50 transition-colors font-sans hide-arrows"
               />
             </div>
 
@@ -104,7 +104,7 @@ function AddItemModal({ isOpen, onClose, onSave, role, party, currentPlayerId, i
               <select
                 value={formData.category || 'overig'}
                 onChange={e => setFormData({ ...formData, category: e.target.value })}
-                className="w-full bg-stone-950/80 border border-stone-700 rounded-lg px-3 py-2.5 text-sm text-stone-200 focus:outline-none focus:border-amber-600/50 transition-colors font-story"
+                className="w-full h-9 bg-stone-950/80 border border-stone-700 rounded-lg px-3 text-sm text-stone-200 focus:outline-none focus:border-amber-600/50 transition-colors font-story"
               >
                 <option value="overig">Overig</option>
                 <option value="wapen">Wapen</option>
@@ -170,13 +170,13 @@ function AddItemModal({ isOpen, onClose, onSave, role, party, currentPlayerId, i
             <button 
               type="button"
               onClick={onClose}
-              className="flex-1 bg-stone-800 hover:bg-stone-700 border border-stone-700 text-stone-300 py-2.5 rounded-lg font-fantasy tracking-wider text-sm transition-colors"
+              className="h-9 flex-1 inline-flex items-center justify-center bg-stone-800 hover:bg-stone-700 border border-stone-700 text-stone-300 rounded-lg font-fantasy uppercase tracking-[0.16em] text-sm transition-colors"
             >
               Annuleren
             </button>
             <button 
               type="submit"
-              className="flex-1 bg-gradient-to-r from-amber-700 to-amber-600 hover:from-amber-600 hover:to-amber-500 border border-amber-900 text-stone-100 py-2.5 rounded-lg font-fantasy tracking-wider text-sm transition-colors shadow-[0_0_10px_rgba(217,119,6,0.2)]"
+              className="h-9 flex-1 inline-flex items-center justify-center border border-amber-700/60 bg-gradient-to-r from-amber-700 to-amber-600 hover:from-amber-600 hover:to-amber-500 text-stone-100 rounded-lg font-fantasy uppercase tracking-[0.16em] text-sm transition-colors shadow-sm"
             >
               {itemToEdit ? 'Opslaan' : 'Toevoegen'}
             </button>

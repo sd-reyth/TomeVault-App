@@ -367,12 +367,12 @@ function ChatView({ chat, setChat, role, uid, playerName, onSendMessageRemote, o
             onChange={e => setMsg(e.target.value)}
             onClick={() => { if (!chatColor) setShowColorPicker(true); }}
             placeholder={chatColor ? (editingMsg ? 'Pas je bericht aan...' : 'Spreek in de schaduwen...') : 'Kies eerst een kleur...'}
-            className="flex-1 w-full bg-stone-900/80 border border-stone-800 rounded-lg px-3 md:px-4 py-2 md:py-2.5 text-sm text-stone-200 placeholder-stone-600 focus:outline-none focus:border-indigo-700/60 transition-colors font-story italic"
+            className="h-9 flex-1 w-full bg-stone-900/80 border border-stone-800 rounded-lg px-3 md:px-4 text-sm text-stone-200 placeholder-stone-600 focus:outline-none focus:border-amber-600/50 transition-colors font-story italic"
           />
           <button
             type="submit"
             disabled={isSending}
-            className="bg-stone-800 hover:bg-indigo-900/40 disabled:opacity-50 text-stone-300 hover:text-indigo-300 px-4 md:px-5 py-2 rounded-lg font-fantasy tracking-wider uppercase text-[10px] md:text-xs transition-colors border border-stone-700 hover:border-indigo-700 shrink-0 flex items-center justify-center min-w-[52px]"
+            className="h-9 inline-flex items-center justify-center gap-2 rounded-lg border border-stone-700 bg-stone-800 px-4 md:px-5 font-fantasy text-sm uppercase tracking-[0.16em] text-stone-300 transition-colors hover:bg-stone-700 hover:text-stone-200 disabled:opacity-50 shrink-0"
           >
             {editingMsg ? <Check className="w-4 h-4" /> : 'Zend'}
           </button>

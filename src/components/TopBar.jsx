@@ -102,7 +102,7 @@ export default function TopBar({ role, sessionId, sessionNumber, combatStatus, c
           <button
             type="button"
             onClick={onToggleAmbiencePanel}
-            className={`h-9 flex items-center gap-2 rounded-xl border px-2.5 md:px-3 shadow-inner transition-colors ${ambience?.isPlaying ? 'border-amber-700/50 bg-amber-950/35 text-amber-100' : 'border-stone-800 bg-stone-950/90 text-stone-300 hover:border-stone-700 hover:text-stone-100'}`}
+            className={`h-9 flex items-center gap-2 rounded-lg border px-2.5 md:px-3 shadow-inner transition-colors ${ambience?.isPlaying ? 'border-amber-700/50 bg-amber-950/35 text-amber-100' : 'border-stone-800 bg-stone-950/90 text-stone-300 hover:border-stone-700 hover:text-stone-100'}`}
             title={ambience?.isPlaying ? 'Open actieve sessiesfeer' : 'Open sferenpaneel'}
           >
             <span className="relative flex h-7 w-7 items-center justify-center rounded-lg bg-black/20">
@@ -150,14 +150,14 @@ export default function TopBar({ role, sessionId, sessionNumber, combatStatus, c
           </div>
           
           {role === 'player' && (
-            <button onClick={onOpenProfile} className="h-9 w-9 flex items-center justify-center hover:bg-stone-800 rounded-md text-stone-400 hover:text-amber-400 transition-colors" title="Mijn Karakterblad">
+            <button onClick={onOpenProfile} className="h-9 w-9 flex items-center justify-center hover:bg-stone-800 rounded-lg text-stone-400 hover:text-amber-400 transition-colors" title="Mijn Karakterblad">
               <User className="w-5 h-5" />
             </button>
           )}
 
           <button
             onClick={onOpenSettings}
-            className="h-9 w-9 flex items-center justify-center md:hidden hover:bg-stone-800 rounded-md text-stone-400 hover:text-amber-400 transition-colors"
+            className="h-9 w-9 flex items-center justify-center md:hidden hover:bg-stone-800 rounded-lg text-stone-400 hover:text-amber-400 transition-colors"
             title="Configuratie"
           >
             <Settings className="w-5 h-5" />
@@ -165,7 +165,7 @@ export default function TopBar({ role, sessionId, sessionNumber, combatStatus, c
 
           <button 
             onClick={onToggleParty} 
-            className="relative h-9 w-9 flex items-center justify-center lg:hidden rounded-md text-stone-400 hover:text-amber-400 hover:bg-stone-800 transition-colors"
+            className="relative h-9 w-9 flex items-center justify-center lg:hidden rounded-lg text-stone-400 hover:text-amber-400 hover:bg-stone-800 transition-colors"
             title={partyButtonTitle}
           >
             <PartyIcon className={`w-5 h-5 ${combatStatus !== COMBAT_STATUS.IDLE ? 'text-amber-400' : ''}`} />
@@ -185,7 +185,7 @@ export default function TopBar({ role, sessionId, sessionNumber, combatStatus, c
             ) : null}
           </button>
 
-          <button onClick={onLogout} className="h-9 w-9 flex items-center justify-center hover:bg-stone-800 rounded-md text-stone-400 hover:text-rose-400 transition-colors" title="Verlaat Sessie">
+          <button onClick={onLogout} className="h-9 w-9 flex items-center justify-center hover:bg-stone-800 rounded-lg text-stone-400 hover:text-rose-400 transition-colors" title="Verlaat Sessie">
             <LogOut className="w-5 h-5" />
           </button>
         </div>

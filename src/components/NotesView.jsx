@@ -85,14 +85,14 @@ function NotesView({
   return (
     <div className="h-full flex flex-col md:flex-row gap-6">
       <div className="w-full md:w-1/3 flex flex-col bg-stone-900/40 border border-stone-800/60 rounded-xl overflow-hidden backdrop-blur-sm shadow-md h-48 md:h-full shrink-0">
-        <div className="p-4 border-b border-stone-800/50 flex justify-between items-center bg-stone-900/80">
+        <div className="p-4 border-b border-stone-800/50 flex items-center justify-between bg-stone-900/80">
           <h3 className="font-fantasy font-bold text-stone-200 tracking-wider">Kronieken</h3>
           <button 
             onClick={handleCreateNote}
-            className="p-1.5 bg-stone-800 hover:bg-stone-700 text-amber-500 rounded-md transition-colors"
+            className="h-9 w-9 inline-flex items-center justify-center rounded-lg border border-amber-700/60 bg-gradient-to-r from-amber-700 to-amber-600 text-stone-100 shadow-sm transition-colors hover:from-amber-600 hover:to-amber-500"
             title="Nieuwe notitie"
           >
-            <FilePlus2 className="w-4 h-4" />
+            <FilePlus2 className="h-4 w-4" />
           </button>
         </div>
         

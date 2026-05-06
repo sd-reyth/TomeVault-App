@@ -98,7 +98,7 @@ function CharacterProfileModal({ isOpen, onClose, character, role, currentPlayer
           style={bannerAccent ? { background: `linear-gradient(120deg, ${bannerAccent}55, #0b0b16 70%)` } : undefined}
         >
           <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI4IiBoZWlnaHQ9IjgiPgo8cmVjdCB3aWR0aD0iOCIgaGVpZ2h0PSI4IiBmaWxsPSIjZmZmIiBmaWxsLW9wYWNpdHk9IjAuMSIvPgo8L3N2Zz4=')] opacity-20 pointer-events-none" />
-          <button onClick={onClose} className="absolute top-4 right-4 text-stone-300 hover:text-white bg-stone-950/50 rounded-md p-1 backdrop-blur-sm transition-colors z-10">
+          <button onClick={onClose} className="absolute top-4 right-4 text-stone-300 hover:text-white bg-stone-950/50 rounded-lg p-1 backdrop-blur-sm transition-colors z-10">
             <X className="w-5 h-5" />
           </button>
         </div>
@@ -127,7 +127,7 @@ function CharacterProfileModal({ isOpen, onClose, character, role, currentPlayer
           </label>
           
           {canEdit && (
-            <button onClick={handleSave} className="bg-gradient-to-r from-amber-700 to-amber-600 hover:from-amber-600 hover:to-amber-500 text-stone-100 px-4 py-2 rounded-lg font-fantasy tracking-widest text-xs shadow-lg transition-all mb-2">
+            <button onClick={handleSave} className="h-9 inline-flex items-center justify-center px-4 rounded-lg border border-amber-700/60 bg-gradient-to-r from-amber-700 to-amber-600 hover:from-amber-600 hover:to-amber-500 text-stone-100 font-fantasy uppercase tracking-[0.16em] text-xs shadow-sm transition-all mb-2">
               Opslaan
             </button>
           )}
