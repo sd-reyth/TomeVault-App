@@ -556,7 +556,7 @@ function RightSidebar({
     ? 'Jouw beurt'
     : (combatStatus === COMBAT_STATUS.IDLE
       ? 'Ruststand'
-      : (combatStatus === COMBAT_STATUS.PAUSED ? 'Gepauzeerd' : 'Gevecht actief'));
+      : (combatStatus === COMBAT_STATUS.PAUSED ? 'Gepauzeerd' : 'Gevecht'));
 
   const statusSubtitle = (() => {
     if (role === 'player') {
@@ -698,7 +698,7 @@ function RightSidebar({
                         </span>
                       ) : null}
                     </div>
-                    <p className="mt-1 text-xs leading-5 text-stone-300 md:text-[13px] md:leading-6">{gmStatusLine}</p>
+                    {showInfo ? <p className="mt-1 text-xs leading-5 text-stone-300 md:text-[13px] md:leading-6">{gmStatusLine}</p> : null}
                   </div>
                 </div>
 
