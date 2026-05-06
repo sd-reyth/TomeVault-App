@@ -1,4 +1,5 @@
 import React from 'react';
+import { createPortal } from 'react-dom';
 import { ExternalLink, Music2, Pause, Play, Volume2, VolumeX, X } from 'lucide-react';
 
 export default function AmbiencePanel({
@@ -23,20 +24,13 @@ export default function AmbiencePanel({
 
   const canControlSession = role === 'gm';
 
-  return (
-    <>
-      <button
-        type="button"
-        aria-label="Sluit sferenpaneel"
-        onClick={onClose}
-        className="fixed inset-0 z-40 bg-stone-950/70 backdrop-blur-sm md:hidden"
-      />
-
-      <div
-        role="dialog"
-        aria-modal="true"
-        className="fixed inset-x-3 bottom-3 top-16 z-50 flex flex-col overflow-hidden rounded-[1.4rem] border border-stone-700/80 bg-stone-950/95 shadow-[0_28px_80px_rgba(0,0,0,0.52)] backdrop-blur-xl md:absolute md:right-0 md:top-full md:bottom-auto md:inset-x-auto md:mt-3 md:max-h-[min(78vh,46rem)] md:w-[min(92vw,31rem)]"
-      >
+  const panel = (
+    <div
+      role="dialog"
+      aria-modal="true"
+      data-ambience-panel-root="true"
+      className="fixed inset-0 z-[60] flex flex-col overflow-hidden bg-stone-950/98 backdrop-blur-xl md:inset-x-auto md:right-5 md:top-[4.6rem] md:bottom-auto md:max-h-[min(78vh,46rem)] md:w-[min(92vw,31rem)] md:rounded-[1.4rem] md:border md:border-stone-700/80 md:bg-stone-950/95 md:shadow-[0_28px_80px_rgba(0,0,0,0.52)]"
+    >
         <div className="shrink-0 border-b border-stone-800/80 bg-gradient-to-r from-amber-900/30 via-stone-950 to-stone-950 px-4 py-4 md:px-5">
           <div className="flex items-start justify-between gap-4">
             <div>
@@ -118,7 +112,7 @@ export default function AmbiencePanel({
           </div>
         </div>
 
-        <div className="flex-1 overflow-y-auto overscroll-contain px-4 py-4 md:px-5">
+        <div className="flex-1 overflow-y-auto overscroll-contain px-4 py-4 pb-[calc(env(safe-area-inset-bottom,0px)+1rem)] md:px-5 md:pb-4">
         {needsAudioUnlock ? (
           <div className="mb-4 rounded-2xl border border-amber-700/40 bg-amber-950/35 px-4 py-3 text-sm text-amber-100">
             <div className="font-fantasy tracking-[0.12em]">Audio wacht op een klik</div>
@@ -219,8 +213,9 @@ export default function AmbiencePanel({
             </div>
           ) : null}
         </section>
-        </div>
       </div>
-    </>
+    </div>
   );
+
+  return typeof document !== 'undefined' ? createPortal(panel, document.body) : null;
 }

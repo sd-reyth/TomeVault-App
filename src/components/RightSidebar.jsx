@@ -671,7 +671,8 @@ function RightSidebar({
                         </span>
                       ) : null}
                     </div>
-                    <p className="mt-1 text-xs leading-5 text-stone-400 md:text-[13px] md:leading-6">{gmStatusLine}</p>
+                    <p className="mt-1 text-sm leading-6 text-stone-300 md:text-[13px] md:leading-6">{gmStatusLine}</p>
+                    <p className="mt-1 text-xs leading-5 text-stone-500 md:text-[12px] md:leading-5">{statusSubtitle}</p>
                   </div>
 
                   {statusActionLabel ? (

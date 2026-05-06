@@ -1,18 +1,22 @@
 import React, { useState } from 'react';
+import QRCode from 'react-qr-code';
 import { Copy, QrCode, Share2, X } from 'lucide-react';
+import { buildSessionInviteUrl, toLegacyHashJoinTag, toSafeJoinTagForLink } from '../lib/sessionUtils';
 
 export default function ShareModal({ isOpen, onClose, sessionId, theme }) {
-  const [copied, setCopied] = useState(false);
+  const [copyFeedback, setCopyFeedback] = useState('');
 
   if (!isOpen) return null;
 
-  const joinUrl = `https://tomevault.app/join?code=${encodeURIComponent(sessionId)}`;
-  const waText = `Sluit je aan bij mijn epische avontuur op TomeVault! 🐉\n\nSessie Code: *${sessionId}*\n\nSpeel direct mee: ${joinUrl}`;
+  const canonicalSessionCode = toLegacyHashJoinTag(sessionId);
+  const scannerSafeCode = toSafeJoinTagForLink(sessionId);
+  const joinUrl = buildSessionInviteUrl(sessionId);
+  const waText = `Sluit je aan bij mijn epische avontuur op TomeVault! 🐉\n\nSessie Code: *${canonicalSessionCode}*\n\nSpeel direct mee: ${joinUrl}`;
 
-  const handleCopy = () => {
-    navigator.clipboard.writeText(sessionId);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+  const handleCopy = async (value, kind) => {
+    await navigator.clipboard.writeText(value);
+    setCopyFeedback(kind);
+    window.setTimeout(() => setCopyFeedback(''), 2000);
   };
 
   const themeColorMap = {
@@ -22,7 +26,6 @@ export default function ShareModal({ isOpen, onClose, sessionId, theme }) {
   };
   const resolvedTheme = theme || document.querySelector('[data-theme]')?.getAttribute('data-theme') || 'amber';
   const qrColor = themeColorMap[resolvedTheme] || 'f59e0b';
-  const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(joinUrl)}&color=${qrColor}&bgcolor=0f172a`;
 
   return (
     <div className="fixed inset-0 bg-stone-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
@@ -40,20 +43,45 @@ export default function ShareModal({ isOpen, onClose, sessionId, theme }) {
         
         <div className="p-6 flex flex-col items-center relative z-10">
           <p className="text-stone-400 text-sm font-story text-center mb-6">
-            Laat je spelers deze QR-code scannen of deel de link direct in jullie groep.
+            Laat je spelers deze QR-code scannen of deel direct de veilige join-link voor deze sessie.
           </p>
+
+          <div className="w-full rounded-xl border border-stone-800 bg-stone-950/80 px-4 py-3 mb-4">
+            <div className="text-[10px] uppercase tracking-[0.2em] text-stone-500">Sessiecode</div>
+            <div className="mt-1 font-fantasy text-base tracking-[0.16em] text-amber-300">{canonicalSessionCode}</div>
+            <div className="mt-2 text-xs leading-5 text-stone-500">QR-veilige variant: {scannerSafeCode}</div>
+          </div>
           
-          <div className="bg-stone-950 p-4 rounded-xl border border-stone-800 shadow-inner mb-6">
-            <img src={qrCodeUrl} alt="QR Code voor Sessie" className="w-48 h-48 rounded-lg" />
+          <div className="bg-white p-4 rounded-xl border border-stone-800 shadow-inner mb-6">
+            <QRCode
+              value={joinUrl}
+              size={192}
+              bgColor="#ffffff"
+              fgColor={`#${qrColor}`}
+              className="w-48 h-48 rounded-lg"
+            />
+          </div>
+
+          <div className="w-full rounded-xl border border-stone-800 bg-stone-950/80 px-4 py-3 mb-6">
+            <div className="text-[10px] uppercase tracking-[0.2em] text-stone-500">Join-link</div>
+            <div className="mt-1 break-all text-xs leading-5 text-stone-300">{joinUrl}</div>
           </div>
 
           <div className="w-full space-y-3">
             <button 
-              onClick={handleCopy}
+              onClick={() => handleCopy(canonicalSessionCode, 'code')}
               className="w-full flex items-center justify-center gap-2 bg-stone-950 hover:bg-stone-800 border border-stone-700 text-stone-200 py-3 rounded-lg font-fantasy tracking-wider text-sm transition-colors"
             >
               <Copy className="w-4 h-4" />
-              {copied ? 'Gekopieerd' : 'Kopiëren'}
+              {copyFeedback === 'code' ? 'Code gekopieerd' : 'Kopieer code'}
+            </button>
+
+            <button 
+              onClick={() => handleCopy(joinUrl, 'link')}
+              className="w-full flex items-center justify-center gap-2 bg-stone-950 hover:bg-stone-800 border border-stone-700 text-stone-200 py-3 rounded-lg font-fantasy tracking-wider text-sm transition-colors"
+            >
+              <Copy className="w-4 h-4" />
+              {copyFeedback === 'link' ? 'Link gekopieerd' : 'Kopieer link'}
             </button>
 
             <a 

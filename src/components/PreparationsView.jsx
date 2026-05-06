@@ -72,6 +72,7 @@ export default function PreparationsView({
 }) {
   const [query, setQuery] = useState('');
   const [showInfo, setShowInfo] = useState(false);
+  const [showBackups, setShowBackups] = useState(false);
   const activePlayers = party.filter((member) => !member.isNpc);
   const pendingTemplates = templates.filter((entry) => entry.assignmentStatus === 'pending');
   const readyCount = templates.filter((entry) => entry.assignmentStatus === 'unassigned').length;
@@ -264,7 +265,7 @@ export default function PreparationsView({
             </button>
           </div>
 
-          <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-4 xl:grid-cols-2">
+          <div className="mt-4 grid grid-flow-col auto-cols-[minmax(132px,1fr)] gap-2 overflow-x-auto pb-1 no-scrollbar sm:grid-cols-4 sm:grid-flow-row sm:auto-cols-auto sm:overflow-visible sm:pb-0 xl:grid-cols-2">
             {[
               { label: 'Klaar', value: readyCount },
               { label: 'Open', value: pendingTemplates.length },
@@ -309,37 +310,50 @@ export default function PreparationsView({
           <div className="mt-6 border-t border-stone-800/80 pt-4">
             <div className="flex items-center justify-between gap-3">
               <h3 className="font-fantasy text-sm uppercase tracking-[0.14em] text-stone-200">Herstelpunten</h3>
-              <span className="rounded-full border border-stone-800 bg-stone-950/70 px-2.5 py-1 text-[10px] uppercase tracking-[0.16em] text-stone-500">
-                {backups.length}
-              </span>
+              <div className="flex items-center gap-2">
+                <span className="rounded-full border border-stone-800 bg-stone-950/70 px-2.5 py-1 text-[10px] uppercase tracking-[0.16em] text-stone-500">
+                  {backups.length}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setShowBackups((value) => !value)}
+                  className="rounded-md border border-stone-700 bg-stone-950/70 px-2.5 py-1 text-[10px] uppercase tracking-[0.16em] text-stone-300 transition-colors hover:border-amber-700/50 hover:text-amber-300 xl:hidden"
+                >
+                  {showBackups ? 'Verberg' : 'Toon'}
+                </button>
+              </div>
             </div>
 
-            {backups.length === 0 ? (
-              <p className="mt-4 text-sm leading-7 text-stone-500">Na een acceptatie verschijnt hier automatisch een terugzetpunt.</p>
-            ) : (
-              <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-1">
-                {backups.map((backup) => (
-                  <article key={backup.id} className="rounded-xl border border-stone-800 bg-stone-950/60 p-3">
-                    <p className="text-[11px] uppercase tracking-[0.16em] text-stone-500">
-                      Opgeslagen {formatPreparationTime(backup.createdAtMs)}
-                    </p>
-                    <div className="mt-2 text-sm font-medium text-stone-200">{backup.playerName || 'Onbekende speler'}</div>
-                    <div className="mt-1 text-xs uppercase tracking-[0.16em] text-stone-600">via {backup.templateName || 'Naamloze voorbereiding'}</div>
-                    {backup.restoredAtMs ? (
-                      <p className="mt-3 text-[11px] uppercase tracking-[0.16em] text-emerald-400">
-                        Hersteld {formatPreparationTime(backup.restoredAtMs)}
+            {(showBackups || backups.length === 0) ? (
+              backups.length === 0 ? (
+                <p className="mt-4 text-sm leading-7 text-stone-500">Na een acceptatie verschijnt hier automatisch een terugzetpunt.</p>
+              ) : (
+                <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-1">
+                  {backups.map((backup) => (
+                    <article key={backup.id} className="rounded-xl border border-stone-800 bg-stone-950/60 p-3">
+                      <p className="text-[11px] uppercase tracking-[0.16em] text-stone-500">
+                        Opgeslagen {formatPreparationTime(backup.createdAtMs)}
                       </p>
-                    ) : null}
-                    <button
-                      type="button"
-                      onClick={() => handleRestore(backup)}
-                      className="mt-3 w-full rounded-lg border border-stone-700 bg-stone-900/70 px-3 py-2 text-xs font-fantasy tracking-[0.14em] text-stone-200 transition-colors hover:border-amber-700/50 hover:text-amber-300"
-                    >
-                      Zet terug
-                    </button>
-                  </article>
-                ))}
-              </div>
+                      <div className="mt-2 text-sm font-medium text-stone-200">{backup.playerName || 'Onbekende speler'}</div>
+                      <div className="mt-1 text-xs uppercase tracking-[0.16em] text-stone-600">via {backup.templateName || 'Naamloze voorbereiding'}</div>
+                      {backup.restoredAtMs ? (
+                        <p className="mt-3 text-[11px] uppercase tracking-[0.16em] text-emerald-400">
+                          Hersteld {formatPreparationTime(backup.restoredAtMs)}
+                        </p>
+                      ) : null}
+                      <button
+                        type="button"
+                        onClick={() => handleRestore(backup)}
+                        className="mt-3 w-full rounded-lg border border-stone-700 bg-stone-900/70 px-3 py-2 text-xs font-fantasy tracking-[0.14em] text-stone-200 transition-colors hover:border-amber-700/50 hover:text-amber-300"
+                      >
+                        Zet terug
+                      </button>
+                    </article>
+                  ))}
+                </div>
+              )
+            ) : (
+              <p className="mt-4 text-sm leading-7 text-stone-500 xl:hidden">Herstelpunten verborgen voor een compact mobiel overzicht.</p>
             )}
           </div>
         </aside>

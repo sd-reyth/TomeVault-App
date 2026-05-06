@@ -24,6 +24,31 @@ export function toLegacyHashJoinTag(value) {
   return normalizeJoinTagInput(value).replace(/-([0-9]{4,8})$/, '#$1');
 }
 
+function trimTrailingSlash(value) {
+  return String(value || '').trim().replace(/\/+$/, '');
+}
+
+export function resolvePublicAppOrigin() {
+  const configuredOrigin = trimTrailingSlash(import.meta.env?.VITE_PUBLIC_APP_ORIGIN || '');
+  if (configuredOrigin) return configuredOrigin;
+
+  if (typeof window !== 'undefined') {
+    const host = String(window.location.hostname || '').toLowerCase();
+    const runtimeOrigin = trimTrailingSlash(window.location.origin || '');
+    if (runtimeOrigin && host !== 'localhost' && host !== '127.0.0.1') {
+      return runtimeOrigin;
+    }
+  }
+
+  return 'https://tomevaultapp.web.app';
+}
+
+export function buildSessionInviteUrl(joinTag, origin = '') {
+  const resolvedOrigin = trimTrailingSlash(origin || resolvePublicAppOrigin());
+  const safeCode = toSafeJoinTagForLink(joinTag);
+  return `${resolvedOrigin}/?code=${encodeURIComponent(safeCode)}`;
+}
+
 export function getJoinTagLookupVariants(value) {
   const normalized = normalizeJoinTagInput(value);
   if (!normalized) return [];

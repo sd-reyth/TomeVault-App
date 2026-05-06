@@ -29,7 +29,11 @@ export default function TopBar({ role, sessionId, sessionNumber, combatStatus, c
     if (!ambience?.isOpen) return undefined;
 
     const handlePointerDown = (event) => {
-      if (ambienceShellRef.current && !ambienceShellRef.current.contains(event.target)) {
+      const target = event.target;
+      const clickedTrigger = ambienceShellRef.current && ambienceShellRef.current.contains(target);
+      const clickedPanel = target instanceof Element && target.closest('[data-ambience-panel-root="true"]');
+
+      if (!clickedTrigger && !clickedPanel) {
         onCloseAmbiencePanel();
       }
     };

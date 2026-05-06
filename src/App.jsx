@@ -535,6 +535,7 @@ export default function TomeVaultApp() {
           joinTag = toLegacyHashJoinTag(fixedJoinTagRaw);
           const variants = getJoinTagLookupVariants(joinTag);
           let existing = null;
+          let shouldCreateFreshLocalDevSession = false;
 
           for (const candidate of variants) {
             const byTag = await getDocs(query(collection(db, 'sessions'), where('joinTag', '==', candidate)));
@@ -554,30 +555,29 @@ export default function TomeVaultApp() {
             }
 
             if (existingData.gmUid !== uid && allowLocalDevTakeover) {
-              await updateDoc(doc(db, 'sessions', existing.id), {
-                gmUid: uid,
-                name: sessionName,
-                pinHash,
-                joinTag,
-                updatedAt: serverTimestamp(),
-              });
-              setSessionInfo('Lokale testsessie overgenomen van een eerdere testgebruiker.');
+              // Firestore rules do not permit arbitrary GM takeover of another
+              // anonymous dev session, so create an isolated fresh dev session instead.
+              joinTag = await generateUniqueJoinTag(sessionName);
+              shouldCreateFreshLocalDevSession = true;
+              setSessionInfo('Bestaande lokale testsessie was bezet. Er wordt een nieuwe testsessie voor je aangemaakt.');
             }
 
-            await writeMembership({
-              uid,
-              sessionId: existing.id,
-              role: 'dm',
-              sessionName: existingData.name || sessionName,
-              joinTag: toLegacyHashJoinTag(existingData.joinTag || joinTag),
-            });
+            if (!shouldCreateFreshLocalDevSession) {
+              await writeMembership({
+                uid,
+                sessionId: existing.id,
+                role: 'dm',
+                sessionName: existingData.name || sessionName,
+                joinTag: toLegacyHashJoinTag(existingData.joinTag || joinTag),
+              });
 
-            setRole('gm');
-            setSessionDocId(existing.id);
-            setSessionId(toLegacyHashJoinTag(existingData.joinTag || joinTag));
-            setCampaignSessionNumber(Number(existingData.campaignSessionNumber || 1));
-            setView('dashboard');
-            return;
+              setRole('gm');
+              setSessionDocId(existing.id);
+              setSessionId(toLegacyHashJoinTag(existingData.joinTag || joinTag));
+              setCampaignSessionNumber(Number(existingData.campaignSessionNumber || 1));
+              setView('dashboard');
+              return;
+            }
           }
         } else {
           joinTag = await generateUniqueJoinTag(sessionName);
