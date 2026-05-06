@@ -4,11 +4,11 @@ import {
   ArrowUp,
   ChevronRight,
   Dice5,
-  Flame,
+  FlameKindling,
   Info,
-  Pause,
   Pin,
   PinOff,
+  Shield,
   Skull,
   Swords,
   Trash2,
@@ -549,8 +549,8 @@ function RightSidebar({
   };
 
   const StatusIcon = combatStatus === COMBAT_STATUS.IDLE
-    ? Flame
-    : (combatStatus === COMBAT_STATUS.PAUSED ? Pause : Swords);
+    ? FlameKindling
+    : (combatStatus === COMBAT_STATUS.PAUSED ? Shield : Swords);
 
   const statusTitle = role === 'player' && isMyTurn
     ? 'Jouw beurt'
