@@ -271,7 +271,7 @@ const DEFAULT_COMBAT_STATE = {
 
 function normalizeCombatSessionState(sessionData = {}) {
   const fallbackStatus = sessionData?.battleActive ? COMBAT_STATUS.ACTIVE : COMBAT_STATUS.IDLE;
-  const status = normalizeCombatStatus(sessionData?.combatStatus || fallbackStatus);
+  const status = normalizeCombatStatus(sessionData?.combatStatus || sessionData?.status || fallbackStatus);
 
   return {
     status,
@@ -339,6 +339,7 @@ export default function TomeVaultApp() {
   const lastInventoryDescriptionBackfillSignatureRef = useRef('');
   const localDevBootstrapRef = useRef({ key: '', lastAuthAttemptAt: 0, lastJoinAttemptAt: 0 });
   const localDevBootstrapFallbackWarnedRef = useRef(false);
+  const optimisticCombatStateRef = useRef(null);
 
   // Firebase auth state
   const [uid, setUid] = useState(null);
@@ -421,7 +422,29 @@ export default function TomeVaultApp() {
   };
 
   const resetCombatState = () => {
+    optimisticCombatStateRef.current = null;
     applyLocalCombatState(DEFAULT_COMBAT_STATE);
+  };
+
+  const markOptimisticCombatState = (nextCombatState) => {
+    optimisticCombatStateRef.current = {
+      state: normalizeCombatSessionState(nextCombatState),
+      expiresAt: Date.now() + 9000,
+    };
+  };
+
+  const isTransientCombatSyncError = (error) => {
+    const code = String(error?.code || '').toLowerCase();
+    if (['aborted', 'cancelled', 'deadline-exceeded', 'resource-exhausted', 'unavailable'].includes(code)) {
+      return true;
+    }
+
+    const message = String(error?.message || '').toLowerCase();
+    return message.includes('err_aborted') || message.includes('network') || message.includes('offline');
+  };
+
+  const keepLocalCombatStateWithSyncWarning = (contextLabel) => {
+    setSessionInfo(`${contextLabel} lokaal bijgewerkt. Synchronisatie met Firestore hapert tijdelijk; status wordt opnieuw geprobeerd.`);
   };
 
   const persistCombatState = async (nextCombatState) => {
@@ -1210,9 +1233,38 @@ export default function TomeVaultApp() {
     unsubs.push(
       onSnapshot(doc(db, 'sessions', sid), (snap) => {
         const s = snap.data() || {};
+        const incomingCombatState = normalizeCombatSessionState(s);
+        const optimistic = optimisticCombatStateRef.current;
+
+        if (optimistic) {
+          if (Date.now() > optimistic.expiresAt) {
+            optimisticCombatStateRef.current = null;
+          } else {
+            const expected = optimistic.state;
+            const matchesExpected = (
+              incomingCombatState.status === expected.status
+              && incomingCombatState.currentTurnId === expected.currentTurnId
+              && incomingCombatState.turnRound === expected.turnRound
+            );
+
+            if (matchesExpected) {
+              optimisticCombatStateRef.current = null;
+            } else if (
+              expected.status === COMBAT_STATUS.ACTIVE
+              && incomingCombatState.status === COMBAT_STATUS.IDLE
+            ) {
+              // Ignore a short-lived stale snapshot that would otherwise drop
+              // the tracker back to idle right after a local start/resume action.
+              setCampaignSessionNumber(Number(s.campaignSessionNumber || 1));
+              setSessionAmbience(normalizeAmbienceState(s.ambience));
+              return;
+            }
+          }
+        }
+
         setCampaignSessionNumber(Number(s.campaignSessionNumber || 1));
         setSessionAmbience(normalizeAmbienceState(s.ambience));
-        applyLocalCombatState(normalizeCombatSessionState(s));
+        applyLocalCombatState(incomingCombatState);
       })
     );
 
@@ -2127,6 +2179,7 @@ export default function TomeVaultApp() {
     };
 
     setParty(nextParty);
+    markOptimisticCombatState(nextCombatState);
     applyLocalCombatState(nextCombatState);
 
     if (sessionDocId) {
@@ -2145,6 +2198,12 @@ export default function TomeVaultApp() {
         await batch.commit();
       } catch (err) {
         console.error('Gevecht starten fout:', err);
+        if (isTransientCombatSyncError(err)) {
+          keepLocalCombatStateWithSyncWarning('Gevecht starten');
+          return { nextParty, nextCombatState, syncPending: true };
+        }
+
+        optimisticCombatStateRef.current = null;
         setParty(previousParty);
         applyLocalCombatState(previousCombatState);
         throw err;
@@ -2189,6 +2248,7 @@ export default function TomeVaultApp() {
     };
 
     setParty(nextParty);
+    markOptimisticCombatState(nextCombatState);
     applyLocalCombatState(nextCombatState);
 
     if (sessionDocId) {
@@ -2207,6 +2267,12 @@ export default function TomeVaultApp() {
         await batch.commit();
       } catch (err) {
         console.error('Gevecht hervatten fout:', err);
+        if (isTransientCombatSyncError(err)) {
+          keepLocalCombatStateWithSyncWarning('Gevecht hervatten');
+          return { nextCombatState, nextParty, syncPending: true };
+        }
+
+        optimisticCombatStateRef.current = null;
         setParty(previousParty);
         applyLocalCombatState(previousCombatState);
         throw err;
