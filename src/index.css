@@ -218,6 +218,101 @@
   display: none;
 }
 
+/* DM voorbereidingen: profielactieknoppen */
+.prep-card-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  border: 1px solid rgba(68, 64, 60, 0.65);
+  border-radius: 0.9rem;
+  padding: 0.35rem;
+  background: linear-gradient(180deg, rgba(10, 8, 7, 0.58), rgba(12, 10, 9, 0.42));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+
+.prep-card-action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.3rem;
+  height: 2.3rem;
+  border-radius: 0.72rem;
+  border: 1px solid rgba(120, 113, 108, 0.42);
+  color: rgb(231 229 228 / 0.92);
+  background: linear-gradient(180deg, rgba(28, 25, 23, 0.88), rgba(12, 10, 9, 0.66));
+  box-shadow:
+    0 8px 16px rgba(0, 0, 0, 0.22),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  transition:
+    transform 170ms ease,
+    border-color 170ms ease,
+    background-color 170ms ease,
+    color 170ms ease,
+    box-shadow 170ms ease;
+}
+
+.prep-card-action:hover:not(:disabled) {
+  transform: translateY(-1px);
+}
+
+.prep-card-action:focus-visible {
+  outline: none;
+}
+
+.prep-card-action:disabled {
+  cursor: not-allowed;
+  opacity: 0.58;
+  box-shadow: none;
+  transform: none;
+}
+
+.prep-card-action-edit:hover:not(:disabled) {
+  color: rgb(252 211 77 / 0.96);
+  border-color: rgba(180, 83, 9, 0.58);
+}
+
+.prep-card-action-edit:focus-visible {
+  box-shadow:
+    0 0 0 2px rgba(180, 83, 9, 0.28),
+    0 8px 16px rgba(0, 0, 0, 0.24);
+}
+
+.prep-card-action-assign {
+  color: rgb(251 191 36 / 0.96);
+  border-color: rgba(180, 83, 9, 0.52);
+  background: linear-gradient(180deg, rgba(120, 53, 15, 0.44), rgba(68, 32, 8, 0.4));
+}
+
+.prep-card-action-assign:hover:not(:disabled) {
+  color: rgb(254 243 199 / 0.96);
+  border-color: rgba(217, 119, 6, 0.62);
+  background: linear-gradient(180deg, rgba(146, 64, 14, 0.52), rgba(92, 43, 11, 0.44));
+}
+
+.prep-card-action-assign:focus-visible {
+  box-shadow:
+    0 0 0 2px rgba(217, 119, 6, 0.3),
+    0 8px 16px rgba(0, 0, 0, 0.24);
+}
+
+.prep-card-action-delete {
+  color: rgb(251 113 133 / 0.9);
+  border-color: rgba(159, 18, 57, 0.44);
+  background: linear-gradient(180deg, rgba(76, 5, 25, 0.3), rgba(56, 5, 21, 0.22));
+}
+
+.prep-card-action-delete:hover:not(:disabled) {
+  color: rgb(253 164 175 / 0.96);
+  border-color: rgba(190, 24, 93, 0.56);
+  background: linear-gradient(180deg, rgba(127, 29, 29, 0.42), rgba(76, 5, 25, 0.3));
+}
+
+.prep-card-action-delete:focus-visible {
+  box-shadow:
+    0 0 0 2px rgba(190, 24, 93, 0.26),
+    0 8px 16px rgba(0, 0, 0, 0.22);
+}
+
 .landing-hero::after {
   display: none;
 }
@@ -663,5 +758,161 @@
   --color-amber-800: #166534;
   --color-amber-900: #14532d;
   --color-amber-950: #052e16;
+}
+
+/* ── Licht/Zonnig: bright mode for sunny environments                   */
+[data-theme="light"] {
+  --color-stone-950: #faf8f3;
+  --color-stone-900: #f5f3ed;
+  --color-stone-800: #ede9e0;
+  --color-stone-700: #e5e0d5;
+  --color-stone-600: #d4cec0;
+  --color-stone-500: #c9c3b3;
+  --color-stone-400: #b5aca0;
+  --color-stone-300: #5a5250;
+  --color-stone-200: #4a4540;
+  --color-stone-100: #3f3935;
+  --color-text: #3f3935;
+  --color-amber-100: #fef3c7;
+  --color-amber-200: #fde68a;
+  --color-amber-300: #fcd34d;
+  --color-amber-400: #fbbf24;
+  --color-amber-500: #f59e0b;
+  --color-amber-600: #d97706;
+  --color-amber-700: #b45309;
+  --color-amber-800: #92400e;
+  --color-amber-900: #78350f;
+  --color-amber-950: #451a03;
+  color: #3f3935;
+}
+
+[data-theme="light"] .text-stone-100 {
+  color: rgb(28 25 23 / 1) !important;
+}
+
+[data-theme="light"] .text-stone-200 {
+  color: rgb(48 43 41 / 1) !important;
+}
+
+[data-theme="light"] .text-stone-300 {
+  color: rgb(68 64 60 / 1) !important;
+}
+
+[data-theme="light"] .text-stone-400 {
+  color: rgb(87 83 78 / 1) !important;
+}
+
+[data-theme="light"] .text-stone-500 {
+  color: rgb(120 113 108 / 1) !important;
+}
+
+[data-theme="light"] .text-amber-300 {
+  color: rgb(180 83 9 / 1) !important;
+}
+
+[data-theme="light"] .text-amber-400 {
+  color: rgb(146 64 14 / 1) !important;
+}
+
+[data-theme="light"] .text-amber-500 {
+  color: rgb(120 53 15 / 1) !important;
+}
+
+[data-theme="light"] .text-amber-600 {
+  color: rgb(104 44 11 / 1) !important;
+}
+
+[data-theme="light"] .bg-stone-950 {
+  background-color: rgb(250 248 243 / 1) !important;
+}
+
+[data-theme="light"] .bg-stone-900 {
+  background-color: rgb(245 243 237 / 1) !important;
+}
+
+[data-theme="light"] .bg-stone-950\/20 {
+  background-color: rgb(250 248 243 / 0.2) !important;
+}
+
+[data-theme="light"] .border-stone-800 {
+  border-color: rgb(237 233 224 / 1) !important;
+}
+
+[data-theme="light"] .border-stone-700 {
+  border-color: rgb(229 224 213 / 1) !important;
+}
+
+[data-theme="light"] .shadow-sm {
+  box-shadow: 0 1px 3px rgba(24, 19, 16, 0.08) !important;
+}
+
+[data-theme="light"] .shadow-md {
+  box-shadow: 0 4px 10px rgba(24, 19, 16, 0.11) !important;
+}
+
+[data-theme="light"] .shadow-lg {
+  box-shadow: 0 8px 20px rgba(24, 19, 16, 0.12) !important;
+}
+
+[data-theme="light"] .shadow-2xl {
+  box-shadow: 0 16px 36px rgba(24, 19, 16, 0.14) !important;
+}
+
+[data-theme="light"] .shadow-inner {
+  box-shadow: inset 0 1px 3px rgba(24, 19, 16, 0.08) !important;
+}
+
+[data-theme="light"] .prep-card-actions {
+  border-color: rgba(202, 194, 178, 0.95);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.84), rgba(247, 243, 233, 0.88));
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.78),
+    0 1px 0 rgba(186, 176, 159, 0.3);
+}
+
+[data-theme="light"] .prep-card-action {
+  color: rgb(63 57 53 / 0.92);
+  border-color: rgba(204, 190, 168, 0.95);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(246, 240, 228, 0.96));
+  box-shadow:
+    0 5px 12px rgba(106, 91, 72, 0.14),
+    inset 0 1px 0 rgba(255, 255, 255, 0.88);
+}
+
+[data-theme="light"] .prep-card-action-edit:hover:not(:disabled) {
+  color: rgb(146 64 14 / 0.96);
+  border-color: rgba(180, 83, 9, 0.62);
+  background: linear-gradient(180deg, rgba(255, 248, 236, 1), rgba(248, 236, 213, 0.98));
+}
+
+[data-theme="light"] .prep-card-action-assign {
+  color: rgb(146 64 14 / 0.96);
+  border-color: rgba(180, 83, 9, 0.62);
+  background: linear-gradient(180deg, rgba(255, 245, 219, 0.96), rgba(251, 228, 175, 0.82));
+}
+
+[data-theme="light"] .prep-card-action-assign:hover:not(:disabled) {
+  color: rgb(120 53 15 / 0.98);
+  border-color: rgba(146, 64, 14, 0.7);
+  background: linear-gradient(180deg, rgba(255, 238, 195, 0.96), rgba(248, 219, 156, 0.9));
+}
+
+[data-theme="light"] .prep-card-action-delete {
+  color: rgb(157 23 77 / 0.9);
+  border-color: rgba(219, 39, 119, 0.44);
+  background: linear-gradient(180deg, rgba(255, 235, 241, 0.95), rgba(252, 214, 226, 0.84));
+}
+
+[data-theme="light"] .prep-card-action-delete:hover:not(:disabled) {
+  color: rgb(136 19 55 / 0.95);
+  border-color: rgba(190, 24, 93, 0.58);
+  background: linear-gradient(180deg, rgba(255, 223, 235, 0.96), rgba(250, 194, 214, 0.9));
+}
+
+[data-theme="light"] .prep-card-action:disabled {
+  opacity: 0.48;
+  color: rgb(148 139 124 / 0.8);
+  border-color: rgba(208, 198, 180, 0.8);
+  background: linear-gradient(180deg, rgba(251, 248, 241, 0.95), rgba(239, 233, 220, 0.78));
 }
 

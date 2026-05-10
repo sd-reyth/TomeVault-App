@@ -4,6 +4,7 @@ import { Info, Music2, Pause, Play, Volume2, VolumeX, ArrowLeft, ExternalLink, X
 
 export default function AmbiencePanel({
   role,
+  theme,
   isOpen,
   currentTrack,
   isPlaying,
@@ -24,6 +25,7 @@ export default function AmbiencePanel({
   if (!isOpen) return null;
 
   const canControlSession = role === 'gm';
+  const isLightTheme = theme === 'light';
 
   const SceneList = () => {
     const [expandedId, setExpandedId] = useState(null);
@@ -101,30 +103,44 @@ export default function AmbiencePanel({
   };
 
   const panel = (
-    <div className="fixed inset-0 z-[60] bg-stone-950 flex flex-col">
+    <div
+      data-ambience-panel-root="true"
+      data-theme={theme || 'purple'}
+      className={`fixed inset-0 z-[60] flex flex-col ${isLightTheme ? 'bg-stone-900 text-stone-300' : 'bg-stone-950 text-stone-300'}`}
+    >
 
       {/* Header */}
-      <div className="shrink-0 border-b border-stone-800/60 bg-stone-950/95 backdrop-blur-sm px-4 md:px-8 py-4 flex items-center gap-4">
+      <div className={`shrink-0 border-b backdrop-blur-sm px-4 md:px-8 py-4 flex items-center gap-4 ${isLightTheme ? 'border-stone-600/80 bg-stone-900/95' : 'border-stone-800/60 bg-stone-950/95'}`}>
         <button
           type="button"
           onClick={onClose}
-          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-stone-800 bg-stone-900/80 text-stone-400 transition-colors hover:border-stone-700 hover:text-stone-200"
+          className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border transition-colors ${isLightTheme ? 'border-stone-600 bg-stone-900 text-stone-300 hover:border-stone-500 hover:text-stone-100' : 'border-stone-800 bg-stone-900/80 text-stone-400 hover:border-stone-700 hover:text-stone-200'}`}
+          title="Sluiten"
         >
           <ArrowLeft className="h-4 w-4" />
         </button>
         <div className="flex items-center gap-3 min-w-0 flex-1">
-          <Music2 className="w-4 h-4 text-amber-500/70 shrink-0" />
+          <Music2 className={`w-4 h-4 shrink-0 ${isLightTheme ? 'text-amber-600' : 'text-amber-500/70'}`} />
           <div className="min-w-0">
             <h1 className="font-fantasy font-bold text-stone-100 tracking-wide text-base md:text-lg leading-none truncate">Ambience aan tafel</h1>
-            <p className="text-[10px] uppercase tracking-[0.16em] text-stone-500 mt-1">Sfeer voor de hele tafel</p>
+            <p className={`text-[10px] uppercase tracking-[0.16em] mt-1 ${isLightTheme ? 'text-stone-400' : 'text-stone-500'}`}>Sfeer voor de hele tafel</p>
           </div>
         </div>
         {currentTrack && (
           <div className="hidden sm:flex items-center gap-2 shrink-0">
-            <div className="text-[10px] uppercase tracking-[0.16em] text-stone-500">Nu actief:</div>
+            <div className={`text-[10px] uppercase tracking-[0.16em] ${isLightTheme ? 'text-stone-400' : 'text-stone-500'}`}>Nu actief:</div>
             <div className="text-sm font-fantasy text-amber-300/80">{currentTrack.scene}</div>
           </div>
         )}
+        <button
+          type="button"
+          onClick={onClose}
+          className={`ml-auto flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border transition-colors ${isLightTheme ? 'border-stone-600 bg-stone-900 text-stone-300 hover:border-stone-500 hover:text-stone-100' : 'border-stone-800 bg-stone-900/80 text-stone-400 hover:border-stone-700 hover:text-stone-200'}`}
+          title="Sluiten"
+          aria-label="Sluiten"
+        >
+          <X className="h-4 w-4" />
+        </button>
       </div>
 
       {/* Scrollable content */}
@@ -132,17 +148,17 @@ export default function AmbiencePanel({
         <div className="max-w-2xl mx-auto px-4 md:px-8 py-8 space-y-6">
 
           {/* Now playing + play button */}
-          <div className="rounded-2xl border border-stone-800/80 bg-stone-900/40 p-5">
+          <div className={`rounded-2xl border p-5 ${isLightTheme ? 'border-stone-600 bg-stone-950/70 shadow-sm' : 'border-stone-800/80 bg-stone-900/40'}`}>
             <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
               <div className="min-w-0">
-                <div className="text-[10px] uppercase tracking-[0.22em] text-stone-500">Nu actief</div>
+                <div className={`text-[10px] uppercase tracking-[0.22em] ${isLightTheme ? 'text-stone-400' : 'text-stone-500'}`}>Nu actief</div>
                 <div className="mt-2 font-fantasy text-xl tracking-[0.08em] text-stone-100">{currentTrack?.scene || 'Geen sfeer gekozen'}</div>
-                <div className="mt-1 text-sm text-stone-400">{currentTrack?.subtitle || 'Kies een geverifieerde track om de tafel te kleuren.'}</div>
+                <div className={`mt-1 text-sm ${isLightTheme ? 'text-stone-300' : 'text-stone-400'}`}>{currentTrack?.subtitle || 'Kies een geverifieerde track om de tafel te kleuren.'}</div>
               </div>
               <button
                 type="button"
                 onClick={canControlSession ? onTogglePlayback : onUnlockAudio}
-                className={`h-10 inline-flex w-full items-center justify-center gap-2 rounded-xl border px-5 font-fantasy text-sm uppercase tracking-[0.16em] transition-colors sm:w-auto shrink-0 ${isPlaying ? 'border-amber-700/50 bg-amber-950/40 text-amber-100 hover:bg-amber-900/45' : 'border-stone-700 bg-stone-950 text-stone-200 hover:border-amber-700/40 hover:text-amber-100'}`}
+                className={`h-10 inline-flex w-full items-center justify-center gap-2 rounded-xl border px-5 font-fantasy text-sm uppercase tracking-[0.16em] transition-colors sm:w-auto shrink-0 ${isPlaying ? 'border-amber-700/50 bg-amber-950/40 text-amber-100 hover:bg-amber-900/45' : (isLightTheme ? 'border-stone-600 bg-stone-900 text-stone-200 hover:border-amber-700/40 hover:text-amber-200' : 'border-stone-700 bg-stone-950 text-stone-200 hover:border-amber-700/40 hover:text-amber-100')}`}
               >
                 {isPlaying ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
                 <span>{canControlSession ? (isPlaying ? 'Pauzeer' : 'Start sfeer') : 'Activeer audio'}</span>
@@ -150,31 +166,32 @@ export default function AmbiencePanel({
             </div>
 
             {/* Volume sliders */}
-            <div className="mt-5 grid gap-3 sm:grid-cols-2">
-              <label className="rounded-xl border border-stone-800/80 bg-stone-950/60 px-4 py-3">
-                <div className="flex items-center justify-between gap-3">
-                  <div>
-                    <div className="text-[10px] uppercase tracking-[0.2em] text-stone-500">Sessievolume</div>
-                    <div className="mt-1 text-xs text-stone-400">{canControlSession ? 'Wat iedereen als basis hoort.' : 'Door de GM bepaald.'}</div>
+            <div className={`mt-5 grid gap-3 ${canControlSession ? 'sm:grid-cols-2' : ''}`}>
+              {canControlSession ? (
+                <label className={`rounded-xl border px-4 py-3 ${isLightTheme ? 'border-stone-600 bg-stone-950/75' : 'border-stone-800/80 bg-stone-950/60'}`}>
+                  <div className="flex items-center justify-between gap-3">
+                    <div>
+                      <div className={`text-[10px] uppercase tracking-[0.2em] ${isLightTheme ? 'text-stone-400' : 'text-stone-500'}`}>Sessievolume</div>
+                      <div className={`mt-1 text-xs ${isLightTheme ? 'text-stone-300' : 'text-stone-400'}`}>Wat iedereen als basis hoort.</div>
+                    </div>
+                    <div className="font-fantasy text-sm tracking-[0.12em] text-amber-300">{sessionVolume}%</div>
                   </div>
-                  <div className="font-fantasy text-sm tracking-[0.12em] text-amber-300">{sessionVolume}%</div>
-                </div>
-                <input
-                  type="range"
-                  min="0"
-                  max="100"
-                  value={sessionVolume}
-                  onChange={(event) => onSessionVolumeChange(Number(event.target.value))}
-                  disabled={!canControlSession}
-                  className="ambience-slider mt-3 w-full disabled:cursor-not-allowed disabled:opacity-40"
-                />
-              </label>
+                  <input
+                    type="range"
+                    min="0"
+                    max="100"
+                    value={sessionVolume}
+                    onChange={(event) => onSessionVolumeChange(Number(event.target.value))}
+                    className="ambience-slider mt-3 w-full"
+                  />
+                </label>
+              ) : null}
 
-              <label className="rounded-xl border border-stone-800/80 bg-stone-950/60 px-4 py-3">
+              <label className={`rounded-xl border px-4 py-3 ${isLightTheme ? 'border-stone-600 bg-stone-950/75' : 'border-stone-800/80 bg-stone-950/60'}`}>
                 <div className="flex items-center justify-between gap-3">
                   <div>
-                    <div className="text-[10px] uppercase tracking-[0.2em] text-stone-500">Jouw mix</div>
-                    <div className="mt-1 text-xs text-stone-400">Pas lokaal aan zonder anderen te veranderen.</div>
+                    <div className={`text-[10px] uppercase tracking-[0.2em] ${isLightTheme ? 'text-stone-400' : 'text-stone-500'}`}>Jouw mix</div>
+                    <div className={`mt-1 text-xs ${isLightTheme ? 'text-stone-300' : 'text-stone-400'}`}>Pas lokaal aan zonder anderen te veranderen.</div>
                   </div>
                   <div className="flex items-center gap-2 font-fantasy text-sm tracking-[0.12em] text-stone-200">
                     {listenerVolume === 0 ? <VolumeX className="h-4 w-4 text-rose-300" /> : <Volume2 className="h-4 w-4 text-stone-400" />}
@@ -191,6 +208,12 @@ export default function AmbiencePanel({
                 />
               </label>
             </div>
+
+            {!canControlSession ? (
+              <p className={`mt-3 text-xs ${isLightTheme ? 'text-stone-400' : 'text-stone-500'}`}>
+                De GM kiest de scene. Jij kunt hier altijd je eigen volume afstellen of audio opnieuw activeren als je browser autoplay blokkeert.
+              </p>
+            ) : null}
           </div>
 
           {/* Audio unlock warning */}
@@ -219,8 +242,8 @@ export default function AmbiencePanel({
           {/* Scene selector */}
           <section>
             <div className="flex items-center justify-between mb-3">
-              <div className="text-[10px] uppercase tracking-[0.24em] text-stone-500">Geverifieerde scenes</div>
-              <div className="text-[10px] text-stone-600">{canControlSession ? 'GM kiest · tik op een rij' : 'Alleen bekijken'}</div>
+              <div className={`text-[10px] uppercase tracking-[0.24em] ${isLightTheme ? 'text-stone-400' : 'text-stone-500'}`}>Geverifieerde scenes</div>
+              <div className={`text-[10px] ${isLightTheme ? 'text-stone-400' : 'text-stone-600'}`}>{canControlSession ? 'GM kiest · tik op een rij' : 'Alleen bekijken'}</div>
             </div>
             <SceneList />
           </section>

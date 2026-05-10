@@ -4,7 +4,7 @@ import AmbiencePanel from './AmbiencePanel';
 import RuntimeBadge from './RuntimeBadge';
 import { COMBAT_STATUS, getTurnApproachRatio, getTurnsUntilMember, sortPartyByInitiative } from '../lib/battleUtils';
 
-export default function TopBar({ role, sessionId, sessionNumber, combatStatus, currentTurnId, initiativeOrder, party, currentPlayerId, onLogout, ambience, onToggleAmbiencePanel, onCloseAmbiencePanel, onToggleAmbiencePlayback, onSelectAmbienceTrack, onSetSessionAmbienceVolume, onSetListenerAmbienceVolume, onUnlockAmbienceAudio, onToggleParty, onOpenShare, onOpenProfile, onOpenSettings, onOpenSessionPanel, onOpenSourcelist, runtimeBadge }) {
+export default function TopBar({ role, sessionId, sessionNumber, theme, combatStatus, currentTurnId, initiativeOrder, party, currentPlayerId, onLogout, ambience, onToggleAmbiencePanel, onCloseAmbiencePanel, onToggleAmbiencePlayback, onSelectAmbienceTrack, onSetSessionAmbienceVolume, onSetListenerAmbienceVolume, onUnlockAmbienceAudio, onToggleParty, onOpenShare, onOpenProfile, onOpenSettings, onOpenSessionPanel, onOpenSourcelist, runtimeBadge }) {
   const sortedParty = sortPartyByInitiative(Array.isArray(party) ? party : [], Array.isArray(initiativeOrder) ? initiativeOrder : []);
   const turnsUntilMine = getTurnsUntilMember(sortedParty, initiativeOrder, currentTurnId, currentPlayerId);
   const turnApproachRatio = getTurnApproachRatio(sortedParty, initiativeOrder, currentTurnId, currentPlayerId);
@@ -24,6 +24,7 @@ export default function TopBar({ role, sessionId, sessionNumber, combatStatus, c
   const ambienceTitle = ambience?.currentTrack?.scene || 'Sferen';
   const ambienceSubtitle = ambience?.isPlaying ? 'Live aan tafel' : 'Sfeer staat klaar';
   const ambienceFillWidth = `${Math.max(0, Math.min(100, Number(ambience?.sessionVolume) || 0))}%`;
+  const isPlayer = role === 'player';
   const [isSessionMenuOpen, setIsSessionMenuOpen] = useState(false);
   const [turnAlert, setTurnAlert] = useState(null);
   const sessionMenuRef = useRef(null);
@@ -222,29 +223,39 @@ export default function TopBar({ role, sessionId, sessionNumber, combatStatus, c
           <button
             type="button"
             onClick={onToggleAmbiencePanel}
-            className={`h-9 flex items-center gap-2 rounded-lg border px-2.5 md:px-3 shadow-inner transition-colors ${ambience?.isPlaying ? 'border-amber-700/50 bg-amber-950/35 text-amber-100' : 'border-stone-800 bg-stone-950/90 text-stone-300 hover:border-stone-700 hover:text-stone-100'}`}
-            title={ambience?.isPlaying ? 'Open actieve sessiesfeer' : 'Open sferenpaneel'}
+            className={`h-9 flex items-center gap-2 rounded-lg border px-2.5 md:px-3 shadow-inner transition-colors ${ambience?.isPlaying ? 'border-amber-700/55 bg-amber-950/35 text-amber-100' : 'border-stone-700/80 bg-stone-950/90 text-stone-300 hover:border-stone-600 hover:text-stone-100'}`}
+            title={isPlayer ? 'Open audio-instellingen' : (ambience?.isPlaying ? 'Open actieve sessiesfeer' : 'Open sferenpaneel')}
           >
             <span className="relative flex h-7 w-7 items-center justify-center rounded-lg bg-black/20">
               <span className={`absolute right-1.5 top-1.5 h-1.5 w-1.5 rounded-full ${ambience?.isPlaying ? 'bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.7)]' : 'bg-stone-500'}`} />
               {ambience?.isPlaying ? <Pause className="h-3.5 w-3.5" /> : <Music className="h-3.5 w-3.5" />}
             </span>
 
-            <div className="hidden md:block text-left">
-              <div className="text-[9px] uppercase tracking-[0.22em] text-stone-500">{ambienceTitle}</div>
-              <div className="mt-0.5 font-fantasy text-[11px] tracking-[0.14em] text-current">{ambienceSubtitle}</div>
-            </div>
-
-            <div className="hidden xl:flex items-center gap-1.5 pl-2 border-l border-stone-800/80">
-              <div className="h-1.5 w-12 overflow-hidden rounded-full border border-stone-900 bg-stone-900">
-                <div className="h-full rounded-full bg-amber-500" style={{ width: ambienceFillWidth }} />
+            {isPlayer ? (
+              <div className="hidden md:block text-left">
+                <div className="text-[9px] uppercase tracking-[0.22em] text-stone-500">Audio</div>
+                <div className="mt-0.5 font-fantasy text-[11px] tracking-[0.14em] text-current">Jouw volume</div>
               </div>
-              <Volume2 className="h-3.5 w-3.5 text-stone-500" />
-            </div>
+            ) : (
+              <div className="hidden md:block text-left">
+                <div className="text-[9px] uppercase tracking-[0.22em] text-stone-500">{ambienceTitle}</div>
+                <div className="mt-0.5 font-fantasy text-[11px] tracking-[0.14em] text-current">{ambienceSubtitle}</div>
+              </div>
+            )}
+
+            {!isPlayer ? (
+              <div className="hidden xl:flex items-center gap-1.5 pl-2 border-l border-stone-800/80">
+                <div className="h-1.5 w-12 overflow-hidden rounded-full border border-stone-900 bg-stone-900">
+                  <div className="h-full rounded-full bg-amber-500" style={{ width: ambienceFillWidth }} />
+                </div>
+                <Volume2 className="h-3.5 w-3.5 text-stone-500" />
+              </div>
+            ) : null}
           </button>
 
           <AmbiencePanel
             role={role}
+            theme={theme}
             isOpen={ambience?.isOpen === true}
             currentTrack={ambience?.currentTrack}
             isPlaying={ambience?.isPlaying === true}
@@ -266,8 +277,8 @@ export default function TopBar({ role, sessionId, sessionNumber, combatStatus, c
 
         <div className="flex items-center gap-1 md:gap-2 pl-2 md:pl-2.5 border-l border-stone-800/70">
           <div className="text-right hidden sm:block">
-            <div className="text-sm font-fantasy tracking-[0.14em] text-stone-200 uppercase">{role === 'gm' ? 'Dungeon Master' : 'Avonturier'}</div>
-            <div className="text-[10px] text-stone-500 uppercase tracking-[0.22em]">Aanwezig</div>
+            <div className="text-sm font-fantasy font-bold tracking-[0.14em] text-stone-100 uppercase">{role === 'gm' ? 'Game Master' : 'Avonturier'}</div>
+            <div className="text-[10px] text-stone-400 font-bold uppercase tracking-[0.22em]">Aanwezig</div>
           </div>
           
           {role === 'player' && (

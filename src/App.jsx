@@ -3262,6 +3262,7 @@ export default function TomeVaultApp() {
           role={role} 
           sessionId={sessionId}
           sessionNumber={campaignSessionNumber}
+          theme={theme}
           combatStatus={combatStatus}
           currentTurnId={currentTurnId}
           initiativeOrder={initiativeOrder}

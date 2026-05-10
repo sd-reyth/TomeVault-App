@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Crown, Info, Plus, Search, ShieldCheck } from 'lucide-react';
+import { Crown, Info, Plus, Search, ShieldCheck, Pencil, Hand, Trash } from 'lucide-react';
 import { resolveDisplayAvatar } from '../lib/placeholders';
 
 function formatPreparationTime(ms) {
@@ -208,28 +208,34 @@ export default function PreparationsView({
                         {preparation.bio || 'Nog geen achtergrond of notities toegevoegd.'}
                       </p>
 
-                      <div className="mt-4 flex flex-wrap gap-2">
+                      <div className="prep-card-actions mt-4" role="group" aria-label="Profielacties">
                         <button
                           type="button"
                           onClick={() => onEditPreparation?.(preparation)}
-                          className="flex-1 rounded-lg border border-stone-700 bg-stone-900/70 px-3 py-2 text-xs font-fantasy tracking-[0.14em] text-stone-200 transition-colors hover:border-amber-700/50 hover:text-amber-300 sm:flex-none"
+                          title="Bewerken"
+                          aria-label="Bewerken"
+                          className="prep-card-action prep-card-action-edit"
                         >
-                          Bewerken
+                          <Pencil className="h-5 w-5" />
                         </button>
                         <button
                           type="button"
                           onClick={() => onAssignPreparation?.(preparation)}
                           disabled={activePlayers.length === 0}
-                          className="flex-1 rounded-lg border border-amber-800/40 bg-amber-950/30 px-3 py-2 text-xs font-fantasy tracking-[0.14em] text-amber-200 transition-colors hover:bg-amber-900/40 disabled:cursor-not-allowed disabled:border-stone-800 disabled:bg-stone-900/40 disabled:text-stone-600 sm:flex-none"
+                          title="Toewijzen aan speler"
+                          aria-label="Toewijzen aan speler"
+                          className="prep-card-action prep-card-action-assign"
                         >
-                          Toewijzen aan speler
+                          <Hand className="h-5 w-5" />
                         </button>
                         <button
                           type="button"
                           onClick={() => handleDelete(preparation)}
-                          className="flex-1 rounded-lg border border-rose-900/40 bg-rose-950/20 px-3 py-2 text-xs font-fantasy tracking-[0.14em] text-rose-200 transition-colors hover:bg-rose-900/30 sm:flex-none"
+                          title="Verwijderen"
+                          aria-label="Verwijderen"
+                          className="prep-card-action prep-card-action-delete"
                         >
-                          Verwijderen
+                          <Trash className="h-5 w-5" />
                         </button>
                       </div>
                     </div>

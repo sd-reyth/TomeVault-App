@@ -727,7 +727,10 @@ function RightSidebar({
                             : 'border-stone-700 bg-stone-950 text-stone-200 hover:border-amber-700/60 hover:text-amber-300'
                       } ${isActionBusy ? 'cursor-wait opacity-70' : ''}`}
                     >
-                      {statusActionLabel}
+                      <span className="inline-flex items-center justify-center gap-1.5">
+                        {combatStatus === COMBAT_STATUS.ACTIVE ? <Shield className="h-3.5 w-3.5" /> : <Swords className="h-3.5 w-3.5" />}
+                        {statusActionLabel}
+                      </span>
                     </button>
                   ) : <div />}
 
@@ -908,7 +911,7 @@ function RightSidebar({
               <div
                 key={member.id}
                 onClick={() => onOpenProfile?.(member)}
-                className={`group relative flex cursor-pointer flex-row items-center gap-3 rounded-lg border p-2.5 shadow-md transition-all hover:shadow-lg md:p-3 ${
+                className={`group relative flex cursor-pointer flex-row items-center gap-3 rounded-xl border p-2.5 shadow-sm transition-all hover:shadow-md md:p-3 ${
                   member.isNpc
                     ? 'border-rose-900/30 bg-rose-950/20 hover:border-rose-500/50'
                     : 'border-amber-900/20 bg-stone-950/40 hover:border-amber-500/50'
@@ -948,7 +951,7 @@ function RightSidebar({
                   </button>
                 ) : null}
 
-                <div className={`flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-md border font-fantasy text-lg font-bold shadow-inner transition-all md:h-11 md:w-11 ${
+                <div className={`flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-lg border font-fantasy text-lg font-bold shadow-inner transition-all md:h-11 md:w-11 ${
                   member.isNpc ? 'border-rose-900/50 bg-rose-950/40 text-rose-400' : 'border-amber-900/30 bg-stone-900/80 text-amber-500'
                 } ${isCurrentTurn ? 'ring-1 ring-amber-500/50' : ''}`}>
                   <img src={resolveDisplayAvatar(displayMemberAvatar, member.id)} alt={displayMemberName} className="h-full w-full object-cover opacity-80" />
@@ -956,7 +959,7 @@ function RightSidebar({
 
                 <div className="flex min-w-0 flex-1 flex-col gap-1">
                   <div className="flex items-center justify-between">
-                    <span className={`mr-2 truncate font-fantasy text-sm tracking-wider ${member.isNpc ? 'text-rose-400' : 'text-amber-100'}`}>
+                    <span className={`mr-2 truncate font-fantasy text-sm font-bold tracking-wider ${member.isNpc ? 'text-rose-400' : 'text-stone-100'}`}>
                       {displayMemberName}
                     </span>
                     <div className="flex items-center gap-1.5">
@@ -967,7 +970,7 @@ function RightSidebar({
                           isCurrentTurn={isCurrentTurn}
                         />
                       ) : null}
-                      <span className={`shrink-0 rounded border bg-stone-950 px-2 py-0.5 font-serif text-xs font-bold ${member.isNpc ? 'border-rose-900/50 text-rose-500' : 'border-amber-900/50 text-amber-500'} ${isCurrentTurn ? 'bg-stone-900 shadow-inner' : ''}`}>
+                      <span className={`shrink-0 rounded border bg-stone-950 px-2 py-0.5 font-serif text-xs font-bold ${member.isNpc ? 'border-rose-900/50 text-rose-500' : 'border-amber-900/50 text-amber-400'} ${isCurrentTurn ? 'bg-stone-900 shadow-inner' : ''}`}>
                         <EditableStat
                           value={member.init}
                           onChange={(value) => onUpdateStat?.(member.id, 'init', value)}
@@ -987,7 +990,7 @@ function RightSidebar({
                       }}
                       title={isGm ? 'Klik om HP aan te passen' : 'Hit Points'}
                     >
-                      <span className="font-bold text-stone-500">HP</span>
+                      <span className="font-bold text-stone-400">HP</span>
                       {hiddenNpcForPlayer ? (
                         <span className="font-bold text-stone-500">?</span>
                       ) : (
@@ -998,7 +1001,7 @@ function RightSidebar({
                       className="flex flex-1 items-center justify-between rounded border border-stone-800/50 bg-stone-950/80 px-1.5 py-0.5"
                       onClick={(event) => event.stopPropagation()}
                     >
-                      <span className="font-bold text-stone-500">AC</span>
+                      <span className="font-bold text-stone-400">AC</span>
                       {hiddenNpcForPlayer ? (
                         <span className="font-bold text-stone-500">?</span>
                       ) : (
@@ -1024,10 +1027,13 @@ function RightSidebar({
                 type="button"
                 onClick={handleRollAll}
                 disabled={combatInProgress || isActionBusy}
+                title="Rol alle initiative"
+                aria-label="Rol alle initiative"
                 className={`h-9 rounded-lg border text-xs font-fantasy uppercase tracking-[0.14em] transition-colors shadow-inner ${combatInProgress ? 'cursor-not-allowed border-stone-800 bg-stone-950/60 text-stone-600' : 'border-stone-700 bg-stone-950 text-stone-300 hover:border-amber-700/50 hover:bg-stone-800 hover:text-amber-500'}`}
               >
                 <span className="inline-flex items-center justify-center gap-1.5">
-                  <Dice5 className="h-3.5 w-3.5" /> Rol Allen
+                  <Dice5 className="h-3.5 w-3.5" />
+                  <span className="hidden xl:inline">Rol Allen</span>
                 </span>
               </button>
               <button
@@ -1038,7 +1044,8 @@ function RightSidebar({
                 title={canManageRoster ? 'Voeg een losse NPC toe' : 'Pauzeer gevecht om NPC’s te beheren'}
               >
                 <span className="inline-flex items-center justify-center gap-1.5">
-                  <UserPlus className="h-3.5 w-3.5" /> NPC
+                  <UserPlus className="h-3.5 w-3.5" />
+                  <span className="hidden xl:inline">NPC</span>
                 </span>
               </button>
             </div>
@@ -1050,7 +1057,10 @@ function RightSidebar({
                 disabled={isActionBusy}
                 className="flex h-11 w-full items-center justify-center gap-2 rounded-lg bg-gradient-to-r from-amber-700 to-amber-600 text-sm font-fantasy uppercase tracking-[0.14em] text-stone-100 shadow-[0_0_10px_rgba(217,119,6,0.2)] transition-all hover:from-amber-600 hover:to-amber-500 disabled:cursor-not-allowed disabled:opacity-60"
               >
-                Volgende Beurt <ChevronRight className="h-4 w-4" />
+                <span className="inline-flex items-center justify-center gap-2">
+                  <ChevronRight className="h-4 w-4" />
+                  Volgende
+                </span>
               </button>
             ) : null}
 
@@ -1108,7 +1118,10 @@ function RightSidebar({
                 onClick={handleConfirmMissingInitiative}
                 className="rounded-lg bg-gradient-to-r from-amber-700 to-amber-600 px-4 py-2 text-sm font-fantasy tracking-[0.12em] text-stone-100 transition-colors hover:from-amber-600 hover:to-amber-500"
               >
-                Automatisch rollen
+                <span className="inline-flex items-center gap-1.5">
+                  <UserPlus className="h-3.5 w-3.5" />
+                  {playerJoinRequestPending ? 'In behandeling' : 'Meedoen'}
+                </span>
               </button>
             </>
           )}

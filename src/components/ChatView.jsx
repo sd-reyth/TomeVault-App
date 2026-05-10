@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { MessageSquare, Palette, Pencil, Trash2, X, Check, CornerUpLeft } from 'lucide-react';
+import { MessageSquare, Palette, Pencil, Trash2, X, Check, CornerUpLeft, SendHorizontal } from 'lucide-react';
 
 const CHAT_COLORS = [
   { id: 'indigo',   bg: '#1e1b4b', border: '#4338ca', text: '#e0e7ff', swatch: '#6366f1', name: 'Indigo'   },
@@ -150,13 +150,13 @@ function ChatView({ chat, setChat, role, uid, playerName, onSendMessageRemote, o
   const cancelEdit = () => { setEditingMsg(null); setMsg(''); };
 
   return (
-    <div className="h-full flex flex-col bg-stone-900/60 backdrop-blur-sm border border-stone-800 rounded-xl overflow-hidden shadow-2xl relative">
+    <div className="h-full flex flex-col bg-stone-900/60 backdrop-blur-sm border border-stone-800 rounded-xl overflow-hidden shadow-lg relative">
       <div className="absolute inset-0 opacity-[0.02] bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI4IiBoZWlnaHQ9IjgiPgo8cmVjdCB3aWR0aD0iOCIgaGVpZ2h0PSI4IiBmaWxsPSIjZmZmIiBmaWxsLW9wYWNpdHk9IjAuMSIvPgo8L3N2Zz4=')] pointer-events-none" />
 
       {/* Header */}
       <div className="p-3 md:p-4 border-b border-stone-800 bg-stone-900/90 flex justify-between items-center z-10 shadow-sm shrink-0">
         <h2 className="font-bold text-stone-200 flex items-center gap-2 font-fantasy tracking-widest uppercase text-xs md:text-sm">
-          <MessageSquare className="w-4 h-4 text-indigo-500" /> Fluisteringen
+          <MessageSquare className="w-4 h-4 text-amber-500" /> Fluisteringen
         </h2>
         <button
           onClick={() => setShowColorPicker(true)}
@@ -187,7 +187,7 @@ function ChatView({ chat, setChat, role, uid, playerName, onSendMessageRemote, o
             </div>
             <p className="text-stone-500 font-story text-xs italic mb-4">
               {role === 'gm'
-                ? 'Als DM kies je als eerste — jouw kleur is gereserveerd voor jou.'
+                ? 'Als Game Master kies je als eerste - jouw kleur is gereserveerd voor jou.'
                 : 'Grijze kleuren zijn bezet door andere spelers.'}
             </p>
             <div className="grid grid-cols-4 gap-2">
@@ -257,7 +257,7 @@ function ChatView({ chat, setChat, role, uid, playerName, onSendMessageRemote, o
                   <span className="text-[10px] md:text-xs font-fantasy tracking-wider font-bold" style={{ color: cs.swatch }}>
                     {c.author}
                   </span>
-                  <span className="text-[8px] md:text-[9px] text-stone-600 font-sans">{c.date ? `${c.date} • ${c.time}` : c.time}</span>
+                  <span className="text-[8px] md:text-[9px] text-stone-500 font-sans">{c.date ? `${c.date} • ${c.time}` : c.time}</span>
                 </div>
               )}
 
@@ -265,7 +265,7 @@ function ChatView({ chat, setChat, role, uid, playerName, onSendMessageRemote, o
               <div className="relative max-w-[82%] md:max-w-[70%]">
                 <div
                   onClick={() => handleBubbleClick(c)}
-                  className={`px-3 md:px-4 py-2 md:py-2.5 font-story text-sm leading-relaxed shadow-md transition-transform duration-100 active:scale-[0.97] cursor-pointer select-none
+                  className={`px-3 md:px-3.5 py-1.5 md:py-2 font-story text-sm leading-normal shadow-sm transition-transform duration-100 active:scale-[0.985] cursor-pointer select-none
                     ${isOwn
                       ? isLastInGroup ? 'rounded-t-2xl rounded-bl-2xl rounded-br-md' : 'rounded-2xl'
                       : isLastInGroup ? 'rounded-t-2xl rounded-br-2xl rounded-bl-md' : 'rounded-2xl'
@@ -367,14 +367,16 @@ function ChatView({ chat, setChat, role, uid, playerName, onSendMessageRemote, o
             onChange={e => setMsg(e.target.value)}
             onClick={() => { if (!chatColor) setShowColorPicker(true); }}
             placeholder={chatColor ? (editingMsg ? 'Pas je bericht aan...' : 'Spreek in de schaduwen...') : 'Kies eerst een kleur...'}
-            className="h-9 flex-1 w-full bg-stone-900/80 border border-stone-800 rounded-lg px-3 md:px-4 text-sm text-stone-200 placeholder-stone-600 focus:outline-none focus:border-amber-600/50 transition-colors font-story italic"
+            className="h-9 flex-1 w-full bg-stone-900/80 border border-stone-800 rounded-lg px-3 md:px-4 text-sm text-stone-200 placeholder-stone-500 focus:outline-none focus:border-amber-600/60 transition-colors font-story italic"
           />
           <button
             type="submit"
             disabled={isSending}
-            className="h-9 inline-flex items-center justify-center gap-2 rounded-lg border border-stone-700 bg-stone-800 px-4 md:px-5 font-fantasy text-sm uppercase tracking-[0.16em] text-stone-300 transition-colors hover:bg-stone-700 hover:text-stone-200 disabled:opacity-50 shrink-0"
+            title={editingMsg ? 'Bewerking opslaan' : 'Bericht versturen'}
+            aria-label={editingMsg ? 'Bewerking opslaan' : 'Bericht versturen'}
+            className="h-9 inline-flex items-center justify-center gap-2 rounded-lg border border-stone-700 bg-stone-800 px-3.5 md:px-4 font-fantasy text-sm font-bold uppercase tracking-[0.16em] text-stone-200 transition-colors hover:bg-stone-700 hover:text-stone-100 disabled:opacity-50 shrink-0"
           >
-            {editingMsg ? <Check className="w-4 h-4" /> : 'Zend'}
+            {editingMsg ? <Check className="w-4 h-4" /> : <SendHorizontal className="w-4 h-4" />}
           </button>
         </form>
       </div>

@@ -17,6 +17,7 @@ function SettingsModal({ isOpen, onClose, playerName, role, onLogout, onExportAr
     { id: 'purple',    label: 'Paars',     sub: 'Violet / Donker',    from: '#6d28d9', to: '#a78bfa' },
     { id: 'amber',     label: 'Amber',     sub: 'Oranje / Bruin',     from: '#b45309', to: '#f59e0b' },
     { id: 'green',     label: 'Groen',     sub: 'Smaragd / Donker',   from: '#15803d', to: '#4ade80' },
+    { id: 'light',     label: 'Licht',     sub: 'Helder / Zonnig',    from: '#fef3c7', to: '#fde68a' },
   ];
 
   const handleSave = async () => {
@@ -25,6 +26,14 @@ function SettingsModal({ isOpen, onClose, playerName, role, onLogout, onExportAr
       nextTheme: draftTheme,
     });
     onClose();
+  };
+
+  const handleThemeClick = (themeId) => {
+    setDraftTheme(themeId);
+    onSaveSettings?.({
+      nextPlayerName: draftName,
+      nextTheme: themeId,
+    });
   };
 
   return (
@@ -59,7 +68,7 @@ function SettingsModal({ isOpen, onClose, playerName, role, onLogout, onExportAr
               {themes.map(t => (
                 <button
                   key={t.id}
-                  onClick={() => setDraftTheme(t.id)}
+                  onClick={() => handleThemeClick(t.id)}
                   className={`flex flex-col items-center gap-1.5 p-2 rounded-lg border transition-all ${draftTheme === t.id ? 'border-amber-600/60 bg-amber-950/20 shadow-md shadow-amber-900/20' : 'border-stone-800 hover:border-stone-600 bg-stone-950/40'}`}
                   title={t.sub}
                 >
