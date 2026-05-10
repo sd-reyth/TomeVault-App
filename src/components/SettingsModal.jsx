@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import { Save, Settings, X, LogOut } from 'lucide-react';
+import { Save, Settings, X, LogOut, Download } from 'lucide-react';
 
-function SettingsModal({ isOpen, onClose, playerName, role, onLogout, theme, onSaveSettings }) {
+function SettingsModal({ isOpen, onClose, playerName, role, onLogout, onExportArchive, exportBusy = false, theme, onSaveSettings }) {
   const [draftName, setDraftName] = useState(playerName || '');
   const [draftTheme, setDraftTheme] = useState(theme || 'purple');
 
@@ -76,16 +76,23 @@ function SettingsModal({ isOpen, onClose, playerName, role, onLogout, theme, onS
 
 
 
-          <div className="pt-3 border-t border-stone-800/50">
-            <label className="block text-[10px] font-bold text-stone-500 uppercase tracking-widest mb-3">Sessie Acties</label>
-            <div className="flex flex-wrap gap-3">
-              <button 
-                onClick={() => { onLogout(); onClose(); }}
-                className="h-9 inline-flex items-center justify-center gap-2 rounded-lg border border-rose-900/50 bg-rose-950/30 px-4 font-fantasy text-sm uppercase tracking-[0.16em] text-rose-300 transition-colors hover:bg-rose-900/40"
-              >
-                <LogOut className="h-4 w-4" /> Verlaat Sessie
-              </button>
-            </div>
+          <div className="pt-4 border-t border-stone-800/50 flex flex-col gap-3">
+            <label className="block text-[10px] font-bold text-stone-500 uppercase tracking-widest">Sessie Acties</label>
+            <button
+              type="button"
+              onClick={() => onExportArchive?.()}
+              disabled={exportBusy}
+              className={`h-10 w-full flex items-center justify-center gap-2 rounded-lg border font-fantasy text-sm uppercase tracking-[0.16em] transition-colors ${exportBusy ? 'cursor-wait border-stone-800 bg-stone-950/60 text-stone-600' : 'border-sky-700/60 bg-sky-950/40 text-sky-200 hover:bg-sky-900/50 hover:border-sky-600/80'}`}
+            >
+              <Download className="h-4 w-4" /> {exportBusy ? 'Laden...' : (role === 'gm' ? 'Download Kroniek' : 'Download Profiel')}
+            </button>
+
+            <button 
+              onClick={() => { onLogout(); onClose(); }}
+              className="h-10 w-full flex items-center justify-center gap-2 rounded-lg border border-rose-800/60 bg-rose-950/40 text-rose-200 font-fantasy text-sm uppercase tracking-[0.16em] transition-colors hover:bg-rose-900/50 hover:border-rose-700/80"
+            >
+              <LogOut className="h-4 w-4" /> Verlaat
+            </button>
           </div>
 
           <div className="pt-1 -mt-1 flex justify-end">

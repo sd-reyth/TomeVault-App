@@ -69,6 +69,7 @@ import {
   normalizeAmbienceState,
 } from './lib/ambienceLibrary';
 import { normalizeAvatarUrl } from './lib/placeholders';
+import { downloadPlayerArchivePdf } from './lib/playerArchivePdf';
 import LandingScreen from './components/LandingScreen';
 import QRJoinScreen from './components/QRJoinScreen';
 import TopBar from './components/TopBar';
@@ -462,6 +463,7 @@ export default function TomeVaultApp() {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isSessionPanelOpen, setIsSessionPanelOpen] = useState(false);
   const [isSourcelistOpen, setIsSourcelistOpen] = useState(false);
+  const [isArchiveExporting, setIsArchiveExporting] = useState(false);
   const [damageTarget, setDamageTarget] = useState(null);
   const [profileTarget, setProfileTarget] = useState(null);
   const [selectedHandout, setSelectedHandout] = useState(null);
@@ -2845,6 +2847,136 @@ export default function TomeVaultApp() {
     }
   };
 
+  const buildPlayerArchivePayload = () => {
+    const isGmExport = role === 'gm';
+    const currentPlayer = party.find((member) => member.id === CURRENT_PLAYER_ID && member.isNpc !== true) || null;
+
+    const visibleHandouts = handouts
+      .filter((entry) => {
+        if (isGmExport) return true;
+        if (entry.isRevealed !== true) return false;
+        if (entry.assignedToUid && entry.assignedToUid !== CURRENT_PLAYER_ID) return false;
+        return true;
+      })
+      .map((entry) => ({
+        title: entry.title,
+        type: entry.type,
+        content: String(entry.content || '').trim(),
+        secret: String(entry.secret || '').trim(),
+        assignedToUid: entry.assignedToUid || null,
+        assignedToNick: entry.assignedToNick || null,
+      }));
+
+    const playerInventory = inventory
+      .filter((item) => isGmExport || item.ownerId === CURRENT_PLAYER_ID)
+      .map((item) => ({
+        name: item.name,
+        amount: item.amount,
+        category: item.category,
+        desc: item.desc,
+        ownerId: item.ownerId,
+        ownerName: party.find((member) => member.id === item.ownerId)?.name || null,
+      }));
+
+    const recentChat = chat.slice(-120).map((message) => ({
+      author: message.author,
+      text: message.text,
+      time: message.time,
+      date: message.date,
+    }));
+
+    const gmWalletRows = Object.entries(wallets || {}).map(([ownerId, wallet]) => {
+      const ownerName = ownerId === 'party'
+        ? 'Party'
+        : (party.find((member) => member.id === ownerId)?.name || ownerId);
+
+      return [
+        ownerName,
+        String(Number(wallet?.platinum ?? 0)),
+        String(Number(wallet?.gold ?? 0)),
+        String(Number(wallet?.silver ?? 0)),
+        String(Number(wallet?.bronze ?? 0)),
+      ];
+    });
+
+    return {
+      mode: isGmExport ? 'gm' : 'player',
+      layoutVersion: 'TV-PDF-R4',
+      sessionId,
+      generatedAt: new Date().toISOString(),
+      subjectName: currentPlayer?.name || playerName || displayName || 'Avonturier',
+      profile: {
+        name: currentPlayer?.name || playerName || displayName || 'Avonturier',
+        subtitle: currentPlayer?.subtitle || '',
+        hp: Number(currentPlayer?.hp ?? 0),
+        maxHp: Number(currentPlayer?.maxHp ?? currentPlayer?.hp ?? 0),
+        ac: Number(currentPlayer?.ac ?? 10),
+        initMod: Number(currentPlayer?.initMod ?? 0),
+        customStats: Array.isArray(currentPlayer?.customStats) ? currentPlayer.customStats : [],
+      },
+      notes: notes.map((entry) => ({
+        title: entry.title,
+        content: entry.content,
+        lastEdited: entry.lastEdited,
+      })),
+      inventory: playerInventory,
+      wallet: wallets?.[CURRENT_PLAYER_ID] || { platinum: 0, gold: 0, silver: 0, bronze: 0 },
+      handouts: visibleHandouts,
+      chat: recentChat,
+      gmData: isGmExport
+        ? {
+            combatStatus,
+            turnRound,
+            currentTurnId,
+            party: party.map((member) => ({
+              id: member.id,
+              name: member.name,
+              subtitle: member.subtitle,
+              hp: member.hp,
+              maxHp: member.maxHp,
+              ac: member.ac,
+              init: member.init,
+              isNpc: member.isNpc,
+            })),
+            handouts: handouts.map((entry) => ({ id: entry.id, title: entry.title })),
+            preparations: preparations.map((entry) => ({
+              id: entry.id,
+              name: entry.name,
+              assignmentStatus: entry.assignmentStatus,
+              assignedToUid: entry.assignedToUid || null,
+              assignedToName: party.find((member) => member.id === entry.assignedToUid)?.name || null,
+              updatedAtMs: entry.updatedAtMs || 0,
+            })),
+            preparationBackups: preparationBackups.map((entry) => ({
+              id: entry.id,
+              playerName: entry.playerName,
+              templateName: entry.templateName,
+              createdAtMs: entry.createdAtMs,
+              restoredAtMs: entry.restoredAtMs || 0,
+            })),
+            walletRows: gmWalletRows,
+          }
+        : null,
+    };
+  };
+
+  const handleExportPlayerArchivePdf = async () => {
+    if (isArchiveExporting) return;
+
+    setIsArchiveExporting(true);
+    try {
+      const payload = buildPlayerArchivePayload();
+      const fileName = await downloadPlayerArchivePdf(payload);
+      setSessionInfo(`Export voltooid: ${fileName}`);
+      setSessionError('');
+    } catch (err) {
+      console.error('Player archive export fout:', err);
+      setSessionError('Exporteren is mislukt. Probeer opnieuw.');
+    } finally {
+      setIsArchiveExporting(false);
+    }
+  };
+
   const handleAdjustWallet = async (ownerId, coinKey, delta) => {
     if (!['platinum', 'gold', 'silver', 'bronze'].includes(coinKey)) return;
 
@@ -3402,6 +3534,8 @@ export default function TomeVaultApp() {
           playerName={playerName}
           role={role}
           onLogout={handleLeaveSession}
+          onExportArchive={handleExportPlayerArchivePdf}
+          exportBusy={isArchiveExporting}
           theme={theme}
           onSaveSettings={handleSaveSettings}
         />
