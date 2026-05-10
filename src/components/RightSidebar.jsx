@@ -225,6 +225,12 @@ function RightSidebar({
   const turnApproachRatio = getTurnApproachRatio(sortedParty, initiativeOrder, currentTurnId, currentPlayerId);
   const isMyTurn = battleActive && currentTurnId === currentPlayerId;
   const currentTurnMember = sortedParty.find((member) => member.id === currentTurnId) || null;
+  const getVisibleCombatName = (member) => {
+    if (!member) return null;
+    if (!isGm && member.isNpc && member.isRevealed === false) return 'Onbekende vijand';
+    return member.name;
+  };
+  const currentTurnDisplayName = getVisibleCombatName(currentTurnMember);
   const showPlayerRollPanel = role === 'player'
     && combatStatus === COMBAT_STATUS.IDLE
     && myCharacter
@@ -598,9 +604,9 @@ function RightSidebar({
   const gmStatusLine = (() => {
     if (combatStatus === COMBAT_STATUS.IDLE) return 'Klaar om de slagorde actief te maken.';
     if (combatStatus === COMBAT_STATUS.PAUSED) {
-      return currentTurnMember ? `Gepauzeerd bij ${currentTurnMember.name}.` : 'Gepauzeerd voor beheer van de slagorde.';
+      return currentTurnDisplayName ? `Gepauzeerd bij ${currentTurnDisplayName}.` : 'Gepauzeerd voor beheer van de slagorde.';
     }
-    return currentTurnMember ? `Aan zet: ${currentTurnMember.name}.` : 'Gevecht actief.';
+    return currentTurnDisplayName ? `Aan zet: ${currentTurnDisplayName}.` : 'Gevecht actief.';
   })();
 
   const playerStatusPrimaryLine = (() => {
@@ -611,13 +617,13 @@ function RightSidebar({
     }
 
     if (combatStatus === COMBAT_STATUS.PAUSED) {
-      return currentTurnMember
-        ? `Gepauzeerd tijdens ${currentTurnMember.name}.`
+      return currentTurnDisplayName
+        ? `Gepauzeerd tijdens ${currentTurnDisplayName}.`
         : 'De GM past de slagorde aan.';
     }
 
     if (isMyTurn) return 'Jij bent nu aan zet.';
-    return currentTurnMember ? `${currentTurnMember.name} is nu aan zet.` : 'Gevecht actief.';
+    return currentTurnDisplayName ? `${currentTurnDisplayName} is nu aan zet.` : 'Gevecht actief.';
   })();
 
   const playerStatusSecondaryLine = (() => {
@@ -885,6 +891,9 @@ function RightSidebar({
 
           {sortedParty.map((member) => {
             const isCurrentTurn = combatInProgress && member.id === currentTurnId;
+            const hiddenNpcForPlayer = !isGm && member.isNpc && member.isRevealed === false;
+            const displayMemberName = hiddenNpcForPlayer ? 'Onbekende vijand' : member.name;
+            const displayMemberAvatar = hiddenNpcForPlayer ? null : member.avatar;
             const turnsUntilMember = combatInProgress
               ? getTurnsUntilMember(sortedParty, initiativeOrder, currentTurnId, member.id)
               : null;
@@ -942,13 +951,13 @@ function RightSidebar({
                 <div className={`flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-md border font-fantasy text-lg font-bold shadow-inner transition-all md:h-11 md:w-11 ${
                   member.isNpc ? 'border-rose-900/50 bg-rose-950/40 text-rose-400' : 'border-amber-900/30 bg-stone-900/80 text-amber-500'
                 } ${isCurrentTurn ? 'ring-1 ring-amber-500/50' : ''}`}>
-                  <img src={resolveDisplayAvatar(member.avatar, member.id)} alt={member.name} className="h-full w-full object-cover opacity-80" />
+                  <img src={resolveDisplayAvatar(displayMemberAvatar, member.id)} alt={displayMemberName} className="h-full w-full object-cover opacity-80" />
                 </div>
 
                 <div className="flex min-w-0 flex-1 flex-col gap-1">
                   <div className="flex items-center justify-between">
                     <span className={`mr-2 truncate font-fantasy text-sm tracking-wider ${member.isNpc ? 'text-rose-400' : 'text-amber-100'}`}>
-                      {member.name}
+                      {displayMemberName}
                     </span>
                     <div className="flex items-center gap-1.5">
                       {combatInProgress ? (
@@ -979,19 +988,27 @@ function RightSidebar({
                       title={isGm ? 'Klik om HP aan te passen' : 'Hit Points'}
                     >
                       <span className="font-bold text-stone-500">HP</span>
-                      <span className={member.hp < 10 ? 'font-bold text-rose-500' : 'font-bold text-emerald-500'}>{member.hp}</span>
+                      {hiddenNpcForPlayer ? (
+                        <span className="font-bold text-stone-500">?</span>
+                      ) : (
+                        <span className={member.hp < 10 ? 'font-bold text-rose-500' : 'font-bold text-emerald-500'}>{member.hp}</span>
+                      )}
                     </div>
                     <div
                       className="flex flex-1 items-center justify-between rounded border border-stone-800/50 bg-stone-950/80 px-1.5 py-0.5"
                       onClick={(event) => event.stopPropagation()}
                     >
                       <span className="font-bold text-stone-500">AC</span>
-                      <EditableStat
-                        className="font-bold text-stone-300"
-                        value={member.ac}
-                        onChange={(value) => onUpdateStat?.(member.id, 'ac', value)}
-                        disabled={!isGm}
-                      />
+                      {hiddenNpcForPlayer ? (
+                        <span className="font-bold text-stone-500">?</span>
+                      ) : (
+                        <EditableStat
+                          className="font-bold text-stone-300"
+                          value={member.ac}
+                          onChange={(value) => onUpdateStat?.(member.id, 'ac', value)}
+                          disabled={!isGm}
+                        />
+                      )}
                     </div>
                   </div>
                 </div>

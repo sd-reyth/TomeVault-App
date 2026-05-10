@@ -1,18 +1,32 @@
 import React, { useState } from 'react';
-import { LayoutGrid, List, Plus, Eye, EyeOff, Hand } from 'lucide-react';
+import { LayoutGrid, List, Plus, Eye, EyeOff, Hand, User, KeyRound } from 'lucide-react';
 import { getHandoutIcon } from '../lib/handoutUtils';
 
-function HandoutsView({ role, handouts, onToggleVisibility, onOpenHandout, onCreateHandout, onClaim }) {
+function HandoutsView({ role, handouts, currentPlayerId, onToggleVisibility, onToggleSecretVisibility, onOpenHandout, onCreateHandout, onClaim }) {
   const [viewMode, setViewMode] = useState('list');
+
+  const isClaimableLoot = (handout) => (
+    handout.claimable
+    && !handout.claimedBy
+    && String(handout.type || '').toLowerCase() === 'loot'
+  );
+
+  const isSecretVisibleToPlayers = (handout) => handout.secretRevealed === true;
 
   const toggleVisibility = (id) => {
     if (role !== 'gm') return;
     onToggleVisibility?.(id);
   };
 
+  const toggleSecretVisibility = (id) => {
+    if (role !== 'gm') return;
+    onToggleSecretVisibility?.(id);
+  };
+
   const visibleHandouts = handouts.filter(h => {
     if (role === 'gm') return true; 
     if (!h.isRevealed) return false; 
+    if (h.assignedToUid && h.assignedToUid !== currentPlayerId) return false;
     if (h.claimedBy) return false; 
     return true;
   });
@@ -77,19 +91,30 @@ function HandoutsView({ role, handouts, onToggleVisibility, onOpenHandout, onCre
                 <div className="absolute inset-0 bg-gradient-to-br from-amber-950/40 via-stone-900/60 to-stone-950" />
               )}
               
-              <Icon className={`${viewMode === 'grid' ? 'w-10 h-10 md:w-12 md:h-12' : 'w-6 h-6 md:w-8 md:h-8'} ${handout.imageUrl ? 'text-white/80 drop-shadow-[0_2px_12px_rgba(0,0,0,0.9)]' : 'text-amber-700/60 drop-shadow-md'} relative z-10`} strokeWidth={1.5} />
+              {!handout.imageUrl ? (
+                <Icon className={`${viewMode === 'grid' ? 'w-10 h-10 md:w-12 md:h-12' : 'w-6 h-6 md:w-8 md:h-8'} text-amber-700/60 drop-shadow-md relative z-10`} strokeWidth={1.5} />
+              ) : null}
+
+              {role === 'gm' && viewMode === 'grid' ? (
+                <div className="absolute top-2 right-2 md:top-3 md:right-3 flex items-center gap-1.5 z-20">
+                  <button
+                    onClick={(e) => { e.stopPropagation(); toggleSecretVisibility(handout.id); }}
+                    className={`p-2 bg-stone-900/90 rounded border transition-colors shadow-md ${isSecretVisibleToPlayers(handout) ? 'text-cyan-300 border-cyan-700/70 hover:border-cyan-500' : 'text-stone-400 border-stone-700 hover:text-cyan-300 hover:border-cyan-700/70'}`}
+                    title={isSecretVisibleToPlayers(handout) ? 'Verberg Secret voor spelers' : 'Toon Secret aan alle spelers'}
+                  >
+                    <KeyRound className="w-4 h-4" />
+                  </button>
+                  <button
+                    onClick={(e) => { e.stopPropagation(); toggleVisibility(handout.id); }}
+                    className="p-2 bg-stone-900/90 rounded text-stone-400 hover:text-amber-400 border border-stone-700 hover:border-amber-700 transition-colors shadow-md"
+                    title={handout.isRevealed ? 'Verberg in de schaduwen' : 'Onthul aan de party'}
+                  >
+                    {handout.isRevealed ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
+                  </button>
+                </div>
+              ) : null}
               
-              {role === 'gm' && viewMode === 'grid' && (
-                <button 
-                  onClick={(e) => { e.stopPropagation(); toggleVisibility(handout.id); }}
-                  className="absolute top-2 right-2 md:top-3 md:right-3 p-2 bg-stone-900/90 rounded text-stone-400 hover:text-amber-400 border border-stone-700 hover:border-amber-700 transition-colors z-20 shadow-md"
-                  title={handout.isRevealed ? "Verberg in de schaduwen" : "Onthul aan de party"}
-                >
-                  {handout.isRevealed ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
-                </button>
-              )}
-              
-              {role === 'player' && viewMode === 'grid' && handout.claimable && !handout.claimedBy && (
+              {role === 'player' && viewMode === 'grid' && isClaimableLoot(handout) && (
                 <button 
                   onClick={(e) => { e.stopPropagation(); onClaim(handout.id); }}
                   className="absolute top-2 right-2 md:top-3 md:right-3 p-2 bg-stone-900/90 rounded text-amber-500 hover:text-amber-300 border border-amber-900/50 hover:border-amber-500 transition-colors z-20 shadow-md"
@@ -102,17 +127,26 @@ function HandoutsView({ role, handouts, onToggleVisibility, onOpenHandout, onCre
             
             <div className={`flex-1 flex flex-col relative z-10 overflow-hidden ${viewMode === 'grid' ? 'p-4 md:p-5' : 'p-2 md:p-3 justify-center'}`}>
               
-              {role === 'gm' && viewMode === 'list' && (
-                <button 
-                  onClick={(e) => { e.stopPropagation(); toggleVisibility(handout.id); }}
-                  className="absolute top-1/2 -translate-y-1/2 right-2 md:right-3 p-1.5 md:p-2 bg-stone-900/90 rounded text-stone-400 hover:text-amber-400 border border-stone-700 hover:border-amber-700 transition-colors z-20 shadow-sm"
-                  title={handout.isRevealed ? "Verberg in de schaduwen" : "Onthul aan de party"}
-                >
-                  {handout.isRevealed ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
-                </button>
-              )}
+              {role === 'gm' && viewMode === 'list' ? (
+                <div className="absolute top-1/2 -translate-y-1/2 right-2 md:right-3 flex items-center gap-1.5 z-20">
+                  <button
+                    onClick={(e) => { e.stopPropagation(); toggleSecretVisibility(handout.id); }}
+                    className={`p-1.5 md:p-2 bg-stone-900/90 rounded border transition-colors shadow-sm ${isSecretVisibleToPlayers(handout) ? 'text-cyan-300 border-cyan-700/70 hover:border-cyan-500' : 'text-stone-400 border-stone-700 hover:text-cyan-300 hover:border-cyan-700/70'}`}
+                    title={isSecretVisibleToPlayers(handout) ? 'Verberg Secret voor spelers' : 'Toon Secret aan alle spelers'}
+                  >
+                    <KeyRound className="w-4 h-4" />
+                  </button>
+                  <button
+                    onClick={(e) => { e.stopPropagation(); toggleVisibility(handout.id); }}
+                    className="p-1.5 md:p-2 bg-stone-900/90 rounded text-stone-400 hover:text-amber-400 border border-stone-700 hover:border-amber-700 transition-colors shadow-sm"
+                    title={handout.isRevealed ? 'Verberg in de schaduwen' : 'Onthul aan de party'}
+                  >
+                    {handout.isRevealed ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
+                  </button>
+                </div>
+              ) : null}
 
-              {role === 'player' && viewMode === 'list' && handout.claimable && !handout.claimedBy && (
+              {role === 'player' && viewMode === 'list' && isClaimableLoot(handout) && (
                 <button 
                   onClick={(e) => { e.stopPropagation(); onClaim(handout.id); }}
                   className="absolute top-1/2 -translate-y-1/2 right-2 md:right-3 p-1.5 md:p-2 bg-stone-900/90 rounded text-amber-500 hover:text-amber-300 border border-amber-900/50 hover:border-amber-500 transition-colors z-20 shadow-sm"
@@ -136,6 +170,18 @@ function HandoutsView({ role, handouts, onToggleVisibility, onOpenHandout, onCre
                 {role === 'gm' && handout.claimedBy && (
                   <span className={`font-bold uppercase tracking-widest text-indigo-400 bg-indigo-950/50 border border-indigo-900/30 rounded flex items-center gap-1 shrink-0 ${viewMode === 'grid' ? 'text-[9px] px-2 py-1' : 'text-[8px] px-1.5 py-0.5'}`}>
                     <Hand className="w-2.5 h-2.5 md:w-3 md:h-3" /> Geclaimd
+                  </span>
+                )}
+
+                {role === 'gm' && handout.assignedToUid && (
+                  <span className={`font-bold uppercase tracking-widest text-cyan-300 bg-cyan-950/30 border border-cyan-900/30 rounded flex items-center gap-1 shrink-0 ${viewMode === 'grid' ? 'text-[9px] px-2 py-1' : 'text-[8px] px-1.5 py-0.5'}`}>
+                    <User className="w-2.5 h-2.5 md:w-3 md:h-3" /> Toegewezen
+                  </span>
+                )}
+
+                {role === 'player' && handout.assignedToUid === currentPlayerId && (
+                  <span className={`font-bold uppercase tracking-widest text-cyan-300 bg-cyan-950/30 border border-cyan-900/30 rounded flex items-center gap-1 shrink-0 ${viewMode === 'grid' ? 'text-[9px] px-2 py-1' : 'text-[8px] px-1.5 py-0.5'}`}>
+                    <User className="w-2.5 h-2.5 md:w-3 md:h-3" /> Voor jou
                   </span>
                 )}
 
@@ -171,11 +217,18 @@ function HandoutsView({ role, handouts, onToggleVisibility, onOpenHandout, onCre
               )}
               
               {role === 'gm' && handout.secret && (
-                <div className={`${viewMode === 'grid' ? 'mt-auto p-2.5 md:p-3' : 'mt-1 py-1 px-2 flex items-center gap-2 mr-12'} bg-stone-950/80 border-l-2 border-amber-700 rounded-r text-amber-500/90 font-story italic shadow-inner overflow-hidden`}>
-                  <strong className={`font-sans text-[9px] uppercase tracking-widest text-amber-700 shrink-0 block ${viewMode === 'grid' ? 'mb-1' : ''}`}>GM Inzicht</strong>
+                <div className={`${viewMode === 'grid' ? 'mt-auto p-2.5 md:p-3' : 'mt-1 py-1 px-2 flex items-center gap-2 mr-20'} bg-stone-950/80 border-l-2 border-amber-700 rounded-r text-amber-500/90 font-story italic shadow-inner overflow-hidden`}>
+                  <strong className={`font-sans text-[9px] uppercase tracking-widest text-amber-700 shrink-0 block ${viewMode === 'grid' ? 'mb-1' : ''}`}>Secret</strong>
                   <span className={`text-[10px] md:text-[11px] ${viewMode === 'list' ? 'truncate' : ''}`}>{handout.secret}</span>
                 </div>
               )}
+
+              {role === 'player' && handout.secret && isSecretVisibleToPlayers(handout) ? (
+                <div className={`${viewMode === 'grid' ? 'mt-auto p-2.5 md:p-3' : 'mt-1 py-1 px-2 flex items-center gap-2 mr-12'} bg-cyan-950/35 border-l-2 border-cyan-500 rounded-r text-cyan-100/90 font-story shadow-inner overflow-hidden`}>
+                  <strong className={`font-sans text-[9px] uppercase tracking-widest text-cyan-300 shrink-0 block ${viewMode === 'grid' ? 'mb-1' : ''}`}>Secret</strong>
+                  <span className={`text-[10px] md:text-[11px] ${viewMode === 'list' ? 'truncate' : ''}`}>{handout.secret}</span>
+                </div>
+              ) : null}
             </div>
           </div>
         )})}

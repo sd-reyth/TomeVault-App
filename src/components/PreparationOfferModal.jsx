@@ -17,10 +17,10 @@ export default function PreparationOfferModal({ isOpen, preparation, onAccept, o
   ].concat((preparation.customStats || []).slice(0, 4).map((stat) => `${stat.name} ${stat.value}`));
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-stone-950/80 p-4 backdrop-blur-sm">
-      <div className="w-full max-w-xl overflow-hidden rounded-2xl border border-amber-900/30 bg-stone-900 shadow-2xl">
+    <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-stone-950/80 px-3 py-3 backdrop-blur-sm sm:items-center sm:p-4">
+      <div className="my-auto flex max-h-[calc(100dvh-0.75rem)] w-full max-w-xl flex-col overflow-hidden rounded-2xl border border-amber-900/30 bg-stone-900 shadow-2xl sm:max-h-[calc(100dvh-2rem)]">
         <div className="relative overflow-hidden border-b border-stone-800/60 bg-gradient-to-br from-stone-950 via-stone-900 to-amber-950/30 p-5">
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(245,158,11,0.16),transparent_40%)] pointer-events-none" />
+          <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(245,158,11,0.16),transparent_40%)]" />
           <div className="relative z-10 flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.22em] text-amber-300">
             <Crown className="h-3.5 w-3.5" />
             Een rol ligt voor je klaar
@@ -31,54 +31,58 @@ export default function PreparationOfferModal({ isOpen, preparation, onAccept, o
           ) : null}
         </div>
 
-        <div className="grid gap-5 p-5 md:grid-cols-[140px_minmax(0,1fr)] md:p-6">
-          <div className="mx-auto h-[140px] w-[140px] overflow-hidden rounded-2xl border border-stone-800 bg-stone-950 shadow-inner">
-            <img
-              src={resolveDisplayAvatar(preparation.imageUrl, preparation.id)}
-              alt={preparation.name || 'Voorbereid personage'}
-              className="h-full w-full object-cover scale-[1.18]"
-            />
-          </div>
-
-          <div>
-            <p className="text-sm leading-7 text-stone-400">
-              De GM heeft een voorbereid personage voor je klaargezet. Als je dit accepteert, worden je profielnaam, rol of titel,
-              avatar, profielwaarden, verborgen eigenschappen en bio bijgewerkt. Eerst maken we automatisch een herstelpunt, zodat
-              je oude profiel veilig blijft. Inventaris, wallet en losse notities blijven ongemoeid.
-            </p>
-
-            <div className="mt-4 flex flex-wrap gap-2">
-              {statPills.map((pill) => (
-                <span
-                  key={`${preparation.id}-${pill}`}
-                  className="rounded-full border border-stone-800 bg-stone-950/80 px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.16em] text-stone-400"
-                >
-                  {pill}
-                </span>
-              ))}
+        <div className="flex-1 overflow-y-auto">
+          <div className="grid gap-5 p-5 md:grid-cols-[140px_minmax(0,1fr)] md:p-6">
+            <div className="mx-auto h-[140px] w-[140px] overflow-hidden rounded-2xl border border-stone-800 bg-stone-950 shadow-inner">
+              <img
+                src={resolveDisplayAvatar(preparation.imageUrl, preparation.id)}
+                alt={preparation.name || 'Voorbereid personage'}
+                className="h-full w-full object-cover scale-[1.18]"
+              />
             </div>
 
-            <div className="mt-4 rounded-xl border border-stone-800 bg-stone-950/50 p-4 text-sm leading-7 text-stone-300">
-              {preparation.bio || <span className="italic text-stone-600">Deze voorbereiding bevat nog geen bio.</span>}
+            <div>
+              <p className="text-sm leading-7 text-stone-400">
+                De GM heeft een voorbereid personage voor je klaargezet. Als je dit accepteert, worden je profielnaam, rol of titel,
+                avatar, profielwaarden, verborgen eigenschappen en bio bijgewerkt. Eerst maken we automatisch een herstelpunt, zodat
+                je oude profiel veilig blijft. Inventaris, wallet en losse notities blijven ongemoeid.
+              </p>
+
+              <div className="mt-4 flex flex-wrap gap-2">
+                {statPills.map((pill) => (
+                  <span
+                    key={`${preparation.id}-${pill}`}
+                    className="rounded-full border border-stone-800 bg-stone-950/80 px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.16em] text-stone-400"
+                  >
+                    {pill}
+                  </span>
+                ))}
+              </div>
+
+              <div className="mt-4 rounded-xl border border-stone-800 bg-stone-950/50 p-4 text-sm leading-7 text-stone-300">
+                {preparation.bio || <span className="italic text-stone-600">Deze voorbereiding bevat nog geen bio.</span>}
+              </div>
             </div>
           </div>
         </div>
 
-        <div className="flex flex-col gap-3 border-t border-stone-800/60 bg-stone-900/85 p-4 sm:flex-row sm:justify-end">
-          <button
-            type="button"
-            onClick={onReject}
-            className="h-9 inline-flex items-center justify-center rounded-lg border border-stone-700 bg-stone-900/70 px-4 font-fantasy text-sm uppercase tracking-[0.16em] text-stone-300 transition-colors hover:border-rose-900/50 hover:text-rose-300"
-          >
-            Weigeren
-          </button>
-          <button
-            type="button"
-            onClick={onAccept}
-            className="h-9 inline-flex items-center justify-center rounded-lg border border-amber-700/60 bg-gradient-to-r from-amber-700 to-amber-600 px-5 font-fantasy text-sm uppercase tracking-[0.16em] text-stone-100 shadow-sm transition-colors hover:from-amber-600 hover:to-amber-500"
-          >
-            Neem deze rol aan
-          </button>
+        <div className="shrink-0 border-t border-stone-800/60 bg-stone-900/85 px-4 pt-4 pb-[calc(env(safe-area-inset-bottom,0px)+1rem)] sm:pb-4">
+          <div className="flex flex-col gap-3 sm:flex-row sm:justify-end">
+            <button
+              type="button"
+              onClick={onReject}
+              className="h-9 inline-flex items-center justify-center rounded-lg border border-stone-700 bg-stone-900/70 px-4 font-fantasy text-sm uppercase tracking-[0.16em] text-stone-300 transition-colors hover:border-rose-900/50 hover:text-rose-300"
+            >
+              Weigeren
+            </button>
+            <button
+              type="button"
+              onClick={onAccept}
+              className="h-9 inline-flex items-center justify-center rounded-lg border border-amber-700/60 bg-gradient-to-r from-amber-700 to-amber-600 px-5 font-fantasy text-sm uppercase tracking-[0.16em] text-stone-100 shadow-sm transition-colors hover:from-amber-600 hover:to-amber-500"
+            >
+              Neem deze rol aan
+            </button>
+          </div>
         </div>
       </div>
     </div>

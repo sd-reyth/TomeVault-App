@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Flame, Share2, Pause, Music, Volume2, Swords, User, LogOut, Settings, ChevronDown } from 'lucide-react';
+import { Flame, Share2, Pause, Music, Volume2, Swords, User, LogOut, Settings, ChevronDown, Bell, BellRing } from 'lucide-react';
 import AmbiencePanel from './AmbiencePanel';
 import RuntimeBadge from './RuntimeBadge';
 import { COMBAT_STATUS, getTurnApproachRatio, getTurnsUntilMember, sortPartyByInitiative } from '../lib/battleUtils';
@@ -25,7 +25,52 @@ export default function TopBar({ role, sessionId, sessionNumber, combatStatus, c
   const ambienceSubtitle = ambience?.isPlaying ? 'Live aan tafel' : 'Sfeer staat klaar';
   const ambienceFillWidth = `${Math.max(0, Math.min(100, Number(ambience?.sessionVolume) || 0))}%`;
   const [isSessionMenuOpen, setIsSessionMenuOpen] = useState(false);
+  const [turnAlert, setTurnAlert] = useState(null);
   const sessionMenuRef = useRef(null);
+  const lastTurnRef = useRef(currentTurnId || null);
+  const previousCombatStatusRef = useRef(combatStatus);
+
+  useEffect(() => {
+    const previousCombatStatus = previousCombatStatusRef.current;
+    const turnChanged = lastTurnRef.current !== currentTurnId;
+
+    if (role === 'player' && combatStatus === COMBAT_STATUS.ACTIVE && turnChanged) {
+      if (currentTurnId === currentPlayerId) {
+        setTurnAlert({
+          id: `${Date.now()}-now`,
+          variant: 'now',
+          label: 'Jij bent nu aan de beurt.',
+        });
+      } else if (turnsUntilMine === 1) {
+        setTurnAlert({
+          id: `${Date.now()}-soon`,
+          variant: 'soon',
+          label: 'Bijna jouw beurt. Maak je actie alvast klaar.',
+        });
+      } else if (previousCombatStatus !== COMBAT_STATUS.ACTIVE && turnsUntilMine !== null) {
+        setTurnAlert({
+          id: `${Date.now()}-start`,
+          variant: 'start',
+          label: 'Gevecht gestart. Let op de slagorde.',
+        });
+      }
+    }
+
+    lastTurnRef.current = currentTurnId;
+    previousCombatStatusRef.current = combatStatus;
+  }, [role, combatStatus, currentTurnId, currentPlayerId, turnsUntilMine]);
+
+  useEffect(() => {
+    if (!turnAlert) return undefined;
+
+    const timer = window.setTimeout(() => {
+      setTurnAlert((current) => (current?.id === turnAlert.id ? null : current));
+    }, 4800);
+
+    return () => {
+      window.clearTimeout(timer);
+    };
+  }, [turnAlert]);
 
   useEffect(() => {
     if (!ambience?.isOpen) return undefined;
@@ -82,6 +127,20 @@ export default function TopBar({ role, sessionId, sessionNumber, combatStatus, c
 
   return (
     <header className="relative h-14 md:h-16 bg-stone-900/80 backdrop-blur border-b border-stone-800 flex items-center justify-between px-3 md:px-5 shrink-0 z-30">
+      {turnAlert && role === 'player' ? (
+        <div className="pointer-events-none absolute left-1/2 top-1 -translate-x-1/2 z-40">
+          <div
+            className={`rounded-full border p-2 shadow-lg ${turnAlert.variant === 'now' ? 'border-amber-600/70 bg-amber-900/90 text-amber-100' : (turnAlert.variant === 'start' ? 'border-indigo-600/70 bg-indigo-950/90 text-indigo-100' : 'border-cyan-700/60 bg-cyan-950/85 text-cyan-100')}`}
+            role="status"
+            aria-live="polite"
+            aria-label={turnAlert.label}
+            title={turnAlert.label}
+          >
+            {turnAlert.variant === 'now' ? <BellRing className="h-4 w-4" /> : <Bell className="h-4 w-4" />}
+          </div>
+        </div>
+      ) : null}
+
       <div className="flex items-center gap-2 md:gap-3 min-w-0">
         <img src="/references/tomeVaultLogo1.png" alt="TomeVault" className="h-7 w-7 md:h-8 md:w-8 object-contain shrink-0" />
         <span className="font-bold text-lg md:text-xl tracking-widest text-stone-100 font-fantasy hidden sm:block">

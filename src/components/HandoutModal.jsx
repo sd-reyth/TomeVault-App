@@ -3,11 +3,27 @@ import { X, ImagePlus, Eye, EyeOff, Hand, Trash2, UserPlus } from 'lucide-react'
 import { getHandoutIcon } from '../lib/handoutUtils';
 import { getAllPlaceholderImages, suggestHandoutImages } from '../lib/placeholders';
 
-function HandoutModal({ isOpen, onClose, handout, role, onSave, onDelete, onAddToInitiative, canAddToInitiative }) {
+function HandoutModal({ isOpen, onClose, handout, role, players = [], currentPlayerId, onSave, onDelete, onAddToInitiative, canAddToInitiative }) {
   const [isEditing, setIsEditing] = useState(false);
+  const EMPTY_FORM = {
+    title: '',
+    type: 'clue',
+    content: '',
+    secret: '',
+    isRevealed: false,
+    imageUrl: null,
+    claimable: false,
+    claimedBy: null,
+    assignedToUid: null,
+    assignedToNick: null,
+    secretRevealed: false,
+    npcSubtitle: 'Vijand',
+    npcHp: 15,
+    npcAc: 12,
+    npcInitMod: 2,
+  };
   const [formData, setFormData] = useState({
-    title: '', type: 'clue', content: '', secret: '', isRevealed: false, imageUrl: null, claimable: false, claimedBy: null,
-    npcSubtitle: 'Vijand', npcHp: 15, npcAc: 12, npcInitMod: 2,
+    ...EMPTY_FORM,
   });
   const [pendingFile, setPendingFile] = useState(null);
   const [showAllPlaceholders, setShowAllPlaceholders] = useState(false);
@@ -17,10 +33,14 @@ function HandoutModal({ isOpen, onClose, handout, role, onSave, onDelete, onAddT
       setPendingFile(null);
       setShowAllPlaceholders(false);
       if (handout) {
-        setFormData({ ...handout });
+        setFormData({
+          ...EMPTY_FORM,
+          ...handout,
+          secretRevealed: handout.secretRevealed === true,
+        });
         setIsEditing(false); 
       } else {
-        setFormData({ title: '', type: 'clue', content: '', secret: '', isRevealed: false, imageUrl: null, claimable: false, claimedBy: null, npcSubtitle: 'Vijand', npcHp: 15, npcAc: 12, npcInitMod: 2 });
+        setFormData({ ...EMPTY_FORM });
         setIsEditing(true); 
       }
     }
@@ -30,6 +50,8 @@ function HandoutModal({ isOpen, onClose, handout, role, onSave, onDelete, onAddT
 
   const isGM = role === 'gm';
   const Icon = getHandoutIcon(formData.type);
+  const assignedPlayer = players.find((player) => player.id === formData.assignedToUid) || null;
+  const playerCanSeeSecret = !isGM && formData.secretRevealed === true;
   const normalizeParagraph = (text) => String(text || '')
     .replace(/\r/g, '')
     .split('\n')
@@ -92,12 +114,15 @@ function HandoutModal({ isOpen, onClose, handout, role, onSave, onDelete, onAddT
             <form id="handout-form" onSubmit={handleSave} className="flex flex-col gap-5">
               
               <div className="flex justify-center w-full">
-                <label className="relative group cursor-pointer w-full h-28 md:h-36 rounded-xl border-2 border-dashed border-stone-700 bg-stone-950/50 hover:bg-stone-900/80 hover:border-amber-700/50 flex items-center justify-center overflow-hidden transition-all shadow-inner">
+                <label className="relative group cursor-pointer w-full h-32 md:h-40 rounded-xl border-2 border-dashed border-stone-700 bg-stone-950/50 hover:bg-stone-900/80 hover:border-amber-700/50 flex items-center justify-center overflow-hidden transition-all shadow-inner">
                   <input type="file" accept="image/*" className="hidden" onChange={handleImageChange} />
                   {formData.imageUrl ? (
                     <>
-                      <img src={formData.imageUrl} alt="Handout preview" className="w-full h-full object-cover opacity-70 group-hover:opacity-40 transition-opacity" />
-                      <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                      <img src={formData.imageUrl} alt="Handout preview" className="w-full h-full object-contain p-2 bg-stone-950/80" />
+                      <div className="absolute left-2 top-2 rounded border border-cyan-700/60 bg-cyan-950/65 px-2 py-1 text-[9px] font-bold uppercase tracking-[0.16em] text-cyan-200">
+                        Volledige upload
+                      </div>
+                      <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-stone-950/35">
                         <ImagePlus className="w-8 h-8 text-stone-200 drop-shadow-md" />
                       </div>
                     </>
@@ -109,6 +134,12 @@ function HandoutModal({ isOpen, onClose, handout, role, onSave, onDelete, onAddT
                   )}
                 </label>
               </div>
+
+              {formData.imageUrl ? (
+                <p className="-mt-2 text-[11px] leading-5 text-stone-500">
+                  De volledige afbeelding wordt geupload. In het overzicht kan een uitsnede worden gebruikt om de kaart netjes te tonen.
+                </p>
+              ) : null}
 
               {(() => {
                 const suggestions = suggestHandoutImages(formData.title, formData.content, formData.type, 5);
@@ -181,7 +212,9 @@ function HandoutModal({ isOpen, onClose, handout, role, onSave, onDelete, onAddT
                     onChange={e => setFormData((prev) => ({
                       ...prev,
                       type: e.target.value,
-                      claimable: e.target.value === 'npc' ? false : prev.claimable,
+                      claimable: e.target.value === 'loot' ? prev.claimable : false,
+                      assignedToUid: e.target.value === 'npc' ? null : prev.assignedToUid,
+                      assignedToNick: e.target.value === 'npc' ? null : prev.assignedToNick,
                     }))}
                     className="w-full bg-stone-950/50 border border-stone-800 rounded-lg px-4 py-3 text-sm font-fantasy tracking-wider text-stone-300 focus:outline-none focus:border-amber-600/50 transition-colors appearance-none"
                   >
@@ -262,7 +295,7 @@ function HandoutModal({ isOpen, onClose, handout, role, onSave, onDelete, onAddT
 
               <div>
                 <label className="block text-[10px] font-bold text-amber-700 uppercase tracking-widest mb-1.5 flex justify-between">
-                  <span>GM Inzicht (Geheim)</span>
+                  <span>Secret</span>
                   <span className="text-stone-600 font-normal normal-case">Alleen voor de GM</span>
                 </label>
                 <textarea 
@@ -273,6 +306,49 @@ function HandoutModal({ isOpen, onClose, handout, role, onSave, onDelete, onAddT
                   className="w-full bg-stone-950/80 border border-amber-900/30 rounded-lg px-4 py-3 text-sm font-story text-amber-500/90 placeholder-stone-700 focus:outline-none focus:border-amber-600/50 transition-colors resize-none leading-relaxed shadow-[inset_0_0_20px_rgba(0,0,0,0.5)]"
                 />
               </div>
+
+              {String(formData.type || '').toLowerCase() !== 'npc' ? (
+                <div className="rounded-xl border border-cyan-900/30 bg-cyan-950/10 p-4">
+                  <label className="block text-[10px] font-bold text-cyan-400 uppercase tracking-widest mb-1.5">Toewijzen aan speler</label>
+                  <select
+                    value={formData.assignedToUid || ''}
+                    onChange={(event) => {
+                      const nextUid = event.target.value || null;
+                      const nextPlayer = players.find((player) => player.id === nextUid) || null;
+                      setFormData((prev) => ({
+                        ...prev,
+                        assignedToUid: nextUid,
+                        assignedToNick: nextPlayer?.name || null,
+                      }));
+                    }}
+                    className="w-full bg-stone-950/50 border border-stone-800 rounded-lg px-4 py-2.5 text-sm font-story text-stone-300 focus:outline-none focus:border-cyan-700/50 transition-colors"
+                  >
+                    <option value="">Iedereen in de party</option>
+                    {players.map((player) => (
+                      <option key={player.id} value={player.id}>{player.name}</option>
+                    ))}
+                  </select>
+                  <p className="mt-2 text-[11px] leading-5 text-stone-500">
+                    {formData.assignedToUid ? `Alleen ${assignedPlayer?.name || 'de geselecteerde speler'} ziet deze handout in de lijst.` : 'Iedere speler met zichtbaarheid aan kan deze handout zien.'}
+                  </p>
+                </div>
+              ) : null}
+
+              {String(formData.secret || '').trim() ? (
+                <div className="rounded-xl border border-amber-900/30 bg-stone-950/60 p-4">
+                  <label className="block text-[10px] font-bold text-amber-500 uppercase tracking-widest mb-2">Secret zichtbaar voor spelers</label>
+                  <button
+                    type="button"
+                    onClick={() => setFormData((prev) => ({ ...prev, secretRevealed: !prev.secretRevealed }))}
+                    className={`w-full rounded-lg border px-3 py-2 text-sm font-fantasy tracking-[0.12em] transition-colors ${formData.secretRevealed ? 'border-cyan-700/70 bg-cyan-950/35 text-cyan-200 hover:border-cyan-500' : 'border-stone-700 bg-stone-950/70 text-stone-300 hover:border-cyan-700/70 hover:text-cyan-200'}`}
+                  >
+                    {formData.secretRevealed ? 'Nu zichtbaar voor alle spelers' : 'Nu verborgen voor spelers'}
+                  </button>
+                  <p className="mt-2 text-[11px] leading-5 text-stone-500">
+                    Dit geldt voor iedereen: of alle spelers zien de Secret, of niemand.
+                  </p>
+                </div>
+              ) : null}
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-2">
                 <div className="flex items-center gap-3 bg-stone-950/30 border border-stone-800/50 p-3 rounded-lg">
@@ -291,7 +367,7 @@ function HandoutModal({ isOpen, onClose, handout, role, onSave, onDelete, onAddT
                   </div>
                 </div>
 
-                {formData.type !== 'npc' ? (
+                {formData.type === 'loot' ? (
                   <div className="flex items-center gap-3 bg-stone-950/30 border border-stone-800/50 p-3 rounded-lg">
                     <button 
                       type="button"
@@ -314,7 +390,9 @@ function HandoutModal({ isOpen, onClose, handout, role, onSave, onDelete, onAddT
                     </div>
                     <div className="flex flex-col min-w-0">
                       <span className="text-sm font-fantasy tracking-wider text-stone-200">Claimbaar</span>
-                      <span className="text-[10px] text-stone-500 font-story truncate">NPC-handouts zijn altijd niet-claimable.</span>
+                      <span className="text-[10px] text-stone-500 font-story truncate">
+                        {formData.type === 'npc' ? 'NPC-handouts zijn altijd niet-claimable.' : 'Alleen loot-handouts kunnen geclaimd worden.'}
+                      </span>
                     </div>
                   </div>
                 )}
@@ -354,6 +432,15 @@ function HandoutModal({ isOpen, onClose, handout, role, onSave, onDelete, onAddT
                 </div>
               </div>
 
+              {formData.assignedToUid ? (
+                <div className="mx-auto w-full max-w-[70ch] rounded-xl border border-cyan-900/30 bg-cyan-950/10 p-4">
+                  <div className="text-[10px] font-bold uppercase tracking-[0.18em] text-cyan-400">Toegewezen</div>
+                  <p className="mt-2 text-sm leading-6 text-stone-300">
+                    Deze handout is gericht aan <span className="font-fantasy tracking-[0.08em] text-stone-100">{formData.assignedToNick || 'een speler'}</span>.
+                  </p>
+                </div>
+              ) : null}
+
               {isGM && formData.type === 'npc' && (
                 <div className="mx-auto w-full max-w-[70ch] rounded-xl border border-rose-900/30 bg-rose-950/10 p-4">
                   <div className="mb-3 text-[10px] font-bold uppercase tracking-[0.18em] text-rose-500">NPC Gevechtsprofiel</div>
@@ -386,7 +473,7 @@ function HandoutModal({ isOpen, onClose, handout, role, onSave, onDelete, onAddT
                 <div className="mt-4 bg-stone-950/80 border border-amber-900/40 rounded-xl p-5 shadow-[inset_0_0_20px_rgba(0,0,0,0.5)] relative overflow-hidden">
                   <div className="absolute top-0 left-0 w-1 h-full bg-amber-600" />
                   <h4 className="text-[10px] font-bold text-amber-600 uppercase tracking-widest mb-2 flex items-center gap-2">
-                    <EyeOff className="w-3 h-3" /> Exclusief GM Inzicht
+                    <EyeOff className="w-3 h-3" /> Secret (alleen GM)
                   </h4>
                   <p className="font-story italic text-amber-500/90 text-sm leading-relaxed whitespace-pre-line">
                     {String(formData.secret || '')
@@ -398,6 +485,23 @@ function HandoutModal({ isOpen, onClose, handout, role, onSave, onDelete, onAddT
                   </p>
                 </div>
               )}
+
+              {!isGM && formData.secret && playerCanSeeSecret ? (
+                <div className="mt-4 bg-stone-950/80 border border-cyan-900/40 rounded-xl p-5 shadow-[inset_0_0_20px_rgba(0,0,0,0.5)] relative overflow-hidden">
+                  <div className="absolute top-0 left-0 w-1 h-full bg-cyan-500" />
+                  <h4 className="text-[10px] font-bold text-cyan-300 uppercase tracking-widest mb-2 flex items-center gap-2">
+                    <Eye className="w-3 h-3" /> Secret
+                  </h4>
+                  <p className="font-story text-cyan-100/90 text-sm leading-relaxed whitespace-pre-line">
+                    {String(formData.secret || '')
+                      .replace(/\r/g, '')
+                      .split(/\n{2,}/)
+                      .map((paragraph) => normalizeParagraph(paragraph))
+                      .filter(Boolean)
+                      .join('\n\n')}
+                  </p>
+                </div>
+              ) : null}
             </div>
           )}
         </div>
