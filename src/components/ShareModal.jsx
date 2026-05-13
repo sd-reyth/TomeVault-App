@@ -83,11 +83,11 @@ export default function ShareModal({ isOpen, onClose, sessionId, theme }) {
   };
 
   return (
-    <div className="fixed inset-0 bg-stone-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-      <div className="bg-stone-900 border border-amber-900/40 rounded-2xl max-w-sm w-full shadow-2xl relative overflow-hidden">
+    <div className="fixed inset-0 z-50 flex items-end justify-center bg-stone-950/80 p-2 backdrop-blur-sm sm:items-center sm:p-4">
+      <div className="relative flex max-h-[calc(100dvh-1rem)] w-full max-w-sm flex-col overflow-hidden rounded-2xl border border-amber-900/40 bg-stone-900 shadow-2xl sm:max-h-[calc(100dvh-2rem)]">
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-32 bg-amber-500/10 blur-[50px] pointer-events-none" />
         
-        <div className="p-4 border-b border-stone-800/50 flex justify-between items-center relative z-10">
+        <div className="relative z-10 flex shrink-0 items-center justify-between border-b border-stone-800/50 p-4">
           <h3 className="font-fantasy font-bold text-stone-200 tracking-wider flex items-center gap-2">
             <QrCode className="w-5 h-5 text-amber-400" /> Nodig Spelers Uit
           </h3>
@@ -96,7 +96,7 @@ export default function ShareModal({ isOpen, onClose, sessionId, theme }) {
           </button>
         </div>
         
-        <div className="p-6 flex flex-col items-center relative z-10">
+        <div className="relative z-10 flex flex-1 flex-col items-center overflow-y-auto p-4 sm:p-6">
           <p className="text-stone-400 text-sm font-story text-center mb-6">
             Laat je spelers deze QR-code scannen of deel direct de veilige join-link voor deze sessie.
           </p>
@@ -107,7 +107,7 @@ export default function ShareModal({ isOpen, onClose, sessionId, theme }) {
             <div className="mt-2 text-xs leading-5 text-stone-500">QR-veilige variant: {scannerSafeCode}</div>
           </div>
           
-          <div className="flex justify-center mb-6">
+          <div className="mb-6 flex w-full justify-center overflow-hidden">
             <StyledQRCode value={joinUrl} theme={resolvedTheme} />
           </div>
 

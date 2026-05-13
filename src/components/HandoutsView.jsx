@@ -8,6 +8,7 @@ function HandoutsView({ role, handouts, currentPlayerId, onToggleVisibility, onT
   const [typeFilter, setTypeFilter] = useState('all');
   const [statusFilter, setStatusFilter] = useState('all');
   const [sortBy, setSortBy] = useState('newest');
+  const [allClaimedHidden, setAllClaimedHidden] = useState(true);
 
   const isClaimableLoot = (handout) => (
     handout.claimable
@@ -48,8 +49,6 @@ function HandoutsView({ role, handouts, currentPlayerId, onToggleVisibility, onT
     handouts.filter((h) => h.claimedBy).length
   ), [handouts]);
 
-  // Default to hiding claimed handouts for the GM overview
-  const [allClaimedHidden, setAllClaimedHidden] = useState(true);
   useEffect(() => {
     if (claimedCount === 0) {
       setAllClaimedHidden(true);
@@ -116,14 +115,14 @@ function HandoutsView({ role, handouts, currentPlayerId, onToggleVisibility, onT
 
   return (
     <div className="h-full flex flex-col">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end mb-6 md:mb-8 border-b border-stone-800/50 pb-4 gap-4 sm:gap-0">
+      <div className="mb-6 flex flex-col gap-4 border-b border-stone-800/50 pb-4 md:mb-8 sm:flex-row sm:items-end sm:justify-between sm:gap-3">
         <div>
           <h2 className="text-2xl md:text-3xl font-bold text-stone-100 tracking-wider font-fantasy">Oude Geschriften</h2>
           <p className="text-stone-400 text-xs md:text-sm mt-1 md:mt-2 font-story italic">Documenten, kaarten en magische voorwerpen ontdekt tijdens de reis.</p>
         </div>
         
-        <div className="flex flex-row items-center gap-3 w-full sm:w-auto">
-          <div className="flex items-center bg-stone-900/80 border border-stone-800 rounded-lg p-1 shrink-0">
+        <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row sm:items-center sm:justify-end">
+          <div className="flex w-full items-center justify-center rounded-lg border border-stone-800 bg-stone-900/80 p-1 sm:w-auto sm:justify-start">
             <button 
               onClick={() => setViewMode('list')} 
               className={`h-9 w-9 inline-flex items-center justify-center rounded-lg border transition-colors ${viewMode === 'list' ? 'border-amber-700/50 bg-amber-900/40 text-amber-500 shadow-sm' : 'border-transparent text-stone-500 hover:border-stone-700 hover:bg-stone-800/70 hover:text-stone-300'}`}
@@ -141,11 +140,11 @@ function HandoutsView({ role, handouts, currentPlayerId, onToggleVisibility, onT
           </div>
 
           {role === 'gm' && (
-            <div className="flex flex-1 sm:flex-none items-center gap-2">
+            <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:items-center">
               <button
                 onClick={toggleClaimedVisibility}
                 disabled={claimedCount === 0}
-                className={`h-9 inline-flex items-center justify-center gap-2 rounded-lg border px-3 font-fantasy text-[10px] uppercase tracking-[0.14em] shadow-sm transition-colors ${claimedCount > 0 ? 'border-stone-700/80 bg-stone-900 text-stone-200 hover:border-amber-700/50 hover:text-amber-300' : 'cursor-not-allowed border-stone-800 bg-stone-900/60 text-stone-600'}`}
+                className={`h-9 w-full inline-flex items-center justify-center gap-2 rounded-lg border px-3 font-fantasy text-[10px] uppercase tracking-[0.14em] shadow-sm transition-colors sm:w-auto ${claimedCount > 0 ? 'border-stone-700/80 bg-stone-900 text-stone-200 hover:border-amber-700/50 hover:text-amber-300' : 'cursor-not-allowed border-stone-800 bg-stone-900/60 text-stone-600'}`}
                 title={allClaimedHidden ? 'Maak geclaimde handouts zichtbaar' : 'Verberg geclaimde handouts'}
               >
                 {allClaimedHidden ? <Eye className="h-3.5 w-3.5 shrink-0" /> : <EyeOff className="h-3.5 w-3.5 shrink-0" />}
@@ -154,7 +153,7 @@ function HandoutsView({ role, handouts, currentPlayerId, onToggleVisibility, onT
 
               <button
                 onClick={onCreateHandout}
-                className="h-9 inline-flex flex-1 sm:flex-none items-center justify-center gap-2 rounded-lg border border-amber-700/60 bg-gradient-to-r from-amber-700 to-amber-600 px-4 font-fantasy text-sm uppercase tracking-[0.16em] text-stone-100 shadow-sm transition-colors hover:from-amber-600 hover:to-amber-500"
+                className="h-9 inline-flex w-full items-center justify-center gap-2 rounded-lg border border-amber-700/60 bg-gradient-to-r from-amber-700 to-amber-600 px-4 font-fantasy text-sm uppercase tracking-[0.16em] text-stone-100 shadow-sm transition-colors hover:from-amber-600 hover:to-amber-500 sm:w-auto"
               >
                 <Plus className="h-4 w-4 shrink-0" /> <span className="truncate">Nieuw</span>
               </button>

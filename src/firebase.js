@@ -1,5 +1,14 @@
 import { initializeApp } from 'firebase/app'
-import { getAuth, GoogleAuthProvider } from 'firebase/auth'
+import {
+  browserLocalPersistence,
+  browserPopupRedirectResolver,
+  browserSessionPersistence,
+  getAuth,
+  GoogleAuthProvider,
+  inMemoryPersistence,
+  indexedDBLocalPersistence,
+  initializeAuth,
+} from 'firebase/auth'
 import { initializeFirestore } from 'firebase/firestore'
 import { getStorage } from 'firebase/storage'
 
@@ -15,7 +24,23 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig)
 
-export const auth = getAuth(app)
+function createAuth(appInstance) {
+  try {
+    return initializeAuth(appInstance, {
+      persistence: [
+        indexedDBLocalPersistence,
+        browserLocalPersistence,
+        browserSessionPersistence,
+        inMemoryPersistence,
+      ],
+      popupRedirectResolver: browserPopupRedirectResolver,
+    })
+  } catch (_) {
+    return getAuth(appInstance)
+  }
+}
+
+export const auth = createAuth(app)
 export const db = initializeFirestore(app, {})
 export const storage = getStorage(app)
 export const googleProvider = new GoogleAuthProvider()

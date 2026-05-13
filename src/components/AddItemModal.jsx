@@ -45,7 +45,7 @@ function AddItemModal({ isOpen, onClose, onSave, role, party, currentPlayerId, i
 
   return (
     <div className="fixed inset-0 bg-stone-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-3 sm:p-4">
-      <div className="bg-stone-900 border border-stone-700/50 rounded-2xl max-w-sm w-full max-h-[calc(100vh-1.5rem)] sm:max-h-[calc(100vh-2rem)] shadow-2xl relative overflow-hidden flex flex-col">
+      <div className="bg-stone-900 border border-stone-700/50 rounded-2xl max-w-sm w-full max-h-[calc(100dvh-1.5rem)] sm:max-h-[calc(100dvh-2rem)] shadow-2xl relative overflow-hidden flex flex-col">
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-32 bg-amber-600/10 blur-[50px] pointer-events-none" />
         
         <div className="p-4 border-b border-stone-800/50 flex justify-between items-center relative z-10 shrink-0">
@@ -58,7 +58,7 @@ function AddItemModal({ isOpen, onClose, onSave, role, party, currentPlayerId, i
         </div>
         
         <form onSubmit={handleSave} className="relative z-10 flex flex-col min-h-0 flex-1">
-          <div className="flex-1 min-h-0 overflow-y-auto px-5 py-5 sm:px-6 sm:py-6 space-y-4">
+          <div className="flex-1 min-h-0 overflow-y-auto space-y-4 px-4 py-4 sm:px-6 sm:py-6">
             {isGM && !itemToEdit && (
               <div>
                 <label className="block text-[10px] font-bold text-stone-500 uppercase tracking-widest mb-1.5">Aan de tas van</label>
@@ -139,7 +139,7 @@ function AddItemModal({ isOpen, onClose, onSave, role, party, currentPlayerId, i
             <div>
               <label className="block text-[10px] font-bold text-stone-500 uppercase tracking-widest mb-1.5">Of kies uit placeholders</label>
               <div className="max-h-32 overflow-y-auto no-scrollbar rounded-lg border border-stone-800 bg-stone-950/40 p-2">
-                <div className="grid grid-cols-8 gap-1.5">
+                <div className="grid grid-cols-6 gap-1.5 sm:grid-cols-8">
                   {ITEM_PLACEHOLDER_IMAGES.map((url) => (
                     <button
                       key={url}
@@ -166,7 +166,7 @@ function AddItemModal({ isOpen, onClose, onSave, role, party, currentPlayerId, i
             </div>
           </div>
 
-          <div className="flex gap-3 p-5 sm:p-6 pt-4 border-t border-stone-800/50 bg-stone-900/95 backdrop-blur-sm shrink-0">
+          <div className="flex flex-col-reverse gap-3 border-t border-stone-800/50 bg-stone-900/95 p-4 pt-4 backdrop-blur-sm shrink-0 sm:flex-row sm:p-6">
             <button 
               type="button"
               onClick={onClose}

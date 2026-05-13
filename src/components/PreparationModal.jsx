@@ -78,8 +78,8 @@ export default function PreparationModal({ isOpen, preparation, onClose, onSave,
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-stone-950/80 p-4 backdrop-blur-sm">
-      <div className="flex max-h-[90vh] w-full max-w-md flex-col overflow-hidden rounded-2xl border border-stone-700/50 bg-stone-900 shadow-2xl">
+    <div className="fixed inset-0 z-50 flex items-end justify-center bg-stone-950/80 p-3 backdrop-blur-sm sm:items-center sm:p-4">
+      <div className="flex max-h-[calc(100dvh-1rem)] w-full max-w-md flex-col overflow-hidden rounded-2xl border border-stone-700/50 bg-stone-900 shadow-2xl sm:max-h-[90vh]">
         <div className="relative h-24 w-full shrink-0 bg-gradient-to-r from-amber-950 to-stone-800 md:h-32">
           <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI4IiBoZWlnaHQ9IjgiPgo8cmVjdCB3aWR0aD0iOCIgaGVpZ2h0PSI4IiBmaWxsPSIjZmZmIiBmaWxsLW9wYWNpdHk9IjAuMSIvPgo8L3N2Zz4=')] opacity-20 pointer-events-none" />
           <button
@@ -90,7 +90,7 @@ export default function PreparationModal({ isOpen, preparation, onClose, onSave,
           </button>
         </div>
 
-        <div className="relative z-20 mb-2 -mt-12 flex items-end justify-between px-6 md:-mt-16">
+        <div className="relative z-20 mb-2 -mt-12 flex flex-col gap-3 px-4 sm:flex-row sm:items-end sm:justify-between sm:px-6 md:-mt-16">
           <label className="group relative flex h-24 w-24 cursor-pointer items-center justify-center overflow-hidden rounded-xl border-4 border-stone-900 bg-stone-800 shadow-xl transition-all hover:border-amber-700/50 md:h-32 md:w-32">
             <input type="file" accept="image/*" className="hidden" onChange={handleImageChange} />
             <img
@@ -103,28 +103,29 @@ export default function PreparationModal({ isOpen, preparation, onClose, onSave,
             </div>
           </label>
 
-          <div className="mb-2 flex items-center gap-2">
+          <div className="mb-0 flex w-full flex-col gap-2 sm:mb-2 sm:w-auto sm:flex-row sm:items-center">
             {preparation ? (
               <button
                 type="button"
                 onClick={() => onDelete?.(preparation.id)}
-                className="rounded-lg border border-rose-900/40 bg-rose-950/20 p-2 text-rose-300 transition-colors hover:bg-rose-900/30"
+                className="inline-flex h-9 w-full items-center justify-center gap-2 rounded-lg border border-rose-900/40 bg-rose-950/20 p-2 text-rose-300 transition-colors hover:bg-rose-900/30 sm:h-auto sm:w-auto"
                 title="Verwijder voorbereiding"
               >
                 <Trash2 className="h-4 w-4" />
+                <span className="text-[11px] font-fantasy uppercase tracking-[0.14em] sm:hidden">Verwijderen</span>
               </button>
             ) : null}
             <button
               type="button"
               onClick={handleSave}
-              className="h-9 inline-flex items-center justify-center rounded-lg border border-amber-700/60 bg-gradient-to-r from-amber-700 to-amber-600 px-4 font-fantasy text-xs uppercase tracking-[0.16em] text-stone-100 shadow-sm transition-all hover:from-amber-600 hover:to-amber-500"
+              className="inline-flex h-9 w-full items-center justify-center rounded-lg border border-amber-700/60 bg-gradient-to-r from-amber-700 to-amber-600 px-4 font-fantasy text-xs uppercase tracking-[0.16em] text-stone-100 shadow-sm transition-all hover:from-amber-600 hover:to-amber-500 sm:w-auto"
             >
               {preparation ? 'Opslaan' : 'Nieuw'}
             </button>
           </div>
         </div>
 
-        <div className="relative z-10 flex flex-1 flex-col overflow-y-auto px-6 pb-6 pt-2 no-scrollbar">
+        <div className="relative z-10 flex flex-1 flex-col overflow-y-auto px-4 pb-4 pt-2 no-scrollbar sm:px-6 sm:pb-6">
           <div className="flex flex-1 flex-col space-y-5">
             <div>
               <input
@@ -175,7 +176,7 @@ export default function PreparationModal({ isOpen, preparation, onClose, onSave,
 
               {showAllPromptAvatars && (
                 <div className="mt-3 max-h-52 overflow-y-auto rounded-lg border border-stone-800 bg-stone-950/40 p-2 no-scrollbar">
-                  <div className="grid grid-cols-6 gap-1.5">
+                  <div className="grid grid-cols-5 gap-1.5 sm:grid-cols-6">
                     {PROFILE_PROMPT_AVATARS.map((url) => (
                       <button
                         key={`all-${url}`}

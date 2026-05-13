@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Flame, Share2, Pause, Music, Volume2, Swords, User, LogOut, Settings, ChevronDown, Bell, BellRing, Dice5, MoreHorizontal } from 'lucide-react';
+import { Flame, Share2, Shield, Music, Pause, Volume2, Swords, User, LogOut, Settings, ChevronDown, Bell, BellRing, Dice5, MoreHorizontal } from 'lucide-react';
 import DiceRoller from './DiceRoller';
 import AmbiencePanel from './AmbiencePanel';
 import RuntimeBadge from './RuntimeBadge';
@@ -13,7 +13,7 @@ export default function TopBar({ role, sessionId, sessionNumber, theme, combatSt
   const ambienceShellRef = useRef(null);
   const PartyIcon = combatStatus === COMBAT_STATUS.IDLE
     ? Flame
-    : (combatStatus === COMBAT_STATUS.PAUSED ? Pause : Swords);
+    : (combatStatus === COMBAT_STATUS.PAUSED ? Shield : Swords);
   const partyIndicatorAngle = `${Math.round(Math.max(0, Math.min(1, turnApproachRatio || 0)) * 360)}deg`;
   const partyButtonTitle = combatStatus === COMBAT_STATUS.IDLE
     ? 'Open slagorde - ruststand'

@@ -47,6 +47,7 @@ import {
   sha256,
   formatLastEditedLabel,
 } from './lib/sessionUtils';
+import { safeLocalStorageGet, safeLocalStorageSet } from './lib/browserStorage';
 import { getLocalDevBootstrapConfig, getRuntimeBadgeState } from './lib/runtimeContext';
 import {
   COMBAT_JOIN_REQUEST_STATUS,
@@ -372,7 +373,7 @@ export default function TomeVaultApp() {
   const [qrJoinDone, setQrJoinDone] = useState(false);
   const showQRJoin = Boolean(qrInviteCode && view === 'landing' && !qrJoinDone);
   const [theme, setTheme] = useState(() => {
-    const saved = localStorage.getItem('tv_theme');
+    const saved = safeLocalStorageGet('tv_theme');
     if (saved) {
       if (saved === 'parchment' || saved === 'sunlight') return 'amber';
       return saved;
@@ -380,14 +381,20 @@ export default function TomeVaultApp() {
     return 'purple';
   });
 
-  const handleThemeChange = (t) => { setTheme(t); localStorage.setItem('tv_theme', t); };
+  const handleThemeChange = (t) => {
+    setTheme(t);
+    safeLocalStorageSet('tv_theme', t);
+  };
 
   const [brightness, setBrightness] = useState(() => {
-    const saved = localStorage.getItem('tv_brightness');
+    const saved = safeLocalStorageGet('tv_brightness');
     return Number(saved) || 2; // Default to 2 (Normaal)
   });
 
-  const handleBrightnessChange = (b) => { setBrightness(b); localStorage.setItem('tv_brightness', String(b)); };
+  const handleBrightnessChange = (b) => {
+    setBrightness(b);
+    safeLocalStorageSet('tv_brightness', String(b));
+  };
 
   // Map brightness step (0-4) to a subtle background overlay opacity.
   const brightnessOverlayOpacities = [0, 0.015, 0.03, 0.045, 0.06];
@@ -446,6 +453,7 @@ export default function TomeVaultApp() {
   const battleActive = combatStatus === COMBAT_STATUS.ACTIVE;
   const battlePaused = combatStatus === COMBAT_STATUS.PAUSED;
   const leaveSessionRef = useRef(() => {});
+  const autoResolveJoinRequestsInFlightRef = useRef(false);
   const appBackStackRef = useRef([]);
   const appBackTrackerRef = useRef({
     initialized: false,
@@ -1226,34 +1234,70 @@ export default function TomeVaultApp() {
   }, [effectiveAmbienceVolume, sessionAmbience]);
 
   useEffect(() => {
-    const unsub = onAuthStateChanged(auth, (user) => {
-      if (user) {
-        autoResumeAttemptRef.current = '';
-        const inferredName = user.displayName || user.email?.split('@')[0] || 'Avonturier';
-        setUid(user.uid);
-        setIsGuest(user.isAnonymous);
-        setDisplayName(inferredName);
-        setPlayerName((prev) => prev || inferredName);
-      } else {
-        autoResumeAttemptRef.current = '';
-        setUid(null);
-        setIsGuest(true);
-        setDisplayName('');
-        setRole(null);
-        setSessionId('');
-        setSessionDocId('');
-        setView('landing');
-        setRecentSessions([]);
-        resetAmbienceState();
-        clearPersistedActiveSession();
-        appBackStackRef.current = [];
-        appBackTrackerRef.current.initialized = false;
-        hasBackGuardRef.current = false;
-      }
+    let didResolveAuth = false;
+    const authLoadFallbackTimer = window.setTimeout(() => {
+      if (didResolveAuth) return;
+      setAuthError('Authenticatie duurde te lang. Je kunt alsnog doorgaan met e-mail of gastmodus.');
       setAuthLoading(false);
-    });
+    }, 7000);
 
-    return () => unsub();
+    const finishAuthLoad = () => {
+      if (!didResolveAuth) {
+        didResolveAuth = true;
+      }
+      window.clearTimeout(authLoadFallbackTimer);
+      setAuthLoading(false);
+    };
+
+    let unsub = () => {};
+
+    try {
+      unsub = onAuthStateChanged(
+        auth,
+        (user) => {
+          if (user) {
+            autoResumeAttemptRef.current = '';
+            const inferredName = user.displayName || user.email?.split('@')[0] || 'Avonturier';
+            setUid(user.uid);
+            setIsGuest(user.isAnonymous);
+            setDisplayName(inferredName);
+            setPlayerName((prev) => prev || inferredName);
+          } else {
+            autoResumeAttemptRef.current = '';
+            setUid(null);
+            setIsGuest(true);
+            setDisplayName('');
+            setRole(null);
+            setSessionId('');
+            setSessionDocId('');
+            setView('landing');
+            setRecentSessions([]);
+            resetAmbienceState();
+            clearPersistedActiveSession();
+            appBackStackRef.current = [];
+            appBackTrackerRef.current.initialized = false;
+            hasBackGuardRef.current = false;
+          }
+
+          setAuthError('');
+          finishAuthLoad();
+        },
+        (error) => {
+          console.error('Auth state observer failed:', error);
+          setAuthError('Authenticatie initialiseren is mislukt. Probeer opnieuw of gebruik e-mail.');
+          finishAuthLoad();
+        }
+      );
+    } catch (error) {
+      console.error('Auth observer setup failed:', error);
+      setAuthError('Authenticatie kon niet worden gestart. Probeer opnieuw of gebruik e-mail.');
+      finishAuthLoad();
+    }
+
+    return () => {
+      window.clearTimeout(authLoadFallbackTimer);
+      unsub();
+    };
   }, []);
 
   useEffect(() => {
@@ -2053,7 +2097,7 @@ export default function TomeVaultApp() {
 
     const localChatColor = typeof window === 'undefined'
       ? null
-      : String(window.localStorage.getItem('tv_chatcolor') || '').trim();
+      : String(safeLocalStorageGet('tv_chatcolor', '') || '').trim();
 
     try {
       await handleSendChatRemote({
@@ -3200,7 +3244,7 @@ export default function TomeVaultApp() {
   };
 
   const handleRequestCombatJoin = async (playerId) => {
-    if (!sessionDocId || !playerId || combatStatus === COMBAT_STATUS.ACTIVE) return;
+    if (!sessionDocId || !playerId) return;
 
     const targetMember = party.find((member) => member.id === playerId);
     if (!targetMember || targetMember.isNpc) return;
@@ -3228,37 +3272,46 @@ export default function TomeVaultApp() {
     }
   };
 
-  const handleResolveCombatJoinRequest = async (playerId, approve) => {
-    if (role !== 'gm' || !sessionDocId || !playerId || combatStatus === COMBAT_STATUS.ACTIVE) return;
+  useEffect(() => {
+    if (
+      role !== 'gm'
+      || !sessionDocId
+      || combatStatus !== COMBAT_STATUS.IDLE
+      || autoResolveJoinRequestsInFlightRef.current
+    ) {
+      return;
+    }
 
-    const targetMember = party.find((member) => member.id === playerId);
-    if (!targetMember || targetMember.isNpc) return;
-
-    const previousParty = party;
-    const nextParty = party.map((member) => (
-      member.id === playerId
-        ? {
-            ...member,
-            combatParticipation: approve ? COMBAT_PARTICIPATION_STATUS.ACTIVE : COMBAT_PARTICIPATION_STATUS.REMOVED,
-            combatJoinRequestStatus: COMBAT_JOIN_REQUEST_STATUS.NONE,
-          }
-        : member
+    const pendingMembers = party.filter((member) => (
+      member?.isNpc !== true
+      && member?.combatParticipation === COMBAT_PARTICIPATION_STATUS.REMOVED
+      && member?.combatJoinRequestStatus === COMBAT_JOIN_REQUEST_STATUS.PENDING
     ));
 
-    setParty(nextParty);
+    if (pendingMembers.length === 0) return;
 
-    try {
-      await updateDoc(doc(db, 'sessions', sessionDocId, 'players', playerId), {
-        combatParticipation: approve ? COMBAT_PARTICIPATION_STATUS.ACTIVE : COMBAT_PARTICIPATION_STATUS.REMOVED,
-        combatJoinRequestStatus: COMBAT_JOIN_REQUEST_STATUS.NONE,
-        updatedAt: serverTimestamp(),
-      });
-    } catch (err) {
-      console.error('Meedoen-verzoek beantwoorden fout:', err);
-      setParty(previousParty);
-      throw err;
-    }
-  };
+    autoResolveJoinRequestsInFlightRef.current = true;
+
+    const resolvePendingRequests = async () => {
+      try {
+        const batch = writeBatch(db);
+        pendingMembers.forEach((member) => {
+          batch.set(doc(db, 'sessions', sessionDocId, 'players', member.id), {
+            combatParticipation: COMBAT_PARTICIPATION_STATUS.ACTIVE,
+            combatJoinRequestStatus: COMBAT_JOIN_REQUEST_STATUS.NONE,
+            updatedAt: serverTimestamp(),
+          }, { merge: true });
+        });
+        await batch.commit();
+      } catch (err) {
+        console.error('Automatisch verwerken van meedoen-verzoeken mislukt:', err);
+      } finally {
+        autoResolveJoinRequestsInFlightRef.current = false;
+      }
+    };
+
+    resolvePendingRequests();
+  }, [combatStatus, party, role, sessionDocId]);
 
   const handleCreateNoteRemote = async ({ role: actorRole, title, content }) => {
     if (!sessionDocId || !uid) {
@@ -3417,7 +3470,7 @@ export default function TomeVaultApp() {
         <div className="flex flex-1 overflow-hidden relative">
           <Sidebar activeTab={activeTab} setActiveTab={setActiveTab} onOpenSettings={() => setIsSettingsOpen(true)} role={role} />
           
-          <main className={`flex-1 overflow-y-auto p-4 md:p-6 relative no-scrollbar ${activeTab === 'chat' ? 'pb-[72px] md:pb-6' : 'pb-[76px] md:pb-6'}`}>
+          <main className="app-shell-main relative flex-1 overflow-y-auto p-4 no-scrollbar md:p-6">
             <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-96 bg-amber-900/5 blur-[100px] pointer-events-none" />
             
             <div className="max-w-[1120px] mx-auto h-full relative z-10">
@@ -3506,7 +3559,6 @@ export default function TomeVaultApp() {
             onRollAllInitiative={handleBatchUpdateInitiatives}
             onKickPlayerFromCombat={handleKickPlayerFromCombat}
             onRequestCombatJoin={handleRequestCombatJoin}
-            onResolveCombatJoinRequest={handleResolveCombatJoinRequest}
             onOpenNpcModal={() => setIsNpcModalOpen(true)}
             onOpenDamageModal={(member) => setDamageTarget(member)}
             onOpenProfile={(member) => setProfileTarget(member)}

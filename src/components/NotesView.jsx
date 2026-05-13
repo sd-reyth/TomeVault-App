@@ -83,9 +83,9 @@ function NotesView({
   };
 
   return (
-    <div className="h-full flex flex-col md:flex-row gap-6">
-      <div className="w-full md:w-1/3 flex flex-col bg-stone-900/40 border border-stone-800/60 rounded-xl overflow-hidden backdrop-blur-sm shadow-md h-48 md:h-full shrink-0">
-        <div className="p-4 border-b border-stone-800/50 flex items-center justify-between bg-stone-900/80">
+    <div className="h-full flex flex-col gap-4 md:gap-6 lg:flex-row">
+      <div className="h-52 w-full shrink-0 overflow-hidden rounded-xl border border-stone-800/60 bg-stone-900/40 shadow-md backdrop-blur-sm sm:h-60 lg:h-full lg:w-1/3">
+        <div className="flex items-center justify-between gap-3 border-b border-stone-800/50 bg-stone-900/80 p-4">
           <h3 className="font-fantasy font-bold text-stone-200 tracking-wider">Kronieken</h3>
           <button 
             onClick={handleCreateNote}
@@ -120,7 +120,7 @@ function NotesView({
                 </div>
                 <button 
                   onClick={(e) => { e.stopPropagation(); handleDeleteNote(note.id); }}
-                  className="p-1 text-stone-600 hover:text-rose-500 opacity-0 group-hover:opacity-100 transition-opacity rounded hover:bg-stone-800"
+                  className="rounded p-1 text-stone-600 opacity-100 transition-opacity hover:bg-stone-800 hover:text-rose-500 lg:opacity-0 lg:group-hover:opacity-100"
                   title="Verwijder"
                 >
                   <Trash2 className="w-3.5 h-3.5" />
@@ -131,7 +131,7 @@ function NotesView({
         </div>
       </div>
 
-      <div className="flex-1 flex flex-col bg-stone-900/40 border border-stone-800/60 rounded-xl overflow-hidden backdrop-blur-sm shadow-md relative">
+      <div className="relative flex min-h-[360px] flex-1 flex-col overflow-hidden rounded-xl border border-stone-800/60 bg-stone-900/40 shadow-md backdrop-blur-sm lg:min-h-0">
         <div className="absolute inset-0 opacity-[0.03] bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI4IiBoZWlnaHQ9IjgiPgo8cmVjdCB3aWR0aD0iOCIgaGVpZ2h0PSI4IiBmaWxsPSIjZmZmIiBmaWxsLW9wYWNpdHk9IjAuMSIvPgo8L3N2Zz4=')] pointer-events-none z-0" />
         
         {activeNote ? (
@@ -149,7 +149,7 @@ function NotesView({
               className="flex-1 bg-transparent text-stone-300 font-story leading-relaxed text-sm md:text-base outline-none resize-none no-scrollbar placeholder-stone-600"
               placeholder="Begin met schrijven..."
             />
-            <div className="mt-4 pt-3 border-t border-stone-800/50 flex justify-between items-center text-xs text-stone-500 font-sans">
+            <div className="mt-4 flex flex-col gap-2 border-t border-stone-800/50 pt-3 text-xs text-stone-500 font-sans sm:flex-row sm:items-center sm:justify-between">
               <span>Automatisch opgeslagen</span>
               <span className="flex items-center gap-1.5"><Save className="w-3.5 h-3.5" /> Opgeslagen</span>
             </div>

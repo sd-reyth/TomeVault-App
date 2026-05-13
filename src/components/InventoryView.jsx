@@ -88,12 +88,12 @@ function InventoryView({ role, inventory, wallets, party, currentPlayerId, hando
 
   return (
     <div className="h-full flex flex-col">
-      <div className="flex justify-between items-end mb-6 md:mb-8 border-b border-stone-800/50 pb-4">
+      <div className="mb-6 flex flex-col gap-4 border-b border-stone-800/50 pb-4 md:mb-8 sm:flex-row sm:items-end sm:justify-between sm:gap-3">
         <div>
           <h2 className="text-2xl md:text-3xl font-bold text-stone-100 tracking-wider font-fantasy">De Schatkamer</h2>
           <p className="text-stone-400 text-xs md:text-sm mt-1 md:mt-2 font-story italic">Goudstukken, uitrusting en magische artefacten.</p>
         </div>
-        <button onClick={onOpenAddItem} className="h-9 inline-flex items-center justify-center gap-2 rounded-lg border border-amber-700/60 bg-gradient-to-r from-amber-700 to-amber-600 px-4 font-fantasy text-sm uppercase tracking-[0.16em] text-stone-100 shadow-sm transition-colors hover:from-amber-600 hover:to-amber-500">
+        <button onClick={onOpenAddItem} className="h-9 inline-flex w-full items-center justify-center gap-2 rounded-lg border border-amber-700/60 bg-gradient-to-r from-amber-700 to-amber-600 px-4 font-fantasy text-sm uppercase tracking-[0.16em] text-stone-100 shadow-sm transition-colors hover:from-amber-600 hover:to-amber-500 sm:w-auto">
           <Plus className="h-4 w-4 shrink-0" /> <span className="hidden sm:inline">Nieuw</span>
         </button>
       </div>
@@ -130,7 +130,7 @@ function InventoryView({ role, inventory, wallets, party, currentPlayerId, hando
 
           return (
             <div key={player.id} className="bg-stone-900/40 border border-stone-800/60 rounded-xl p-4 md:p-6 backdrop-blur-sm relative shadow-md">
-              <div className="flex items-center gap-3 mb-5">
+              <div className="mb-5 flex items-center gap-3">
                 <div className="w-8 h-8 rounded bg-stone-950 border border-amber-900/30 flex items-center justify-center text-amber-500 font-fantasy font-bold shadow-inner overflow-hidden">
                   <img src={resolveDisplayAvatar(player.avatar, player.id)} alt="Avatar" className="w-full h-full object-cover" />
                 </div>
@@ -146,22 +146,22 @@ function InventoryView({ role, inventory, wallets, party, currentPlayerId, hando
               />
 
               <div className="mt-6 md:mt-8 pt-6 border-t border-stone-800/50">
-                <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2 mb-4">
-                  <div className="flex gap-2">
-                    <div className="relative">
+                <div className="mb-4 flex flex-col gap-2">
+                  <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+                    <div className="relative min-w-0 flex-1">
                       <Search className="absolute left-2 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-stone-600" />
                       <input
                         type="text"
                         value={searchByPlayer[player.id] || ''}
                         onChange={(e) => setSearchByPlayer((prev) => ({ ...prev, [player.id]: e.target.value }))}
                         placeholder="Zoek item..."
-                        className="h-9 w-40 bg-stone-950/70 border border-stone-800 rounded-lg pl-7 pr-2 text-xs text-stone-300 focus:outline-none focus:border-amber-600/50"
+                        className="h-9 w-full bg-stone-950/70 border border-stone-800 rounded-lg pl-7 pr-2 text-xs text-stone-300 focus:outline-none focus:border-amber-600/50 sm:w-full"
                       />
                     </div>
                     <select
                       value={filterByPlayer[player.id] || 'all'}
                       onChange={(e) => setFilterByPlayer((prev) => ({ ...prev, [player.id]: e.target.value }))}
-                      className="h-9 bg-stone-950/70 border border-stone-800 rounded-lg px-2 text-xs text-stone-300 focus:outline-none focus:border-amber-600/50"
+                      className="h-9 w-full bg-stone-950/70 border border-stone-800 rounded-lg px-2 text-xs text-stone-300 focus:outline-none focus:border-amber-600/50 sm:w-auto sm:min-w-[140px]"
                     >
                       {categoryOptions.map((opt) => (
                         <option key={opt.value} value={opt.value}>{opt.label}</option>
@@ -177,7 +177,7 @@ function InventoryView({ role, inventory, wallets, party, currentPlayerId, hando
                 )}
 
                 <div className="mb-4 rounded-lg border border-stone-800/70 bg-stone-950/25 p-3">
-                  <div className="flex items-center justify-between mb-2">
+                  <div className="mb-2 flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
                     <span className="text-[10px] font-bold uppercase tracking-widest text-stone-500">Items</span>
                     <span className="text-[10px] text-stone-600">{filteredItems.length} items</span>
                   </div>

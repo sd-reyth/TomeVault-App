@@ -108,8 +108,8 @@ function CharacterProfileModal({ isOpen, onClose, character, role, currentPlayer
   };
 
   return (
-    <div className="fixed inset-0 bg-stone-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-      <div className="bg-stone-900 border border-stone-700/50 rounded-2xl max-w-md w-full shadow-2xl relative overflow-hidden flex flex-col max-h-[90vh]">
+    <div className="fixed inset-0 z-50 flex items-end justify-center bg-stone-950/80 p-3 backdrop-blur-sm sm:items-center sm:p-4">
+      <div className="bg-stone-900 border border-stone-700/50 rounded-2xl max-w-md w-full shadow-2xl relative overflow-hidden flex flex-col max-h-[calc(100dvh-1rem)] sm:max-h-[90vh]">
         
         {/* Banner */}
         <div
@@ -123,7 +123,7 @@ function CharacterProfileModal({ isOpen, onClose, character, role, currentPlayer
         </div>
 
         {/* Avatar Section */}
-        <div className="px-6 flex justify-between items-end -mt-12 md:-mt-16 mb-2 relative z-20 shrink-0">
+        <div className="relative z-20 mb-2 -mt-12 flex flex-col gap-3 px-4 shrink-0 sm:flex-row sm:items-end sm:justify-between sm:px-6 md:-mt-16">
           <label className={`relative group w-24 h-24 md:w-32 md:h-32 rounded-xl border-4 ${character.isNpc ? 'border-rose-950 bg-rose-900/50' : 'border-stone-900 bg-stone-800'} flex items-center justify-center overflow-hidden transition-all shadow-xl ${canEdit ? 'cursor-pointer hover:border-amber-700/50' : ''}`}>
             {canEdit && <input type="file" accept="image/*" className="hidden" onChange={handleImageChange} />}
             {(() => {
@@ -146,14 +146,14 @@ function CharacterProfileModal({ isOpen, onClose, character, role, currentPlayer
           </label>
           
           {canEdit && (
-            <button onClick={handleSave} className="h-9 inline-flex items-center justify-center px-4 rounded-lg border border-amber-700/60 bg-gradient-to-r from-amber-700 to-amber-600 hover:from-amber-600 hover:to-amber-500 text-stone-100 font-fantasy uppercase tracking-[0.16em] text-xs shadow-sm transition-all mb-2">
+            <button onClick={handleSave} className="mb-0 inline-flex h-9 w-full items-center justify-center rounded-lg border border-amber-700/60 bg-gradient-to-r from-amber-700 to-amber-600 px-4 text-xs font-fantasy uppercase tracking-[0.16em] text-stone-100 shadow-sm transition-all hover:from-amber-600 hover:to-amber-500 sm:mb-2 sm:w-auto">
               Opslaan
             </button>
           )}
         </div>
 
         {/* Scrollbare Inhoud */}
-        <div className="px-6 pb-6 pt-2 flex-1 overflow-y-auto no-scrollbar relative flex flex-col z-10">
+        <div className="relative z-10 flex flex-1 flex-col overflow-y-auto no-scrollbar px-4 pb-4 pt-2 sm:px-6 sm:pb-6">
           <div className="space-y-5 flex-1 flex flex-col">
             <div>
               {canEdit ? (
@@ -211,7 +211,7 @@ function CharacterProfileModal({ isOpen, onClose, character, role, currentPlayer
 
                 {showAllPromptAvatars && (
                   <div className="mt-3 max-h-52 overflow-y-auto no-scrollbar rounded-lg border border-stone-800 bg-stone-950/40 p-2">
-                    <div className="grid grid-cols-6 gap-1.5">
+                    <div className="grid grid-cols-5 gap-1.5 sm:grid-cols-6">
                       {PROFILE_PROMPT_AVATARS.map((url) => (
                         <button
                           key={`all-${url}`}
@@ -243,7 +243,7 @@ function CharacterProfileModal({ isOpen, onClose, character, role, currentPlayer
                     <p className="text-[11px] text-amber-200/90 font-story leading-relaxed">
                       Weet je zeker dat je GM-rechten overdraagt? Deze keuze is blijvend voor deze sessie, maar de nieuwe GM kan jou later weer terugzetten.
                     </p>
-                    <div className="flex gap-2">
+                    <div className="flex flex-col gap-2 sm:flex-row">
                       <button
                         type="button"
                         onClick={() => setConfirmTransfer(false)}

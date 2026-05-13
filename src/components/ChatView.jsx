@@ -1,12 +1,22 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { MessageSquare, Palette, Pencil, Trash2, X, Check, CornerUpLeft, SendHorizontal, Dice5 } from 'lucide-react';
 import DiceRoller from './DiceRoller';
+import { safeLocalStorageGet, safeLocalStorageSet } from '../lib/browserStorage';
+import {
+  mdiDiceD4,
+  mdiDiceD6,
+  mdiDiceD8,
+  mdiDiceD10,
+  mdiDiceD12,
+  mdiDiceD20,
+  mdiDiceD10Outline,
+  mdiDiceMultiple,
+} from '@mdi/js';
 
 const CHAT_COLORS = [
   { id: 'indigo',   bg: '#1e1b4b', border: '#4338ca', text: '#e0e7ff', swatch: '#6366f1', name: 'Indigo'   },
   { id: 'violet',   bg: '#1e0a3c', border: '#7c3aed', text: '#ede9fe', swatch: '#8b5cf6', name: 'Violet'   },
   { id: 'sky',      bg: '#082f49', border: '#0284c7', text: '#e0f2fe', swatch: '#0ea5e9', name: 'Hemel'    },
-  { id: 'emerald',  bg: '#052e16', border: '#10b981', text: '#d1fae5', swatch: '#10b981', name: 'Smaragd'  },
   { id: 'emerald',  bg: '#052e16', border: '#10b981', text: '#d1fae5', swatch: '#10b981', name: 'Smaragd'  },
   { id: 'lime',     bg: '#1a2e05', border: '#65a30d', text: '#ecfccb', swatch: '#84cc16', name: 'Limoen'   },
   { id: 'amber',    bg: '#451a03', border: '#d97706', text: '#fef3c7', swatch: '#f59e0b', name: 'Amber'    },
@@ -21,15 +31,105 @@ function getColor(colorId) {
   return CHAT_COLORS.find(c => c.id === colorId) || CHAT_COLORS[0];
 }
 
+const CHAT_DICE_ICON_PATHS = {
+  4: mdiDiceD4,
+  6: mdiDiceD6,
+  8: mdiDiceD8,
+  10: mdiDiceD10,
+  12: mdiDiceD12,
+  20: mdiDiceD20,
+  100: mdiDiceD10Outline,
+};
+
+const CHAT_DICE_ICON_COLORS = {
+  4: '#60a5fa',
+  6: '#34d399',
+  8: '#a78bfa',
+  10: '#f59e0b',
+  12: '#fb7185',
+  20: '#22d3ee',
+  100: '#f97316',
+};
+
+function ChatDiceIcon({ sides, className = 'w-4 h-4' }) {
+  const iconPath = CHAT_DICE_ICON_PATHS[sides] || mdiDiceD10Outline;
+  const iconColor = CHAT_DICE_ICON_COLORS[sides] || '#f59e0b';
+
+  return (
+    <svg viewBox="0 0 24 24" className={className} fill="none" aria-hidden="true" style={{ color: iconColor }}>
+      <path d={iconPath} fill="currentColor" />
+      {Number(sides) === 100 ? (
+        <text x="12" y="14" textAnchor="middle" fontSize="5.8" fill="#0f172a" stroke="none" fontWeight="700">00</text>
+      ) : null}
+    </svg>
+  );
+}
+
+function parseDiceMessage(text) {
+  if (typeof text !== 'string') return null;
+
+  const legacyDiceRollRegex = /^rolt (\d+)d(\d+): \[([\d,\s]+)\] = (\d+)$/i;
+  const legacyMatch = text.match(legacyDiceRollRegex);
+  if (legacyMatch) {
+    const [, count, sides, rollsStr, total] = legacyMatch;
+    const rolls = rollsStr
+      .split(',')
+      .map((part) => part.trim())
+      .filter(Boolean);
+
+    return {
+      total: Number(total),
+      lines: [{
+        raw: `${count}d${sides}`,
+        count: Number(count),
+        sides: Number(sides),
+        rolls,
+      }],
+    };
+  }
+
+  const groupedDiceRollRegex = /^🎲\s*(\d+)!\n(.+)$/i;
+  const groupedMatch = text.match(groupedDiceRollRegex);
+  if (!groupedMatch) return null;
+
+  const [, total, breakdown] = groupedMatch;
+  const lines = breakdown
+    .split('|')
+    .map((line) => line.trim())
+    .filter(Boolean)
+    .map((line) => {
+      const lineMatch = line.match(/^(\d+)d(\d+)\s*=\s*(.+)$/i);
+      if (!lineMatch) return { raw: line, sides: null };
+
+      const rolls = String(lineMatch[3] || '')
+        .split('+')
+        .map((part) => part.trim())
+        .filter(Boolean);
+
+      return {
+        raw: `${lineMatch[1]}d${lineMatch[2]}`,
+        count: Number(lineMatch[1]),
+        sides: Number(lineMatch[2]),
+        rolls,
+      };
+    });
+
+  return {
+    total: Number(total),
+    lines,
+  };
+}
+
 function ChatView({ chat, setChat, role, uid, playerName, theme, onSendMessageRemote, onEditMessage, onDeleteMessage, onChangeColor }) {
   const [msg, setMsg] = useState('');
   const [isSending, setIsSending] = useState(false);
-  const [chatColor, setChatColor] = useState(() => localStorage.getItem('tv_chatcolor') || null);
+  const [chatColor, setChatColor] = useState(() => safeLocalStorageGet('tv_chatcolor', null));
   const [showColorPicker, setShowColorPicker] = useState(false);
   const [activeMenu, setActiveMenu] = useState(null);
   const [replyingTo, setReplyingTo] = useState(null);
   const [editingMsg, setEditingMsg] = useState(null);
   const [showDicePopover, setShowDicePopover] = useState(false);
+  const [expandedDiceMessages, setExpandedDiceMessages] = useState({});
   const chatEndRef = useRef(null);
   const inputRef = useRef(null);
   const menuRef = useRef(null);
@@ -155,7 +255,7 @@ function ChatView({ chat, setChat, role, uid, playerName, theme, onSendMessageRe
       return mineByUid || mineLegacy ? { ...msg, color: colorId } : msg;
     }));
     setChatColor(colorId);
-    localStorage.setItem('tv_chatcolor', colorId);
+    safeLocalStorageSet('tv_chatcolor', colorId);
     setShowColorPicker(false);
 
     try {
@@ -206,18 +306,25 @@ function ChatView({ chat, setChat, role, uid, playerName, theme, onSendMessageRe
 
   const cancelEdit = () => { setEditingMsg(null); setMsg(''); };
 
+  const toggleDiceMessageExpansion = (messageId) => {
+    setExpandedDiceMessages((prev) => ({
+      ...prev,
+      [messageId]: !prev[messageId],
+    }));
+  };
+
   return (
     <div className="h-full flex flex-col bg-stone-900/60 backdrop-blur-sm border border-stone-800 rounded-xl overflow-hidden shadow-lg relative">
       <div className="absolute inset-0 opacity-[0.02] bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI4IiBoZWlnaHQ9IjgiPgo8cmVjdCB3aWR0aD0iOCIgaGVpZ2h0PSI4IiBmaWxsPSIjZmZmIiBmaWxsLW9wYWNpdHk9IjAuMSIvPgo8L3N2Zz4=')] pointer-events-none" />
 
       {/* Header */}
-      <div className="p-3 md:p-4 border-b border-stone-800 bg-stone-900/90 flex justify-between items-center z-10 shadow-sm shrink-0">
+      <div className="z-10 flex shrink-0 flex-col gap-2 border-b border-stone-800 bg-stone-900/90 p-3 shadow-sm sm:flex-row sm:items-center sm:justify-between md:p-4">
         <h2 className="font-bold text-stone-200 flex items-center gap-2 font-fantasy tracking-widest uppercase text-xs md:text-sm">
           <MessageSquare className="w-4 h-4 text-amber-500" /> Fluisteringen
         </h2>
         <button
           onClick={() => setShowColorPicker(true)}
-          className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-stone-400 hover:text-stone-200 hover:bg-stone-800 transition-colors border border-transparent hover:border-stone-700"
+          className="inline-flex w-full items-center justify-between gap-1.5 rounded-lg border border-transparent px-2.5 py-1 text-stone-400 transition-colors hover:border-stone-700 hover:bg-stone-800 hover:text-stone-200 sm:w-auto sm:justify-start"
           title="Kies je chatkleur"
         >
           {chatColor
@@ -232,8 +339,8 @@ function ChatView({ chat, setChat, role, uid, playerName, theme, onSendMessageRe
 
       {/* Color picker overlay */}
       {showColorPicker && (
-        <div className="absolute inset-0 bg-stone-950/85 z-30 flex items-start justify-center overflow-y-auto p-4 backdrop-blur-sm">
-          <div className="bg-stone-900 border border-stone-700/60 rounded-2xl p-4 md:p-6 max-w-xs w-full shadow-2xl my-auto shrink-0">
+        <div className="absolute inset-0 z-30 flex items-start justify-center overflow-y-auto bg-stone-950/85 p-3 backdrop-blur-sm sm:p-4">
+          <div className="my-auto w-full max-w-sm shrink-0 rounded-2xl border border-stone-700/60 bg-stone-900 p-4 shadow-2xl sm:p-6">
             <div className="flex justify-between items-center mb-1">
               <h3 className="font-fantasy text-stone-100 text-sm tracking-wider uppercase">Kies jouw kleur</h3>
               {chatColor && (
@@ -247,7 +354,7 @@ function ChatView({ chat, setChat, role, uid, playerName, theme, onSendMessageRe
                 ? 'Als Game Master kies je als eerste - jouw kleur is gereserveerd voor jou.'
                 : 'Grijze kleuren zijn bezet door andere spelers.'}
             </p>
-            <div className="grid grid-cols-4 gap-2">
+            <div className="grid grid-cols-3 gap-2 sm:grid-cols-4">
               {CHAT_COLORS.map(c => {
                 const occupied = occupiedColors.has(c.id);
                 const isActive = chatColor === c.id;
@@ -319,7 +426,7 @@ function ChatView({ chat, setChat, role, uid, playerName, theme, onSendMessageRe
               )}
 
               {/* Bubble + context menu */}
-              <div className="relative max-w-[82%] md:max-w-[70%]">
+              <div className="relative max-w-[88%] sm:max-w-[82%] md:max-w-[70%]">
                 <div
                   onClick={() => handleBubbleClick(c)}
                   className={`px-3 md:px-3.5 py-1.5 md:py-2 font-story text-sm leading-normal shadow-sm transition-transform duration-100 active:scale-[0.985] cursor-pointer select-none
@@ -344,38 +451,61 @@ function ChatView({ chat, setChat, role, uid, playerName, theme, onSendMessageRe
                       <span className="line-clamp-2">{c.replyTo.text}</span>
                     </div>
                   )}
-                  {/* Dice roll result rendering */}
-                  {(() => {
-                    const legacyDiceRollRegex = /^rolt (\d+)d(\d+): \[([\d,\s]+)\] = (\d+)$/i;
-                    const legacyMatch = typeof c.text === 'string' && c.text.match(legacyDiceRollRegex);
-                    if (legacyMatch) {
-                      const [, count, sides, rollsStr, total] = legacyMatch;
-                      const rolls = rollsStr.split(',').map((r) => r.trim()).filter(Boolean);
-                      return (
-                        <div>
-                          <div className="flex items-center justify-center mb-1 mt-0.5">
-                            <span className="text-3xl md:text-4xl font-extrabold text-amber-400 mr-2" role="img" aria-label="dobbelsteen">🎲</span>
-                            <span className="text-3xl md:text-4xl font-extrabold text-amber-100">{total}!</span>
-                          </div>
-                          <div className="text-xs md:text-sm font-mono text-stone-200 text-center">
-                            {count}d{sides} = {rolls.join(' + ')}
-                          </div>
-                        </div>
-                      );
-                    }
 
-                    const groupedDiceRollRegex = /^🎲\s*(\d+)!\n(.+)$/i;
-                    const groupedMatch = typeof c.text === 'string' && c.text.match(groupedDiceRollRegex);
-                    if (groupedMatch) {
-                      const [, total, breakdown] = groupedMatch;
+                  {(() => {
+                    const parsedDiceMessage = parseDiceMessage(c.text);
+                    if (parsedDiceMessage) {
+                      const isExpanded = expandedDiceMessages[c.id] === true;
+                      const maxCollapsedLines = 2;
+                      const maxCollapsedRollsPerLine = 3;
+                      const hasOverflow = parsedDiceMessage.lines.length > maxCollapsedLines
+                        || parsedDiceMessage.lines.some((line) => (Array.isArray(line.rolls) ? line.rolls.length : 0) > maxCollapsedRollsPerLine)
+                        || parsedDiceMessage.lines.some((line) => String(line.raw || '').length > 20);
+                      const visibleLines = isExpanded ? parsedDiceMessage.lines : parsedDiceMessage.lines.slice(0, 2);
+
                       return (
-                        <div>
-                          <div className="flex items-center justify-center mb-1 mt-0.5">
-                            <span className="text-3xl md:text-4xl font-extrabold text-amber-400 mr-2" role="img" aria-label="dobbelsteen">🎲</span>
-                            <span className="text-3xl md:text-4xl font-extrabold text-amber-100">{total}!</span>
+                        <div className="w-[240px] md:w-[252px] max-w-full mx-auto flex flex-col items-center">
+                          <div className="h-[60px] flex items-center justify-center">
+                            <svg viewBox="0 0 24 24" className="w-8 h-8 md:w-9 md:h-9 mr-2" fill="none" aria-hidden="true" style={{ color: '#f8fafc' }}>
+                              <path d={mdiDiceMultiple} fill="currentColor" />
+                            </svg>
+                            <span className="text-3xl md:text-4xl font-extrabold text-amber-100">{parsedDiceMessage.total}!</span>
                           </div>
-                          <div className="text-xs md:text-sm font-mono text-stone-200 text-center">
-                            {breakdown}
+
+                          <div className={`${isExpanded ? 'min-h-[72px]' : 'h-[72px]'} w-full text-xs md:text-sm font-mono text-stone-200 overflow-hidden flex flex-col items-center justify-start pt-0.5`}> 
+                            {visibleLines.map((entry, index) => {
+                              const rolls = Array.isArray(entry.rolls) ? entry.rolls : [];
+                              const shownRolls = isExpanded ? rolls : rolls.slice(0, maxCollapsedRollsPerLine);
+                              const hasHiddenRolls = !isExpanded && rolls.length > maxCollapsedRollsPerLine;
+
+                              return (
+                                <div key={`${entry.raw}-${index}`} className="w-full flex items-start justify-center gap-2 leading-tight mb-1">
+                                  {entry.sides ? <ChatDiceIcon sides={entry.sides} className="w-4 h-4 md:w-5 md:h-5 shrink-0 mt-[1px]" /> : null}
+                                  <div className="w-[184px] text-left">
+                                    <div className="font-semibold">{entry.raw}</div>
+                                    {shownRolls.map((roll, rollIndex) => (
+                                      <div key={`${entry.raw}-roll-${rollIndex}`} className="tabular-nums">
+                                        {rollIndex === 0 ? '= ' : '+ '}{roll}
+                                      </div>
+                                    ))}
+                                    {hasHiddenRolls ? <div className="tabular-nums">...</div> : null}
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
+
+                          <div className="h-[18px] flex items-center justify-center mt-1 w-full">
+                            {hasOverflow ? (
+                              <button
+                                type="button"
+                                onClick={() => toggleDiceMessageExpansion(c.id)}
+                                className="text-[11px] font-bold tracking-wide text-stone-300 hover:text-stone-100"
+                                aria-label={isExpanded ? 'Verberg berekening' : 'Toon volledige berekening'}
+                              >
+                                {isExpanded ? 'Minder' : '...'}
+                              </button>
+                            ) : null}
                           </div>
                         </div>
                       );
@@ -454,7 +584,7 @@ function ChatView({ chat, setChat, role, uid, playerName, theme, onSendMessageRe
           </div>
         )}
 
-        <form onSubmit={sendMsg} className="chat-input-form p-3 md:p-4 flex gap-2 md:gap-3">
+        <form onSubmit={sendMsg} className="chat-input-form flex flex-wrap gap-2 p-3 sm:flex-nowrap md:gap-3 md:p-4">
           <input
             ref={inputRef}
             type="text"
@@ -462,39 +592,41 @@ function ChatView({ chat, setChat, role, uid, playerName, theme, onSendMessageRe
             onChange={e => setMsg(e.target.value)}
             onClick={() => { if (!chatColor) setShowColorPicker(true); }}
             placeholder={chatColor ? (editingMsg ? 'Pas je bericht aan...' : 'Spreek in de schaduwen...') : 'Kies eerst een kleur...'}
-            className="h-9 flex-1 w-full bg-stone-900/80 border border-stone-800 rounded-lg px-3 md:px-4 text-sm text-stone-200 placeholder-stone-500 focus:outline-none focus:border-amber-600/60 transition-colors font-story italic"
+            className="h-9 min-w-0 w-full flex-[1_1_100%] rounded-lg border border-stone-800 bg-stone-900/80 px-3 text-sm italic text-stone-200 transition-colors placeholder-stone-500 focus:border-amber-600/60 focus:outline-none font-story md:px-4 sm:flex-[1_1_auto]"
           />
-          {!editingMsg && (
-            <div className="relative" ref={dicePopoverRef}>
-              <button
-                type="button"
-                onClick={() => setShowDicePopover((prev) => !prev)}
-                title="Dobbelstenen rollen"
-                aria-label="Dobbelstenen rollen"
-                className="h-9 w-9 flex items-center justify-center hover:bg-stone-800 rounded-lg text-stone-400 hover:text-amber-400 transition-colors disabled:opacity-50 shrink-0"
-                disabled={isSending}
-              >
-                <Dice5 className="w-5 h-5" />
-              </button>
+          <div className={`flex items-center gap-2 ${editingMsg ? 'w-full sm:w-auto' : 'ml-auto sm:ml-0'}`}>
+            {!editingMsg && (
+              <div className="relative" ref={dicePopoverRef}>
+                <button
+                  type="button"
+                  onClick={() => setShowDicePopover((prev) => !prev)}
+                  title="Dobbelstenen rollen"
+                  aria-label="Dobbelstenen rollen"
+                  className="h-9 w-9 flex items-center justify-center hover:bg-stone-800 rounded-lg text-stone-400 hover:text-amber-400 transition-colors disabled:opacity-50 shrink-0"
+                  disabled={isSending}
+                >
+                  <Dice5 className="w-5 h-5" />
+                </button>
 
-              {showDicePopover && (
-                <div className="fixed inset-0 z-40 flex items-center justify-center pointer-events-none">
-                  <div className="pointer-events-auto">
-                    <DiceRoller theme={theme} onRoll={handleRollDice} />
+                {showDicePopover && (
+                  <div className="fixed inset-0 z-40 flex items-center justify-center pointer-events-none">
+                    <div className="pointer-events-auto">
+                      <DiceRoller theme={theme} onRoll={handleRollDice} />
+                    </div>
                   </div>
-                </div>
-              )}
-            </div>
-          )}
-          <button
-            type="submit"
-            disabled={isSending}
-            title={editingMsg ? 'Bewerking opslaan' : 'Bericht versturen'}
-            aria-label={editingMsg ? 'Bewerking opslaan' : 'Bericht versturen'}
-            className="h-9 inline-flex items-center justify-center gap-2 rounded-lg border border-stone-700 bg-stone-800 px-3.5 md:px-4 font-fantasy text-sm font-bold uppercase tracking-[0.16em] text-stone-200 transition-colors hover:bg-stone-700 hover:text-stone-100 disabled:opacity-50 shrink-0"
-          >
-            {editingMsg ? <Check className="w-4 h-4" /> : <SendHorizontal className="w-4 h-4" />}
-          </button>
+                )}
+              </div>
+            )}
+            <button
+              type="submit"
+              disabled={isSending}
+              title={editingMsg ? 'Bewerking opslaan' : 'Bericht versturen'}
+              aria-label={editingMsg ? 'Bewerking opslaan' : 'Bericht versturen'}
+              className={`h-9 inline-flex items-center justify-center gap-2 rounded-lg border border-stone-700 bg-stone-800 px-3.5 md:px-4 font-fantasy text-sm font-bold uppercase tracking-[0.16em] text-stone-200 transition-colors hover:bg-stone-700 hover:text-stone-100 disabled:opacity-50 ${editingMsg ? 'flex-1 sm:flex-none' : 'shrink-0'}`}
+            >
+              {editingMsg ? <Check className="w-4 h-4" /> : <SendHorizontal className="w-4 h-4" />}
+            </button>
+          </div>
         </form>
       </div>
     </div>

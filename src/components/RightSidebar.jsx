@@ -29,6 +29,7 @@ import {
   AlertCircle,
   Check,
 } from 'lucide-react';
+import { safeLocalStorageGet, safeLocalStorageSet } from '../lib/browserStorage';
 import { resolveDisplayAvatar } from '../lib/placeholders';
 import EditableStat from './EditableStat';
 import {
@@ -40,7 +41,6 @@ import {
 } from '../lib/battleConditions';
 import {
   COMBAT_JOIN_REQUEST_STATUS,
-  COMBAT_PARTICIPATION_STATUS,
   COMBAT_STATUS,
   buildInitiativeOrder,
   filterCombatParticipants,
@@ -209,7 +209,6 @@ function RightSidebar({
   onRollAllInitiative,
   onKickPlayerFromCombat,
   onRequestCombatJoin,
-  onResolveCombatJoinRequest,
   onOpenNpcModal,
   onOpenDamageModal,
   onOpenProfile,
@@ -228,7 +227,6 @@ function RightSidebar({
   const [pendingMissingAction, setPendingMissingAction] = useState(null);
   const [tieResolutionState, setTieResolutionState] = useState(null);
   const [kickTarget, setKickTarget] = useState(null);
-  const [joinApprovalTarget, setJoinApprovalTarget] = useState(null);
   const [endCombatConfirmOpen, setEndCombatConfirmOpen] = useState(false);
   const [conditionsTarget, setConditionsTarget] = useState(null);
   const [conditionsDraftIds, setConditionsDraftIds] = useState([]);
@@ -236,7 +234,6 @@ function RightSidebar({
 
   const isGm = role === 'gm';
   const battleActive = combatStatus === COMBAT_STATUS.ACTIVE;
-  const battlePaused = combatStatus === COMBAT_STATUS.PAUSED;
   const combatInProgress = combatStatus !== COMBAT_STATUS.IDLE;
   const canManageRoster = isGm && combatStatus !== COMBAT_STATUS.ACTIVE;
   const combatRoster = useMemo(() => filterCombatParticipants(party), [party]);
@@ -250,16 +247,7 @@ function RightSidebar({
   const currentPlayerInCombat = isCombatParticipant(myCharacter);
   const playerJoinRequestPending = hasPendingCombatJoinRequest(myCharacter);
   const showCombatJoinPanel = role === 'player' && myCharacter && !currentPlayerInCombat;
-  const canRequestCombatJoin = showCombatJoinPanel && combatStatus !== COMBAT_STATUS.ACTIVE && !playerJoinRequestPending;
-  const pendingCombatJoinRequests = useMemo(
-    () => party.filter((member) => (
-      member?.isNpc !== true
-      && member?.id !== currentPlayerId
-      && member?.combatParticipation === COMBAT_PARTICIPATION_STATUS.REMOVED
-      && member?.combatJoinRequestStatus === COMBAT_JOIN_REQUEST_STATUS.PENDING
-    )),
-    [currentPlayerId, party]
-  );
+  const canRequestCombatJoin = showCombatJoinPanel && !playerJoinRequestPending;
   const turnsUntilMine = getTurnsUntilMember(sortedParty, initiativeOrder, currentTurnId, currentPlayerId);
   const turnApproachRatio = getTurnApproachRatio(sortedParty, initiativeOrder, currentTurnId, currentPlayerId);
   const isMyTurn = battleActive && currentTurnId === currentPlayerId;
@@ -282,7 +270,7 @@ function RightSidebar({
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
-    const storedWidth = Number(window.localStorage.getItem(RIGHT_SIDEBAR_STORAGE_KEY));
+    const storedWidth = Number(safeLocalStorageGet(RIGHT_SIDEBAR_STORAGE_KEY));
     if (storedWidth) {
       setSidebarWidth(clampBattleSidebarWidth(storedWidth));
     }
@@ -290,7 +278,7 @@ function RightSidebar({
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
-    window.localStorage.setItem(RIGHT_SIDEBAR_STORAGE_KEY, String(sidebarWidth));
+    safeLocalStorageSet(RIGHT_SIDEBAR_STORAGE_KEY, String(sidebarWidth));
   }, [sidebarWidth]);
 
   useEffect(() => {
@@ -319,22 +307,24 @@ function RightSidebar({
   }, [isDragging]);
 
   useEffect(() => {
-    if (!isGm || combatStatus === COMBAT_STATUS.ACTIVE) {
-      setJoinApprovalTarget(null);
-      return;
-    }
+    if (typeof window === 'undefined') return undefined;
 
-    setJoinApprovalTarget((currentTarget) => {
-      if (currentTarget && pendingCombatJoinRequests.some((member) => member.id === currentTarget.id)) {
-        return currentTarget;
+    const syncPinnedState = () => {
+      if (window.innerWidth < 768 && isPinned) {
+        setIsPinned?.(false);
       }
+    };
 
-      return pendingCombatJoinRequests[0] || null;
-    });
-  }, [combatStatus, isGm, pendingCombatJoinRequests]);
+    syncPinnedState();
+    window.addEventListener('resize', syncPinnedState);
+
+    return () => {
+      window.removeEventListener('resize', syncPinnedState);
+    };
+  }, [isPinned, setIsPinned]);
 
   const handleResizeStart = (event) => {
-    if (typeof window === 'undefined' || window.innerWidth < 1024) return;
+    if (typeof window === 'undefined' || window.innerWidth < 768) return;
     dragStateRef.current = {
       startX: event.clientX,
       startWidth: sidebarWidth,
@@ -532,23 +522,6 @@ function RightSidebar({
     }
   };
 
-  const handleResolveJoinRequest = async (approve) => {
-    if (!joinApprovalTarget || isActionBusy) return;
-
-    setStatusError('');
-    setIsActionBusy(true);
-
-    try {
-      await onResolveCombatJoinRequest?.(joinApprovalTarget.id, approve);
-      setJoinApprovalTarget(null);
-    } catch (error) {
-      console.error('Meedoen-verzoek beantwoorden fout:', error);
-      setStatusError('Het meedoen-verzoek kon niet worden verwerkt.');
-    } finally {
-      setIsActionBusy(false);
-    }
-  };
-
   const openConditionsEditor = (member) => {
     if (!isGm || !member) return;
     const activeIds = getActiveConditions(member).map((condition) => condition.id);
@@ -715,7 +688,7 @@ function RightSidebar({
     <>
       {isOpen && !isPinned ? (
         <div
-          className="fixed inset-0 z-40 bg-stone-950/80 backdrop-blur-sm lg:hidden"
+          className="app-shell-overlay-backdrop fixed inset-x-0 bottom-0 z-40 bg-stone-950/80 backdrop-blur-sm lg:hidden"
           onClick={onClose}
         />
       ) : null}
@@ -723,19 +696,19 @@ function RightSidebar({
       <aside
         style={{ '--battle-sidebar-width': `${sidebarWidth}px` }}
         className={`
-          fixed top-0 right-0 z-50 flex h-full w-80 flex-col border-l border-stone-800 bg-stone-900/95 shadow-2xl backdrop-blur-md transition-transform duration-300 ease-in-out
+          fixed right-0 z-50 flex w-80 max-w-full flex-col border-l border-stone-800 bg-stone-900/95 shadow-2xl backdrop-blur-md transition-transform duration-300 ease-in-out
           ${(isOpen || isPinned) ? 'translate-x-0' : 'translate-x-full'}
-          ${isPinned ? 'md:relative md:translate-x-0 md:z-0 md:w-[var(--battle-sidebar-width)] md:min-w-[var(--battle-sidebar-width)] md:max-w-[var(--battle-sidebar-width)] md:bg-stone-900/50 md:shadow-none' : ''}
-          lg:relative lg:translate-x-0 lg:z-0 lg:flex lg:w-[var(--battle-sidebar-width)] lg:min-w-[var(--battle-sidebar-width)] lg:max-w-[var(--battle-sidebar-width)] lg:bg-stone-900/50 lg:shadow-none
+          ${isPinned ? 'top-0 h-full md:relative md:h-full md:translate-x-0 md:z-0 md:w-[var(--battle-sidebar-width)] md:min-w-[var(--battle-sidebar-width)] md:max-w-[var(--battle-sidebar-width)] md:bg-stone-900/50 md:shadow-none' : 'app-shell-overlay-frame'}
+          lg:relative lg:top-0 lg:h-full lg:translate-x-0 lg:z-0 lg:flex lg:w-[var(--battle-sidebar-width)] lg:min-w-[var(--battle-sidebar-width)] lg:max-w-[var(--battle-sidebar-width)] lg:bg-stone-900/50 lg:shadow-none
         `}
       >
-        <div className="absolute top-0 left-0 hidden h-full w-1 bg-gradient-to-b from-stone-800 via-stone-900 to-stone-800 lg:block" />
+        <div className="absolute top-0 left-0 hidden h-full w-1 bg-gradient-to-b from-stone-800 via-stone-900 to-stone-800 md:block" />
         <button
           type="button"
           aria-label="Sleep om slagordebreedte aan te passen"
           onMouseDown={handleResizeStart}
           onDoubleClick={() => setSidebarWidth(RIGHT_SIDEBAR_DEFAULT_WIDTH)}
-          className="absolute left-0 top-0 hidden h-full w-3 translate-x-1/2 cursor-col-resize lg:block"
+          className="absolute left-0 top-0 hidden h-full w-3 translate-x-1/2 cursor-col-resize md:block"
         >
           <span className={`absolute left-1/2 top-1/2 h-16 w-[3px] -translate-x-1/2 -translate-y-1/2 rounded-full transition-colors ${isDragging ? 'bg-amber-500 shadow-[0_0_12px_rgba(245,158,11,0.45)]' : 'bg-stone-800 hover:bg-stone-700'}`} />
         </button>
@@ -752,7 +725,7 @@ function RightSidebar({
                       : 'border-amber-700/60 bg-gradient-to-r from-amber-950/45 to-stone-950 hover:border-amber-500/70')
                 } ${isActionBusy ? 'opacity-80' : ''}`}
               >
-                <div className="flex items-center gap-3">
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
                   <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border ${combatStatus === COMBAT_STATUS.ACTIVE ? 'border-amber-700/60 bg-amber-950/35 text-amber-300' : 'border-stone-700/70 bg-stone-950/70 text-amber-500'}`}>
                     <StatusIcon className="h-5 w-5" />
                   </div>
@@ -770,7 +743,7 @@ function RightSidebar({
                   </div>
                 </div>
 
-                <div className="mt-3 grid grid-cols-[1fr_auto] gap-2">
+                <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-[1fr_auto]">
                   {statusActionLabel ? (
                     <button
                       type="button"
@@ -795,10 +768,11 @@ function RightSidebar({
                     type="button"
                     onClick={() => setEndCombatConfirmOpen(true)}
                     disabled={!combatInProgress || isActionBusy}
-                    className={`inline-flex h-9 w-9 items-center justify-center rounded-lg border transition-colors ${combatInProgress && !isActionBusy ? 'border-rose-700/70 bg-rose-950/40 text-rose-300 hover:border-rose-500/80 hover:bg-rose-900/40 hover:text-rose-100' : 'cursor-not-allowed border-stone-800 bg-stone-950/60 text-stone-600'}`}
+                    className={`inline-flex h-9 w-full items-center justify-center gap-2 rounded-lg border px-3 transition-colors sm:w-9 sm:px-0 ${combatInProgress && !isActionBusy ? 'border-rose-700/70 bg-rose-950/40 text-rose-300 hover:border-rose-500/80 hover:bg-rose-900/40 hover:text-rose-100' : 'cursor-not-allowed border-stone-800 bg-stone-950/60 text-stone-600'}`}
                     title={combatInProgress ? 'Beëindig gevecht direct' : 'Nog geen gevecht om te beëindigen'}
                   >
                     <Skull className="h-4 w-4" />
+                    <span className="text-xs font-fantasy uppercase tracking-[0.14em] sm:hidden">Beëindig</span>
                   </button>
                 </div>
               </div>
@@ -810,7 +784,7 @@ function RightSidebar({
                     ? 'border-stone-700/80 bg-gradient-to-r from-stone-950 to-stone-900'
                     : 'border-amber-700/60 bg-gradient-to-r from-amber-950/45 to-stone-950')
               } ${isMyTurn ? 'ring-1 ring-amber-500/60 shadow-[0_0_22px_rgba(245,158,11,0.18)]' : ''}`}>
-                <div className="flex items-start gap-3 pr-12">
+                <div className="flex flex-col gap-3 pr-0 sm:flex-row sm:items-start sm:pr-12">
                   <div className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border ${combatStatus === COMBAT_STATUS.ACTIVE ? 'border-amber-700/60 bg-amber-950/35 text-amber-300' : 'border-stone-700/70 bg-stone-950/70 text-amber-500'} ${isMyTurn ? 'animate-pulse' : ''}`}>
                     <StatusIcon className="h-5 w-5" />
                   </div>
@@ -829,11 +803,13 @@ function RightSidebar({
                   </div>
 
                   {combatInProgress ? (
-                    <StatusTurnIndicator
-                      turnsUntil={turnsUntilMine}
-                      ratio={turnApproachRatio}
-                      isCurrentTurn={isMyTurn}
-                    />
+                    <div className="self-start sm:self-auto">
+                      <StatusTurnIndicator
+                        turnsUntil={turnsUntilMine}
+                        ratio={turnApproachRatio}
+                        isCurrentTurn={isMyTurn}
+                      />
+                    </div>
                   ) : null}
                 </div>
               </div>
@@ -876,7 +852,7 @@ function RightSidebar({
           {showPlayerRollPanel ? (
             <div className="mt-3 rounded-xl border border-amber-900/40 bg-stone-950/55 px-3 py-3 shadow-inner">
               <div className="mb-2 text-[10px] font-bold uppercase tracking-[0.18em] text-amber-500">Initiative</div>
-              <div className="flex gap-2">
+              <div className="flex flex-col gap-2 sm:flex-row">
                 <input
                   type="number"
                   placeholder="Typ..."
@@ -884,7 +860,7 @@ function RightSidebar({
                     const value = parseInt(event.target.value, 10);
                     if (!Number.isNaN(value)) onUpdateStat?.(myCharacter.id, 'init', value);
                   }}
-                  className="hide-arrows w-18 rounded-md border border-amber-900/40 bg-stone-950/80 px-2 text-center font-bold text-amber-100 outline-none focus:border-amber-500"
+                  className="hide-arrows w-full rounded-md border border-amber-900/40 bg-stone-950/80 px-2 text-center font-bold text-amber-100 outline-none focus:border-amber-500 sm:w-18"
                 />
                 <button
                   type="button"
@@ -901,7 +877,7 @@ function RightSidebar({
             <div className="mt-3 rounded-xl border border-indigo-900/40 bg-stone-950/55 px-3 py-3 shadow-inner">
               <div className="mb-2 text-[10px] font-bold uppercase tracking-[0.18em] text-indigo-400">Niet in gevecht</div>
               <p className="mb-3 text-xs leading-5 text-stone-400">
-                Je staat nu buiten de initiativelijst. Vraag de GM om je opnieuw toe te voegen zodra het gevecht niet actief is.
+                Je staat nu buiten de initiativelijst. Dien een verzoek in om weer mee te doen.
               </p>
               <button
                 type="button"
@@ -911,9 +887,19 @@ function RightSidebar({
               >
                 {playerJoinRequestPending ? 'In behandeling' : 'Meedoen'}
               </button>
-              {combatStatus === COMBAT_STATUS.ACTIVE ? (
-                <p className="mt-2 text-[11px] leading-5 text-stone-500">Wacht tot de GM het gevecht pauzeert of terug naar ruststand zet.</p>
-              ) : null}
+              {playerJoinRequestPending ? (
+                <p className="mt-2 text-[11px] leading-5 text-stone-500">
+                  {combatStatus === COMBAT_STATUS.IDLE
+                    ? 'Verzoek ontvangen. Je wordt automatisch teruggezet in de initiative tijdens ruststand.'
+                    : 'Verzoek ontvangen. Je wordt automatisch toegevoegd zodra het gevecht eindigt en ruststand actief is.'}
+                </p>
+              ) : (
+                <p className="mt-2 text-[11px] leading-5 text-stone-500">
+                  {combatStatus === COMBAT_STATUS.IDLE
+                    ? 'In ruststand word je na het verzoek automatisch toegevoegd.'
+                    : 'Tijdens pauze of gevecht blijft je verzoek in behandeling tot ruststand.'}
+                </p>
+              )}
             </div>
           ) : null}
 
@@ -1127,7 +1113,7 @@ function RightSidebar({
 
         {role === 'gm' ? (
           <div className="space-y-2.5 border-t border-stone-800 bg-stone-900/85 px-3.5 pt-3 pb-[calc(env(safe-area-inset-bottom,0px)+0.625rem)] md:px-4 md:pt-3.5 md:pb-3">
-            <div className="grid grid-cols-2 gap-2">
+            <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
               <button
                 type="button"
                 onClick={handleRollAll}
@@ -1399,38 +1385,6 @@ function RightSidebar({
         </OverlayDialog>
       ) : null}
 
-      {joinApprovalTarget ? (
-        <OverlayDialog
-          title="Meedoen-verzoek"
-          description={`Speler ${joinApprovalTarget.name} wilt meedoen met het gevecht. Toevoegen ja of nee.`}
-          onClose={() => {}}
-          showCloseButton={false}
-          actions={(
-            <>
-              <button
-                type="button"
-                onClick={() => handleResolveJoinRequest(false)}
-                disabled={isActionBusy}
-                className="rounded-lg border border-stone-700 bg-stone-950 px-4 py-2 text-sm text-stone-300 transition-colors hover:border-stone-500 hover:text-stone-100 disabled:opacity-60"
-              >
-                Nee
-              </button>
-              <button
-                type="button"
-                onClick={() => handleResolveJoinRequest(true)}
-                disabled={isActionBusy}
-                className="rounded-lg bg-gradient-to-r from-amber-700 to-amber-600 px-4 py-2 text-sm font-fantasy tracking-[0.12em] text-stone-100 transition-colors hover:from-amber-600 hover:to-amber-500 disabled:opacity-60"
-              >
-                Ja
-              </button>
-            </>
-          )}
-        >
-          <div className="rounded-xl border border-indigo-900/40 bg-indigo-950/20 px-3 py-3 text-sm leading-6 text-stone-200">
-            <span className="font-fantasy tracking-[0.12em] text-stone-100">{joinApprovalTarget.name}</span> wacht op toestemming om opnieuw in de initiativelijst te komen.
-          </div>
-        </OverlayDialog>
-      ) : null}
     </>
   );
 }

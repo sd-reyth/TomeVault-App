@@ -16,6 +16,7 @@ import {
   Wand2,
   X,
 } from 'lucide-react';
+import { safeLocalStorageGet, safeLocalStorageSet } from '../lib/browserStorage';
 import { getJoinTagLookupVariants } from '../lib/sessionUtils';
 import landingBackgroundVideo from '../../Video/landingBG.mp4';
 import RuntimeBadge from './RuntimeBadge';
@@ -34,21 +35,13 @@ function clampLandingAmbienceVolume(value, fallback = DEFAULT_LANDING_AMBIENCE_V
 function loadStoredLandingAmbienceEnabled() {
   if (typeof window === 'undefined') return false;
 
-  try {
-    return window.localStorage.getItem(LANDING_AMBIENCE_ENABLED_STORAGE_KEY) === '1';
-  } catch (_) {
-    return false;
-  }
+  return safeLocalStorageGet(LANDING_AMBIENCE_ENABLED_STORAGE_KEY) === '1';
 }
 
 function loadStoredLandingAmbienceVolume() {
   if (typeof window === 'undefined') return DEFAULT_LANDING_AMBIENCE_VOLUME;
 
-  try {
-    return clampLandingAmbienceVolume(window.localStorage.getItem(LANDING_AMBIENCE_VOLUME_STORAGE_KEY));
-  } catch (_) {
-    return DEFAULT_LANDING_AMBIENCE_VOLUME;
-  }
+  return clampLandingAmbienceVolume(safeLocalStorageGet(LANDING_AMBIENCE_VOLUME_STORAGE_KEY));
 }
 
 function getLandingJoinContext() {
@@ -166,7 +159,7 @@ export default function LandingScreen({
     if (initialContext.inviteCode || initialContext.isJoinPath) return 'player';
 
     if (typeof window !== 'undefined') {
-      const storedRole = window.localStorage.getItem('tv_landing_role');
+      const storedRole = safeLocalStorageGet('tv_landing_role');
       if (storedRole === 'gm' || storedRole === 'player') return storedRole;
     }
 
@@ -177,7 +170,7 @@ export default function LandingScreen({
     if (initialContext.inviteCode || initialContext.isJoinPath) return true;
 
     if (typeof window !== 'undefined') {
-      const storedRole = window.localStorage.getItem('tv_landing_role');
+      const storedRole = safeLocalStorageGet('tv_landing_role');
       return storedRole === 'gm' || storedRole === 'player';
     }
 
@@ -298,27 +291,19 @@ export default function LandingScreen({
 
   useEffect(() => {
     if (typeof window === 'undefined' || !rolePreferenceLocked) return;
-    window.localStorage.setItem('tv_landing_role', activeRoleTab);
+    safeLocalStorageSet('tv_landing_role', activeRoleTab);
   }, [activeRoleTab, rolePreferenceLocked]);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
 
-    try {
-      window.localStorage.setItem(LANDING_AMBIENCE_ENABLED_STORAGE_KEY, landingAmbienceEnabled ? '1' : '0');
-    } catch (_) {
-      // Ignore storage failures and keep local state as source of truth.
-    }
+    safeLocalStorageSet(LANDING_AMBIENCE_ENABLED_STORAGE_KEY, landingAmbienceEnabled ? '1' : '0');
   }, [landingAmbienceEnabled]);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
 
-    try {
-      window.localStorage.setItem(LANDING_AMBIENCE_VOLUME_STORAGE_KEY, String(landingAmbienceVolume));
-    } catch (_) {
-      // Ignore storage failures and keep local state as source of truth.
-    }
+    safeLocalStorageSet(LANDING_AMBIENCE_VOLUME_STORAGE_KEY, String(landingAmbienceVolume));
   }, [landingAmbienceVolume]);
 
   useEffect(() => {

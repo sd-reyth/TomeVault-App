@@ -83,6 +83,58 @@
     linear-gradient(180deg, rgba(255, 255, 255, 0.72), rgba(255, 255, 255, 0.24));
 }
 
+:root {
+  --tv-topbar-height-mobile: 3.5rem;
+  --tv-topbar-height-desktop: 4rem;
+  --tv-mobile-nav-height: calc(4rem + env(safe-area-inset-bottom, 0px));
+  --tv-mobile-nav-height-compact: calc(3.5rem + env(safe-area-inset-bottom, 0px));
+}
+
+.app-shell-main {
+  padding-bottom: calc(var(--tv-mobile-nav-height) + 0.75rem);
+}
+
+.app-shell-mobile-nav {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+.app-shell-overlay-frame {
+  top: var(--tv-topbar-height-mobile);
+  height: calc(100dvh - var(--tv-topbar-height-mobile));
+}
+
+.app-shell-overlay-backdrop {
+  top: var(--tv-topbar-height-mobile);
+}
+
+@media (min-width: 768px) {
+  .app-shell-main {
+    padding-bottom: 1.5rem;
+  }
+}
+
+@media (min-width: 768px) and (max-width: 1023px) {
+  .app-shell-overlay-frame {
+    top: var(--tv-topbar-height-desktop);
+    height: calc(100dvh - var(--tv-topbar-height-desktop));
+  }
+
+  .app-shell-overlay-backdrop {
+    top: var(--tv-topbar-height-desktop);
+  }
+}
+
+@media (max-width: 767px) and (orientation: landscape) {
+  .app-shell-main {
+    padding-bottom: calc(var(--tv-mobile-nav-height-compact) + 0.5rem);
+  }
+
+  .app-shell-mobile-nav {
+    height: auto;
+    min-height: var(--tv-mobile-nav-height-compact);
+  }
+}
+
 .brightness-slider {
   appearance: none;
   height: 0.4rem;

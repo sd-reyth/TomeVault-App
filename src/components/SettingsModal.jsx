@@ -52,11 +52,11 @@ function SettingsModal({ isOpen, onClose, playerName, role, onLogout, onExportAr
   };
 
   return (
-    <div className="fixed inset-0 bg-stone-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-      <div className={`settings-modal rounded-2xl max-w-sm w-full shadow-2xl relative overflow-hidden border ${isLightTheme ? 'settings-modal-light bg-stone-50 border-stone-200 text-stone-700' : 'settings-modal-dark bg-stone-900 border-stone-700/50 text-stone-300'}`}>
+    <div className="fixed inset-0 z-50 flex items-end justify-center bg-stone-950/80 p-2 backdrop-blur-sm sm:items-center sm:p-4">
+      <div className={`settings-modal relative flex max-h-[calc(100dvh-1rem)] w-full max-w-sm flex-col overflow-hidden rounded-2xl border shadow-2xl sm:max-h-[calc(100dvh-2rem)] ${isLightTheme ? 'settings-modal-light bg-stone-50 border-stone-200 text-stone-700' : 'settings-modal-dark bg-stone-900 border-stone-700/50 text-stone-300'}`}>
         <div className={`absolute top-0 left-1/2 -translate-x-1/2 w-full h-32 blur-[50px] pointer-events-none ${isLightTheme ? 'bg-amber-400/10' : 'bg-stone-600/10'}`} />
         
-        <div className={`p-4 border-b flex justify-between items-center relative z-10 ${isLightTheme ? 'border-stone-200' : 'border-stone-800/50'}`}>
+        <div className={`relative z-10 flex shrink-0 items-center justify-between border-b p-4 ${isLightTheme ? 'border-stone-200' : 'border-stone-800/50'}`}>
           <h3 className={`font-fantasy font-bold tracking-wider flex items-center gap-2 ${isLightTheme ? 'text-stone-700' : 'text-stone-200'}`}>
             <Settings className={`w-5 h-5 ${isLightTheme ? 'text-stone-500' : 'text-stone-400'}`} /> Configuratie
           </h3>
@@ -65,7 +65,7 @@ function SettingsModal({ isOpen, onClose, playerName, role, onLogout, onExportAr
           </button>
         </div>
         
-        <div className="p-6 relative z-10 flex flex-col gap-5">
+        <div className="relative z-10 flex flex-1 flex-col gap-5 overflow-y-auto p-4 sm:p-6">
           <div>
             <label className={`block text-[10px] font-bold uppercase tracking-widest mb-1.5 ${isLightTheme ? 'text-stone-500' : 'text-stone-500'}`}>Mijn Naam (Weergave)</label>
             <input 
@@ -79,7 +79,7 @@ function SettingsModal({ isOpen, onClose, playerName, role, onLogout, onExportAr
 
           <div>
             <label className={`block text-[10px] font-bold uppercase tracking-widest mb-3 ${isLightTheme ? 'text-stone-500' : 'text-stone-500'}`}>Kleurenthema</label>
-            <div className="grid grid-cols-4 gap-2">
+            <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
               {themes.map(t => (
                 <button
                   key={t.id}
@@ -143,11 +143,11 @@ function SettingsModal({ isOpen, onClose, playerName, role, onLogout, onExportAr
             </button>
           </div>
 
-          <div className="pt-1 -mt-1 flex justify-end">
+          <div className="-mt-1 flex justify-stretch pt-1 sm:justify-end">
             <button
               type="button"
               onClick={handleSave}
-              className={`h-9 inline-flex items-center justify-center gap-2 rounded-lg border px-4 font-fantasy text-sm uppercase tracking-[0.16em] shadow-sm transition-colors ${isLightTheme ? 'border-amber-500/60 bg-gradient-to-r from-amber-500 to-amber-400 text-stone-900 hover:from-amber-400 hover:to-amber-300' : 'border-amber-700/60 bg-gradient-to-r from-amber-700 to-amber-600 text-stone-100 hover:from-amber-600 hover:to-amber-500'}`}
+              className={`inline-flex h-9 w-full items-center justify-center gap-2 rounded-lg border px-4 font-fantasy text-sm uppercase tracking-[0.16em] shadow-sm transition-colors sm:w-auto ${isLightTheme ? 'border-amber-500/60 bg-gradient-to-r from-amber-500 to-amber-400 text-stone-900 hover:from-amber-400 hover:to-amber-300' : 'border-amber-700/60 bg-gradient-to-r from-amber-700 to-amber-600 text-stone-100 hover:from-amber-600 hover:to-amber-500'}`}
             >
               <Save className="h-4 w-4" /> Opslaan
             </button>

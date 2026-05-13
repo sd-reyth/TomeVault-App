@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Scroll, MessageSquare, Backpack, NotebookPen, Crown, Settings } from 'lucide-react';
+import { safeLocalStorageGet, safeLocalStorageSet } from '../lib/browserStorage';
 
 const SIDEBAR_DEFAULT_WIDTH = 252;
 const SIDEBAR_MIN_WIDTH = 96;
@@ -29,7 +30,7 @@ export default function Sidebar({ activeTab, setActiveTab, onOpenSettings, role 
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
-    const storedWidth = Number(window.localStorage.getItem(SIDEBAR_STORAGE_KEY));
+    const storedWidth = Number(safeLocalStorageGet(SIDEBAR_STORAGE_KEY));
     if (storedWidth) {
       setSidebarWidth(clampSidebarWidth(storedWidth));
     }
@@ -37,7 +38,7 @@ export default function Sidebar({ activeTab, setActiveTab, onOpenSettings, role 
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
-    window.localStorage.setItem(SIDEBAR_STORAGE_KEY, String(sidebarWidth));
+    safeLocalStorageSet(SIDEBAR_STORAGE_KEY, String(sidebarWidth));
   }, [sidebarWidth]);
 
   useEffect(() => {
@@ -77,7 +78,7 @@ export default function Sidebar({ activeTab, setActiveTab, onOpenSettings, role 
   return (
     <aside
       style={{ '--sidebar-width': `${sidebarWidth}px` }}
-      className="fixed bottom-0 left-0 z-30 flex h-16 w-full flex-row items-center justify-around border-t border-stone-800 bg-stone-900/95 px-2 backdrop-blur-md pb-safe md:relative md:h-auto md:shrink-0 md:w-[var(--sidebar-width)] md:min-w-[var(--sidebar-width)] md:max-w-[var(--sidebar-width)] md:flex-col md:justify-start md:border-r md:border-t-0 md:bg-stone-900/55 md:px-0 md:py-4 md:pb-3 md:backdrop-blur-sm"
+      className="app-shell-mobile-nav fixed bottom-0 left-0 z-30 flex h-16 w-full flex-row items-center justify-around border-t border-stone-800 bg-stone-900/95 px-2 backdrop-blur-md md:relative md:h-auto md:shrink-0 md:w-[var(--sidebar-width)] md:min-w-[var(--sidebar-width)] md:max-w-[var(--sidebar-width)] md:flex-col md:justify-start md:border-r md:border-t-0 md:bg-stone-900/55 md:px-0 md:py-4 md:pb-3 md:backdrop-blur-sm"
     >
       <nav className={`flex w-full flex-row items-center justify-between gap-1 md:flex-col md:flex-1 md:pt-4 ${isCollapsed ? 'md:px-2' : 'md:px-3 md:gap-1.5'}`}>
         {tabs.map((tab) => {
