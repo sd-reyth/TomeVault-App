@@ -42,7 +42,7 @@ export default function DamageModal({ isOpen, onClose, target, onSave }) {
         <div className="p-6 relative z-10 flex flex-col gap-4">
           <div className="text-center mb-2">
             <span className="text-stone-400 text-sm uppercase tracking-widest font-bold">Huidige HP:</span>
-            <div className={`text-5xl font-fantasy font-bold mt-2 ${target.hp < 10 ? 'text-rose-500' : 'text-emerald-500'}`}>
+            <div className={`text-5xl font-fantasy font-bold mt-2 ${target.hp < 10 ? 'text-rose-500' : 'text-amber-500'}`}>
               {target.hp}
             </div>
           </div>
@@ -67,7 +67,7 @@ export default function DamageModal({ isOpen, onClose, target, onSave }) {
             </button>
             <button 
               onClick={handleHeal}
-              className="h-9 inline-flex w-full items-center justify-center bg-emerald-950/40 hover:bg-emerald-900/80 border border-emerald-900/50 text-emerald-400 rounded-lg font-fantasy uppercase tracking-[0.16em] text-sm transition-colors shadow-sm"
+              className="h-9 inline-flex w-full items-center justify-center bg-amber-950/40 hover:bg-amber-900/80 border border-amber-900/50 text-amber-400 rounded-lg font-fantasy uppercase tracking-[0.16em] text-sm transition-colors shadow-sm"
             >
               + Genezing
             </button>

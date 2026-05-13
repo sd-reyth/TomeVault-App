@@ -52,7 +52,10 @@ export function getInitiativeTotal(member) {
 
 export function getInitiativeModifier(member) {
   const value = Number(member?.initMod ?? 0);
-  return Number.isFinite(value) ? value : 0;
+  const baseMod = Number.isFinite(value) ? value : 0;
+  const hasAlertFeat = member?.hasAlertFeat === true;
+  const profBonus = hasAlertFeat ? (Number(member?.proficiencyBonus) || 2) : 0;
+  return baseMod + profBonus;
 }
 
 export function getInitiativeRoll(member) {

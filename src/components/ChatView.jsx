@@ -5,7 +5,7 @@ const CHAT_COLORS = [
   { id: 'indigo',   bg: '#1e1b4b', border: '#4338ca', text: '#e0e7ff', swatch: '#6366f1', name: 'Indigo'   },
   { id: 'violet',   bg: '#1e0a3c', border: '#7c3aed', text: '#ede9fe', swatch: '#8b5cf6', name: 'Violet'   },
   { id: 'sky',      bg: '#082f49', border: '#0284c7', text: '#e0f2fe', swatch: '#0ea5e9', name: 'Hemel'    },
-  { id: 'teal',     bg: '#042f2e', border: '#0d9488', text: '#ccfbf1', swatch: '#14b8a6', name: 'Teal'     },
+  { id: 'emerald',  bg: '#052e16', border: '#10b981', text: '#d1fae5', swatch: '#10b981', name: 'Smaragd'  },
   { id: 'emerald',  bg: '#052e16', border: '#10b981', text: '#d1fae5', swatch: '#10b981', name: 'Smaragd'  },
   { id: 'lime',     bg: '#1a2e05', border: '#65a30d', text: '#ecfccb', swatch: '#84cc16', name: 'Limoen'   },
   { id: 'amber',    bg: '#451a03', border: '#d97706', text: '#fef3c7', swatch: '#f59e0b', name: 'Amber'    },
@@ -359,7 +359,7 @@ function ChatView({ chat, setChat, role, uid, playerName, onSendMessageRemote, o
           </div>
         )}
 
-        <form onSubmit={sendMsg} className="p-3 md:p-4 flex gap-2 md:gap-3 pb-safe">
+        <form onSubmit={sendMsg} className="chat-input-form p-3 md:p-4 flex gap-2 md:gap-3">
           <input
             ref={inputRef}
             type="text"

@@ -2,22 +2,42 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
   ArrowDown,
   ArrowUp,
+  Bed,
   ChevronRight,
+  CircleOff,
   Dice5,
+  Eye,
   FlameKindling,
+  Ghost,
+  Hand,
+  Heart,
   Info,
+  Link,
+  Mountain,
   Pin,
   PinOff,
   Shield,
   Skull,
+  Snowflake,
   Swords,
   Trash2,
   UserPlus,
   UserMinus,
+  VolumeX,
   X,
+  Zap,
+  AlertCircle,
+  Check,
 } from 'lucide-react';
 import { resolveDisplayAvatar } from '../lib/placeholders';
 import EditableStat from './EditableStat';
+import {
+  CONDITIONS,
+  CONDITION_COLORS,
+  CONDITION_BADGE_COLORS,
+  getActiveConditions,
+  getCondition,
+} from '../lib/battleConditions';
 import {
   COMBAT_JOIN_REQUEST_STATUS,
   COMBAT_PARTICIPATION_STATUS,
@@ -39,6 +59,23 @@ const RIGHT_SIDEBAR_DEFAULT_WIDTH = 288;
 const RIGHT_SIDEBAR_MIN_WIDTH = 248;
 const RIGHT_SIDEBAR_MAX_WIDTH = 380;
 const RIGHT_SIDEBAR_STORAGE_KEY = 'tomevault.battleSidebarWidth';
+
+const CONDITION_ICON_MAP = {
+  eye: Eye,
+  heart: Heart,
+  'volume-x': VolumeX,
+  'alert-circle': AlertCircle,
+  hand: Hand,
+  'circle-off': CircleOff,
+  ghost: Ghost,
+  snowflake: Snowflake,
+  mountain: Mountain,
+  skull: Skull,
+  'arrow-down': ArrowDown,
+  link: Link,
+  zap: Zap,
+  bed: Bed,
+};
 
 function clampBattleSidebarWidth(width) {
   return Math.min(RIGHT_SIDEBAR_MAX_WIDTH, Math.max(RIGHT_SIDEBAR_MIN_WIDTH, width));
@@ -193,6 +230,8 @@ function RightSidebar({
   const [kickTarget, setKickTarget] = useState(null);
   const [joinApprovalTarget, setJoinApprovalTarget] = useState(null);
   const [endCombatConfirmOpen, setEndCombatConfirmOpen] = useState(false);
+  const [conditionsTarget, setConditionsTarget] = useState(null);
+  const [conditionsDraftIds, setConditionsDraftIds] = useState([]);
   const dragStateRef = useRef({ startX: 0, startWidth: RIGHT_SIDEBAR_DEFAULT_WIDTH });
 
   const isGm = role === 'gm';
@@ -510,6 +549,28 @@ function RightSidebar({
     }
   };
 
+  const openConditionsEditor = (member) => {
+    if (!isGm || !member) return;
+    const activeIds = getActiveConditions(member).map((condition) => condition.id);
+    setConditionsDraftIds(activeIds);
+    setConditionsTarget(member);
+  };
+
+  const toggleConditionDraft = (conditionId) => {
+    setConditionsDraftIds((current) => (
+      current.includes(conditionId)
+        ? current.filter((id) => id !== conditionId)
+        : [...current, conditionId]
+    ));
+  };
+
+  const handleSaveConditions = () => {
+    if (!isGm || !conditionsTarget) return;
+    const nextConditions = conditionsDraftIds.map((id) => ({ id, active: true }));
+    onUpdateStat?.(conditionsTarget.id, 'conditions', nextConditions);
+    setConditionsTarget(null);
+  };
+
   const handleTieOrderResolved = async (orderedIds) => {
     if (!tieResolutionState || !activeTieGroupKey) return;
 
@@ -719,11 +780,7 @@ function RightSidebar({
                         combatStatus === COMBAT_STATUS.ACTIVE
                           ? 'border-amber-700/60 bg-amber-950/35 text-amber-200 hover:border-amber-500/70 hover:bg-amber-900/35'
                           : combatStatus === COMBAT_STATUS.IDLE
-                            ? (
-                                theme === 'purple' ? 'border-violet-700/60 bg-gradient-to-r from-violet-700 to-violet-600 text-stone-100 shadow-sm hover:from-violet-600 hover:to-violet-500'
-                                : theme === 'green'  ? 'border-emerald-700/60 bg-gradient-to-r from-emerald-700 to-emerald-600 text-stone-100 shadow-sm hover:from-emerald-600 hover:to-emerald-500'
-                                : 'border-amber-700/60 bg-gradient-to-r from-amber-700 to-amber-600 text-stone-100 shadow-sm hover:from-amber-600 hover:to-amber-500'
-                              )
+                            ? 'border-amber-700/60 bg-gradient-to-r from-amber-700 to-amber-600 text-stone-100 shadow-sm hover:from-amber-600 hover:to-amber-500'
                             : 'border-stone-700 bg-stone-950 text-stone-200 hover:border-amber-700/60 hover:text-amber-300'
                       } ${isActionBusy ? 'cursor-wait opacity-70' : ''}`}
                     >
@@ -906,20 +963,61 @@ function RightSidebar({
             const initiativeEditable = isGm
               ? combatStatus !== COMBAT_STATUS.ACTIVE
               : (combatStatus === COMBAT_STATUS.IDLE && member.id === currentPlayerId);
+            const activeConditions = getActiveConditions(member);
+            const hasConditions = activeConditions.length > 0;
+            const extraConditionsCount = Math.max(0, activeConditions.length - 1);
+            const firstCondition = activeConditions[0] || null;
+            const firstConditionMeta = firstCondition ? getCondition(firstCondition.id) : null;
+            const conditionColor = firstConditionMeta?.color || 'slate';
+            const ConditionIcon = CONDITION_ICON_MAP[firstConditionMeta?.icon] || AlertCircle;
+            const hasAlertFeat = member?.hasAlertFeat === true;
+
+            const cardClassName = `group relative flex cursor-pointer flex-row items-center gap-3 rounded-xl border p-2.5 shadow-sm transition-all hover:shadow-md md:p-3 ${
+              member.isNpc
+                ? 'border-rose-900/30 bg-rose-950/20 hover:border-rose-500/50'
+                : 'border-amber-900/20 bg-stone-950/40 hover:border-amber-500/50'
+            } ${hasConditions ? (CONDITION_COLORS[conditionColor] || '') : ''} ${isCurrentTurn ? (battleActive ? 'bg-amber-950/30 ring-1 ring-amber-500 shadow-[0_0_15px_rgba(245,158,11,0.15)]' : 'ring-1 ring-stone-600') : ''}`;
 
             return (
               <div
                 key={member.id}
                 onClick={() => onOpenProfile?.(member)}
-                className={`group relative flex cursor-pointer flex-row items-center gap-3 rounded-xl border p-2.5 shadow-sm transition-all hover:shadow-md md:p-3 ${
-                  member.isNpc
-                    ? 'border-rose-900/30 bg-rose-950/20 hover:border-rose-500/50'
-                    : 'border-amber-900/20 bg-stone-950/40 hover:border-amber-500/50'
-                } ${isCurrentTurn ? (battleActive ? 'bg-amber-950/30 ring-1 ring-amber-500 shadow-[0_0_15px_rgba(245,158,11,0.15)]' : 'ring-1 ring-stone-600') : ''}`}
+                className={cardClassName}
               >
                 {isCurrentTurn ? (
                   <div className={`absolute -left-[1px] top-0 bottom-0 w-[3px] rounded-l-lg ${battleActive ? 'bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.8)]' : 'bg-stone-500'}`} />
                 ) : null}
+
+                {hasConditions ? (
+                  <button
+                    type="button"
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      if (isGm) openConditionsEditor(member);
+                    }}
+                    className={`absolute -top-2 -left-2 z-20 rounded-full border p-1 shadow-md ${CONDITION_BADGE_COLORS[conditionColor] || CONDITION_BADGE_COLORS.slate} ${isGm ? 'cursor-pointer hover:brightness-110' : 'cursor-default'}`}
+                    title={activeConditions.map((c) => getCondition(c.id)?.label).filter(Boolean).join(', ')}
+                  >
+                    <ConditionIcon className="h-3.5 w-3.5" />
+                    {extraConditionsCount > 0 ? (
+                      <span className="absolute -right-2 -top-2 inline-flex h-4 min-w-4 items-center justify-center rounded-full border border-stone-950 bg-stone-100 px-1 text-[9px] font-bold leading-none text-stone-900">
+                        +{extraConditionsCount}
+                      </span>
+                    ) : null}
+                  </button>
+                ) : (isGm ? (
+                  <button
+                    type="button"
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      openConditionsEditor(member);
+                    }}
+                    className="absolute -top-2 -left-2 z-20 rounded-full border border-stone-700 bg-stone-950 p-1 text-stone-600 shadow-md transition-colors hover:border-amber-700/50 hover:bg-stone-900 hover:text-amber-500 lg:opacity-0 lg:group-hover:opacity-100"
+                    title="Voeg conditions toe"
+                  >
+                    <AlertCircle className="h-4 w-4" />
+                  </button>
+                ) : null)}
 
                 {isGm && member.isNpc ? (
                   <button
@@ -959,9 +1057,16 @@ function RightSidebar({
 
                 <div className="flex min-w-0 flex-1 flex-col gap-1">
                   <div className="flex items-center justify-between">
-                    <span className={`mr-2 truncate font-fantasy text-sm font-bold tracking-wider ${member.isNpc ? 'text-rose-400' : 'text-stone-100'}`}>
-                      {displayMemberName}
-                    </span>
+                    <div className="mr-2 flex min-w-0 items-center gap-1.5">
+                      <span className={`truncate font-fantasy text-sm font-bold tracking-wider ${member.isNpc ? 'text-rose-400' : 'text-stone-100'}`}>
+                        {displayMemberName}
+                      </span>
+                      {hasAlertFeat ? (
+                        <span className="shrink-0 rounded border border-amber-700/50 bg-amber-950/35 px-1.5 py-[1px] text-[9px] font-bold uppercase tracking-[0.12em] text-amber-300">
+                          Alert
+                        </span>
+                      ) : null}
+                    </div>
                     <div className="flex items-center gap-1.5">
                       {combatInProgress ? (
                         <TurnClockBadge
@@ -994,7 +1099,7 @@ function RightSidebar({
                       {hiddenNpcForPlayer ? (
                         <span className="font-bold text-stone-500">?</span>
                       ) : (
-                        <span className={member.hp < 10 ? 'font-bold text-rose-500' : 'font-bold text-emerald-500'}>{member.hp}</span>
+                        <span className={member.hp < 10 ? 'font-bold text-rose-500' : 'font-bold text-amber-500'}>{member.hp}</span>
                       )}
                     </div>
                     <div
@@ -1118,10 +1223,7 @@ function RightSidebar({
                 onClick={handleConfirmMissingInitiative}
                 className="rounded-lg bg-gradient-to-r from-amber-700 to-amber-600 px-4 py-2 text-sm font-fantasy tracking-[0.12em] text-stone-100 transition-colors hover:from-amber-600 hover:to-amber-500"
               >
-                <span className="inline-flex items-center gap-1.5">
-                  <UserPlus className="h-3.5 w-3.5" />
-                  {playerJoinRequestPending ? 'In behandeling' : 'Meedoen'}
-                </span>
+                Rol ontbrekende
               </button>
             </>
           )}
@@ -1250,6 +1352,49 @@ function RightSidebar({
         >
           <div className="rounded-xl border border-stone-800 bg-stone-950/50 px-3 py-3 text-sm leading-6 text-stone-300">
             Bevestig dat je <span className="font-fantasy tracking-[0.12em] text-stone-100">{kickTarget.name}</span> uit dit gevecht wilt halen.
+          </div>
+        </OverlayDialog>
+      ) : null}
+
+      {conditionsTarget && isGm ? (
+        <OverlayDialog
+          title={`Conditions voor ${conditionsTarget.name}`}
+          description="Activeer of verwijder status effecten op dit personage."
+          onClose={() => setConditionsTarget(null)}
+          actions={(
+            <button
+              type="button"
+              onClick={handleSaveConditions}
+              className="rounded-lg border border-amber-700/50 bg-amber-950/20 px-4 py-2 text-sm font-fantasy tracking-[0.12em] text-amber-300 transition-colors hover:border-amber-500/70 hover:bg-amber-900/20"
+            >
+              Opslaan
+            </button>
+          )}
+        >
+          <div className="grid grid-cols-2 gap-2">
+            {CONDITIONS.map((condition) => {
+              const isActive = conditionsDraftIds.includes(condition.id);
+              const ConditionListIcon = CONDITION_ICON_MAP[condition.icon] || AlertCircle;
+              return (
+                <button
+                  key={condition.id}
+                  type="button"
+                  onClick={() => toggleConditionDraft(condition.id)}
+                  className={`flex flex-col items-start rounded-lg border p-3 text-left transition-all ${
+                    isActive
+                      ? `${CONDITION_BADGE_COLORS[condition.color]} border-current`
+                      : 'border-stone-800 bg-stone-950/40 text-stone-500 hover:border-stone-700 hover:bg-stone-900/60'
+                  }`}
+                >
+                  <div className="mb-1 flex items-center gap-1.5">
+                    <ConditionListIcon className="h-4 w-4" />
+                    {isActive ? <Check className="h-3 w-3" /> : null}
+                  </div>
+                  <div className="text-xs font-bold uppercase tracking-[0.12em]">{condition.label}</div>
+                  <div className={`text-[10px] tracking-[0.08em] ${isActive ? 'opacity-90' : 'opacity-60'}`}>{condition.description}</div>
+                </button>
+              );
+            })}
           </div>
         </OverlayDialog>
       ) : null}

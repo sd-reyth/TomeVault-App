@@ -31,7 +31,7 @@ function WalletSection({ title, wallet, isGm, editable = false, onAdjust }) {
                 <button
                   type="button"
                   onClick={() => onAdjust(c.key, 1)}
-                  className="w-4 h-4 md:w-5 md:h-5 rounded border border-stone-700 text-stone-400 hover:text-emerald-400 hover:border-emerald-800 text-[10px] md:text-xs leading-none"
+                  className="w-4 h-4 md:w-5 md:h-5 rounded border border-stone-700 text-stone-400 hover:text-amber-400 hover:border-amber-800 text-[10px] md:text-xs leading-none"
                   title="Verhoog"
                 >
                   +

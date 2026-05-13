@@ -25,6 +25,7 @@ export default function Sidebar({ activeTab, setActiveTab, onOpenSettings, role 
   ];
 
   const isCollapsed = sidebarWidth <= SIDEBAR_COLLAPSE_WIDTH;
+  const isIconRail = sidebarWidth <= 220;
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -78,27 +79,30 @@ export default function Sidebar({ activeTab, setActiveTab, onOpenSettings, role 
       style={{ '--sidebar-width': `${sidebarWidth}px` }}
       className="fixed bottom-0 left-0 z-30 flex h-16 w-full flex-row items-center justify-around border-t border-stone-800 bg-stone-900/95 px-2 backdrop-blur-md pb-safe md:relative md:h-auto md:shrink-0 md:w-[var(--sidebar-width)] md:min-w-[var(--sidebar-width)] md:max-w-[var(--sidebar-width)] md:flex-col md:justify-start md:border-r md:border-t-0 md:bg-stone-900/55 md:px-0 md:py-4 md:pb-3 md:backdrop-blur-sm"
     >
-      <nav className={`flex w-full flex-row items-center justify-between gap-1 md:flex-col md:flex-1 md:pt-4 ${isCollapsed ? 'md:px-2' : 'md:px-3 md:gap-2'}`}>
+      <nav className={`flex w-full flex-row items-center justify-between gap-1 md:flex-col md:flex-1 md:pt-4 ${isCollapsed ? 'md:px-2' : 'md:px-3 md:gap-1.5'}`}>
         {tabs.map((tab) => {
           const isActive = activeTab === tab.id;
           return (
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
+              aria-label={tab.label}
               className={`
-                relative flex min-h-[48px] min-w-0 flex-1 flex-col items-center justify-center rounded-lg p-2 transition-all font-fantasy tracking-wider md:w-full md:flex-none ${isCollapsed ? 'md:min-h-[52px] md:px-2 md:py-2.5' : 'md:min-h-[48px] md:flex-row md:justify-start md:gap-3 md:px-3 md:py-2.5'}
+                group relative flex min-h-[48px] min-w-0 flex-1 flex-col items-center justify-center rounded-lg p-2 transition-all duration-150 font-fantasy tracking-wider md:w-full md:flex-none ${isCollapsed ? 'md:min-h-[52px] md:px-2 md:py-2.5' : (isIconRail ? 'md:min-h-[46px] md:justify-center md:px-2 md:py-2' : 'md:min-h-[46px] md:flex-row md:justify-start md:gap-2.5 md:px-3 md:py-2')}
                 ${isActive 
-                  ? 'text-amber-500 md:bg-gradient-to-r md:from-amber-950/60 md:to-stone-900 md:border md:border-amber-900/40 md:shadow-[inset_0_0_18px_rgba(217,119,6,0.08)]' 
-                  : 'text-stone-400 hover:bg-stone-800/80 hover:text-stone-200 border border-transparent'}
+                  ? 'text-amber-400 md:bg-gradient-to-r md:from-amber-950/35 md:to-stone-900/70 md:border md:border-amber-900/40 md:shadow-[inset_0_0_12px_rgba(217,119,6,0.08)]' 
+                  : 'text-stone-400 md:border md:border-transparent md:hover:border-stone-700/60 md:hover:bg-stone-900/55 hover:text-stone-200'}
               `}
               title={tab.label}
             >
-              {isActive && !isCollapsed ? <span className="hidden md:block absolute left-0 top-2 bottom-2 w-[3px] rounded-r bg-amber-500 shadow-[0_0_10px_rgba(245,158,11,0.6)]" /> : null}
-              <span className={`hidden shrink-0 items-center justify-center rounded-lg border transition-colors md:flex ${isCollapsed ? 'h-10 w-10' : 'h-9 w-9'} ${isActive ? 'border-amber-800/50 bg-amber-950/40 text-amber-400' : 'border-stone-800 bg-stone-950/50 text-stone-500'}`}>
-                <tab.icon className="w-4 h-4" />
-              </span>
-              <tab.icon className={`w-5 h-5 md:hidden shrink-0 ${isActive ? 'text-amber-500 drop-shadow-md' : 'opacity-70'}`} />
-              <span className={`${isCollapsed ? 'hidden' : 'hidden md:block'} text-[15px] uppercase md:tracking-[0.12em]`}>{tab.label}</span>
+              {isActive && !isCollapsed ? <span className="hidden md:block absolute left-0 top-2 bottom-2 w-[3px] rounded-r bg-amber-500/90 shadow-[0_0_8px_rgba(245,158,11,0.35)] animate-pulse" /> : null}
+              <tab.icon className={`w-5 h-5 md:w-[17px] md:h-[17px] shrink-0 transition-colors ${isActive ? 'text-amber-400' : 'text-stone-500 md:group-hover:text-stone-300'}`} />
+              <span className={`${isCollapsed || isIconRail ? 'hidden' : 'hidden md:block'} max-w-full truncate text-[14px] font-bold uppercase md:tracking-[0.12em]`}>{tab.label}</span>
+              {isIconRail && !isCollapsed ? (
+                <span className="pointer-events-none absolute left-[calc(100%+10px)] top-1/2 z-40 hidden -translate-y-1/2 whitespace-nowrap rounded-md border border-stone-700 bg-stone-950/95 px-2 py-1 text-[10px] font-bold uppercase tracking-[0.12em] text-stone-200 shadow-md md:group-hover:block">
+                  {tab.label}
+                </span>
+              ) : null}
             </button>
           )
         })}
@@ -106,14 +110,17 @@ export default function Sidebar({ activeTab, setActiveTab, onOpenSettings, role 
         <button
           type="button"
           onClick={onOpenSettings}
+          aria-label="Configuratie"
           title="Configuratie"
-          className={`relative flex min-h-[48px] min-w-0 flex-1 flex-col items-center justify-center rounded-lg p-2 transition-all font-fantasy tracking-wider md:flex md:w-full md:flex-none ${isCollapsed ? 'md:min-h-[52px] md:px-2 md:py-2.5' : 'md:min-h-[48px] md:flex-row md:justify-start md:gap-3 md:px-3 md:py-2.5'} text-stone-400 hover:bg-stone-800/80 hover:text-stone-200 border border-transparent`}
+          className={`group relative flex min-h-[48px] min-w-0 flex-1 flex-col items-center justify-center rounded-lg p-2 transition-all duration-150 font-fantasy tracking-wider md:flex md:w-full md:flex-none ${isCollapsed ? 'md:min-h-[52px] md:px-2 md:py-2.5' : (isIconRail ? 'md:min-h-[46px] md:justify-center md:px-2 md:py-2' : 'md:min-h-[46px] md:flex-row md:justify-start md:gap-2.5 md:px-3 md:py-2')} text-stone-400 md:border md:border-transparent md:hover:border-stone-700/60 md:hover:bg-stone-900/55 hover:text-stone-200`}
         >
-          <span className={`hidden shrink-0 items-center justify-center rounded-lg border transition-colors md:flex ${isCollapsed ? 'h-10 w-10' : 'h-9 w-9'} border-stone-800 bg-stone-950/50 text-stone-500`}>
-            <Settings className="w-4 h-4" />
-          </span>
-          <Settings className="w-5 h-5 md:hidden shrink-0 opacity-70" />
-          <span className={`${isCollapsed ? 'hidden' : 'hidden md:block'} text-[15px] uppercase md:tracking-[0.12em]`}>Configuratie</span>
+          <Settings className="w-5 h-5 md:w-[17px] md:h-[17px] shrink-0 text-stone-500" />
+          <span className={`${isCollapsed || isIconRail ? 'hidden' : 'hidden md:block'} max-w-full truncate text-[14px] font-bold uppercase md:tracking-[0.12em]`}>Configuratie</span>
+          {isIconRail && !isCollapsed ? (
+            <span className="pointer-events-none absolute left-[calc(100%+10px)] top-1/2 z-40 hidden -translate-y-1/2 whitespace-nowrap rounded-md border border-stone-700 bg-stone-950/95 px-2 py-1 text-[10px] font-bold uppercase tracking-[0.12em] text-stone-200 shadow-md md:group-hover:block">
+              Configuratie
+            </span>
+          ) : null}
         </button>
       </nav>
 

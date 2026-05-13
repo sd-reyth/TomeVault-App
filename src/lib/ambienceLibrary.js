@@ -20,7 +20,7 @@ const VERIFIED_AMBIENCE_TRACKS = [
     title: 'Forest - Ambience',
     subtitle: 'Voorjaarswind, vogels en een open veldrand in de verte.',
     filePath: '/audio/Forest - Ambience.mp3',
-    accentClassName: 'from-emerald-600/30 via-emerald-400/10 to-stone-950',
+    accentClassName: 'from-amber-600/30 via-amber-400/10 to-stone-950',
     source: {
       creator: 'klankbeeld',
       platform: 'Freesound',

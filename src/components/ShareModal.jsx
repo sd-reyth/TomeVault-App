@@ -84,12 +84,12 @@ export default function ShareModal({ isOpen, onClose, sessionId, theme }) {
 
   return (
     <div className="fixed inset-0 bg-stone-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-      <div className="bg-stone-900 border border-emerald-900/40 rounded-2xl max-w-sm w-full shadow-2xl relative overflow-hidden">
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-32 bg-emerald-500/10 blur-[50px] pointer-events-none" />
+      <div className="bg-stone-900 border border-amber-900/40 rounded-2xl max-w-sm w-full shadow-2xl relative overflow-hidden">
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-32 bg-amber-500/10 blur-[50px] pointer-events-none" />
         
         <div className="p-4 border-b border-stone-800/50 flex justify-between items-center relative z-10">
           <h3 className="font-fantasy font-bold text-stone-200 tracking-wider flex items-center gap-2">
-            <QrCode className="w-5 h-5 text-emerald-400" /> Nodig Spelers Uit
+            <QrCode className="w-5 h-5 text-amber-400" /> Nodig Spelers Uit
           </h3>
           <button onClick={onClose} className="text-stone-400 hover:text-rose-400 transition-colors">
             <X className="w-5 h-5" />
@@ -137,7 +137,7 @@ export default function ShareModal({ isOpen, onClose, sessionId, theme }) {
               href={`https://wa.me/?text=${encodeURIComponent(waText)}`} 
               target="_blank" 
               rel="noopener noreferrer"
-              className="h-9 w-full inline-flex items-center justify-center gap-2 rounded-lg border border-emerald-500 bg-emerald-600 px-4 font-fantasy text-sm uppercase tracking-[0.16em] text-white transition-colors hover:bg-emerald-500"
+              className="h-9 w-full inline-flex items-center justify-center gap-2 rounded-lg border border-amber-600 bg-amber-700 px-4 font-fantasy text-sm uppercase tracking-[0.16em] text-white transition-colors hover:bg-amber-600"
             >
               <Share2 className="w-4 h-4" />
               Delen

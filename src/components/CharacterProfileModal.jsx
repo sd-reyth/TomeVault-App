@@ -10,7 +10,6 @@ const CHAT_ACCENT_COLORS = {
   indigo: '#6366f1',
   violet: '#8b5cf6',
   sky: '#0ea5e9',
-  teal: '#14b8a6',
   emerald: '#10b981',
   lime: '#84cc16',
   amber: '#f59e0b',
@@ -21,7 +20,7 @@ const CHAT_ACCENT_COLORS = {
   cyan: '#22d3ee',
 };
 
-function CharacterProfileModal({ isOpen, onClose, character, role, currentPlayerId, onSave, onTransferGm, chatColor }) {
+function CharacterProfileModal({ isOpen, onClose, character, role, currentPlayerId, onSave, onTransferGm, chatColor, onOpenInitiativeSwap, initiativeOrder }) {
   const [formData, setFormData] = useState({});
   const [pendingAvatarFile, setPendingAvatarFile] = useState(null);
   const [confirmTransfer, setConfirmTransfer] = useState(false);
@@ -42,6 +41,13 @@ function CharacterProfileModal({ isOpen, onClose, character, role, currentPlayer
   const isMine = character.id === currentPlayerId;
   const canEdit = isGM || isMine;
   const canTransferGm = isGM && !isMine && !character.isNpc;
+  const canSwapInitiative = Boolean(
+    isGM
+    && character?.hasAlertFeat
+    && Number.isFinite(Number(character?.init))
+    && Array.isArray(initiativeOrder)
+    && initiativeOrder.includes(character.id)
+  );
   const bannerAccent = CHAT_ACCENT_COLORS[chatColor] || null;
 
   const handleChange = (field, value) => {
@@ -250,9 +256,9 @@ function CharacterProfileModal({ isOpen, onClose, character, role, currentPlayer
                 <span className="text-[10px] font-bold uppercase tracking-widest text-stone-500 mb-1">HP</span>
                 <div className="flex items-baseline gap-1">
                   {canEdit ? (
-                    <input type="number" value={formData.hp || 0} onChange={e => handleChange('hp', e.target.value)} className="w-8 bg-transparent text-center font-bold text-lg text-emerald-400 outline-none hide-arrows border-b border-stone-700 focus:border-amber-500" />
+                    <input type="number" value={formData.hp || 0} onChange={e => handleChange('hp', e.target.value)} className="w-8 bg-transparent text-center font-bold text-lg text-amber-400 outline-none hide-arrows border-b border-stone-700 focus:border-amber-500" />
                   ) : (
-                    <span className="font-bold text-lg text-emerald-400">{formData.hp}</span>
+                    <span className="font-bold text-lg text-amber-400">{formData.hp}</span>
                   )}
                   <span className="text-stone-600 text-xs">/</span>
                   {canEdit ? (
@@ -279,6 +285,46 @@ function CharacterProfileModal({ isOpen, onClose, character, role, currentPlayer
                 )}
               </div>
             </div>
+
+            {isGM ? (
+              <div className="rounded-lg border border-amber-900/40 bg-amber-950/20 p-3 space-y-2">
+                <h4 className="text-[10px] font-bold text-amber-600 uppercase tracking-widest">Alert Feat (2024)</h4>
+                <label className="flex items-center gap-3 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={formData.hasAlertFeat || false}
+                    onChange={(event) => handleChange('hasAlertFeat', event.target.checked)}
+                    className="h-4 w-4 rounded border-stone-700 bg-stone-950"
+                  />
+                  <span className="text-[11px] font-bold text-stone-200">Heeft Alert Feat</span>
+                </label>
+
+                {formData.hasAlertFeat ? (
+                  <div className="space-y-2 pl-7">
+                    <div className="flex items-center gap-2">
+                      <span className="text-[10px] text-stone-400">Proficiency Bonus:</span>
+                      <input
+                        type="number"
+                        value={formData.proficiencyBonus || 2}
+                        onChange={(event) => handleChange('proficiencyBonus', parseInt(event.target.value, 10) || 2)}
+                        className="hide-arrows w-12 rounded border border-stone-700 bg-stone-950 px-2 py-1 text-[11px] font-bold text-amber-400 outline-none focus:border-amber-500"
+                      />
+                      <span className="text-[10px] text-stone-500">op initiative</span>
+                    </div>
+
+                    {canSwapInitiative ? (
+                      <button
+                        type="button"
+                        onClick={() => onOpenInitiativeSwap?.(character)}
+                        className="rounded-lg border border-amber-700/60 bg-amber-950/30 px-3 py-1.5 text-[11px] font-fantasy tracking-[0.12em] text-amber-300 transition-colors hover:border-amber-500/70 hover:bg-amber-900/40"
+                      >
+                        Initiative Swap
+                      </button>
+                    ) : null}
+                  </div>
+                ) : null}
+              </div>
+            ) : null}
 
             {canEdit && (
               <div className="flex flex-col">

@@ -5,9 +5,9 @@ export const MOCK_HANDOUTS = [
 ];
 
 export const MOCK_PARTY = [
-  { id: 'p1', name: 'Elara', subtitle: 'Elf Ranger', hp: 24, maxHp: 24, ac: 15, init: null, initMod: 3, isNpc: false, avatar: null, bio: 'Elara groeide op in de eindeloze wouden van de noordelijke grens. Ze vertrouwt dieren meer dan mensen.', customStats: [{ id: 1, name: 'DEX', value: 16 }, { id: 2, name: 'WIS', value: 14 }] },
-  { id: 'p2', name: 'Thorin', subtitle: 'Dwarf Fighter', hp: 35, maxHp: 35, ac: 18, init: null, initMod: -1, isNpc: false, avatar: null, bio: 'Een verbannen dwerg op zoek naar eerherstel en goud.', customStats: [] },
-  { id: 'n1', name: 'Goblin Aanvoerder', subtitle: 'Vijand', hp: 15, maxHp: 15, ac: 13, init: null, initMod: 2, isNpc: true, avatar: null, bio: 'Een opvallend slimme goblin met een met bloed besmeurd zwaard.', customStats: [] },
+  { id: 'p1', name: 'Elara', subtitle: 'Elf Ranger', hp: 24, maxHp: 24, ac: 15, init: null, initMod: 3, isNpc: false, avatar: null, bio: 'Elara groeide op in de eindeloze wouden van de noordelijke grens. Ze vertrouwt dieren meer dan mensen.', customStats: [{ id: 1, name: 'DEX', value: 16 }, { id: 2, name: 'WIS', value: 14 }], conditions: [], hasAlertFeat: false, proficiencyBonus: 2 },
+  { id: 'p2', name: 'Thorin', subtitle: 'Dwarf Fighter', hp: 35, maxHp: 35, ac: 18, init: null, initMod: -1, isNpc: false, avatar: null, bio: 'Een verbannen dwerg op zoek naar eerherstel en goud.', customStats: [], conditions: [], hasAlertFeat: false, proficiencyBonus: 2 },
+  { id: 'n1', name: 'Goblin Aanvoerder', subtitle: 'Vijand', hp: 15, maxHp: 15, ac: 13, init: null, initMod: 2, isNpc: true, avatar: null, bio: 'Een opvallend slimme goblin met een met bloed besmeurd zwaard.', customStats: [], conditions: [], hasAlertFeat: false, proficiencyBonus: 2 },
 ];
 
 export const MOCK_CHAT = [

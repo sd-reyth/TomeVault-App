@@ -205,7 +205,7 @@ export default function PreparationModal({ isOpen, preparation, onClose, onSave,
                       type="number"
                       value={formData.hp || 0}
                       onChange={(event) => handleChange('hp', event.target.value)}
-                      className="hide-arrows w-8 border-b border-stone-700 bg-transparent text-center text-lg font-bold text-emerald-400 outline-none focus:border-amber-500"
+                      className="hide-arrows w-8 border-b border-stone-700 bg-transparent text-center text-lg font-bold text-amber-400 outline-none focus:border-amber-500"
                     />
                     <span className="text-xs text-stone-600">/</span>
                     <input

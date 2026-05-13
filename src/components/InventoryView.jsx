@@ -37,7 +37,7 @@ function ItemCard({ item, role, currentPlayerId, canManageInventory, onUpdateIte
                     <button
                       type="button"
                       onClick={() => onUpdateItemAmount?.(item.id, Number(item.amount || 0) + 1)}
-                      className="w-4 h-4 md:w-5 md:h-5 rounded border border-stone-700 text-stone-400 hover:text-emerald-400 hover:border-emerald-800 text-[10px] md:text-xs leading-none"
+                      className="w-4 h-4 md:w-5 md:h-5 rounded border border-stone-700 text-stone-400 hover:text-amber-400 hover:border-amber-800 text-[10px] md:text-xs leading-none"
                       title="Verhoog aantal"
                     >
                       +

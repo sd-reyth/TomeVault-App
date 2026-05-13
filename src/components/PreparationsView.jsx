@@ -31,7 +31,7 @@ function getStatusMeta(preparation, party) {
   if (preparation.assignmentStatus === 'accepted') {
     return {
       label: 'In gebruik',
-      className: 'border-emerald-900/50 bg-emerald-950/30 text-emerald-300',
+      className: 'border-amber-900/50 bg-amber-950/30 text-amber-300',
     };
   }
 
@@ -249,7 +249,7 @@ export default function PreparationsView({
         <aside className="rounded-2xl border border-stone-800/80 bg-stone-950/55 p-4 shadow-inner md:p-5 xl:sticky xl:top-4">
           <div className="flex items-center justify-between gap-3 text-stone-100">
             <div className="flex items-center gap-2">
-              <ShieldCheck className="h-4 w-4 text-emerald-400" />
+              <ShieldCheck className="h-4 w-4 text-amber-400" />
               <h2 className="font-fantasy text-lg uppercase tracking-[0.14em]">Overzicht</h2>
             </div>
             <button
@@ -334,7 +334,7 @@ export default function PreparationsView({
                       <div className="mt-2 text-sm font-medium text-stone-200">{backup.playerName || 'Onbekende speler'}</div>
                       <div className="mt-1 text-xs uppercase tracking-[0.16em] text-stone-600">via {backup.templateName || 'Naamloze voorbereiding'}</div>
                       {backup.restoredAtMs ? (
-                        <p className="mt-3 text-[11px] uppercase tracking-[0.16em] text-emerald-400">
+                        <p className="mt-3 text-[11px] uppercase tracking-[0.16em] text-amber-400">
                           Hersteld {formatPreparationTime(backup.restoredAtMs)}
                         </p>
                       ) : null}

@@ -51,7 +51,7 @@ export default function AmbiencePanel({
                   className={`flex-1 flex items-center gap-3 h-full pl-3 pr-2 text-left min-w-0 ${!canControlSession ? 'cursor-default' : ''}`}
                 >
                   {/* Active dot */}
-                  <span className={`shrink-0 w-1.5 h-1.5 rounded-full ${isActive ? (isPlaying ? 'bg-emerald-400 shadow-[0_0_6px_rgba(52,211,153,0.8)]' : 'bg-amber-400') : 'bg-stone-700'}`} />
+                  <span className={`shrink-0 w-1.5 h-1.5 rounded-full ${isActive ? (isPlaying ? 'bg-amber-400 shadow-[0_0_6px_rgba(245,158,11,0.8)]' : 'bg-amber-400') : 'bg-stone-700'}`} />
 
                   {/* Scene name */}
                   <span className={`font-fantasy text-sm tracking-[0.1em] truncate ${isActive ? 'text-stone-100' : 'text-stone-300'}`}>

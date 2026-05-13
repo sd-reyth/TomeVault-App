@@ -95,6 +95,8 @@ import PreparationModal from './components/PreparationModal';
 import PlayerPickerModal from './components/PlayerPickerModal';
 import PreparationOfferModal from './components/PreparationOfferModal';
 import RightSidebar from './components/RightSidebar';
+import InitiativeSwapModal from './components/InitiativeSwapModal';
+import { isIncapacitated } from './lib/battleConditions';
 
 async function uploadImageToStorage(file, path) {
   const ref = storageRef(storage, path);
@@ -151,7 +153,6 @@ const CHAT_ACCENT_COLORS = {
   indigo: '#6366f1',
   violet: '#8b5cf6',
   sky: '#0ea5e9',
-  teal: '#14b8a6',
   emerald: '#10b981',
   lime: '#84cc16',
   amber: '#f59e0b',
@@ -379,6 +380,17 @@ export default function TomeVaultApp() {
   });
 
   const handleThemeChange = (t) => { setTheme(t); localStorage.setItem('tv_theme', t); };
+
+  const [brightness, setBrightness] = useState(() => {
+    const saved = localStorage.getItem('tv_brightness');
+    return Number(saved) || 2; // Default to 2 (Normaal)
+  });
+
+  const handleBrightnessChange = (b) => { setBrightness(b); localStorage.setItem('tv_brightness', String(b)); };
+
+  // Map brightness step (0-4) to a subtle background overlay opacity.
+  const brightnessOverlayOpacities = [0, 0.015, 0.03, 0.045, 0.06];
+  const brightnessOverlayOpacity = theme === 'light' ? 0 : (brightnessOverlayOpacities[brightness] ?? 0.03);
   
   const [handouts, setHandouts] = useState(MOCK_HANDOUTS);
   const [party, setParty] = useState(MOCK_PARTY);
@@ -464,6 +476,7 @@ export default function TomeVaultApp() {
   const [isSessionPanelOpen, setIsSessionPanelOpen] = useState(false);
   const [isSourcelistOpen, setIsSourcelistOpen] = useState(false);
   const [isArchiveExporting, setIsArchiveExporting] = useState(false);
+  const [initiativeSwapTarget, setInitiativeSwapTarget] = useState(null);
   const [damageTarget, setDamageTarget] = useState(null);
   const [profileTarget, setProfileTarget] = useState(null);
   const [selectedHandout, setSelectedHandout] = useState(null);
@@ -1593,6 +1606,12 @@ export default function TomeVaultApp() {
         const incoming = snap.docs.map((d) => {
           const p = d.data() || {};
           const fallbackName = p.nickname || p.displayName || (p.isNpc ? 'NPC' : 'Avonturier');
+          const normalizedConditions = Array.isArray(p.conditions)
+            ? p.conditions
+              .filter((entry) => typeof entry?.id === 'string' && entry.id.trim())
+              .map((entry) => ({ id: entry.id.trim(), active: entry.active !== false }))
+            : [];
+
           return {
             id: d.id,
             name: fallbackName,
@@ -1603,10 +1622,13 @@ export default function TomeVaultApp() {
             init: p.initiative ?? null,
             initMod: Number(p.dexterityMod ?? p.initMod ?? 0),
             isNpc: p.isNpc === true,
-            isRevealed: p.isRevealed !== false,
+            isRevealed: p.isRevealed === false || p.revealed === false ? false : true,
             avatar: p.avatarUrl || p.avatar || null,
             bio: p.bio || '',
             customStats: Array.isArray(p.customStats) ? p.customStats : [],
+            conditions: normalizedConditions,
+            hasAlertFeat: p.hasAlertFeat === true,
+            proficiencyBonus: Number(p.proficiencyBonus ?? 2),
             combatParticipation: normalizeCombatParticipation(p.combatParticipation),
             combatJoinRequestStatus: normalizeCombatJoinRequestStatus(p.combatJoinRequestStatus),
           };
@@ -2488,6 +2510,46 @@ export default function TomeVaultApp() {
     return nextParty;
   };
 
+  const handleInitiativeSwap = async (sourceId, targetId) => {
+    if (!sourceId || !targetId || sourceId === targetId) return;
+
+    const sourceMember = party.find((p) => p.id === sourceId);
+    const targetMember = party.find((p) => p.id === targetId);
+
+    if (!sourceMember || !targetMember) return;
+    if (isIncapacitated(sourceMember) || isIncapacitated(targetMember)) return;
+
+    const sourceInit = Number.isFinite(Number(sourceMember.init)) ? Number(sourceMember.init) : null;
+    const targetInit = Number.isFinite(Number(targetMember.init)) ? Number(targetMember.init) : null;
+
+    if (sourceInit === null || targetInit === null) return;
+
+    const nextParty = party.map((member) => {
+      if (member.id === sourceId) return { ...member, init: targetInit };
+      if (member.id === targetId) return { ...member, init: sourceInit };
+      return member;
+    });
+
+    setParty(nextParty);
+
+    if (sessionDocId) {
+      try {
+        const batch = writeBatch(db);
+        batch.set(doc(db, 'sessions', sessionDocId, 'players', sourceId), {
+          initiative: targetInit,
+          updatedAt: serverTimestamp(),
+        }, { merge: true });
+        batch.set(doc(db, 'sessions', sessionDocId, 'players', targetId), {
+          initiative: sourceInit,
+          updatedAt: serverTimestamp(),
+        }, { merge: true });
+        await batch.commit();
+      } catch (err) {
+        console.error('Initiative swap fout:', err);
+      }
+    }
+  };
+
   const handleStartCombat = async ({ initiativeUpdates = [], nextInitiativeOrder = [] } = {}) => {
     const previousParty = party;
     const previousCombatState = currentCombatState;
@@ -2691,6 +2753,8 @@ export default function TomeVaultApp() {
           maxHp: finalChar.maxHp ?? 0,
           ac: finalChar.ac ?? 10,
           initMod: finalChar.initMod ?? 0,
+          hasAlertFeat: finalChar.hasAlertFeat === true,
+          proficiencyBonus: Number(finalChar.proficiencyBonus ?? 2),
           bio: finalChar.bio || '',
           customStats: finalChar.customStats || [],
           avatarUrl: finalChar.avatar || null,
@@ -2839,9 +2903,10 @@ export default function TomeVaultApp() {
     }
   };
 
-  const handleSaveSettings = async ({ nextPlayerName, nextTheme, nextSessionNumber }) => {
+  const handleSaveSettings = async ({ nextPlayerName, nextTheme, nextBrightness, nextSessionNumber }) => {
     if (typeof nextPlayerName === 'string') setPlayerName(nextPlayerName);
     if (typeof nextTheme === 'string') handleThemeChange(nextTheme);
+    if (Number.isFinite(nextBrightness)) handleBrightnessChange(nextBrightness);
     if (role === 'gm' && Number.isFinite(Number(nextSessionNumber))) {
       await handleUpdateCampaignSessionNumber(nextSessionNumber);
     }
@@ -3256,8 +3321,13 @@ export default function TomeVaultApp() {
   };
 
   return (
-    <div data-theme={theme} className="h-screen w-full bg-stone-950 text-stone-300 font-sans flex flex-col selection:bg-amber-500/30 bg-texture overflow-hidden">
-        
+    <div data-theme={theme} data-brightness-step={brightness} className="relative h-screen w-full bg-stone-950 text-stone-300 font-sans flex flex-col selection:bg-amber-500/30 bg-texture overflow-hidden">
+      <div
+        aria-hidden="true"
+        className="brightness-overlay pointer-events-none absolute inset-0 z-0"
+        style={{ opacity: brightnessOverlayOpacity }}
+      />
+      <div className="relative z-10 flex h-full flex-col">
         <TopBar 
           role={role} 
           sessionId={sessionId}
@@ -3399,6 +3469,7 @@ export default function TomeVaultApp() {
             theme={theme}
           />
         </div>
+      </div>
 
         <ShareModal 
           isOpen={showShareModal} 
@@ -3429,6 +3500,20 @@ export default function TomeVaultApp() {
           onSave={handleProfileSave}
           onTransferGm={handleTransferGm}
           chatColor={getCharacterChatColor(profileTarget)}
+          initiativeOrder={initiativeOrder}
+          onOpenInitiativeSwap={(member) => {
+            setInitiativeSwapTarget(member);
+            setProfileTarget(null);
+          }}
+        />
+
+        <InitiativeSwapModal
+          isOpen={!!initiativeSwapTarget}
+          onClose={() => setInitiativeSwapTarget(null)}
+          member={initiativeSwapTarget}
+          party={party}
+          initiativeOrder={initiativeOrder}
+          onSwapInitiative={handleInitiativeSwap}
         />
 
         <PreparationModal
@@ -3538,6 +3623,7 @@ export default function TomeVaultApp() {
           onExportArchive={handleExportPlayerArchivePdf}
           exportBusy={isArchiveExporting}
           theme={theme}
+          brightness={brightness}
           onSaveSettings={handleSaveSettings}
         />
 

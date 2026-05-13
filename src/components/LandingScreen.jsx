@@ -409,7 +409,7 @@ export default function LandingScreen({
     {
       icon: ShieldCheck,
       label: 'Rollen',
-      accentClassName: 'text-emerald-400',
+      accentClassName: 'text-amber-400',
     },
   ];
 
@@ -430,7 +430,7 @@ export default function LandingScreen({
       icon: ShieldCheck,
       title: 'Orde in de chaos',
       description: 'Spelleider en spelers delen dezelfde herberg, met eigen afgeschermde rollen.',
-      iconClassName: 'text-emerald-400 border-emerald-800/45 bg-emerald-950/18',
+      iconClassName: 'text-amber-400 border-amber-800/45 bg-amber-950/18',
     },
   ];
 
@@ -570,7 +570,7 @@ export default function LandingScreen({
                       type="button"
                       onClick={() => (isHidden ? onRestoreRecentSession?.(session.sessionId) : onHideRecentSession?.(session.sessionId))}
                       disabled={sessionBusy}
-                      className={`landing-action-button border-stone-700/80 bg-stone-950/75 ${isHidden ? 'text-emerald-200 hover:border-emerald-700/50 hover:text-emerald-100' : 'text-stone-300 hover:border-amber-700/40 hover:text-amber-200'}`}
+                      className={`landing-action-button border-stone-700/80 bg-stone-950/75 ${isHidden ? 'text-amber-200 hover:border-amber-700/50 hover:text-amber-100' : 'text-stone-300 hover:border-amber-700/40 hover:text-amber-200'}`}
                       title={isHidden ? 'Zet terug in recente lijst' : 'Verberg uit deze lijst'}
                     >
                       {isHidden ? 'Herstel' : 'Verberg'}
@@ -604,7 +604,7 @@ export default function LandingScreen({
           </p>
         </div>
         <div className="space-y-2 text-center md:text-left">
-          <div className="landing-kicker text-emerald-400">Wie zijn wij</div>
+          <div className="landing-kicker text-amber-400">Wie zijn wij</div>
           <p className="text-sm md:text-base text-stone-300 font-story leading-relaxed">
             We bouwen TomeVault voor groepen die sfeer, focus en duidelijkheid belangrijker vinden dan drukke tooling.
           </p>
@@ -696,9 +696,9 @@ export default function LandingScreen({
                 </div>
 
                 <div>
-                  <div className="text-[10px] uppercase tracking-[0.24em] text-emerald-400">Jij</div>
-                  <div className="mt-2 flex max-w-[14rem] items-center gap-4 rounded-[14px] border border-emerald-900/30 bg-[rgba(23,18,12,0.82)] px-3 py-3">
-                    <div className="flex h-12 w-12 items-center justify-center rounded-xl border border-emerald-900/40 bg-stone-950/80 text-3xl font-semibold text-emerald-400">
+                  <div className="text-[10px] uppercase tracking-[0.24em] text-amber-400">Jij</div>
+                  <div className="mt-2 flex max-w-[14rem] items-center gap-4 rounded-[14px] border border-amber-900/30 bg-[rgba(23,18,12,0.82)] px-3 py-3">
+                    <div className="flex h-12 w-12 items-center justify-center rounded-xl border border-amber-900/40 bg-stone-950/80 text-3xl font-semibold text-amber-400">
                       16
                     </div>
                     <div className="font-story text-sm italic text-stone-400">Werpt een steen...</div>
@@ -1008,7 +1008,7 @@ export default function LandingScreen({
         ) : null}
 
         {sessionInfo ? (
-          <div className="mx-auto w-full max-w-5xl rounded-2xl border border-emerald-900/50 bg-emerald-950/35 px-4 py-3 text-sm text-emerald-200">
+          <div className="mx-auto w-full max-w-5xl rounded-2xl border border-amber-900/50 bg-amber-950/35 px-4 py-3 text-sm text-amber-200">
             {sessionInfo}
           </div>
         ) : null}
@@ -1098,7 +1098,7 @@ export default function LandingScreen({
                       className={`landing-input ${canJoinWithoutPin ? 'landing-input-emerald' : 'landing-input-indigo'}`}
                     />
                     {canJoinWithoutPin ? (
-                      <div className="rounded-2xl border border-emerald-900/50 bg-emerald-950/30 px-4 py-3 text-sm text-emerald-200 font-story">
+                      <div className="rounded-2xl border border-amber-900/50 bg-amber-950/30 px-4 py-3 text-sm text-amber-200 font-story">
                         Bekende sessie gevonden. Je kunt direct zonder PIN verder.
                       </div>
                     ) : null}
@@ -1127,7 +1127,7 @@ export default function LandingScreen({
             <button
               type="button"
               onClick={() => setShowContactForm((value) => !value)}
-              className="landing-action-button border-emerald-900/50 bg-emerald-950/20 text-emerald-200 hover:border-emerald-700/60 hover:text-emerald-100"
+              className="landing-action-button border-amber-900/50 bg-amber-950/20 text-amber-200 hover:border-amber-700/60 hover:text-amber-100"
             >
               <Mail className="mr-2 h-4 w-4" />
               {showContactForm ? 'Verberg feedback' : 'Feedback'}

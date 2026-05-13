@@ -169,8 +169,8 @@ export default function TopBar({ role, sessionId, sessionNumber, theme, combatSt
               title="Sessiemenu openen"
             >
               <span className="relative flex items-center justify-center shrink-0">
-                <span className="absolute w-2.5 h-2.5 rounded-full bg-emerald-500/25" />
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.8)] relative z-10" />
+                <span className="absolute w-2.5 h-2.5 rounded-full bg-amber-500/25" />
+                <span className="w-1.5 h-1.5 rounded-full bg-amber-400 shadow-[0_0_8px_rgba(245,158,11,0.8)] relative z-10" />
               </span>
               <span className="font-fantasy text-[10px] md:text-xs tracking-[0.16em] text-amber-400 max-w-[80px] sm:max-w-[140px] md:max-w-[240px] truncate">
                 {sessionId || '#ONBEKEND'}
@@ -227,7 +227,7 @@ export default function TopBar({ role, sessionId, sessionNumber, theme, combatSt
             title={isPlayer ? 'Open audio-instellingen' : (ambience?.isPlaying ? 'Open actieve sessiesfeer' : 'Open sferenpaneel')}
           >
             <span className="relative flex h-7 w-7 items-center justify-center rounded-lg bg-black/20">
-              <span className={`absolute right-1.5 top-1.5 h-1.5 w-1.5 rounded-full ${ambience?.isPlaying ? 'bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.7)]' : 'bg-stone-500'}`} />
+              <span className={`absolute right-1.5 top-1.5 h-1.5 w-1.5 rounded-full ${ambience?.isPlaying ? 'bg-amber-400 shadow-[0_0_8px_rgba(245,158,11,0.7)]' : 'bg-stone-500'}`} />
               {ambience?.isPlaying ? <Pause className="h-3.5 w-3.5" /> : <Music className="h-3.5 w-3.5" />}
             </span>
 
