@@ -70,6 +70,7 @@ import {
 } from './lib/ambienceLibrary';
 import { normalizeAvatarUrl } from './lib/placeholders';
 import { downloadPlayerArchivePdf } from './lib/playerArchivePdf';
+import { sendChatMessage } from './lib/chatUtils';
 import LandingScreen from './components/LandingScreen';
 import QRJoinScreen from './components/QRJoinScreen';
 import TopBar from './components/TopBar';
@@ -726,8 +727,8 @@ export default function TomeVaultApp() {
           uid,
           sessionId: created.id,
           role: 'dm',
-          sessionName,
-          joinTag,
+          sessionName: sessionData?.name || '',
+          joinTag: toLegacyHashJoinTag(sessionData?.joinTag || joinTag),
         });
 
         setRole('gm');
@@ -1577,6 +1578,9 @@ export default function TomeVaultApp() {
       onSnapshot(collection(db, 'sessions', sid, 'handouts'), (snap) => {
         const incoming = snap.docs.map((d) => {
           const h = d.data() || {};
+          const createdAtMs = h.createdAt?.toMillis ? h.createdAt.toMillis() : 0;
+          const updatedAtCandidate = h.updatedAt || h.createdAt || null;
+          const updatedAtMs = updatedAtCandidate?.toMillis ? updatedAtCandidate.toMillis() : createdAtMs;
           return {
             id: d.id,
             title: h.title || 'Naamloze handout',
@@ -1594,6 +1598,8 @@ export default function TomeVaultApp() {
             npcHp: Number(h.npcHp ?? 15),
             npcAc: Number(h.npcAc ?? 12),
             npcInitMod: Number(h.npcInitMod ?? 2),
+            createdAtMs,
+            updatedAtMs,
           };
         });
 
@@ -1672,7 +1678,7 @@ export default function TomeVaultApp() {
 
           return {
             id: d.id,
-            ownerId: i.ownerUid || i.ownerId || 'p1',
+            ownerId: i.ownerId || i.ownerUid || 'p1',
             name: i.name || 'Onbekend item',
             desc: desc || legacyDescription || '',
             legacyDescription,
@@ -2024,6 +2030,39 @@ export default function TomeVaultApp() {
       updatedAt: serverTimestamp(),
       expireAt: Timestamp.fromMillis(Date.now() + (1000 * 60 * 60 * 24 * 365 * 2)),
     });
+  };
+
+  const formatDiceChatMessage = (payload = {}) => {
+    const lines = Array.isArray(payload?.lines) ? payload.lines : [];
+    if (!lines.length) return '';
+
+    if (lines.length === 1) {
+      const line = lines[0];
+      return `rolt ${line.count}d${line.sides}: [${line.rolls.join(', ')}] = ${payload.total}`;
+    }
+
+    const breakdown = lines
+      .map((line) => `${line.count}d${line.sides} = ${line.rolls.join(' + ')}`)
+      .join(' | ');
+    return `🎲 ${payload.total}!\n${breakdown}`;
+  };
+
+  const handleDiceRollToChat = async (payload = {}) => {
+    const text = formatDiceChatMessage(payload);
+    if (!text || !sessionDocId || !uid) return;
+
+    const localChatColor = typeof window === 'undefined'
+      ? null
+      : String(window.localStorage.getItem('tv_chatcolor') || '').trim();
+
+    try {
+      await handleSendChatRemote({
+        text,
+        color: localChatColor || 'indigo',
+      });
+    } catch (err) {
+      console.error('Dobbelsteenrol naar chat sturen mislukt:', err);
+    }
   };
 
   const handleEditChatMessage = async (msgId, newText) => {
@@ -3259,6 +3298,14 @@ export default function TomeVaultApp() {
     await deleteDoc(doc(db, 'sessions', sessionDocId, 'noteFiles', id));
   };
 
+  const updateCharacterLevel = (characterId, newLevel) => {
+    // Logic to update the character's level in the database
+    const characterRef = doc(db, 'characters', characterId);
+    updateDoc(characterRef, { level: newLevel });
+
+    // Optionally, you can add additional logic here if needed
+  };
+
   if (view === 'landing') {
     // QR-code invite flow — no PIN required
     if (showQRJoin) {
@@ -3363,6 +3410,7 @@ export default function TomeVaultApp() {
           onOpenSettings={() => setIsSettingsOpen(true)}
           onOpenSessionPanel={() => setIsSessionPanelOpen(true)}
           onOpenSourcelist={() => setIsSourcelistOpen(true)}
+          onDiceRoll={handleDiceRollToChat}
           runtimeBadge={runtimeBadge}
         />
         
@@ -3392,6 +3440,7 @@ export default function TomeVaultApp() {
                   role={role}
                   uid={uid}
                   playerName={playerName || 'Speler'}
+                  theme={theme}
                   onSendMessageRemote={handleSendChatRemote}
                   onEditMessage={handleEditChatMessage}
                   onDeleteMessage={handleDeleteChatMessage}

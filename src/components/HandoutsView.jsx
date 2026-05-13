@@ -1,9 +1,13 @@
-import React, { useState } from 'react';
-import { LayoutGrid, List, Plus, Eye, EyeOff, Hand, User, KeyRound } from 'lucide-react';
+import React, { useEffect, useMemo, useState } from 'react';
+import { LayoutGrid, List, Plus, Eye, EyeOff, Hand, User, KeyRound, Search, SlidersHorizontal } from 'lucide-react';
 import { getHandoutIcon } from '../lib/handoutUtils';
 
 function HandoutsView({ role, handouts, currentPlayerId, onToggleVisibility, onToggleSecretVisibility, onOpenHandout, onCreateHandout, onClaim }) {
   const [viewMode, setViewMode] = useState('list');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [typeFilter, setTypeFilter] = useState('all');
+  const [statusFilter, setStatusFilter] = useState('all');
+  const [sortBy, setSortBy] = useState('newest');
 
   const isClaimableLoot = (handout) => (
     handout.claimable
@@ -23,13 +27,92 @@ function HandoutsView({ role, handouts, currentPlayerId, onToggleVisibility, onT
     onToggleSecretVisibility?.(id);
   };
 
-  const visibleHandouts = handouts.filter(h => {
-    if (role === 'gm') return true; 
-    if (!h.isRevealed) return false; 
+  const visibleBaseHandouts = useMemo(() => handouts.filter((h) => {
+    if (role === 'gm') {
+      if (allClaimedHidden && h.claimedBy) return false;
+      return true;
+    }
+    if (!h.isRevealed) return false;
     if (h.assignedToUid && h.assignedToUid !== currentPlayerId) return false;
-    if (h.claimedBy) return false; 
+    if (h.claimedBy) return false;
     return true;
-  });
+  }), [allClaimedHidden, currentPlayerId, handouts, role]);
+
+  const typeOptions = useMemo(() => {
+    const uniqueTypes = Array.from(new Set(handouts.map((h) => String(h.type || 'clue').toLowerCase())));
+    uniqueTypes.sort((a, b) => a.localeCompare(b, 'nl-NL'));
+    return uniqueTypes;
+  }, [handouts]);
+
+  const claimedCount = useMemo(() => (
+    handouts.filter((h) => h.claimedBy).length
+  ), [handouts]);
+
+  // Default to hiding claimed handouts for the GM overview
+  const [allClaimedHidden, setAllClaimedHidden] = useState(true);
+  useEffect(() => {
+    if (claimedCount === 0) {
+      setAllClaimedHidden(true);
+    }
+  }, [claimedCount]);
+
+  const toggleClaimedVisibility = () => {
+    if (role !== 'gm' || claimedCount === 0) return;
+    setAllClaimedHidden((previous) => !previous);
+  };
+
+  const processedHandouts = useMemo(() => {
+    const query = searchQuery.trim().toLowerCase();
+
+    const filtered = visibleBaseHandouts.filter((h) => {
+      if (typeFilter !== 'all' && String(h.type || '').toLowerCase() !== typeFilter) return false;
+
+      if (query) {
+        const haystack = `${h.title || ''} ${h.content || ''} ${h.secret || ''} ${h.type || ''} ${h.npcSubtitle || ''}`.toLowerCase();
+        if (!haystack.includes(query)) return false;
+      }
+
+      if (statusFilter === 'revealed' && !h.isRevealed) return false;
+      if (statusFilter === 'hidden' && h.isRevealed) return false;
+      if (statusFilter === 'assigned' && !h.assignedToUid) return false;
+      if (statusFilter === 'mine' && h.assignedToUid !== currentPlayerId) return false;
+      if (statusFilter === 'secret' && !(h.secret && isSecretVisibleToPlayers(h))) return false;
+
+      return true;
+    });
+
+    return filtered.sort((a, b) => {
+      if (sortBy === 'oldest') {
+        return Number(a.updatedAtMs || 0) - Number(b.updatedAtMs || 0);
+      }
+      if (sortBy === 'title-asc') {
+        return String(a.title || '').localeCompare(String(b.title || ''), 'nl-NL');
+      }
+      if (sortBy === 'title-desc') {
+        return String(b.title || '').localeCompare(String(a.title || ''), 'nl-NL');
+      }
+      if (sortBy === 'type') {
+        const typeCompare = String(a.type || '').localeCompare(String(b.type || ''), 'nl-NL');
+        if (typeCompare !== 0) return typeCompare;
+        return String(a.title || '').localeCompare(String(b.title || ''), 'nl-NL');
+      }
+
+      return Number(b.updatedAtMs || 0) - Number(a.updatedAtMs || 0);
+    });
+  }, [currentPlayerId, searchQuery, sortBy, statusFilter, typeFilter, visibleBaseHandouts]);
+
+  const statusOptions = role === 'gm'
+    ? [
+      { value: 'all', label: 'Alles' },
+      { value: 'revealed', label: 'Onthuld' },
+      { value: 'hidden', label: 'Verborgen' },
+      { value: 'assigned', label: 'Toegewezen' },
+    ]
+    : [
+      { value: 'all', label: 'Alles' },
+      { value: 'mine', label: 'Voor mij' },
+      { value: 'secret', label: 'Met secret' },
+    ];
 
   return (
     <div className="h-full flex flex-col">
@@ -58,13 +141,84 @@ function HandoutsView({ role, handouts, currentPlayerId, onToggleVisibility, onT
           </div>
 
           {role === 'gm' && (
-            <button 
-              onClick={onCreateHandout}
-              className="h-9 inline-flex flex-1 sm:flex-none items-center justify-center gap-2 rounded-lg border border-amber-700/60 bg-gradient-to-r from-amber-700 to-amber-600 px-4 font-fantasy text-sm uppercase tracking-[0.16em] text-stone-100 shadow-sm transition-colors hover:from-amber-600 hover:to-amber-500"
-            >
-              <Plus className="h-4 w-4 shrink-0" /> <span className="truncate">Nieuw</span>
-            </button>
+            <div className="flex flex-1 sm:flex-none items-center gap-2">
+              <button
+                onClick={toggleClaimedVisibility}
+                disabled={claimedCount === 0}
+                className={`h-9 inline-flex items-center justify-center gap-2 rounded-lg border px-3 font-fantasy text-[10px] uppercase tracking-[0.14em] shadow-sm transition-colors ${claimedCount > 0 ? 'border-stone-700/80 bg-stone-900 text-stone-200 hover:border-amber-700/50 hover:text-amber-300' : 'cursor-not-allowed border-stone-800 bg-stone-900/60 text-stone-600'}`}
+                title={allClaimedHidden ? 'Maak geclaimde handouts zichtbaar' : 'Verberg geclaimde handouts'}
+              >
+                {allClaimedHidden ? <Eye className="h-3.5 w-3.5 shrink-0" /> : <EyeOff className="h-3.5 w-3.5 shrink-0" />}
+                <span className="truncate">Geclaimd ({claimedCount})</span>
+              </button>
+
+              <button
+                onClick={onCreateHandout}
+                className="h-9 inline-flex flex-1 sm:flex-none items-center justify-center gap-2 rounded-lg border border-amber-700/60 bg-gradient-to-r from-amber-700 to-amber-600 px-4 font-fantasy text-sm uppercase tracking-[0.16em] text-stone-100 shadow-sm transition-colors hover:from-amber-600 hover:to-amber-500"
+              >
+                <Plus className="h-4 w-4 shrink-0" /> <span className="truncate">Nieuw</span>
+              </button>
+            </div>
           )}
+        </div>
+      </div>
+
+      <div className="mb-4 md:mb-6 rounded-xl border border-stone-800/60 bg-stone-900/35 p-3 md:p-4">
+        <div className="flex flex-col gap-3 md:gap-4">
+          <div className="grid grid-cols-1 gap-2 md:grid-cols-[minmax(0,1fr)_160px]">
+            <label className="relative">
+              <Search className="absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-stone-500" />
+              <input
+                type="search"
+                value={searchQuery}
+                onChange={(event) => setSearchQuery(event.target.value)}
+                placeholder="Zoek op titel, inhoud, type of secret..."
+                className="h-9 w-full rounded-lg border border-stone-800 bg-stone-950/80 pl-9 pr-3 text-sm text-stone-200 outline-none transition-colors placeholder:text-stone-600 focus:border-amber-600/50"
+              />
+            </label>
+
+            <label className="relative">
+              <SlidersHorizontal className="absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-stone-500" />
+              <select
+                value={sortBy}
+                onChange={(event) => setSortBy(event.target.value)}
+                className="h-9 w-full rounded-lg border border-stone-800 bg-stone-950/80 pl-9 pr-3 text-sm text-stone-200 outline-none transition-colors focus:border-amber-600/50"
+              >
+                <option value="newest">Nieuwste eerst</option>
+                <option value="oldest">Oudste eerst</option>
+                <option value="title-asc">Titel A-Z</option>
+                <option value="title-desc">Titel Z-A</option>
+                <option value="type">Type</option>
+              </select>
+            </label>
+          </div>
+
+          <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
+            <select
+              value={typeFilter}
+              onChange={(event) => setTypeFilter(event.target.value)}
+              className="h-9 w-full rounded-lg border border-stone-800 bg-stone-950/80 px-3 text-sm text-stone-200 outline-none transition-colors focus:border-amber-600/50"
+            >
+              <option value="all">Alle types</option>
+              {typeOptions.map((type) => (
+                <option key={type} value={type}>{type}</option>
+              ))}
+            </select>
+
+            <select
+              value={statusFilter}
+              onChange={(event) => setStatusFilter(event.target.value)}
+              className="h-9 w-full rounded-lg border border-stone-800 bg-stone-950/80 px-3 text-sm text-stone-200 outline-none transition-colors focus:border-amber-600/50"
+            >
+              {statusOptions.map((option) => (
+                <option key={option.value} value={option.value}>{option.label}</option>
+              ))}
+            </select>
+          </div>
+
+          <div className="text-[11px] text-stone-500">
+            {processedHandouts.length} van {visibleBaseHandouts.length} handouts zichtbaar
+          </div>
         </div>
       </div>
 
@@ -73,7 +227,7 @@ function HandoutsView({ role, handouts, currentPlayerId, onToggleVisibility, onT
           ? "grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 md:gap-6" 
           : "flex flex-col gap-2 md:gap-3"
       }>
-        {visibleHandouts.map(handout => {
+        {processedHandouts.map(handout => {
           const Icon = getHandoutIcon(handout.type);
           return (
           <div 
@@ -232,9 +386,9 @@ function HandoutsView({ role, handouts, currentPlayerId, onToggleVisibility, onT
             </div>
           </div>
         )})}
-        {visibleHandouts.length === 0 && (
+        {processedHandouts.length === 0 && (
           <div className="col-span-full py-16 md:py-24 text-center text-stone-600 border-2 border-dashed border-stone-800 rounded-xl font-story italic text-base md:text-lg bg-stone-900/20">
-            De bibliotheek is leeg. Geen kennis is hier nog gedeeld.
+            Geen handouts gevonden voor je huidige zoek- en filterinstellingen.
           </div>
         )}
       </div>

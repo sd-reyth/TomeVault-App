@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { MessageSquare, Palette, Pencil, Trash2, X, Check, CornerUpLeft, SendHorizontal } from 'lucide-react';
+import { MessageSquare, Palette, Pencil, Trash2, X, Check, CornerUpLeft, SendHorizontal, Dice5 } from 'lucide-react';
+import DiceRoller from './DiceRoller';
 
 const CHAT_COLORS = [
   { id: 'indigo',   bg: '#1e1b4b', border: '#4338ca', text: '#e0e7ff', swatch: '#6366f1', name: 'Indigo'   },
@@ -20,7 +21,7 @@ function getColor(colorId) {
   return CHAT_COLORS.find(c => c.id === colorId) || CHAT_COLORS[0];
 }
 
-function ChatView({ chat, setChat, role, uid, playerName, onSendMessageRemote, onEditMessage, onDeleteMessage, onChangeColor }) {
+function ChatView({ chat, setChat, role, uid, playerName, theme, onSendMessageRemote, onEditMessage, onDeleteMessage, onChangeColor }) {
   const [msg, setMsg] = useState('');
   const [isSending, setIsSending] = useState(false);
   const [chatColor, setChatColor] = useState(() => localStorage.getItem('tv_chatcolor') || null);
@@ -28,9 +29,11 @@ function ChatView({ chat, setChat, role, uid, playerName, onSendMessageRemote, o
   const [activeMenu, setActiveMenu] = useState(null);
   const [replyingTo, setReplyingTo] = useState(null);
   const [editingMsg, setEditingMsg] = useState(null);
+  const [showDicePopover, setShowDicePopover] = useState(false);
   const chatEndRef = useRef(null);
   const inputRef = useRef(null);
   const menuRef = useRef(null);
+  const dicePopoverRef = useRef(null);
 
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -51,11 +54,96 @@ function ChatView({ chat, setChat, role, uid, playerName, onSendMessageRemote, o
     return () => document.removeEventListener('mousedown', handler);
   }, [activeMenu]);
 
+  useEffect(() => {
+    if (!showDicePopover) return;
+
+    const handler = (e) => {
+      if (dicePopoverRef.current && !dicePopoverRef.current.contains(e.target)) {
+        setShowDicePopover(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, [showDicePopover]);
+
   // Colors already taken by other users
   const occupiedColors = new Set(
     chat.filter(c => c.uid && c.uid !== uid && c.color).map(c => c.color)
   );
   const selfAuthor = role === 'gm' ? 'GM' : (playerName || 'Speler');
+
+  const buildOptimisticMessage = ({ text, replyTo, color, author }) => {
+    const now = new Date();
+    const clientMessageId = `cmsg-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+
+    return {
+      optimistic: {
+        id: `tmp-${Date.now()}`,
+        clientMessageId,
+        uid,
+        author,
+        text,
+        time: now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        date: now.toLocaleDateString('nl-NL', { day: '2-digit', month: '2-digit', year: 'numeric' }),
+        ms: now.getTime(),
+        color,
+        replyTo,
+      },
+      clientMessageId,
+    };
+  };
+
+  const sendMessage = async ({ text, replyTo }) => {
+    if (!text || isSending) return false;
+    if (!chatColor) {
+      setShowColorPicker(true);
+      return false;
+    }
+
+    const author = selfAuthor;
+    const { optimistic, clientMessageId } = buildOptimisticMessage({
+      text,
+      replyTo: replyTo || null,
+      color: chatColor,
+      author,
+    });
+
+    setChat(prev => [...prev, optimistic]);
+    setReplyingTo(null);
+
+    if (onSendMessageRemote) {
+      try {
+        setIsSending(true);
+        await onSendMessageRemote({ text, color: chatColor, replyTo: replyTo || null, clientMessageId });
+      } catch (err) {
+        console.error('Chat versturen mislukt:', err);
+      } finally {
+        setIsSending(false);
+      }
+    }
+
+    return true;
+  };
+
+  const handleRollDice = async (payload) => {
+    const lines = Array.isArray(payload?.lines) ? payload.lines : [];
+    if (!lines.length) return;
+
+    let rollText = '';
+    if (lines.length === 1) {
+      const line = lines[0];
+      rollText = `rolt ${line.count}d${line.sides}: [${line.rolls.join(', ')}] = ${payload.total}`;
+    } else {
+      const breakdown = lines.map((line) => `${line.count}d${line.sides} = ${line.rolls.join(' + ')}`).join(' | ');
+      rollText = `🎲 ${payload.total}!\n${breakdown}`;
+    }
+
+    const didSend = await sendMessage({ text: rollText, replyTo: replyingTo || null });
+    if (didSend) {
+      setShowDicePopover(false);
+    }
+  };
 
   const handleColorSelect = async (colorId) => {
     if (occupiedColors.has(colorId)) return;
@@ -89,39 +177,8 @@ function ChatView({ chat, setChat, role, uid, playerName, onSendMessageRemote, o
       setMsg('');
       return;
     }
-
-    if (!chatColor) { setShowColorPicker(true); return; }
-
-    const author = selfAuthor;
-    const now = new Date();
-    const clientMessageId = `cmsg-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
-    const optimistic = {
-      id: `tmp-${Date.now()}`,
-      clientMessageId,
-      uid,
-      author,
-      text,
-      time: now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-      date: now.toLocaleDateString('nl-NL', { day: '2-digit', month: '2-digit', year: 'numeric' }),
-      ms: now.getTime(),
-      color: chatColor,
-      replyTo: replyingTo || null,
-    };
-
-    setChat(prev => [...prev, optimistic]);
     setMsg('');
-    setReplyingTo(null);
-
-    if (onSendMessageRemote) {
-      try {
-        setIsSending(true);
-        await onSendMessageRemote({ text, color: chatColor, replyTo: replyingTo || null, clientMessageId });
-      } catch (err) {
-        console.error('Chat versturen mislukt:', err);
-      } finally {
-        setIsSending(false);
-      }
-    }
+    await sendMessage({ text, replyTo: replyingTo || null });
   };
 
   const handleBubbleClick = (message) => {
@@ -287,7 +344,45 @@ function ChatView({ chat, setChat, role, uid, playerName, onSendMessageRemote, o
                       <span className="line-clamp-2">{c.replyTo.text}</span>
                     </div>
                   )}
-                  {c.text}
+                  {/* Dice roll result rendering */}
+                  {(() => {
+                    const legacyDiceRollRegex = /^rolt (\d+)d(\d+): \[([\d,\s]+)\] = (\d+)$/i;
+                    const legacyMatch = typeof c.text === 'string' && c.text.match(legacyDiceRollRegex);
+                    if (legacyMatch) {
+                      const [, count, sides, rollsStr, total] = legacyMatch;
+                      const rolls = rollsStr.split(',').map((r) => r.trim()).filter(Boolean);
+                      return (
+                        <div>
+                          <div className="flex items-center justify-center mb-1 mt-0.5">
+                            <span className="text-3xl md:text-4xl font-extrabold text-amber-400 mr-2" role="img" aria-label="dobbelsteen">🎲</span>
+                            <span className="text-3xl md:text-4xl font-extrabold text-amber-100">{total}!</span>
+                          </div>
+                          <div className="text-xs md:text-sm font-mono text-stone-200 text-center">
+                            {count}d{sides} = {rolls.join(' + ')}
+                          </div>
+                        </div>
+                      );
+                    }
+
+                    const groupedDiceRollRegex = /^🎲\s*(\d+)!\n(.+)$/i;
+                    const groupedMatch = typeof c.text === 'string' && c.text.match(groupedDiceRollRegex);
+                    if (groupedMatch) {
+                      const [, total, breakdown] = groupedMatch;
+                      return (
+                        <div>
+                          <div className="flex items-center justify-center mb-1 mt-0.5">
+                            <span className="text-3xl md:text-4xl font-extrabold text-amber-400 mr-2" role="img" aria-label="dobbelsteen">🎲</span>
+                            <span className="text-3xl md:text-4xl font-extrabold text-amber-100">{total}!</span>
+                          </div>
+                          <div className="text-xs md:text-sm font-mono text-stone-200 text-center">
+                            {breakdown}
+                          </div>
+                        </div>
+                      );
+                    }
+
+                    return c.text;
+                  })()}
                 </div>
 
                 {/* Context menu */}
@@ -369,6 +464,28 @@ function ChatView({ chat, setChat, role, uid, playerName, onSendMessageRemote, o
             placeholder={chatColor ? (editingMsg ? 'Pas je bericht aan...' : 'Spreek in de schaduwen...') : 'Kies eerst een kleur...'}
             className="h-9 flex-1 w-full bg-stone-900/80 border border-stone-800 rounded-lg px-3 md:px-4 text-sm text-stone-200 placeholder-stone-500 focus:outline-none focus:border-amber-600/60 transition-colors font-story italic"
           />
+          {!editingMsg && (
+            <div className="relative" ref={dicePopoverRef}>
+              <button
+                type="button"
+                onClick={() => setShowDicePopover((prev) => !prev)}
+                title="Dobbelstenen rollen"
+                aria-label="Dobbelstenen rollen"
+                className="h-9 w-9 flex items-center justify-center hover:bg-stone-800 rounded-lg text-stone-400 hover:text-amber-400 transition-colors disabled:opacity-50 shrink-0"
+                disabled={isSending}
+              >
+                <Dice5 className="w-5 h-5" />
+              </button>
+
+              {showDicePopover && (
+                <div className="fixed inset-0 z-40 flex items-center justify-center pointer-events-none">
+                  <div className="pointer-events-auto">
+                    <DiceRoller theme={theme} onRoll={handleRollDice} />
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
           <button
             type="submit"
             disabled={isSending}

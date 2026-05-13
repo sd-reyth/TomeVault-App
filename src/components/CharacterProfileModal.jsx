@@ -5,6 +5,7 @@ import {
   PROFILE_PROMPT_AVATARS,
 } from '../lib/placeholders';
 import { STAT_SUGGESTIONS } from '../data/mockData';
+import { sendChatMessage } from '../lib/chatUtils';
 
 const CHAT_ACCENT_COLORS = {
   indigo: '#6366f1',
@@ -25,10 +26,12 @@ function CharacterProfileModal({ isOpen, onClose, character, role, currentPlayer
   const [pendingAvatarFile, setPendingAvatarFile] = useState(null);
   const [confirmTransfer, setConfirmTransfer] = useState(false);
   const [showAllPromptAvatars, setShowAllPromptAvatars] = useState(false);
+  const [level, setLevel] = useState(1);
 
   useEffect(() => {
     if (character) {
       setFormData({ ...character });
+      setLevel(Number(character.level) || 1);
       setPendingAvatarFile(null);
       setConfirmTransfer(false);
       setShowAllPromptAvatars(false);
@@ -91,6 +94,17 @@ function CharacterProfileModal({ isOpen, onClose, character, role, currentPlayer
   const removeCustomStat = (id) => {
     const newStats = (formData.customStats || []).filter(s => s.id !== id);
     handleChange('customStats', newStats);
+  };
+
+  const handleLevelChange = (change) => {
+    const newLevel = Math.max(1, level + change);
+    setLevel(newLevel);
+    onSave?.(character.id, newLevel);
+
+    if (character.type === 'player' || character.type === 'pet') {
+      const message = `${character.name} ${change > 0 ? 'is een level gestegen' : 'is een level gedaald'} en is nu level ${newLevel}! Controleer de regels van je TTRPG om te zien wat je moet weten en/of voorbereiden.`;
+      sendChatMessage(message, 'system');
+    }
   };
 
   return (
