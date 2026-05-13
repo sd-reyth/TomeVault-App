@@ -165,6 +165,41 @@ const CHAT_ACCENT_COLORS = {
   cyan: '#22d3ee',
 };
 
+function isLikelyAssetVersionMismatch(rawMessage) {
+  const message = String(rawMessage || '').toLowerCase();
+  if (!message) return false;
+
+  return (
+    message.includes('failed to fetch dynamically imported module')
+    || message.includes('loading chunk')
+    || message.includes('chunkloaderror')
+    || message.includes('importing a module script failed')
+  );
+}
+
+function toFriendlyAuthError(error, fallbackMessage) {
+  const code = String(error?.code || '').toLowerCase();
+  const message = String(error?.message || '').toLowerCase();
+
+  if (code.includes('popup-closed-by-user')) {
+    return 'Google-venster gesloten voordat inloggen was afgerond.';
+  }
+
+  if (code.includes('popup-blocked')) {
+    return 'Je browser blokkeert de Google-popup. Sta pop-ups toe en probeer opnieuw.';
+  }
+
+  if (code.includes('unauthorized-domain')) {
+    return 'Dit domein is nog niet geautoriseerd voor Google-login in Firebase.';
+  }
+
+  if (code.includes('invalid-credential') || message.includes('redirect_uri_mismatch')) {
+    return 'Google-login is nu niet correct geconfigureerd (redirect URI mismatch). Gebruik tijdelijk e-mail of gastmodus.';
+  }
+
+  return fallbackMessage;
+}
+
 function normalizeInventorySectionName(sectionName) {
   return String(sectionName || '').trim();
 }
@@ -432,6 +467,7 @@ export default function TomeVaultApp() {
   const [authError, setAuthError] = useState('');
   const [sessionError, setSessionError] = useState('');
   const [sessionInfo, setSessionInfo] = useState('');
+  const [appUpdateNotice, setAppUpdateNotice] = useState('');
   const [sessionBusy, setSessionBusy] = useState(false);
   const [recentSessions, setRecentSessions] = useState([]);
   const [recentSessionsLoaded, setRecentSessionsLoaded] = useState(false);
@@ -1149,6 +1185,38 @@ export default function TomeVaultApp() {
       audio.currentTime = 0;
       audio.src = '';
       ambienceAudioRef.current = null;
+    };
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return undefined;
+
+    const updateMessage = 'Er staat een nieuwe versie klaar. Vernieuw de pagina om verder te gaan.';
+
+    const handleWindowError = (event) => {
+      const message = event?.message || event?.error?.message || '';
+      if (isLikelyAssetVersionMismatch(message)) {
+        setAppUpdateNotice(updateMessage);
+      }
+    };
+
+    const handleUnhandledRejection = (event) => {
+      const reason = event?.reason;
+      const message = typeof reason === 'string'
+        ? reason
+        : (reason?.message || String(reason || ''));
+
+      if (isLikelyAssetVersionMismatch(message)) {
+        setAppUpdateNotice(updateMessage);
+      }
+    };
+
+    window.addEventListener('error', handleWindowError);
+    window.addEventListener('unhandledrejection', handleUnhandledRejection);
+
+    return () => {
+      window.removeEventListener('error', handleWindowError);
+      window.removeEventListener('unhandledrejection', handleUnhandledRejection);
     };
   }, []);
 
@@ -1926,7 +1994,7 @@ export default function TomeVaultApp() {
     try {
       await signInWithPopup(auth, googleProvider);
     } catch (err) {
-      setAuthError(err?.message || 'Google inloggen is mislukt.');
+      setAuthError(toFriendlyAuthError(err, 'Google inloggen is mislukt.'));
     }
   };
 
@@ -1935,7 +2003,7 @@ export default function TomeVaultApp() {
     try {
       await signInAnonymously(auth);
     } catch (err) {
-      setAuthError(err?.message || 'Gastmodus starten is mislukt.');
+      setAuthError(toFriendlyAuthError(err, 'Gastmodus starten is mislukt.'));
     }
   };
 
@@ -1944,7 +2012,7 @@ export default function TomeVaultApp() {
     try {
       await signInWithEmailAndPassword(auth, email, password);
     } catch (err) {
-      setAuthError(err?.message || 'Inloggen met e-mail is mislukt.');
+      setAuthError(toFriendlyAuthError(err, 'Inloggen met e-mail is mislukt.'));
     }
   };
 
@@ -1956,7 +2024,7 @@ export default function TomeVaultApp() {
         await updateProfile(credential.user, { displayName: name.trim() });
       }
     } catch (err) {
-      setAuthError(err?.message || 'Account aanmaken is mislukt.');
+      setAuthError(toFriendlyAuthError(err, 'Account aanmaken is mislukt.'));
     }
   };
 
@@ -3408,6 +3476,8 @@ export default function TomeVaultApp() {
           onBackfillMemberships={handleBackfillMemberships}
           runtimeBadge={runtimeBadge}
           theme={theme}
+          appUpdateNotice={appUpdateNotice}
+          onReloadApp={() => window.location.reload()}
       />
     );
   }
@@ -3422,6 +3492,20 @@ export default function TomeVaultApp() {
 
   return (
     <div data-theme={theme} data-brightness-step={brightness} className="relative h-screen w-full bg-stone-950 text-stone-300 font-sans flex flex-col selection:bg-amber-500/30 bg-texture overflow-hidden">
+      {appUpdateNotice ? (
+        <div className="absolute inset-x-4 top-3 z-50 mx-auto max-w-3xl rounded-xl border border-amber-700/60 bg-amber-950/90 px-4 py-3 text-amber-100 shadow-lg shadow-amber-950/40 backdrop-blur">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <p className="text-sm font-medium">{appUpdateNotice}</p>
+            <button
+              type="button"
+              onClick={() => window.location.reload()}
+              className="rounded-lg border border-amber-500/50 bg-amber-500/20 px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.16em] text-amber-100 transition hover:bg-amber-500/30"
+            >
+              Nu verversen
+            </button>
+          </div>
+        </div>
+      ) : null}
       <div
         aria-hidden="true"
         className="brightness-overlay pointer-events-none absolute inset-0 z-0"

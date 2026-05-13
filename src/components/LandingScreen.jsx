@@ -124,6 +124,8 @@ export default function LandingScreen({
   onBackfillMemberships,
   runtimeBadge,
   theme,
+  appUpdateNotice,
+  onReloadApp,
 }) {
   const landingVideoRef = useRef(null);
   const [sessionCode, setSessionCode] = useState('');
@@ -750,6 +752,21 @@ export default function LandingScreen({
       {runtimeBadge ? (
         <div className="absolute right-4 top-4 z-20">
           <RuntimeBadge runtimeBadge={runtimeBadge} />
+        </div>
+      ) : null}
+
+      {appUpdateNotice ? (
+        <div className="absolute left-4 right-4 top-4 z-20 mx-auto max-w-4xl rounded-xl border border-amber-700/60 bg-amber-950/90 px-4 py-3 text-amber-100 shadow-lg shadow-amber-950/40 backdrop-blur">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <p className="text-sm font-medium">{appUpdateNotice}</p>
+            <button
+              type="button"
+              onClick={() => onReloadApp?.()}
+              className="rounded-lg border border-amber-500/50 bg-amber-500/20 px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.16em] text-amber-100 transition hover:bg-amber-500/30"
+            >
+              Nu verversen
+            </button>
+          </div>
         </div>
       ) : null}
 
