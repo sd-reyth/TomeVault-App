@@ -166,9 +166,9 @@ function TurnClockBadge({ turnsUntil, ratio, isCurrentTurn }) {
 
 function OverlayDialog({ title, description, children, onClose, actions, showCloseButton = true }) {
   return (
-    <div className="fixed inset-0 z-[70] flex items-center justify-center bg-stone-950/80 p-4 backdrop-blur-sm">
-      <div className="w-full max-w-md overflow-hidden rounded-2xl border border-stone-800 bg-stone-900 shadow-2xl">
-        <div className="flex items-center justify-between border-b border-stone-800/70 px-5 py-4">
+    <div className="fixed inset-0 z-[70] flex items-center justify-center bg-zinc-950/82 p-4 backdrop-blur-md">
+      <div className="w-full max-w-md overflow-hidden rounded-3xl border border-white/10 bg-zinc-950/94 shadow-[0_24px_70px_rgba(0,0,0,0.36)]">
+        <div className="flex items-center justify-between border-b border-white/10 px-5 py-4">
           <div>
             <h3 className="font-fantasy text-lg tracking-[0.14em] text-stone-100">{title}</h3>
             {description ? <p className="mt-1 text-sm leading-6 text-stone-400">{description}</p> : null}
@@ -184,7 +184,7 @@ function OverlayDialog({ title, description, children, onClose, actions, showClo
           ) : <div className="h-7 w-7" />}
         </div>
         <div className="px-5 py-4">{children}</div>
-        <div className="flex items-center justify-end gap-3 border-t border-stone-800/70 bg-stone-950/40 px-5 py-4">
+        <div className="flex items-center justify-end gap-3 border-t border-white/10 bg-white/5 px-5 py-4">
           {actions}
         </div>
       </div>
@@ -696,13 +696,13 @@ function RightSidebar({
       <aside
         style={{ '--battle-sidebar-width': `${sidebarWidth}px` }}
         className={`
-          fixed right-0 z-50 flex w-80 max-w-full flex-col border-l border-stone-800 bg-stone-900/95 shadow-2xl backdrop-blur-md transition-transform duration-300 ease-in-out
+          fixed right-0 z-50 flex w-80 max-w-full flex-col border-l border-white/10 bg-zinc-950/92 shadow-[0_22px_60px_rgba(0,0,0,0.34)] backdrop-blur-md transition-transform duration-300 ease-in-out
           ${(isOpen || isPinned) ? 'translate-x-0' : 'translate-x-full'}
-          ${isPinned ? 'top-0 h-full md:relative md:h-full md:translate-x-0 md:z-0 md:w-[var(--battle-sidebar-width)] md:min-w-[var(--battle-sidebar-width)] md:max-w-[var(--battle-sidebar-width)] md:bg-stone-900/50 md:shadow-none' : 'app-shell-overlay-frame'}
-          lg:relative lg:top-0 lg:h-full lg:translate-x-0 lg:z-0 lg:flex lg:w-[var(--battle-sidebar-width)] lg:min-w-[var(--battle-sidebar-width)] lg:max-w-[var(--battle-sidebar-width)] lg:bg-stone-900/50 lg:shadow-none
+          ${isPinned ? 'top-0 h-full md:relative md:h-full md:translate-x-0 md:z-0 md:w-[var(--battle-sidebar-width)] md:min-w-[var(--battle-sidebar-width)] md:max-w-[var(--battle-sidebar-width)] md:bg-zinc-950/70 md:shadow-none' : 'app-shell-overlay-frame'}
+          lg:relative lg:top-0 lg:h-full lg:translate-x-0 lg:z-0 lg:flex lg:w-[var(--battle-sidebar-width)] lg:min-w-[var(--battle-sidebar-width)] lg:max-w-[var(--battle-sidebar-width)] lg:bg-zinc-950/70 lg:shadow-none
         `}
       >
-        <div className="absolute top-0 left-0 hidden h-full w-1 bg-gradient-to-b from-stone-800 via-stone-900 to-stone-800 md:block" />
+        <div className="absolute top-0 left-0 hidden h-full w-1 bg-gradient-to-b from-white/8 via-zinc-900 to-white/8 md:block" />
         <button
           type="button"
           aria-label="Sleep om slagordebreedte aan te passen"
@@ -710,10 +710,10 @@ function RightSidebar({
           onDoubleClick={() => setSidebarWidth(RIGHT_SIDEBAR_DEFAULT_WIDTH)}
           className="absolute left-0 top-0 hidden h-full w-3 translate-x-1/2 cursor-col-resize md:block"
         >
-          <span className={`absolute left-1/2 top-1/2 h-16 w-[3px] -translate-x-1/2 -translate-y-1/2 rounded-full transition-colors ${isDragging ? 'bg-amber-500 shadow-[0_0_12px_rgba(245,158,11,0.45)]' : 'bg-stone-800 hover:bg-stone-700'}`} />
+          <span className={`absolute left-1/2 top-1/2 h-16 w-[3px] -translate-x-1/2 -translate-y-1/2 rounded-full transition-colors ${isDragging ? 'bg-amber-400 shadow-[0_0_12px_rgba(245,158,11,0.45)]' : 'bg-white/10 hover:bg-white/20'}`} />
         </button>
 
-        <div className="mt-14 border-b border-stone-800 bg-stone-900/85 px-3.5 py-3 md:mt-0 md:px-4 md:py-3.5">
+        <div className="mt-14 border-b border-white/10 bg-zinc-950/84 px-3.5 py-3 md:mt-0 md:px-4 md:py-3.5">
           <div className="relative">
             {isGm ? (
               <div
@@ -910,7 +910,7 @@ function RightSidebar({
           ) : null}
         </div>
 
-        <div className="flex-1 space-y-3 overflow-y-auto px-3.5 py-3.5 no-scrollbar md:px-4 md:py-4">
+        <div className="flex flex-1 flex-col overflow-y-auto px-3.5 py-3.5 no-scrollbar md:px-4 md:py-4">
           {showInfo ? (
             <div className="rounded-xl border border-stone-800 bg-stone-950/60 p-4">
               <div className="text-[10px] font-bold uppercase tracking-[0.18em] text-stone-500">Slagorde info</div>
@@ -927,7 +927,7 @@ function RightSidebar({
           ) : null}
 
           {sortedParty.length === 0 && !showPlayerRollPanel ? (
-            <div className="mt-1 flex min-h-[220px] items-center justify-center rounded-xl border border-dashed border-stone-800 bg-stone-950/30 px-6 text-center shadow-inner">
+            <div className="mt-3 flex min-h-[220px] items-center justify-center rounded-xl border border-dashed border-stone-800 bg-stone-950/30 px-6 text-center shadow-inner">
               <div>
                 <div className="mb-2 text-[10px] font-bold uppercase tracking-[0.24em] text-stone-600">Nog leeg</div>
                 <p className="font-story text-sm italic leading-relaxed text-stone-500">Voeg spelers, NPC’s of handout-personages toe aan de lijst.</p>
@@ -935,6 +935,7 @@ function RightSidebar({
             </div>
           ) : null}
 
+          <div className="space-y-3">
           {sortedParty.map((member) => {
             const isCurrentTurn = combatInProgress && member.id === currentTurnId;
             const hiddenNpcForPlayer = !isGm && member.isNpc && member.isRevealed === false;
@@ -1109,10 +1110,26 @@ function RightSidebar({
               </div>
             );
           })}
+          </div>
+
+          {sortedParty.length > 0 ? (
+            <div className="mt-auto pt-3">
+              <div className="rounded-xl border border-white/10 bg-white/5 px-3 py-3 shadow-inner">
+                <div className="text-[10px] font-bold uppercase tracking-[0.18em] text-stone-500">
+                  {combatInProgress ? 'Live tracker' : 'Ruststand overzicht'}
+                </div>
+                <p className="mt-1 text-xs leading-5 text-stone-400">
+                  {combatInProgress
+                    ? (currentTurnDisplayName ? `${currentTurnDisplayName} staat nu op punt. Gebruik de ledenkaarten voor snelle HP/AC updates.` : 'Gevecht actief. Gebruik de ledenkaarten voor snelle updates.')
+                    : 'Bereid initiative en conditions voor; zodra je start blijft deze volgorde centraal zichtbaar.'}
+                </p>
+              </div>
+            </div>
+          ) : null}
         </div>
 
         {role === 'gm' ? (
-          <div className="space-y-2.5 border-t border-stone-800 bg-stone-900/85 px-3.5 pt-3 pb-[calc(env(safe-area-inset-bottom,0px)+0.625rem)] md:px-4 md:pt-3.5 md:pb-3">
+          <div className="space-y-2.5 border-t border-white/10 bg-zinc-950/84 px-3.5 pt-3 pb-[calc(env(safe-area-inset-bottom,0px)+0.625rem)] md:px-4 md:pt-3.5 md:pb-3">
             <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
               <button
                 type="button"
@@ -1146,7 +1163,7 @@ function RightSidebar({
                 type="button"
                 onClick={handleAdvanceTurn}
                 disabled={isActionBusy}
-                className="flex h-11 w-full items-center justify-center gap-2 rounded-lg bg-gradient-to-r from-amber-700 to-amber-600 text-sm font-fantasy uppercase tracking-[0.14em] text-stone-100 shadow-[0_0_10px_rgba(217,119,6,0.2)] transition-all hover:from-amber-600 hover:to-amber-500 disabled:cursor-not-allowed disabled:opacity-60"
+                className="flex h-11 w-full items-center justify-center gap-2 rounded-xl border border-amber-500/35 bg-gradient-to-r from-amber-700 to-amber-600 text-sm uppercase tracking-[0.14em] text-stone-100 shadow-[0_0_10px_rgba(217,119,6,0.2)] transition-all duration-200 ease-out hover:from-amber-600 hover:to-amber-500 hover:shadow-lg hover:shadow-amber-700/35 disabled:cursor-not-allowed disabled:opacity-60"
               >
                 <span className="inline-flex items-center justify-center gap-2">
                   <ChevronRight className="h-4 w-4" />

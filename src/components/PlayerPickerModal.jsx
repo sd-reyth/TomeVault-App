@@ -16,7 +16,7 @@ export default function PlayerPickerModal({ isOpen, players, preparation, onClos
       bodyClassName="max-h-[60vh] overflow-y-auto p-4 no-scrollbar sm:p-5"
     >
           {players.length === 0 ? (
-            <div className="rounded-xl border border-dashed border-stone-800 bg-stone-950/40 px-5 py-8 text-center text-sm leading-7 text-stone-500">
+            <div className="rounded-xl border border-dashed border-white/10 bg-white/5 px-5 py-8 text-center text-sm leading-7 text-stone-400">
               Er zijn nog geen actieve spelers om deze voorbereiding aan toe te wijzen.
             </div>
           ) : (
@@ -26,9 +26,9 @@ export default function PlayerPickerModal({ isOpen, players, preparation, onClos
                   key={player.id}
                   type="button"
                   onClick={() => onAssign?.(player.id)}
-                  className="flex w-full items-center gap-3 rounded-xl border border-stone-800 bg-stone-950/55 px-3 py-3 text-left transition-colors hover:border-amber-700/50 hover:bg-stone-900/80"
+                  className="flex w-full items-center gap-3 rounded-xl border border-white/10 bg-white/5 px-3 py-3 text-left transition-all duration-200 hover:border-amber-400/50 hover:bg-white/7"
                 >
-                  <div className="h-12 w-12 shrink-0 overflow-hidden rounded-xl border border-stone-800 bg-stone-900 shadow-inner">
+                  <div className="h-12 w-12 shrink-0 overflow-hidden rounded-xl border border-white/10 bg-white/5 shadow-inner">
                     <img
                       src={resolveDisplayAvatar(player.avatar, player.id)}
                       alt={player.name}
@@ -37,7 +37,7 @@ export default function PlayerPickerModal({ isOpen, players, preparation, onClos
                   </div>
                   <div className="min-w-0">
                     <div className="font-fantasy tracking-[0.08em] text-stone-100">{player.name}</div>
-                    <div className="mt-1 text-sm italic text-stone-500">{player.subtitle || 'Speler'}</div>
+                    <div className="mt-1 text-sm italic text-stone-400">{player.subtitle || 'Speler'}</div>
                   </div>
                 </button>
               ))}

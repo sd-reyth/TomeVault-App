@@ -79,7 +79,7 @@ function BackfillButton({ onBackfillMemberships }) {
       type="button"
       onClick={handleClick}
       disabled={loading}
-      className="landing-action-button border-stone-700/80 bg-stone-950/75 text-stone-300 hover:border-amber-700/50 hover:text-amber-200 disabled:opacity-70 inline-flex items-center gap-2"
+      className="landing-action-button border-white/10 bg-white/5 text-stone-300 hover:border-white/20 hover:text-stone-100 disabled:opacity-70 inline-flex items-center gap-2"
     >
       {loading ? (
         <>
@@ -488,7 +488,7 @@ export default function LandingScreen({
               type="button"
               onClick={() => onBackfillMemberships?.()}
               disabled={sessionBusy}
-              className="landing-action-button border-stone-700/80 bg-stone-950/75 text-stone-200 hover:border-amber-700/50 hover:text-amber-200 disabled:opacity-50"
+              className="landing-action-button border-white/10 bg-white/5 text-stone-200 hover:border-white/20 hover:text-stone-100 disabled:opacity-50"
               title="Herstel oude sessies waar je GM of speler bent"
             >
               Herstel oud
@@ -497,7 +497,7 @@ export default function LandingScreen({
               <button
                 type="button"
                 onClick={() => setShowHiddenSessions((value) => !value)}
-                className="landing-action-button border-stone-700/80 bg-stone-950/75 text-stone-200 hover:border-indigo-700/50 hover:text-indigo-200"
+                className="landing-action-button border-white/10 bg-white/5 text-stone-200 hover:border-white/20 hover:text-stone-100"
               >
                 {showHiddenSessions ? 'Verberg verborgen' : `Toon verborgen (${hiddenRecentCount})`}
               </button>
@@ -505,7 +505,7 @@ export default function LandingScreen({
         </div>
 
         {displayedRecentSessions.length === 0 ? (
-          <div className="mt-4 rounded-[22px] border border-dashed border-stone-800/70 bg-stone-950/35 px-4 py-6 text-center">
+          <div className="mt-4 rounded-[22px] border border-dashed border-white/10 bg-white/5 px-4 py-6 text-center">
             <p className="text-sm text-stone-300 font-story italic">Nog geen recente sessies.</p>
           </div>
         ) : (
@@ -554,7 +554,7 @@ export default function LandingScreen({
                       type="button"
                       onClick={() => (isHidden ? onRestoreRecentSession?.(session.sessionId) : onHideRecentSession?.(session.sessionId))}
                       disabled={sessionBusy}
-                      className={`landing-action-button border-stone-700/80 bg-stone-950/75 ${isHidden ? 'text-amber-200 hover:border-amber-700/50 hover:text-amber-100' : 'text-stone-300 hover:border-amber-700/40 hover:text-amber-200'}`}
+                      className={`landing-action-button border-white/10 bg-white/5 ${isHidden ? 'text-amber-200 hover:border-white/20 hover:text-amber-100' : 'text-stone-300 hover:border-white/20 hover:text-stone-100'}`}
                       title={isHidden ? 'Zet terug in recente lijst' : 'Verberg uit deze lijst'}
                     >
                       {isHidden ? 'Herstel' : 'Verberg'}
@@ -856,7 +856,7 @@ export default function LandingScreen({
                   {compactFeatureHighlights.map((feature) => {
                     const Icon = feature.icon;
                     return (
-                      <span key={feature.label} className="landing-chip border-stone-700/60 bg-stone-950/45 text-stone-200">
+                      <span key={feature.label} className="landing-chip border-white/10 bg-white/5 text-stone-200">
                         <Icon className={`h-3.5 w-3.5 ${feature.accentClassName}`} />
                         {feature.label}
                       </span>
@@ -893,26 +893,26 @@ export default function LandingScreen({
                   <button
                     type="button"
                     onClick={() => setShowEmailAuthForm((value) => !value)}
-                    className="landing-action-button border-stone-700/80 bg-stone-950/70 text-stone-200 hover:border-amber-700/40 hover:text-amber-200"
+                    className="landing-action-button border-white/10 bg-white/5 text-stone-200 hover:border-white/20 hover:text-stone-100"
                   >
                     {showEmailAuthForm ? 'Verberg e-mail' : 'Gebruik e-mail'}
                   </button>
                 </div>
 
                 {showEmailAuthForm ? (
-                  <form onSubmit={handleEmailAuth} className="mt-4 border-t border-stone-800/70 pt-4">
-                    <div className="flex rounded-2xl border border-stone-800/90 bg-stone-950/80 p-1">
+                  <form onSubmit={handleEmailAuth} className="mt-4 border-t border-white/10 pt-4">
+                    <div className="flex rounded-2xl border border-white/10 bg-zinc-950/72 p-1">
                       <button
                         type="button"
                         onClick={() => setEmailMode('login')}
-                        className={`flex-1 rounded-xl px-3 py-2 text-xs uppercase tracking-[0.18em] transition-colors ${emailMode === 'login' ? 'bg-stone-800 text-stone-100' : 'text-stone-400 hover:text-stone-200'}`}
+                        className={`flex-1 rounded-xl px-3 py-2 text-xs uppercase tracking-[0.18em] transition-colors ${emailMode === 'login' ? 'bg-white/5 text-stone-100' : 'text-stone-400 hover:text-stone-200'}`}
                       >
                         Inloggen
                       </button>
                       <button
                         type="button"
                         onClick={() => setEmailMode('signup')}
-                        className={`flex-1 rounded-xl px-3 py-2 text-xs uppercase tracking-[0.18em] transition-colors ${emailMode === 'signup' ? 'bg-stone-800 text-stone-100' : 'text-stone-400 hover:text-stone-200'}`}
+                        className={`flex-1 rounded-xl px-3 py-2 text-xs uppercase tracking-[0.18em] transition-colors ${emailMode === 'signup' ? 'bg-white/5 text-stone-100' : 'text-stone-400 hover:text-stone-200'}`}
                       >
                         Aanmaken
                       </button>
@@ -1165,24 +1165,24 @@ export default function LandingScreen({
       </div>
 
       {deleteTarget && (
-        <div className="fixed inset-0 bg-stone-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="w-full max-w-md bg-stone-900 border border-rose-900/40 rounded-2xl shadow-2xl overflow-hidden">
-            <div className="p-4 border-b border-stone-800/50 flex items-center justify-between gap-3">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-zinc-950/84 p-4 backdrop-blur-md">
+          <div className="w-full max-w-md overflow-hidden rounded-2xl border border-white/10 bg-zinc-950/96 shadow-[0_28px_80px_rgba(0,0,0,0.45)]">
+            <div className="flex items-center justify-between gap-3 border-b border-white/10 px-4 py-4 bg-white/[0.03]">
               <div className="flex items-center gap-2 text-rose-300">
                 <AlertTriangle className="w-5 h-5" />
                 <h3 className="font-fantasy tracking-wider text-stone-100">Sessie Permanent Wissen</h3>
               </div>
-              <button onClick={closeDeleteFlow} className="text-stone-500 hover:text-stone-300 transition-colors">
+              <button onClick={closeDeleteFlow} className="text-stone-500 hover:text-stone-200 transition-colors">
                 <X className="w-5 h-5" />
               </button>
             </div>
 
             {!showGmDeleteWarning ? (
-              <div className="p-5 space-y-4">
+              <div className="space-y-4 px-5 py-5">
                 <p className="text-sm text-stone-300 font-story leading-relaxed">
                   Om deze sessie permanent te verwijderen, typ de volledige sessienaam exact over zoals hieronder weergegeven.
                 </p>
-                <div className="rounded-xl border border-stone-800 bg-stone-950/40 px-4 py-3">
+                <div className="rounded-xl border border-white/10 bg-white/5 px-4 py-3">
                   <div className="text-[10px] uppercase tracking-widest text-stone-500 mb-1">Te bevestigen sessie</div>
                   <div className="font-fantasy text-stone-100 font-bold break-words">{deleteTarget.sessionName || 'Naamloze Sessie'}</div>
                 </div>
@@ -1191,10 +1191,10 @@ export default function LandingScreen({
                   value={deleteSessionNameInput}
                   onChange={(e) => setDeleteSessionNameInput(e.target.value)}
                   placeholder="Typ de sessienaam exact over"
-                  className="w-full bg-stone-950/90 border border-stone-700 rounded-lg px-3 py-2.5 text-sm text-stone-200 placeholder-stone-600 focus:outline-none focus:border-rose-600/50 transition-colors"
+                  className="w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2.5 text-sm text-stone-200 placeholder-stone-500 transition-colors focus:outline-none focus:border-rose-500/60"
                 />
                 {deleteError && (
-                  <div className="text-xs text-rose-300 bg-rose-950/30 border border-rose-900/50 rounded-lg px-3 py-2">
+                  <div className="rounded-lg border border-rose-900/50 bg-rose-950/30 px-3 py-2 text-xs text-rose-300">
                     {deleteError}
                   </div>
                 )}
@@ -1202,7 +1202,7 @@ export default function LandingScreen({
                   <button
                     type="button"
                     onClick={closeDeleteFlow}
-                    className="flex-1 py-2.5 rounded-lg border border-stone-700 text-stone-300 hover:bg-stone-800 transition-colors text-xs font-fantasy tracking-wider"
+                    className="flex-1 rounded-lg border border-white/10 py-2.5 text-xs font-fantasy tracking-wider text-stone-300 transition-colors hover:bg-white/5"
                   >
                     Annuleer
                   </button>
@@ -1210,14 +1210,14 @@ export default function LandingScreen({
                     type="button"
                     onClick={handleDeleteNameConfirm}
                     disabled={sessionBusy}
-                    className="flex-1 py-2.5 rounded-lg border border-rose-900/60 bg-rose-950/40 text-rose-200 hover:bg-rose-900/50 transition-colors text-xs font-fantasy tracking-wider disabled:opacity-50"
+                    className="flex-1 rounded-lg border border-rose-900/60 bg-rose-950/40 py-2.5 text-xs font-fantasy tracking-wider text-rose-200 transition-colors hover:bg-rose-900/50 disabled:opacity-50"
                   >
                     Bevestigen
                   </button>
                 </div>
               </div>
             ) : (
-              <div className="p-5 space-y-4">
+              <div className="space-y-4 px-5 py-5">
                 <p className="text-sm text-stone-300 font-story leading-relaxed">
                   U bent de GM van deze sessie en staat op het punt de volledige campagne definitief te verwijderen. Spelers kunnen deze wereld daarna niet meer betreden en dit kan niet ongedaan worden gemaakt.
                 </p>
@@ -1228,7 +1228,7 @@ export default function LandingScreen({
                   <button
                     type="button"
                     onClick={() => setShowGmDeleteWarning(false)}
-                    className="flex-1 py-2.5 rounded-lg border border-stone-700 text-stone-300 hover:bg-stone-800 transition-colors text-xs font-fantasy tracking-wider"
+                    className="flex-1 rounded-lg border border-white/10 py-2.5 text-xs font-fantasy tracking-wider text-stone-300 transition-colors hover:bg-white/5"
                   >
                     Terug
                   </button>
@@ -1236,7 +1236,7 @@ export default function LandingScreen({
                     type="button"
                     onClick={handleFinalDeleteConfirm}
                     disabled={sessionBusy}
-                    className="flex-1 py-2.5 rounded-lg border border-rose-900/60 bg-rose-950/40 text-rose-200 hover:bg-rose-900/50 transition-colors text-xs font-fantasy tracking-wider disabled:opacity-50"
+                    className="flex-1 rounded-lg border border-rose-900/60 bg-rose-950/40 py-2.5 text-xs font-fantasy tracking-wider text-rose-200 transition-colors hover:bg-rose-900/50 disabled:opacity-50"
                   >
                     Campagne Wissen
                   </button>

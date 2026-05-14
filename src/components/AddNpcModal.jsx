@@ -47,7 +47,7 @@ export default function AddNpcModal({ isOpen, onClose, onSave }) {
         <form onSubmit={handleSave} className="flex flex-col gap-4">
           
           <div className="flex justify-center mb-1">
-            <label className="relative group cursor-pointer w-20 h-20 md:w-24 md:h-24 rounded-xl border-2 border-dashed border-rose-900/50 bg-stone-950/50 hover:bg-stone-900/80 flex items-center justify-center overflow-hidden transition-all shadow-inner">
+            <label className="relative flex h-20 w-20 cursor-pointer items-center justify-center overflow-hidden rounded-xl border-2 border-dashed border-rose-700/40 bg-white/5 shadow-inner transition-all hover:bg-white/7 md:h-24 md:w-24 group">
               <input type="file" accept="image/*" className="hidden" onChange={handleImageChange} />
               {avatarUrl ? (
                 <>
@@ -66,7 +66,7 @@ export default function AddNpcModal({ isOpen, onClose, onSave }) {
           </div>
 
           <div>
-            <label className="block text-[10px] font-bold text-stone-500 uppercase tracking-widest mb-1.5">Naam</label>
+            <label className="mb-1.5 block text-[10px] font-bold uppercase tracking-widest text-stone-400">Naam</label>
             <input 
               autoFocus
               type="text" 
@@ -74,39 +74,39 @@ export default function AddNpcModal({ isOpen, onClose, onSave }) {
               placeholder="Bijv. Goblin Aanvoerder"
               value={name}
               onChange={e => setName(e.target.value)}
-              className="w-full h-9 bg-stone-950/80 border border-stone-700 rounded-lg px-3 text-sm text-stone-200 placeholder-stone-600 focus:outline-none focus:border-rose-800 transition-colors font-story"
+              className="h-10 w-full rounded-xl border border-white/10 bg-white/5 px-3 text-sm font-story text-stone-200 placeholder-stone-500 transition-all duration-200 focus:outline-none focus:border-rose-400/70 focus:bg-white/7"
             />
           </div>
 
-          <div className="grid grid-cols-3 gap-3">
+          <div className="grid grid-cols-3 gap-3 rounded-xl border border-white/10 bg-white/5 p-3 shadow-inner">
             <div>
-              <label className="block text-[10px] font-bold text-stone-500 uppercase tracking-widest mb-1.5">HP</label>
+              <label className="mb-1.5 block text-[10px] font-bold uppercase tracking-widest text-stone-400">HP</label>
               <input 
                 type="number" 
                 required
                 value={hp}
                 onChange={e => setHp(e.target.value)}
-                className="w-full h-9 bg-stone-950/80 border border-stone-700 rounded-lg px-3 text-sm text-stone-200 focus:outline-none focus:border-rose-800 transition-colors font-sans text-center hide-arrows"
+                className="h-10 w-full rounded-xl border border-white/10 bg-zinc-950/55 px-3 text-center text-sm font-sans text-stone-200 transition-all duration-200 focus:outline-none focus:border-rose-400/70 hide-arrows"
               />
             </div>
             <div>
-              <label className="block text-[10px] font-bold text-stone-500 uppercase tracking-widest mb-1.5">AC</label>
+              <label className="mb-1.5 block text-[10px] font-bold uppercase tracking-widest text-stone-400">AC</label>
               <input 
                 type="number" 
                 required
                 value={ac}
                 onChange={e => setAc(e.target.value)}
-                className="w-full h-9 bg-stone-950/80 border border-stone-700 rounded-lg px-3 text-sm text-stone-200 focus:outline-none focus:border-rose-800 transition-colors font-sans text-center hide-arrows"
+                className="h-10 w-full rounded-xl border border-white/10 bg-zinc-950/55 px-3 text-center text-sm font-sans text-stone-200 transition-all duration-200 focus:outline-none focus:border-rose-400/70 hide-arrows"
               />
             </div>
             <div>
-              <label className="block text-[10px] font-bold text-stone-500 uppercase tracking-widest mb-1.5" title="Initiative Modifier">Init Mod</label>
+              <label className="mb-1.5 block text-[10px] font-bold uppercase tracking-widest text-stone-400" title="Initiative Modifier">Init Mod</label>
               <input 
                 type="number" 
                 required
                 value={initMod}
                 onChange={e => setInitMod(e.target.value)}
-                className="w-full h-9 bg-stone-950/80 border border-stone-700 rounded-lg px-3 text-sm text-stone-200 focus:outline-none focus:border-rose-800 transition-colors font-sans text-center hide-arrows"
+                className="h-10 w-full rounded-xl border border-white/10 bg-zinc-950/55 px-3 text-center text-sm font-sans text-stone-200 transition-all duration-200 focus:outline-none focus:border-rose-400/70 hide-arrows"
               />
             </div>
           </div>
@@ -115,13 +115,13 @@ export default function AddNpcModal({ isOpen, onClose, onSave }) {
             <button 
               type="button"
               onClick={onClose}
-              className="h-9 flex-1 inline-flex items-center justify-center bg-stone-800 hover:bg-stone-700 border border-stone-700 text-stone-300 rounded-lg font-fantasy uppercase tracking-[0.16em] text-sm transition-colors"
+              className="h-9 flex-1 inline-flex items-center justify-center bg-white/5 hover:bg-white/7 border border-white/10 text-stone-300 rounded-lg font-fantasy uppercase tracking-[0.16em] text-sm transition-all duration-200 active:scale-95"
             >
               Annuleren
             </button>
             <button 
               type="submit"
-              className="h-9 flex-1 inline-flex items-center justify-center border border-rose-900/60 bg-gradient-to-r from-rose-800 to-rose-700 hover:from-rose-700 hover:to-rose-600 text-stone-100 rounded-lg font-fantasy uppercase tracking-[0.16em] text-sm transition-colors shadow-sm"
+              className="h-9 flex-1 inline-flex items-center justify-center border border-rose-800/50 bg-gradient-to-r from-rose-800 to-rose-700 hover:from-rose-700 hover:to-rose-600 text-stone-100 rounded-lg font-fantasy uppercase tracking-[0.16em] text-sm transition-all duration-200 shadow-sm active:scale-95"
             >
               Toevoegen
             </button>

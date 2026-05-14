@@ -96,22 +96,22 @@ export default function PreparationsView({
 
   return (
     <section className="flex h-full flex-col gap-4 md:gap-5">
-      <header className="border-b border-stone-800/50 pb-4 md:pb-6">
+      <header className="border-b border-white/10 pb-4 md:pb-6">
         <div className="flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
           <div className="max-w-2xl min-w-0">
-            <h1 className="text-2xl font-bold tracking-wider text-stone-100 font-fantasy md:text-3xl">Voorbereidingen</h1>
+            <h1 className="text-2xl font-semibold tracking-[0.12em] text-stone-100 md:text-3xl">Voorbereidingen</h1>
             <p className="mt-1 text-xs text-stone-400 font-story italic md:mt-2 md:text-sm">
               Volledige karakterprofielen die je bewaart, verfijnt en later soepel aan een speler koppelt.
             </p>
           </div>
 
           <div className="flex w-full flex-col gap-2 sm:flex-row sm:items-center xl:w-auto">
-            <label className="flex min-w-0 flex-1 items-center gap-2 rounded-xl border border-stone-800 bg-stone-950/80 px-3 py-2.5 shadow-inner xl:min-w-[300px]">
+            <label className="flex min-w-0 flex-1 items-center gap-2 rounded-xl border border-white/10 bg-zinc-950/75 px-3 py-2.5 shadow-inner xl:min-w-[300px]">
               <Search className="h-4 w-4 shrink-0 text-stone-500" />
               <input
                 type="search"
                 placeholder="Zoek een voorbereiding"
-                className="w-full bg-transparent text-sm text-stone-200 outline-none placeholder:text-stone-600"
+                className="w-full bg-transparent text-sm text-stone-200 outline-none placeholder:text-stone-500"
                 value={query}
                 onChange={(event) => setQuery(event.target.value)}
               />
@@ -119,7 +119,7 @@ export default function PreparationsView({
             <button
               type="button"
               onClick={onCreatePreparation}
-              className="h-9 inline-flex w-full items-center justify-center gap-2 rounded-lg border border-amber-700/60 bg-gradient-to-r from-amber-700 to-amber-600 px-4 font-fantasy text-sm uppercase tracking-[0.16em] text-stone-100 shadow-sm transition-colors hover:from-amber-600 hover:to-amber-500 sm:w-auto"
+              className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-xl border border-amber-500/35 bg-gradient-to-r from-amber-700 to-amber-600 px-4 text-sm uppercase tracking-[0.16em] text-stone-100 shadow-sm transition-all duration-200 ease-out hover:from-amber-600 hover:to-amber-500 hover:shadow-lg hover:shadow-amber-700/35 active:scale-[0.985] sm:w-auto"
             >
               <Plus className="h-4 w-4" />
               Nieuw
@@ -129,13 +129,13 @@ export default function PreparationsView({
       </header>
 
       <div className="grid items-start gap-4 xl:grid-cols-[minmax(0,1.2fr)_320px] xl:gap-5">
-        <div className="min-h-[360px] rounded-2xl border border-stone-800/80 bg-stone-950/55 p-4 shadow-inner md:p-5">
-          <div className="flex flex-col gap-3 border-b border-stone-800/80 pb-4 sm:flex-row sm:items-start sm:justify-between">
+        <div className="min-h-[360px] rounded-3xl border border-white/10 bg-zinc-950/72 p-4 shadow-[0_22px_60px_rgba(0,0,0,0.32)] backdrop-blur-md md:p-5">
+          <div className="flex flex-col gap-3 border-b border-white/10 pb-4 sm:flex-row sm:items-start sm:justify-between">
             <div className="min-w-0">
               <h2 className="font-fantasy text-lg uppercase tracking-[0.14em] text-stone-100">Bibliotheek</h2>
               <p className="mt-1 text-sm leading-6 text-stone-500">Profielen die klaarstaan om te verfijnen, bewaren of uit te delen.</p>
             </div>
-            <span className="rounded-full border border-stone-800 bg-stone-950/70 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.18em] text-stone-500">
+            <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-stone-400">
               {filteredTemplates.length} in beeld
             </span>
           </div>
@@ -163,7 +163,7 @@ export default function PreparationsView({
                 return (
                   <article
                     key={preparation.id}
-                    className="grid gap-4 rounded-2xl border border-stone-800/80 bg-stone-950/55 p-4 shadow-[0_16px_40px_rgba(0,0,0,0.18)] md:grid-cols-[72px_minmax(0,1fr)]"
+                    className="grid gap-4 rounded-2xl border border-white/10 bg-white/5 p-4 shadow-[0_18px_46px_rgba(0,0,0,0.24)] transition-all duration-200 ease-out hover:bg-white/7 hover:border-white/20 md:grid-cols-[72px_minmax(0,1fr)]"
                   >
                     <div className="flex justify-center md:justify-start">
                       <div className="h-[72px] w-[72px] overflow-hidden rounded-2xl border border-stone-800 bg-stone-900 shadow-inner">
@@ -179,7 +179,7 @@ export default function PreparationsView({
                       <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
                         <div className="min-w-0">
                           <div className="flex flex-wrap items-center gap-2">
-                            <h3 className="font-fantasy text-xl tracking-[0.08em] text-stone-100">{preparation.name || 'Naamloos personage'}</h3>
+                            <h3 className="text-xl font-semibold tracking-[0.08em] text-stone-100">{preparation.name || 'Naamloos personage'}</h3>
                             <span className={`rounded-full border px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.18em] ${statusMeta.className}`}>
                               {statusMeta.label}
                             </span>
@@ -197,7 +197,7 @@ export default function PreparationsView({
                         {statPills.map((pill) => (
                           <span
                             key={`${preparation.id}-${pill}`}
-                            className="rounded-full border border-stone-800 bg-stone-900/80 px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.16em] text-stone-400"
+                            className="rounded-full border border-white/10 bg-zinc-950/80 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-stone-300"
                           >
                             {pill}
                           </span>
@@ -246,7 +246,7 @@ export default function PreparationsView({
           )}
         </div>
 
-        <aside className="rounded-2xl border border-stone-800/80 bg-stone-950/55 p-4 shadow-inner md:p-5 xl:sticky xl:top-4">
+        <aside className="rounded-3xl border border-white/10 bg-zinc-950/72 p-4 shadow-[0_22px_60px_rgba(0,0,0,0.3)] backdrop-blur-md md:p-5 xl:sticky xl:top-4">
           <div className="flex items-center justify-between gap-3 text-stone-100">
             <div className="flex items-center gap-2">
               <ShieldCheck className="h-4 w-4 text-amber-400" />
@@ -255,7 +255,7 @@ export default function PreparationsView({
             <button
               type="button"
               onClick={() => setShowInfo((value) => !value)}
-              className={`inline-flex h-9 w-9 items-center justify-center rounded-full border transition-colors ${showInfo ? 'border-amber-800/50 bg-amber-950/30 text-amber-300' : 'border-stone-800 bg-stone-950/70 text-stone-400 hover:text-amber-300'}`}
+              className={`inline-flex h-9 w-9 items-center justify-center rounded-full border transition-all duration-200 ease-out ${showInfo ? 'border-amber-500/30 bg-amber-500/10 text-amber-300' : 'border-white/10 bg-white/5 text-stone-400 hover:bg-white/8 hover:text-amber-300'}`}
               title={showInfo ? 'Verberg extra uitleg' : 'Toon extra uitleg'}
             >
               <Info className="h-4 w-4" />
@@ -269,7 +269,7 @@ export default function PreparationsView({
               { label: 'In gebruik', value: acceptedCount },
               { label: 'Herstelpunten', value: backups.length },
             ].map((item) => (
-              <article key={item.label} className="rounded-xl border border-stone-800 bg-stone-950/60 p-3">
+              <article key={item.label} className="rounded-xl border border-white/10 bg-white/5 p-3">
                 <div className="text-[10px] font-bold uppercase tracking-[0.18em] text-stone-500">{item.label}</div>
                 <div className="mt-2 font-fantasy text-2xl text-stone-100">{item.value}</div>
               </article>
@@ -327,7 +327,7 @@ export default function PreparationsView({
               ) : (
                 <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-1">
                   {backups.map((backup) => (
-                    <article key={backup.id} className="rounded-xl border border-stone-800 bg-stone-950/60 p-3">
+                    <article key={backup.id} className="rounded-xl border border-white/10 bg-white/5 p-3">
                       <p className="text-[11px] uppercase tracking-[0.16em] text-stone-500">
                         Opgeslagen {formatPreparationTime(backup.createdAtMs)}
                       </p>
@@ -341,7 +341,7 @@ export default function PreparationsView({
                       <button
                         type="button"
                         onClick={() => handleRestore(backup)}
-                        className="mt-3 w-full rounded-lg border border-stone-700 bg-stone-900/70 px-3 py-2 text-xs font-fantasy tracking-[0.14em] text-stone-200 transition-colors hover:border-amber-700/50 hover:text-amber-300"
+                        className="mt-3 w-full rounded-xl border border-white/10 bg-zinc-950/80 px-3 py-2 text-xs tracking-[0.14em] text-stone-200 transition-all duration-200 ease-out hover:bg-zinc-950 hover:border-amber-500/30 hover:text-amber-300"
                       >
                         Zet terug
                       </button>

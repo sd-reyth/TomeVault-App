@@ -156,13 +156,13 @@ export default function OwnerAdminPanel({ isOpen, onClose, uid, isOwner = false 
                 value={searchEmail}
                 onChange={(event) => setSearchEmail(event.target.value)}
                 placeholder="tester@example.com"
-                className="h-10 flex-1 rounded-lg border border-stone-700 bg-stone-950/80 px-3 text-sm text-stone-200 placeholder:text-stone-600 focus:border-amber-600/50 focus:outline-none"
+                className="h-10 flex-1 rounded-lg border border-white/10 bg-white/5 px-3 text-sm text-stone-200 placeholder:text-stone-500 focus:border-amber-400/70 focus:outline-none focus:bg-white/7 transition-all duration-200"
               />
               <button
                 type="button"
                 onClick={handleLookupUser}
                 disabled={loading}
-                className="inline-flex h-10 shrink-0 items-center justify-center gap-2 rounded-lg border border-stone-700 bg-stone-900 px-4 font-fantasy text-xs uppercase tracking-[0.16em] text-stone-200 transition-all duration-200 hover:border-amber-600/60 hover:text-amber-200 active:scale-95 disabled:opacity-50"
+                className="inline-flex h-10 shrink-0 items-center justify-center gap-2 rounded-lg border border-white/10 bg-white/5 px-4 font-fantasy text-xs uppercase tracking-[0.16em] text-stone-300 transition-all duration-200 hover:border-amber-400/50 hover:bg-white/7 hover:text-amber-200 active:scale-95 disabled:opacity-50"
               >
                 <Search className="h-4 w-4" /> Zoek
               </button>
@@ -170,7 +170,7 @@ export default function OwnerAdminPanel({ isOpen, onClose, uid, isOwner = false 
           </div>
 
           {resolvedUser ? (
-            <div className="rounded-2xl border border-stone-800 bg-stone-950/40 p-4">
+            <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
               <div className="flex items-start justify-between gap-3">
                 <div>
                   <p className="font-fantasy text-sm uppercase tracking-[0.16em] text-stone-100">{resolvedUser.displayName || 'Naamloos account'}</p>
@@ -186,11 +186,11 @@ export default function OwnerAdminPanel({ isOpen, onClose, uid, isOwner = false 
               </div>
 
               <div className="mt-4 grid gap-3 sm:grid-cols-2">
-                <div className="rounded-xl border border-stone-800 bg-stone-900/70 p-3">
+                <div className="rounded-xl border border-white/10 bg-white/5 p-3">
                   <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-stone-500">GM plan</p>
                   <p className="mt-2 text-sm font-semibold text-stone-100">{resolvedGmPlan.label}</p>
                 </div>
-                <div className="rounded-xl border border-stone-800 bg-stone-900/70 p-3">
+                <div className="rounded-xl border border-white/10 bg-white/5 p-3">
                   <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-stone-500">Player plan</p>
                   <p className="mt-2 text-sm font-semibold text-stone-100">{resolvedPlayerPlan.label}</p>
                 </div>

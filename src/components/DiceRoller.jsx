@@ -83,11 +83,68 @@ function getRollActionAccent(theme) {
   };
 }
 
+function getRollerPalette(theme) {
+  if (theme === 'purple') {
+    return {
+      panelBorder: 'rgba(168, 85, 247, 0.30)',
+      panelBg: 'linear-gradient(180deg, rgba(168, 85, 247, 0.12) 0%, rgba(17, 24, 39, 0.86) 58%)',
+      rowBorder: 'rgba(196, 181, 253, 0.24)',
+      rowBg: 'rgba(46, 16, 101, 0.34)',
+      stepperBorder: 'rgba(196, 181, 253, 0.28)',
+      stepperBg: 'rgba(30, 27, 75, 0.44)',
+      labelColor: '#ede9fe',
+      countColor: '#f5f3ff',
+      metaColor: '#c4b5fd',
+    };
+  }
+
+  if (theme === 'green') {
+    return {
+      panelBorder: 'rgba(52, 211, 153, 0.28)',
+      panelBg: 'linear-gradient(180deg, rgba(52, 211, 153, 0.10) 0%, rgba(17, 24, 39, 0.86) 58%)',
+      rowBorder: 'rgba(110, 231, 183, 0.18)',
+      rowBg: 'rgba(6, 78, 59, 0.36)',
+      stepperBorder: 'rgba(110, 231, 183, 0.24)',
+      stepperBg: 'rgba(2, 44, 34, 0.5)',
+      labelColor: '#d1fae5',
+      countColor: '#ecfdf5',
+      metaColor: '#86efac',
+    };
+  }
+
+  if (theme === 'light') {
+    return {
+      panelBorder: 'rgba(180, 83, 9, 0.32)',
+      panelBg: 'linear-gradient(180deg, rgba(251, 191, 36, 0.20) 0%, rgba(255, 251, 235, 0.90) 62%)',
+      rowBorder: 'rgba(180, 83, 9, 0.22)',
+      rowBg: 'rgba(255, 248, 220, 0.72)',
+      stepperBorder: 'rgba(146, 64, 14, 0.25)',
+      stepperBg: 'rgba(255, 251, 235, 0.95)',
+      labelColor: '#78350f',
+      countColor: '#451a03',
+      metaColor: '#92400e',
+    };
+  }
+
+  return {
+    panelBorder: 'rgba(251, 191, 36, 0.28)',
+    panelBg: 'linear-gradient(180deg, rgba(251, 191, 36, 0.10) 0%, rgba(17, 24, 39, 0.86) 58%)',
+    rowBorder: 'rgba(252, 211, 77, 0.18)',
+    rowBg: 'rgba(120, 53, 15, 0.30)',
+    stepperBorder: 'rgba(252, 211, 77, 0.24)',
+    stepperBg: 'rgba(69, 26, 3, 0.46)',
+    labelColor: '#fde68a',
+    countColor: '#fffbeb',
+    metaColor: '#fcd34d',
+  };
+}
+
 export default function DiceRoller({ onRoll, theme, embedded = false }) {
   const [dice, setDice] = useState(
     DICE_TYPES.map((type) => ({ ...type, count: 0 }))
   );
   const rollActionAccent = getRollActionAccent(theme);
+  const palette = getRollerPalette(theme);
 
   const totalDiceSelected = useMemo(
     () => dice.reduce((sum, entry) => sum + Number(entry.count || 0), 0),
@@ -136,44 +193,72 @@ export default function DiceRoller({ onRoll, theme, embedded = false }) {
 
   return (
     <div
-      className={embedded ? 'w-full' : 'mx-auto w-full max-w-sm rounded-2xl border border-stone-700 bg-stone-900/95 p-4 shadow-2xl'}
-      style={embedded ? undefined : { boxShadow: rollActionAccent.boxShadow }}
+      className={embedded ? 'w-full rounded-2xl border p-3.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]' : 'mx-auto w-full max-w-sm rounded-2xl border p-4 shadow-2xl'}
+      style={{
+        borderColor: palette.panelBorder,
+        backgroundImage: palette.panelBg,
+        boxShadow: embedded ? undefined : rollActionAccent.boxShadow,
+      }}
     >
       <div className="flex flex-col gap-2.5 w-full">
         {dice.map((d, idx) => (
-          <div key={d.label} className="flex items-center gap-2.5 w-full rounded-2xl border border-stone-800/80 bg-stone-900/70 px-2.5 py-2">
-            <span className="inline-flex h-6 w-6 items-center justify-center">
-              <DiceTypeIcon sides={d.sides} className="h-5 w-5" />
-            </span>
-            <span className="w-8 font-mono text-stone-200 text-[22px] leading-none">{d.label}</span>
-            <button
-              type="button"
-              className="h-8 w-8 rounded-xl border border-stone-800 bg-stone-950 hover:bg-stone-800 text-stone-300 disabled:opacity-40 transition-colors"
-              onClick={() => handleChange(idx, -1)}
-              disabled={d.count === 0}
-              aria-label={`Verlaag aantal ${d.label}`}
-            >
-              -
-            </button>
-            <span className="w-7 text-center text-stone-100 text-lg tabular-nums">{d.count}</span>
-            <button
-              type="button"
-              className="h-8 w-8 rounded-xl border border-stone-800 bg-stone-950 hover:bg-stone-800 text-stone-300 disabled:opacity-40 transition-colors"
-              onClick={() => handleChange(idx, 1)}
-              disabled={totalDiceSelected >= MAX_DICE_PER_ROLL}
-              aria-label={`Verhoog aantal ${d.label}`}
-            >
-              +
-            </button>
+          <div
+            key={d.label}
+            className="flex items-center w-full rounded-2xl border px-3 py-2.5"
+            style={{
+              borderColor: palette.rowBorder,
+              backgroundColor: palette.rowBg,
+            }}
+          >
+            <div className="flex min-w-0 items-center gap-2.5">
+              <span className="inline-flex h-6 w-6 items-center justify-center">
+                <DiceTypeIcon sides={d.sides} className="h-5 w-5" />
+              </span>
+              <span className="w-10 font-mono text-base leading-none" style={{ color: palette.labelColor }}>{d.label}</span>
+            </div>
+
+            <div className="ml-auto inline-flex items-center gap-2">
+              <button
+                type="button"
+                className="h-8 w-8 rounded-xl border text-sm disabled:opacity-40 transition-colors"
+                style={{
+                  borderColor: palette.stepperBorder,
+                  backgroundColor: palette.stepperBg,
+                  color: palette.labelColor,
+                }}
+                onClick={() => handleChange(idx, -1)}
+                disabled={d.count === 0}
+                aria-label={`Verlaag aantal ${d.label}`}
+              >
+                -
+              </button>
+              <span className="w-8 text-center text-lg tabular-nums" style={{ color: palette.countColor }}>{d.count}</span>
+              <button
+                type="button"
+                className="h-8 w-8 rounded-xl border text-sm disabled:opacity-40 transition-colors"
+                style={{
+                  borderColor: palette.stepperBorder,
+                  backgroundColor: palette.stepperBg,
+                  color: palette.labelColor,
+                }}
+                onClick={() => handleChange(idx, 1)}
+                disabled={totalDiceSelected >= MAX_DICE_PER_ROLL}
+                aria-label={`Verhoog aantal ${d.label}`}
+              >
+                +
+              </button>
+            </div>
           </div>
         ))}
       </div>
 
-      <div className="mt-3 text-[11px] text-stone-500">{totalDiceSelected}/{MAX_DICE_PER_ROLL} geselecteerd</div>
+      <div className="mt-3 text-[11px]" style={{ color: palette.metaColor }}>
+        {totalDiceSelected}/{MAX_DICE_PER_ROLL} geselecteerd
+      </div>
 
       <button
         type="button"
-        className="mt-4 block w-full rounded-2xl px-6 py-3 text-stone-100 font-fantasy text-2xl uppercase tracking-[0.18em] shadow transition-colors disabled:opacity-40"
+        className="mt-4 block w-full rounded-2xl px-6 py-3 text-stone-100 font-fantasy text-xl uppercase tracking-[0.16em] shadow transition-all duration-200 hover:brightness-110 disabled:opacity-40"
         style={rollActionAccent}
         onClick={handleRoll}
         disabled={dice.every((d) => d.count === 0) || totalDiceSelected > MAX_DICE_PER_ROLL}

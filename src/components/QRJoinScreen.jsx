@@ -47,7 +47,7 @@ export default function QRJoinScreen({
   const displayError = localError || authError || sessionError;
 
   return (
-    <div className="relative flex min-h-screen w-full flex-col items-center justify-center overflow-hidden bg-stone-950">
+    <div className="relative flex min-h-screen w-full flex-col items-center justify-center overflow-hidden bg-zinc-950">
       {/* Background video */}
       <video
         ref={videoRef}
@@ -128,7 +128,7 @@ export default function QRJoinScreen({
                 type="button"
                 onClick={() => onUseFullLogin?.()}
                 disabled={isBusy}
-                className="h-11 w-full inline-flex items-center justify-center gap-2.5 rounded-xl border border-stone-700 bg-stone-900/85 px-4 font-story text-sm text-stone-200 transition-colors hover:border-amber-700/50 hover:text-amber-100 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="h-11 w-full inline-flex items-center justify-center gap-2.5 rounded-xl border border-white/10 bg-white/5 px-4 font-story text-sm text-stone-200 transition-colors hover:border-white/20 hover:text-stone-100 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <Mail className="h-4 w-4" />
                 Gebruik e-mail of maak een account
@@ -148,7 +148,7 @@ export default function QRJoinScreen({
                   placeholder="Bijv. Aragorn"
                   maxLength={32}
                   disabled={isBusy}
-                  className="h-11 w-full rounded-lg border border-stone-700 bg-stone-900/80 px-4 font-story text-sm text-stone-200 placeholder-stone-600 transition-colors focus:border-amber-600/60 focus:outline-none disabled:opacity-50"
+                  className="h-11 w-full rounded-lg border border-white/10 bg-white/5 px-4 font-story text-sm text-stone-200 placeholder-stone-600 transition-colors focus:border-amber-400/70 focus:outline-none disabled:opacity-50"
                 />
               </div>
 

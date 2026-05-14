@@ -29,8 +29,8 @@ export default function PreparationOfferModal({ isOpen, preparation, onAccept, o
       bodyClassName="px-0 py-0 overflow-y-hidden sm:px-0 sm:py-0"
     >
       <div className="flex flex-1 flex-col overflow-hidden">
-        <div className="relative overflow-hidden border-b border-stone-800/60 bg-gradient-to-br from-stone-950 via-stone-900 to-amber-950/30 p-5">
-          <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(245,158,11,0.16),transparent_40%)]" />
+        <div className="relative overflow-hidden border-b border-white/10 bg-gradient-to-br from-white/10 via-white/5 to-amber-950/20 p-5">
+          <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(251,146,60,0.12),transparent_40%)]"/>
           <div className="relative z-10 flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.22em] text-amber-300">
             <Crown className="h-3.5 w-3.5" />
             Een rol ligt voor je klaar
@@ -62,33 +62,33 @@ export default function PreparationOfferModal({ isOpen, preparation, onAccept, o
                 {statPills.map((pill) => (
                   <span
                     key={`${preparation.id}-${pill}`}
-                    className="rounded-full border border-stone-800 bg-stone-950/80 px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.16em] text-stone-400"
+                    className="rounded-full border border-white/10 bg-white/5 px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.16em] text-stone-400"
                   >
                     {pill}
                   </span>
                 ))}
               </div>
 
-              <div className="mt-4 rounded-xl border border-stone-800 bg-stone-950/50 p-4 text-sm leading-7 text-stone-300">
-                {preparation.bio || <span className="italic text-stone-600">Deze voorbereiding bevat nog geen bio.</span>}
+              <div className="mt-4 rounded-xl border border-white/10 bg-white/5 p-4 text-sm leading-7 text-stone-300">
+                {preparation.bio || <span className="italic text-stone-500">Deze voorbereiding bevat nog geen bio.</span>}
               </div>
             </div>
           </div>
         </div>
 
-        <div className="shrink-0 border-t border-stone-800/60 bg-stone-900/85 px-4 pt-4 pb-[calc(env(safe-area-inset-bottom,0px)+1rem)] sm:pb-4">
+        <div className="shrink-0 border-t border-white/10 bg-white/5 px-4 pt-4 pb-[calc(env(safe-area-inset-bottom,0px)+1rem)] sm:pb-4">
           <div className="flex flex-col gap-3 sm:flex-row sm:justify-end">
             <button
               type="button"
               onClick={onReject}
-              className="h-9 inline-flex items-center justify-center rounded-lg border border-stone-700 bg-stone-900/70 px-4 font-fantasy text-sm uppercase tracking-[0.16em] text-stone-300 transition-colors hover:border-rose-900/50 hover:text-rose-300"
+              className="h-9 inline-flex items-center justify-center rounded-lg border border-white/10 bg-white/5 px-4 font-fantasy text-sm uppercase tracking-[0.16em] text-stone-300 transition-all duration-200 hover:border-rose-400/50 hover:bg-rose-950/20 hover:text-rose-300 active:scale-95"
             >
               Weigeren
             </button>
             <button
               type="button"
               onClick={onAccept}
-              className="h-9 inline-flex items-center justify-center rounded-lg border border-amber-700/60 bg-gradient-to-r from-amber-700 to-amber-600 px-5 font-fantasy text-sm uppercase tracking-[0.16em] text-stone-100 shadow-sm transition-colors hover:from-amber-600 hover:to-amber-500"
+              className="h-9 inline-flex items-center justify-center rounded-lg border border-amber-700/60 bg-gradient-to-r from-amber-700 to-amber-600 px-5 font-fantasy text-sm uppercase tracking-[0.16em] text-stone-100 shadow-sm transition-all duration-200 hover:from-amber-600 hover:to-amber-500 active:scale-95 hover:shadow-lg hover:shadow-amber-700/40"
             >
               Neem deze rol aan
             </button>

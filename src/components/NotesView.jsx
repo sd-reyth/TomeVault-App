@@ -83,13 +83,13 @@ function NotesView({
   };
 
   return (
-    <div className="h-full flex flex-col gap-4 md:gap-6 lg:flex-row">
-      <div className="h-52 w-full shrink-0 overflow-hidden rounded-xl border border-stone-800/60 bg-stone-900/40 shadow-md backdrop-blur-sm sm:h-60 lg:h-full lg:w-1/3">
-        <div className="flex items-center justify-between gap-3 border-b border-stone-800/50 bg-stone-900/80 p-4">
-          <h3 className="font-fantasy font-bold text-stone-200 tracking-wider">Kronieken</h3>
+    <div className="flex h-full flex-col gap-4 md:gap-6 lg:flex-row">
+      <div className="h-52 w-full shrink-0 overflow-hidden rounded-2xl border border-white/10 bg-white/5 shadow-md backdrop-blur-sm sm:h-60 lg:h-full lg:w-1/3">
+        <div className="flex items-center justify-between gap-3 border-b border-white/10 bg-zinc-950/45 p-4">
+          <h3 className="font-medium tracking-[0.12em] text-stone-100">Kronieken</h3>
           <button 
             onClick={handleCreateNote}
-            className="h-9 w-9 inline-flex items-center justify-center rounded-lg border border-amber-700/60 bg-gradient-to-r from-amber-700 to-amber-600 text-stone-100 shadow-sm transition-colors hover:from-amber-600 hover:to-amber-500"
+            className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-amber-500/35 bg-gradient-to-r from-amber-700 to-amber-600 text-stone-100 shadow-sm transition-all duration-200 ease-out hover:from-amber-600 hover:to-amber-500 hover:shadow-lg hover:shadow-amber-700/35 active:scale-[0.985]"
             title="Nieuwe notitie"
           >
             <FilePlus2 className="h-4 w-4" />
@@ -98,7 +98,7 @@ function NotesView({
         
         <div className="flex-1 overflow-y-auto no-scrollbar p-2 space-y-1">
           {myNotes.length === 0 ? (
-            <div className="text-center p-4 text-stone-500 font-story italic text-sm">
+            <div className="p-4 text-center text-sm italic text-stone-500">
               Je kroniek is nog leeg...
             </div>
           ) : (
@@ -106,21 +106,21 @@ function NotesView({
               <div 
                 key={note.id}
                 onClick={() => setActiveNoteId(note.id)}
-                className={`p-3 rounded-lg cursor-pointer transition-all flex justify-between items-start group
+                className={`group flex cursor-pointer items-start justify-between rounded-xl p-3 transition-all duration-200 ease-out
                   ${activeNoteId === note.id 
-                    ? 'bg-amber-950/30 border border-amber-900/50 shadow-inner' 
-                    : 'hover:bg-stone-800/50 border border-transparent'}
+                    ? 'border border-amber-500/25 bg-amber-500/10 shadow-inner' 
+                    : 'border border-transparent hover:bg-white/7'}
                 `}
               >
                 <div className="min-w-0 flex-1 pr-2">
-                  <h4 className={`font-fantasy tracking-wide text-sm truncate ${activeNoteId === note.id ? 'text-amber-500' : 'text-stone-300 group-hover:text-stone-200'}`}>
+                  <h4 className={`truncate text-sm tracking-[0.08em] ${activeNoteId === note.id ? 'text-amber-300' : 'text-stone-300 group-hover:text-stone-100'}`}>
                     {note.title}
                   </h4>
                   <p className="text-[10px] text-stone-500 mt-1">{note.lastEdited}</p>
                 </div>
                 <button 
                   onClick={(e) => { e.stopPropagation(); handleDeleteNote(note.id); }}
-                  className="rounded p-1 text-stone-600 opacity-100 transition-opacity hover:bg-stone-800 hover:text-rose-500 lg:opacity-0 lg:group-hover:opacity-100"
+                  className="rounded p-1 text-stone-600 opacity-100 transition-all hover:bg-white/7 hover:text-rose-300 lg:opacity-0 lg:group-hover:opacity-100"
                   title="Verwijder"
                 >
                   <Trash2 className="w-3.5 h-3.5" />
@@ -131,33 +131,33 @@ function NotesView({
         </div>
       </div>
 
-      <div className="relative flex min-h-[360px] flex-1 flex-col overflow-hidden rounded-xl border border-stone-800/60 bg-stone-900/40 shadow-md backdrop-blur-sm lg:min-h-0">
+      <div className="relative flex min-h-[360px] flex-1 flex-col overflow-hidden rounded-2xl border border-white/10 bg-white/5 shadow-md backdrop-blur-sm lg:min-h-0">
         <div className="absolute inset-0 opacity-[0.03] bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI4IiBoZWlnaHQ9IjgiPgo8cmVjdCB3aWR0aD0iOCIgaGVpZ2h0PSI4IiBmaWxsPSIjZmZmIiBmaWxsLW9wYWNpdHk9IjAuMSIvPgo8L3N2Zz4=')] pointer-events-none z-0" />
         
         {activeNote ? (
-          <div className="flex-1 flex flex-col p-4 md:p-6 relative z-10 h-full">
+          <div className="relative z-10 flex h-full flex-1 flex-col p-4 md:p-6">
             <input
               type="text"
               value={activeNote.title}
               onChange={(e) => handleUpdateNote('title', e.target.value)}
-              className="bg-transparent border-b border-stone-800 focus:border-amber-700/50 text-2xl md:text-3xl font-fantasy font-bold text-stone-100 pb-2 mb-4 outline-none transition-colors"
+              className="mb-4 border-b border-white/10 bg-transparent pb-2 text-2xl font-semibold tracking-[0.08em] text-stone-100 outline-none transition-colors focus:border-amber-500/45 md:text-3xl"
               placeholder="Titel van je notitie..."
             />
             <textarea
               value={activeNote.content}
               onChange={(e) => handleUpdateNote('content', e.target.value)}
-              className="flex-1 bg-transparent text-stone-300 font-story leading-relaxed text-sm md:text-base outline-none resize-none no-scrollbar placeholder-stone-600"
+              className="no-scrollbar flex-1 resize-none bg-transparent text-sm leading-relaxed text-stone-200 outline-none placeholder-stone-600 md:text-base"
               placeholder="Begin met schrijven..."
             />
-            <div className="mt-4 flex flex-col gap-2 border-t border-stone-800/50 pt-3 text-xs text-stone-500 font-sans sm:flex-row sm:items-center sm:justify-between">
+            <div className="mt-4 flex flex-col gap-2 border-t border-white/10 pt-3 text-xs text-stone-500 sm:flex-row sm:items-center sm:justify-between">
               <span>Automatisch opgeslagen</span>
               <span className="flex items-center gap-1.5"><Save className="w-3.5 h-3.5" /> Opgeslagen</span>
             </div>
           </div>
         ) : (
-          <div className="flex-1 flex flex-col items-center justify-center text-stone-600 relative z-10 p-6 text-center">
+          <div className="relative z-10 flex flex-1 flex-col items-center justify-center p-6 text-center text-stone-600">
             <NotebookPen className="w-12 h-12 mb-4 opacity-50" />
-            <p className="font-story italic">Selecteer een notitie of maak een nieuwe aan om te beginnen met schrijven.</p>
+            <p className="italic">Selecteer een notitie of maak een nieuwe aan om te beginnen met schrijven.</p>
           </div>
         )}
       </div>

@@ -8,6 +8,7 @@ export default function SessionManageModal({
   onClose,
   sessionId,
   sessionNumber,
+  theme,
   onSaveSessionNumber,
   onOpenShare,
 }) {
@@ -23,6 +24,13 @@ export default function SessionManageModal({
   const canonicalSessionCode = toLegacyHashJoinTag(sessionId || '');
   const scannerSafeCode = toSafeJoinTagForLink(sessionId || '');
   const joinUrl = buildSessionInviteUrl(sessionId || '');
+  const accent = theme === 'purple' ? 'purple' : (theme === 'green' ? 'emerald' : 'amber');
+  const actionClass = theme === 'purple'
+    ? 'border-violet-500/35 bg-gradient-to-r from-violet-700 to-violet-600 hover:from-violet-600 hover:to-violet-500 hover:shadow-violet-700/40'
+    : (theme === 'green'
+      ? 'border-emerald-500/35 bg-gradient-to-r from-emerald-700 to-emerald-600 hover:from-emerald-600 hover:to-emerald-500 hover:shadow-emerald-700/40'
+      : 'border-amber-500/35 bg-gradient-to-r from-amber-700 to-amber-600 hover:from-amber-600 hover:to-amber-500 hover:shadow-amber-700/40');
+  const codeColor = theme === 'purple' ? 'text-violet-300' : (theme === 'green' ? 'text-emerald-300' : 'text-amber-300');
 
   const handleCopy = async (value, type) => {
     try {
@@ -47,20 +55,20 @@ export default function SessionManageModal({
       title="Sessiebeheer"
       icon={Hash}
       subtitle="Werk het campagnenummer bij en houd uitnodigingsgegevens direct bij de hand."
-      accent="amber"
+      accent={accent}
       bodyClassName="gap-5"
     >
 
           {/* Session number stepper */}
           <div>
-            <label className="block text-[10px] font-bold text-stone-500 uppercase tracking-widest mb-2">
+            <label className="mb-2 block text-[10px] font-semibold uppercase tracking-[0.18em] text-stone-500">
               Campagne Sessienummer
             </label>
             <div className="flex items-center gap-2">
               <button
                 type="button"
                 onClick={() => setDraftSession((v) => Math.max(1, Number(v || 1) - 1))}
-                className="h-9 w-9 rounded-lg border border-stone-700 bg-stone-950/70 text-stone-300 hover:text-amber-400 hover:border-amber-700/50 transition-colors"
+                className="h-10 w-10 rounded-xl border border-white/10 bg-white/5 text-stone-300 transition-all duration-200 ease-out hover:bg-white/7 hover:text-stone-100 active:scale-[0.985]"
                 title="Vorige sessie"
               >
                 −
@@ -70,12 +78,12 @@ export default function SessionManageModal({
                 min="1"
                 value={Math.max(1, Number(draftSession) || 1)}
                 onChange={(e) => setDraftSession(Math.max(1, Number(e.target.value) || 1))}
-                className="flex-1 h-9 bg-stone-950/80 border border-stone-700 rounded-lg px-3 text-sm text-stone-200 text-center focus:outline-none focus:border-amber-600/50 transition-colors font-fantasy tracking-wider hide-arrows"
+                className="hide-arrows h-10 flex-1 rounded-xl border border-white/10 bg-white/5 px-3 text-center text-sm tracking-[0.12em] text-stone-100 transition-colors focus:border-amber-500/50 focus:bg-white/7 focus:outline-none"
               />
               <button
                 type="button"
                 onClick={() => setDraftSession((v) => (Number(v) || 1) + 1)}
-                className="h-9 w-9 rounded-lg border border-stone-700 bg-stone-950/70 text-stone-300 hover:text-amber-400 hover:border-amber-700/50 transition-colors"
+                className="h-10 w-10 rounded-xl border border-white/10 bg-white/5 text-stone-300 transition-all duration-200 ease-out hover:bg-white/7 hover:text-stone-100 active:scale-[0.985]"
                 title="Volgende sessie"
               >
                 +
@@ -86,23 +94,23 @@ export default function SessionManageModal({
           {/* Session code + URL */}
           {sessionId ? (
             <div>
-              <label className="block text-[10px] font-bold text-stone-500 uppercase tracking-widest mb-2">
+              <label className="mb-2 block text-[10px] font-semibold uppercase tracking-[0.18em] text-stone-500">
                 Uitnodigingsgegevens
               </label>
-              <div className="rounded-lg border border-stone-800 bg-stone-950/70 divide-y divide-stone-800/60">
+              <div className="divide-y divide-white/10 rounded-2xl border border-white/10 bg-white/5">
                 {/* Code row */}
                 <div className="flex flex-col items-start gap-3 px-3 py-2.5 sm:flex-row sm:items-center sm:justify-between">
                   <div className="min-w-0 flex items-center gap-2">
-                    <Hash className="w-3.5 h-3.5 text-stone-500 shrink-0" />
+                    <Hash className="h-3.5 w-3.5 shrink-0 text-stone-500" />
                     <div className="min-w-0">
-                      <div className="text-[9px] uppercase tracking-[0.2em] text-stone-500 mb-0.5">Sessiecode</div>
-                      <div className="font-fantasy text-xs tracking-[0.14em] text-amber-300 truncate">{canonicalSessionCode}</div>
+                      <div className="mb-0.5 text-[9px] uppercase tracking-[0.2em] text-stone-500">Sessiecode</div>
+                      <div className={`truncate text-xs tracking-[0.14em] ${codeColor}`}>{canonicalSessionCode}</div>
                     </div>
                   </div>
                   <button
                     type="button"
                     onClick={() => handleCopy(canonicalSessionCode, 'code')}
-                    className="inline-flex h-8 w-full shrink-0 items-center justify-center gap-1.5 rounded-md border border-stone-700 bg-stone-900 px-2.5 text-[10px] font-fantasy uppercase tracking-[0.12em] text-stone-400 transition-colors hover:bg-stone-800 hover:text-amber-300 sm:h-7 sm:w-auto"
+                    className="inline-flex h-9 w-full shrink-0 items-center justify-center gap-1.5 rounded-xl border border-white/10 bg-white/5 px-2.5 text-[10px] uppercase tracking-[0.12em] text-stone-300 transition-all duration-200 ease-out hover:bg-white/7 hover:text-stone-100 active:scale-[0.985] sm:h-8 sm:w-auto"
                   >
                     <Copy className="h-3 w-3" />
                     {copyFeedback === 'code' ? 'Klaar!' : 'Kopieer'}
@@ -112,16 +120,16 @@ export default function SessionManageModal({
                 {/* URL row */}
                 <div className="flex flex-col items-start gap-3 px-3 py-2.5 sm:flex-row sm:items-center sm:justify-between">
                   <div className="min-w-0 flex items-center gap-2">
-                    <Link className="w-3.5 h-3.5 text-stone-500 shrink-0" />
+                    <Link className="h-3.5 w-3.5 shrink-0 text-stone-500" />
                     <div className="min-w-0">
-                      <div className="text-[9px] uppercase tracking-[0.2em] text-stone-500 mb-0.5">Join Link</div>
-                      <div className="text-xs text-stone-400 truncate">{joinUrl}</div>
+                      <div className="mb-0.5 text-[9px] uppercase tracking-[0.2em] text-stone-500">Join Link</div>
+                      <div className="truncate text-xs text-stone-300">{joinUrl}</div>
                     </div>
                   </div>
                   <button
                     type="button"
                     onClick={() => handleCopy(joinUrl, 'url')}
-                    className="inline-flex h-8 w-full shrink-0 items-center justify-center gap-1.5 rounded-md border border-stone-700 bg-stone-900 px-2.5 text-[10px] font-fantasy uppercase tracking-[0.12em] text-stone-400 transition-colors hover:bg-stone-800 hover:text-amber-300 sm:h-7 sm:w-auto"
+                    className="inline-flex h-9 w-full shrink-0 items-center justify-center gap-1.5 rounded-xl border border-white/10 bg-white/5 px-2.5 text-[10px] uppercase tracking-[0.12em] text-stone-300 transition-all duration-200 ease-out hover:bg-white/7 hover:text-stone-100 active:scale-[0.985] sm:h-8 sm:w-auto"
                   >
                     <Copy className="h-3 w-3" />
                     {copyFeedback === 'url' ? 'Klaar!' : 'Kopieer'}
@@ -131,27 +139,25 @@ export default function SessionManageModal({
             </div>
           ) : null}
 
-          {/* Share via QR */}
-          {sessionId ? (
-            <button
-              type="button"
-              onClick={() => {
-                onOpenShare?.();
-                onClose();
-              }}
-              className="h-9 w-full inline-flex items-center justify-center gap-2 rounded-lg border border-stone-700 bg-stone-800/60 font-fantasy text-sm uppercase tracking-[0.14em] text-stone-300 transition-colors hover:bg-stone-700/60 hover:text-amber-300"
-            >
-              <Share2 className="h-4 w-4" />
-              Deel via QR-code
-            </button>
-          ) : null}
-
           {/* Save */}
-          <div className="-mt-1 flex justify-stretch pt-1 sm:justify-end">
+          <div className="-mt-1 grid grid-cols-1 gap-3 pt-1 sm:grid-cols-2">
+            {sessionId ? (
+              <button
+                type="button"
+                onClick={() => {
+                  onOpenShare?.();
+                  onClose();
+                }}
+                className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/5 text-sm uppercase tracking-[0.14em] text-stone-300 transition-all duration-200 ease-out hover:bg-white/7 hover:text-stone-100 active:scale-[0.985]"
+              >
+                <Share2 className="h-4 w-4" />
+                Deel via QR-code
+              </button>
+            ) : null}
             <button
               type="button"
               onClick={handleSave}
-              className="inline-flex h-9 w-full items-center justify-center gap-2 rounded-lg border border-amber-700/60 bg-gradient-to-r from-amber-700 to-amber-600 px-4 font-fantasy text-sm uppercase tracking-[0.16em] text-stone-100 shadow-sm transition-colors hover:from-amber-600 hover:to-amber-500 sm:w-auto"
+              className={`inline-flex h-10 w-full items-center justify-center gap-2 rounded-xl border px-4 text-sm uppercase tracking-[0.16em] text-stone-100 shadow-sm transition-all duration-200 ease-out hover:shadow-lg active:scale-[0.985] ${actionClass}`}
             >
               <Save className="h-4 w-4" /> Opslaan
             </button>

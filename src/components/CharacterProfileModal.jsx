@@ -120,9 +120,9 @@ function CharacterProfileModal({ isOpen, onClose, character, role, currentPlayer
       bodyClassName="px-0 py-0 overflow-y-hidden sm:px-0 sm:py-0"
     >
         <div className="flex flex-1 flex-col overflow-y-auto no-scrollbar px-4 pb-4 pt-4 sm:px-6 sm:pb-6" style={bannerAccent ? { background: `linear-gradient(120deg, ${bannerAccent}22, rgba(12,10,15,0.96) 40%)` } : undefined}>
-          <div className="mb-4 rounded-2xl border border-stone-800/70 bg-stone-950/55 p-4 shadow-inner">
+          <div className="mb-4 rounded-2xl border border-white/10 bg-zinc-950/72 p-4 shadow-inner">
             <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-          <label className={`relative group w-24 h-24 md:w-32 md:h-32 rounded-xl border-4 ${character.isNpc ? 'border-rose-950 bg-rose-900/50' : 'border-stone-900 bg-stone-800'} flex items-center justify-center overflow-hidden transition-all shadow-xl ${canEdit ? 'cursor-pointer hover:border-amber-700/50' : ''}`}>
+          <label className={`relative group flex h-24 w-24 items-center justify-center overflow-hidden rounded-xl border-2 md:h-32 md:w-32 ${character.isNpc ? 'border-rose-800/45 bg-rose-950/25' : 'border-white/15 bg-white/5'} transition-all shadow-xl ${canEdit ? 'cursor-pointer hover:border-amber-500/55' : ''}`}>
             {canEdit && <input type="file" accept="image/*" className="hidden" onChange={handleImageChange} />}
             {(() => {
               const displayAvatar = resolveDisplayAvatar(formData.avatar, character.id);
@@ -134,7 +134,7 @@ function CharacterProfileModal({ isOpen, onClose, character, role, currentPlayer
                     className="w-full h-full object-cover object-center scale-[1.18]"
                   />
                   {canEdit && (
-                    <div className="absolute inset-0 flex items-center justify-center bg-stone-950/60 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <div className="absolute inset-0 flex items-center justify-center bg-zinc-950/62 opacity-0 transition-opacity group-hover:opacity-100">
                       <ImagePlus className="w-6 h-6 text-stone-200" />
                     </div>
                   )}
@@ -159,14 +159,14 @@ function CharacterProfileModal({ isOpen, onClose, character, role, currentPlayer
                     type="text" 
                     value={formData.name || ''} 
                     onChange={e => handleChange('name', e.target.value)}
-                    className="w-full bg-transparent border-b border-stone-700 focus:border-amber-500 text-2xl md:text-3xl font-fantasy font-bold text-stone-100 px-1 py-1 outline-none transition-colors"
+                    className="w-full bg-transparent border-b border-white/10 focus:border-amber-400/70 text-2xl md:text-3xl font-fantasy font-bold text-stone-100 px-1 py-1 outline-none transition-colors"
                     placeholder="Karakter Naam"
                   />
                   <input 
                     type="text" 
                     value={formData.subtitle || ''} 
                     onChange={e => handleChange('subtitle', e.target.value)}
-                    className="w-full bg-transparent border-b border-transparent hover:border-stone-700 focus:border-stone-500 text-sm font-story italic text-stone-400 px-1 py-1 mt-1 outline-none transition-colors"
+                    className="w-full bg-transparent border-b border-transparent hover:border-white/10 focus:border-white/20 text-sm font-story italic text-stone-400 px-1 py-1 mt-1 outline-none transition-colors"
                     placeholder="Ras / Klasse (bijv. Elf Ranger)"
                   />
                 </>
@@ -190,7 +190,7 @@ function CharacterProfileModal({ isOpen, onClose, character, role, currentPlayer
                       className={`shrink-0 w-10 h-10 rounded-lg overflow-hidden border-2 transition-all ${
                         formData.avatar === url
                           ? 'border-amber-500 shadow-[0_0_6px_rgba(217,119,6,0.5)]'
-                          : 'border-stone-700 hover:border-amber-700/60'
+                          : 'border-white/10 hover:border-amber-500/60'
                       }`}
                     >
                       <img src={url} alt="" className="w-full h-full object-cover object-center scale-[1.2]" loading="lazy" />
@@ -199,7 +199,7 @@ function CharacterProfileModal({ isOpen, onClose, character, role, currentPlayer
                   <button
                     type="button"
                     onClick={() => setShowAllPromptAvatars((value) => !value)}
-                    className={`shrink-0 w-10 h-10 rounded-lg border-2 transition-all text-stone-300 font-fantasy text-lg ${showAllPromptAvatars ? 'border-amber-500 bg-amber-950/30' : 'border-stone-700 hover:border-amber-700/60 bg-stone-900/60'}`}
+                    className={`shrink-0 w-10 h-10 rounded-lg border-2 text-lg font-fantasy text-stone-300 transition-all ${showAllPromptAvatars ? 'border-amber-500 bg-amber-950/30' : 'border-white/10 bg-white/5 hover:border-amber-500/60 hover:bg-white/7'}`}
                     title="Toon alle prompt avatars"
                   >
                     ...
@@ -207,14 +207,14 @@ function CharacterProfileModal({ isOpen, onClose, character, role, currentPlayer
                 </div>
 
                 {showAllPromptAvatars && (
-                  <div className="mt-3 max-h-52 overflow-y-auto no-scrollbar rounded-lg border border-stone-800 bg-stone-950/40 p-2">
+                  <div className="mt-3 max-h-52 overflow-y-auto no-scrollbar rounded-lg border border-white/10 bg-white/5 p-2">
                     <div className="grid grid-cols-5 gap-1.5 sm:grid-cols-6">
                       {PROFILE_PROMPT_AVATARS.map((url) => (
                         <button
                           key={`all-${url}`}
                           type="button"
                           onClick={() => handlePickAvatar(url)}
-                          className={`aspect-square rounded-md overflow-hidden border transition-all ${formData.avatar === url ? 'border-amber-500 shadow-[0_0_6px_rgba(217,119,6,0.5)]' : 'border-stone-700 hover:border-amber-700/60'}`}
+                          className={`aspect-square rounded-md overflow-hidden border transition-all ${formData.avatar === url ? 'border-amber-500 shadow-[0_0_6px_rgba(217,119,6,0.5)]' : 'border-white/10 hover:border-amber-500/60'}`}
                         >
                           <img src={url} alt="" className="w-full h-full object-cover object-center scale-[1.2]" loading="lazy" />
                         </button>
@@ -262,27 +262,27 @@ function CharacterProfileModal({ isOpen, onClose, character, role, currentPlayer
             )}
 
             {/* Quick Stats Grid */}
-            <div className="grid grid-cols-3 gap-3 bg-stone-950/50 p-3 rounded-xl border border-stone-800/50 shadow-inner">
+            <div className="grid grid-cols-3 gap-3 bg-white/5 p-3 rounded-xl border border-white/10 shadow-inner">
               <div className="flex flex-col items-center justify-center p-2">
                 <span className="text-[10px] font-bold uppercase tracking-widest text-stone-500 mb-1">HP</span>
                 <div className="flex items-baseline gap-1">
                   {canEdit ? (
-                    <input type="number" value={formData.hp || 0} onChange={e => handleChange('hp', e.target.value)} className="w-8 bg-transparent text-center font-bold text-lg text-amber-400 outline-none hide-arrows border-b border-stone-700 focus:border-amber-500" />
+                    <input type="number" value={formData.hp || 0} onChange={e => handleChange('hp', e.target.value)} className="w-8 bg-transparent text-center font-bold text-lg text-amber-400 outline-none hide-arrows border-b border-white/10 focus:border-amber-400/70" />
                   ) : (
                     <span className="font-bold text-lg text-amber-400">{formData.hp}</span>
                   )}
                   <span className="text-stone-600 text-xs">/</span>
                   {canEdit ? (
-                    <input type="number" value={formData.maxHp || 0} onChange={e => handleChange('maxHp', e.target.value)} className="w-8 bg-transparent text-center font-bold text-xs text-stone-500 outline-none hide-arrows border-b border-stone-700 focus:border-amber-500" />
+                    <input type="number" value={formData.maxHp || 0} onChange={e => handleChange('maxHp', e.target.value)} className="w-8 bg-transparent text-center font-bold text-xs text-stone-500 outline-none hide-arrows border-b border-white/10 focus:border-amber-400/70" />
                   ) : (
                     <span className="font-bold text-xs text-stone-500">{formData.maxHp}</span>
                   )}
                 </div>
               </div>
-              <div className="flex flex-col items-center justify-center p-2 border-l border-r border-stone-800/50">
+              <div className="flex flex-col items-center justify-center p-2 border-l border-r border-white/10">
                 <span className="text-[10px] font-bold uppercase tracking-widest text-stone-500 mb-1">AC</span>
                 {canEdit ? (
-                  <input type="number" value={formData.ac || 0} onChange={e => handleChange('ac', e.target.value)} className="w-10 bg-transparent text-center font-bold text-lg text-stone-200 outline-none hide-arrows border-b border-stone-700 focus:border-amber-500" />
+                  <input type="number" value={formData.ac || 0} onChange={e => handleChange('ac', e.target.value)} className="w-10 bg-transparent text-center font-bold text-lg text-stone-200 outline-none hide-arrows border-b border-white/10 focus:border-amber-400/70" />
                 ) : (
                   <span className="font-bold text-lg text-stone-200">{formData.ac}</span>
                 )}
@@ -290,7 +290,7 @@ function CharacterProfileModal({ isOpen, onClose, character, role, currentPlayer
               <div className="flex flex-col items-center justify-center p-2">
                 <span className="text-[10px] font-bold uppercase tracking-widest text-stone-500 mb-1" title="Initiative Modifier">Init Mod</span>
                 {canEdit ? (
-                  <input type="number" value={formData.initMod || 0} onChange={e => handleChange('initMod', e.target.value)} className="w-10 bg-transparent text-center font-bold text-lg text-stone-200 outline-none hide-arrows border-b border-stone-700 focus:border-amber-500" />
+                  <input type="number" value={formData.initMod || 0} onChange={e => handleChange('initMod', e.target.value)} className="w-10 bg-transparent text-center font-bold text-lg text-stone-200 outline-none hide-arrows border-b border-white/10 focus:border-amber-400/70" />
                 ) : (
                   <span className="font-bold text-lg text-stone-200">{formData.initMod >= 0 ? `+${formData.initMod}` : formData.initMod}</span>
                 )}
@@ -344,7 +344,7 @@ function CharacterProfileModal({ isOpen, onClose, character, role, currentPlayer
                 </h4>
                 <div className="flex flex-wrap gap-2">
                   {(formData.customStats || []).map(stat => (
-                    <div key={stat.id} className="flex items-center bg-stone-950/50 border border-stone-800/50 rounded-lg overflow-hidden shadow-inner focus-within:border-amber-700/50 transition-colors">
+                    <div key={stat.id} className="flex items-center bg-white/5 border border-white/10 rounded-lg overflow-hidden shadow-inner focus-within:border-amber-400/50 transition-colors">
                       <input 
                         list="stat-options" 
                         value={stat.name}
@@ -352,7 +352,7 @@ function CharacterProfileModal({ isOpen, onClose, character, role, currentPlayer
                           const cleanAbbr = e.target.value.split(' - ')[0].trim().toUpperCase();
                           updateCustomStat(stat.id, 'name', cleanAbbr);
                         }}
-                        className="w-16 bg-transparent text-[10px] font-bold text-amber-600 uppercase tracking-widest p-1.5 outline-none border-r border-stone-800/50 text-center placeholder-stone-700"
+                        className="w-16 bg-transparent text-[10px] font-bold text-amber-600 uppercase tracking-widest p-1.5 outline-none border-r border-white/10 text-center placeholder-stone-600"
                         placeholder="NAAM"
                       />
                       <input 
@@ -361,12 +361,12 @@ function CharacterProfileModal({ isOpen, onClose, character, role, currentPlayer
                         onChange={e => updateCustomStat(stat.id, 'value', e.target.value)}
                         className="w-10 bg-transparent text-center text-sm font-bold text-stone-200 outline-none hide-arrows p-1"
                       />
-                      <button onClick={() => removeCustomStat(stat.id)} className="p-1.5 text-stone-600 hover:text-rose-500 transition-colors bg-stone-900/50 hover:bg-stone-800" title="Verwijder eigenschap">
+                      <button onClick={() => removeCustomStat(stat.id)} className="p-1.5 text-stone-500 hover:text-rose-400 transition-colors bg-rose-950/30 hover:bg-rose-900/40" title="Verwijder eigenschap">
                         <X className="w-3 h-3" />
                       </button>
                     </div>
                   ))}
-                  <button onClick={addCustomStat} className="flex items-center justify-center w-8 h-8 rounded-lg border border-dashed border-stone-700 text-stone-500 hover:text-amber-500 hover:border-amber-700/50 transition-colors bg-stone-950/30" title="Voeg eigenschap toe">
+                  <button onClick={addCustomStat} className="flex items-center justify-center w-8 h-8 rounded-lg border border-dashed border-white/10 text-stone-500 hover:text-amber-400 hover:border-amber-400/50 transition-colors bg-white/5" title="Voeg eigenschap toe">
                     <Plus className="w-4 h-4" />
                   </button>
                 </div>

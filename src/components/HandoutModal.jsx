@@ -96,18 +96,11 @@ function HandoutModal({ isOpen, onClose, handout, role, players = [], currentPla
       bodyClassName="px-0 py-0 overflow-y-hidden sm:px-0 sm:py-0"
     >
         <div className="flex-1 overflow-y-auto no-scrollbar p-5 md:p-8">
-          {isGM && handout && !isEditing ? (
-            <div className="mb-4 flex justify-end">
-              <button onClick={() => setIsEditing(true)} className="px-3 py-1.5 bg-stone-800 hover:bg-stone-700 text-stone-300 rounded text-xs font-fantasy tracking-wider uppercase transition-colors">
-                Bewerken
-              </button>
-            </div>
-          ) : null}
           {isEditing && isGM ? (
             <form id="handout-form" onSubmit={handleSave} className="flex flex-col gap-5">
               
               <div className="flex justify-center w-full">
-                <label className="relative group cursor-pointer w-full h-32 md:h-40 rounded-xl border-2 border-dashed border-stone-700 bg-stone-950/50 hover:bg-stone-900/80 hover:border-amber-700/50 flex items-center justify-center overflow-hidden transition-all shadow-inner">
+                <label className="relative group cursor-pointer w-full h-32 md:h-40 rounded-xl border-2 border-dashed border-white/20 bg-white/5 hover:bg-white/7 hover:border-amber-400/50 flex items-center justify-center overflow-hidden transition-all shadow-inner">
                   <input type="file" accept="image/*" className="hidden" onChange={handleImageChange} />
                   {formData.imageUrl ? (
                     <>
@@ -148,8 +141,8 @@ function HandoutModal({ isOpen, onClose, handout, role, players = [], currentPla
                           onClick={() => handlePickPlaceholder(url)}
                           className={`aspect-square rounded-lg overflow-hidden border-2 transition-all ${
                             formData.imageUrl === url
-                              ? 'border-amber-500 shadow-[0_0_8px_rgba(217,119,6,0.5)]'
-                              : 'border-stone-700 hover:border-amber-700/60'
+                              ? 'border-amber-400 shadow-[0_0_8px_rgba(251,146,60,0.5)]'
+                              : 'border-white/10 hover:border-amber-400/50'
                           }`}
                         >
                           <img src={url} alt="" className="w-full h-full object-cover scale-[1.25]" loading="lazy" />
@@ -158,7 +151,7 @@ function HandoutModal({ isOpen, onClose, handout, role, players = [], currentPla
                       <button
                         type="button"
                         onClick={() => setShowAllPlaceholders((v) => !v)}
-                        className={`aspect-square rounded-lg border-2 transition-all text-stone-300 font-fantasy text-lg ${showAllPlaceholders ? 'border-amber-500 bg-amber-950/30' : 'border-stone-700 hover:border-amber-700/60 bg-stone-900/60'}`}
+                        className={`aspect-square rounded-lg border-2 transition-all text-stone-300 font-fantasy text-lg ${showAllPlaceholders ? 'border-amber-400 bg-amber-950/30' : 'border-white/10 hover:border-amber-400/50 bg-white/5'}`}
                         title="Toon alle placeholders"
                       >
                         ...
@@ -166,14 +159,14 @@ function HandoutModal({ isOpen, onClose, handout, role, players = [], currentPla
                     </div>
 
                     {showAllPlaceholders && (
-                      <div className="mt-3 max-h-52 overflow-y-auto no-scrollbar rounded-lg border border-stone-800 bg-stone-950/40 p-2">
+                      <div className="mt-3 max-h-52 overflow-y-auto no-scrollbar rounded-lg border border-white/10 bg-white/5 p-2">
                         <div className="grid grid-cols-8 gap-1.5">
                           {allImages.map((url) => (
                             <button
                               key={`all-${url}`}
                               type="button"
                               onClick={() => handlePickPlaceholder(url)}
-                              className={`aspect-square rounded-md overflow-hidden border transition-all ${formData.imageUrl === url ? 'border-amber-500 shadow-[0_0_6px_rgba(217,119,6,0.4)]' : 'border-stone-700 hover:border-amber-700/60'}`}
+                              className={`aspect-square rounded-md overflow-hidden border transition-all ${formData.imageUrl === url ? 'border-amber-400 shadow-[0_0_6px_rgba(251,146,60,0.4)]' : 'border-white/10 hover:border-amber-400/50'}`}
                             >
                               <img src={url} alt="" className="w-full h-full object-cover scale-[1.25]" loading="lazy" />
                             </button>
@@ -195,7 +188,7 @@ function HandoutModal({ isOpen, onClose, handout, role, players = [], currentPla
                     value={formData.title} 
                     onChange={e => setFormData({...formData, title: e.target.value})}
                     placeholder="Bijv. Geheime Brief van de Koning"
-                    className="w-full bg-stone-950/50 border border-stone-800 rounded-lg px-4 py-3 text-lg font-fantasy font-bold text-stone-100 placeholder-stone-600 focus:outline-none focus:border-amber-600/50 transition-colors"
+                    className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-lg font-fantasy font-bold text-stone-100 placeholder-stone-500 focus:outline-none focus:border-amber-400/70 focus:bg-white/7 transition-all duration-200"
                   />
                 </div>
                 <div className="w-full md:w-1/3">
@@ -209,7 +202,7 @@ function HandoutModal({ isOpen, onClose, handout, role, players = [], currentPla
                       assignedToUid: e.target.value === 'npc' ? null : prev.assignedToUid,
                       assignedToNick: e.target.value === 'npc' ? null : prev.assignedToNick,
                     }))}
-                    className="w-full bg-stone-950/50 border border-stone-800 rounded-lg px-4 py-3 text-sm font-fantasy tracking-wider text-stone-300 focus:outline-none focus:border-amber-600/50 transition-colors appearance-none"
+                    className="w-full appearance-none rounded-lg border border-white/10 bg-white/5 px-4 py-3 text-sm font-fantasy tracking-wider text-stone-300 transition-colors focus:outline-none focus:border-amber-500/60 focus:bg-white/7"
                   >
                     <option value="clue">Clue / Document</option>
                     <option value="loot">Loot / Voorwerp</option>
@@ -234,7 +227,7 @@ function HandoutModal({ isOpen, onClose, handout, role, players = [], currentPla
                       value={formData.npcSubtitle || ''}
                       onChange={e => setFormData({ ...formData, npcSubtitle: e.target.value })}
                       placeholder="Bijv. Aartsvijand"
-                      className="w-full bg-stone-950/60 border border-stone-800 rounded-lg px-4 py-2.5 text-sm font-story text-stone-200 placeholder-stone-600 focus:outline-none focus:border-rose-800 transition-colors"
+                      className="w-full rounded-lg border border-white/10 bg-white/5 px-4 py-2.5 text-sm font-story text-stone-200 placeholder-stone-500 transition-colors focus:outline-none focus:border-rose-500/60"
                     />
                   </div>
                   <div className="grid grid-cols-3 gap-3">
@@ -245,7 +238,7 @@ function HandoutModal({ isOpen, onClose, handout, role, players = [], currentPla
                         min="0"
                         value={formData.npcHp ?? 15}
                         onChange={e => setFormData({ ...formData, npcHp: e.target.value })}
-                        className="hide-arrows w-full bg-stone-950/60 border border-stone-800 rounded-lg px-3 py-2.5 text-sm text-stone-200 focus:outline-none focus:border-rose-800 transition-colors text-center"
+                        className="hide-arrows w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2.5 text-center text-sm text-stone-200 transition-colors focus:outline-none focus:border-rose-500/60"
                       />
                     </div>
                     <div>
@@ -255,7 +248,7 @@ function HandoutModal({ isOpen, onClose, handout, role, players = [], currentPla
                         min="0"
                         value={formData.npcAc ?? 12}
                         onChange={e => setFormData({ ...formData, npcAc: e.target.value })}
-                        className="hide-arrows w-full bg-stone-950/60 border border-stone-800 rounded-lg px-3 py-2.5 text-sm text-stone-200 focus:outline-none focus:border-rose-800 transition-colors text-center"
+                        className="hide-arrows w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2.5 text-center text-sm text-stone-200 transition-colors focus:outline-none focus:border-rose-500/60"
                       />
                     </div>
                     <div>
@@ -264,7 +257,7 @@ function HandoutModal({ isOpen, onClose, handout, role, players = [], currentPla
                         type="number"
                         value={formData.npcInitMod ?? 2}
                         onChange={e => setFormData({ ...formData, npcInitMod: e.target.value })}
-                        className="hide-arrows w-full bg-stone-950/60 border border-stone-800 rounded-lg px-3 py-2.5 text-sm text-stone-200 focus:outline-none focus:border-rose-800 transition-colors text-center"
+                        className="hide-arrows w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2.5 text-center text-sm text-stone-200 transition-colors focus:outline-none focus:border-rose-500/60"
                       />
                     </div>
                   </div>
@@ -282,7 +275,7 @@ function HandoutModal({ isOpen, onClose, handout, role, players = [], currentPla
                   value={formData.content} 
                   onChange={e => setFormData({...formData, content: e.target.value})}
                   placeholder="Wat zien of lezen de spelers als ze dit bekijken?"
-                  className="w-full bg-stone-950/50 border border-stone-800 rounded-lg px-4 py-3 text-sm font-story text-stone-300 placeholder-stone-600 focus:outline-none focus:border-amber-600/50 transition-colors resize-none leading-relaxed"
+                  className="w-full resize-none rounded-lg border border-white/10 bg-white/5 px-4 py-3 text-sm font-story leading-relaxed text-stone-300 placeholder-stone-500 transition-colors focus:outline-none focus:border-amber-500/60"
                 />
               </div>
 
@@ -296,7 +289,7 @@ function HandoutModal({ isOpen, onClose, handout, role, players = [], currentPla
                   value={formData.secret || ''} 
                   onChange={e => setFormData({...formData, secret: e.target.value})}
                   placeholder="Zijn er vallen? Bevat het valse informatie? Wat is de ware aard?"
-                  className="w-full bg-stone-950/80 border border-amber-900/30 rounded-lg px-4 py-3 text-sm font-story text-amber-500/90 placeholder-stone-700 focus:outline-none focus:border-amber-600/50 transition-colors resize-none leading-relaxed shadow-[inset_0_0_20px_rgba(0,0,0,0.5)]"
+                  className="w-full resize-none rounded-lg border border-amber-900/35 bg-amber-950/18 px-4 py-3 text-sm font-story leading-relaxed text-amber-200/90 placeholder-stone-600 transition-colors focus:outline-none focus:border-amber-500/60"
                 />
               </div>
 
@@ -394,7 +387,14 @@ function HandoutModal({ isOpen, onClose, handout, role, players = [], currentPla
             </form>
           ) : (
             <div className="flex flex-col gap-6">
-              <div className="text-center pb-6 border-b border-stone-800/50">
+              <div className="relative border-b border-stone-800/50 pb-6 text-center">
+                {isGM && handout ? (
+                  <div className="absolute right-0 top-0">
+                    <button onClick={() => setIsEditing(true)} className="rounded-lg border border-white/10 bg-white/5 px-3 py-1.5 text-xs font-fantasy uppercase tracking-wider text-stone-300 transition-colors hover:bg-white/7 hover:text-stone-100">
+                      Bewerken
+                    </button>
+                  </div>
+                ) : null}
                 <div className="inline-block text-[10px] font-bold uppercase tracking-widest text-amber-600 bg-amber-950/50 border border-amber-900/30 px-3 py-1 rounded-full mb-4">
                   {formData.type}
                 </div>

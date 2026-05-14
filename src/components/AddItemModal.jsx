@@ -57,11 +57,11 @@ function AddItemModal({ isOpen, onClose, onSave, role, party, currentPlayerId, i
           <div className="flex-1 min-h-0 overflow-y-auto space-y-4 px-4 py-4 sm:px-6 sm:py-6">
             {isGM && !itemToEdit && (
               <div>
-                <label className="block text-[10px] font-bold text-stone-500 uppercase tracking-widest mb-1.5">Aan de tas van</label>
+                <label className="mb-1.5 block text-[10px] font-bold uppercase tracking-widest text-stone-400">Aan de tas van</label>
                 <select 
                   value={formData.ownerId} 
                   onChange={e => setFormData({...formData, ownerId: e.target.value})}
-                  className="w-full h-9 bg-stone-950/80 border border-stone-700 rounded-lg px-3 text-sm font-fantasy tracking-wider text-stone-200 focus:outline-none focus:border-amber-600/50 transition-colors appearance-none"
+                  className="h-10 w-full appearance-none rounded-xl border border-white/10 bg-white/5 px-3 text-sm font-fantasy tracking-wider text-stone-200 transition-all duration-200 focus:outline-none focus:border-amber-400/70 focus:bg-white/7"
                 >
                   {playerOptions.map(p => (
                     <option key={p.id} value={p.id}>{p.name}</option>
@@ -71,7 +71,7 @@ function AddItemModal({ isOpen, onClose, onSave, role, party, currentPlayerId, i
             )}
 
             <div>
-              <label className="block text-[10px] font-bold text-stone-500 uppercase tracking-widest mb-1.5">Voorwerp Naam</label>
+              <label className="mb-1.5 block text-[10px] font-bold uppercase tracking-widest text-stone-400">Voorwerp Naam</label>
               <input 
                 autoFocus
                 required
@@ -79,42 +79,44 @@ function AddItemModal({ isOpen, onClose, onSave, role, party, currentPlayerId, i
                 value={formData.name}
                 onChange={e => setFormData({...formData, name: e.target.value})}
                 placeholder="Bijv. Magisch Touw"
-                className="w-full h-9 bg-stone-950/80 border border-stone-700 rounded-lg px-3 text-sm text-stone-200 placeholder-stone-600 focus:outline-none focus:border-amber-600/50 transition-colors font-story"
+                className="h-10 w-full rounded-xl border border-white/10 bg-white/5 px-3 text-sm font-story text-stone-200 placeholder-stone-500 transition-all duration-200 focus:outline-none focus:border-amber-400/70 focus:bg-white/7"
               />
             </div>
 
-            <div>
-              <label className="block text-[10px] font-bold text-stone-500 uppercase tracking-widest mb-1.5">Aantal</label>
-              <input 
-                required
-                type="number" 
-                min="1"
-                value={formData.amount}
-                onChange={e => setFormData({...formData, amount: parseInt(e.target.value) || 1})}
-                className="w-full h-9 bg-stone-950/80 border border-stone-700 rounded-lg px-3 text-sm text-stone-200 focus:outline-none focus:border-amber-600/50 transition-colors font-sans hide-arrows"
-              />
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+              <div>
+                <label className="mb-1.5 block text-[10px] font-bold uppercase tracking-widest text-stone-400">Aantal</label>
+                <input 
+                  required
+                  type="number" 
+                  min="1"
+                  value={formData.amount}
+                  onChange={e => setFormData({...formData, amount: parseInt(e.target.value) || 1})}
+                  className="h-10 w-full rounded-xl border border-white/10 bg-white/5 px-3 text-sm font-sans text-stone-200 transition-all duration-200 focus:outline-none focus:border-amber-400/70 focus:bg-white/7 hide-arrows"
+                />
+              </div>
+
+              <div>
+                <label className="mb-1.5 block text-[10px] font-bold uppercase tracking-widest text-stone-400">Soort</label>
+                <select
+                  value={formData.category || 'overig'}
+                  onChange={e => setFormData({ ...formData, category: e.target.value })}
+                  className="h-10 w-full appearance-none rounded-xl border border-white/10 bg-white/5 px-3 text-sm font-story text-stone-200 transition-all duration-200 focus:outline-none focus:border-amber-400/70 focus:bg-white/7"
+                >
+                  <option value="overig">Overig</option>
+                  <option value="wapen">Wapen</option>
+                  <option value="pantser">Pantser</option>
+                  <option value="verbruikbaar">Verbruikbaar</option>
+                  <option value="magisch">Magisch</option>
+                  <option value="grondstof">Grondstof</option>
+                  <option value="quest">Quest</option>
+                </select>
+              </div>
             </div>
 
             <div>
-              <label className="block text-[10px] font-bold text-stone-500 uppercase tracking-widest mb-1.5">Soort</label>
-              <select
-                value={formData.category || 'overig'}
-                onChange={e => setFormData({ ...formData, category: e.target.value })}
-                className="w-full h-9 bg-stone-950/80 border border-stone-700 rounded-lg px-3 text-sm text-stone-200 focus:outline-none focus:border-amber-600/50 transition-colors font-story"
-              >
-                <option value="overig">Overig</option>
-                <option value="wapen">Wapen</option>
-                <option value="pantser">Pantser</option>
-                <option value="verbruikbaar">Verbruikbaar</option>
-                <option value="magisch">Magisch</option>
-                <option value="grondstof">Grondstof</option>
-                <option value="quest">Quest</option>
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-[10px] font-bold text-stone-500 uppercase tracking-widest mb-1.5">Afbeelding</label>
-              <label className="relative group cursor-pointer w-full h-24 rounded-lg border border-dashed border-stone-700 bg-stone-950/60 hover:border-amber-700/60 flex items-center justify-center overflow-hidden transition-all shadow-inner">
+              <label className="mb-1.5 block text-[10px] font-bold uppercase tracking-widest text-stone-400">Afbeelding</label>
+              <label className="relative flex h-24 w-full cursor-pointer items-center justify-center overflow-hidden rounded-xl border border-dashed border-white/20 bg-white/5 shadow-inner transition-all hover:border-amber-400/50 hover:bg-white/7 group">
                 <input type="file" accept="image/*" className="hidden" onChange={handleImageChange} />
                 {formData.imageUrl ? (
                   <>
@@ -133,15 +135,15 @@ function AddItemModal({ isOpen, onClose, onSave, role, party, currentPlayerId, i
             </div>
 
             <div>
-              <label className="block text-[10px] font-bold text-stone-500 uppercase tracking-widest mb-1.5">Of kies uit placeholders</label>
-              <div className="max-h-32 overflow-y-auto no-scrollbar rounded-lg border border-stone-800 bg-stone-950/40 p-2">
+              <label className="mb-1.5 block text-[10px] font-bold uppercase tracking-widest text-stone-400">Of kies uit placeholders</label>
+              <div className="max-h-36 overflow-y-auto no-scrollbar rounded-xl border border-white/10 bg-white/5 p-2.5">
                 <div className="grid grid-cols-6 gap-1.5 sm:grid-cols-8">
                   {ITEM_PLACEHOLDER_IMAGES.map((url) => (
                     <button
                       key={url}
                       type="button"
                       onClick={() => handlePickPlaceholder(url)}
-                      className={`aspect-square rounded-md overflow-hidden border transition-all duration-200 hover:scale-110 active:scale-95 ${formData.imageUrl === url ? 'border-amber-500 shadow-[0_0_6px_rgba(217,119,6,0.4)]' : 'border-stone-700 hover:border-amber-700/60'}`}
+                      className={`aspect-square rounded-md overflow-hidden border transition-all duration-200 hover:scale-110 active:scale-95 ${formData.imageUrl === url ? 'border-amber-400 shadow-[0_0_6px_rgba(251,146,60,0.4)]' : 'border-white/10 hover:border-amber-400/50'}`}
                     >
                       <img src={url} alt="" className="w-full h-full object-cover scale-[1.25]" loading="lazy" />
                     </button>
@@ -151,22 +153,22 @@ function AddItemModal({ isOpen, onClose, onSave, role, party, currentPlayerId, i
             </div>
 
             <div>
-              <label className="block text-[10px] font-bold text-stone-500 uppercase tracking-widest mb-1.5">Beschrijving</label>
+              <label className="mb-1.5 block text-[10px] font-bold uppercase tracking-widest text-stone-400">Beschrijving</label>
               <textarea 
                 rows={3}
                 value={formData.desc}
                 onChange={e => setFormData({...formData, desc: e.target.value})}
                 placeholder="Wat doet het of hoe ziet het eruit?"
-                className="w-full bg-stone-950/80 border border-stone-700 rounded-lg px-3 py-2.5 text-sm text-stone-200 placeholder-stone-600 focus:outline-none focus:border-amber-600/50 transition-colors font-story resize-none"
+                className="w-full resize-none rounded-xl border border-white/10 bg-white/5 px-3 py-2.5 text-sm font-story text-stone-200 placeholder-stone-500 transition-all duration-200 focus:outline-none focus:border-amber-400/70 focus:bg-white/7"
               />
             </div>
           </div>
 
-          <div className="flex flex-col-reverse gap-3 border-t border-stone-800/50 bg-stone-900/95 p-4 pt-4 backdrop-blur-sm shrink-0 sm:flex-row sm:p-6">
+          <div className="flex flex-col-reverse gap-3 border-t border-white/10 bg-white/5 p-4 pt-4 backdrop-blur-sm shrink-0 sm:flex-row sm:p-6">
             <button 
               type="button"
               onClick={onClose}
-              className="h-9 flex-1 inline-flex items-center justify-center bg-stone-800 hover:bg-stone-700 border border-stone-700 text-stone-300 rounded-lg font-fantasy uppercase tracking-[0.16em] text-sm transition-all duration-200 active:scale-95"
+              className="h-9 flex-1 inline-flex items-center justify-center bg-white/5 hover:bg-white/7 border border-white/10 text-stone-300 rounded-lg font-fantasy uppercase tracking-[0.16em] text-sm transition-all duration-200 active:scale-95"
             >
               Annuleren
             </button>

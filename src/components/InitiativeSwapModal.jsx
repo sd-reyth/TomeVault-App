@@ -51,21 +51,21 @@ function InitiativeSwapModal({
     >
         <div className="px-5 py-4">
           {incapacitatedMessage && (
-            <div className="mb-4 flex items-start gap-2 rounded-lg border border-rose-900/50 bg-rose-950/20 p-3">
+            <div className="mb-4 flex items-start gap-2 rounded-lg border border-rose-800/40 bg-rose-950/20 p-3">
               <AlertCircle className="h-4 w-4 mt-0.5 text-rose-400 shrink-0" />
               <p className="text-xs text-rose-300">{incapacitatedMessage}</p>
             </div>
           )}
 
           {!isInitiativeInOrder && (
-            <div className="mb-4 flex items-start gap-2 rounded-lg border border-amber-900/50 bg-amber-950/20 p-3">
+            <div className="mb-4 flex items-start gap-2 rounded-lg border border-amber-800/40 bg-amber-950/20 p-3">
               <AlertCircle className="h-4 w-4 mt-0.5 text-amber-400 shrink-0" />
               <p className="text-xs text-amber-300">Je bent niet in de initiatielijst.</p>
             </div>
           )}
 
           {eligiblePartners.length === 0 ? (
-            <div className="rounded-lg border border-stone-800 bg-stone-950/60 p-4 text-center">
+            <div className="rounded-lg border border-white/10 bg-white/5 p-4 text-center">
               <p className="text-sm text-stone-400">Geen beschikbare bondgenoten om mee te wisselen.</p>
             </div>
           ) : (
@@ -87,13 +87,13 @@ function InitiativeSwapModal({
                       disabled={partnerIncapacitated || yourIncapacitated}
                       className={`w-full flex items-center gap-3 rounded-lg border p-3 transition-all text-left ${
                         isSelected
-                          ? 'border-amber-500 bg-amber-950/40 ring-1 ring-amber-500/50'
+                          ? 'border-amber-400/60 bg-amber-950/40 ring-1 ring-amber-400/50'
                           : (partnerIncapacitated || yourIncapacitated)
-                            ? 'border-stone-800 bg-stone-950/60 opacity-50 cursor-not-allowed'
-                            : 'border-stone-800 bg-stone-950/40 hover:border-amber-700/50 hover:bg-stone-900/60'
+                            ? 'border-white/10 bg-white/5 opacity-50 cursor-not-allowed'
+                            : 'border-white/10 bg-white/5 hover:border-amber-400/50 hover:bg-white/7'
                       }`}
                     >
-                      <div className="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-stone-700 bg-stone-900">
+                      <div className="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-white/10 bg-white/5">
                         <img
                           src={resolveDisplayAvatar(partner.avatar, partner.id)}
                           alt={partner.name}
@@ -113,7 +113,7 @@ function InitiativeSwapModal({
           )}
         </div>
 
-        <div className="flex items-center justify-end gap-3 border-t border-stone-800/70 bg-stone-950/40 px-5 py-4">
+        <div className="flex items-center justify-end gap-3 border-t border-white/10 bg-white/5 px-5 py-4">
           <button
             type="button"
             onClick={onClose}
@@ -125,7 +125,7 @@ function InitiativeSwapModal({
             type="button"
             onClick={handleSwap}
             disabled={!selectedPartner || incapacitatedMessage}
-            className="inline-flex items-center gap-2 rounded-lg border border-amber-700/60 bg-amber-950/30 px-4 py-2 text-sm font-fantasy tracking-[0.12em] text-amber-300 transition-colors hover:border-amber-500/70 hover:bg-amber-900/40 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="inline-flex items-center gap-2 rounded-lg border border-amber-700/60 bg-amber-950/30 px-4 py-2 text-sm font-fantasy tracking-[0.12em] text-amber-300 transition-all duration-200 hover:border-amber-400/70 hover:bg-amber-900/40 disabled:opacity-50 disabled:cursor-not-allowed active:scale-95"
           >
             <Zap className="h-3.5 w-3.5" /> Wissel
           </button>

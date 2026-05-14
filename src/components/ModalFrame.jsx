@@ -23,6 +23,14 @@ const ACCENT_STYLES = {
     glow: 'bg-amber-500/10',
     icon: 'text-amber-400',
   },
+  purple: {
+    glow: 'bg-violet-500/12',
+    icon: 'text-violet-300',
+  },
+  emerald: {
+    glow: 'bg-emerald-500/12',
+    icon: 'text-emerald-300',
+  },
   rose: {
     glow: 'bg-rose-500/10',
     icon: 'text-rose-400',
@@ -56,11 +64,11 @@ export default function ModalFrame({
   const accentStyles = ACCENT_STYLES[accent] || ACCENT_STYLES.amber;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center bg-stone-950/80 p-2 backdrop-blur-sm animation-fade-in sm:items-center sm:p-4">
-      <div className={`relative flex max-h-[calc(100dvh-1rem)] w-full ${maxWidthClassName} flex-col overflow-hidden rounded-[26px] border shadow-2xl transition-all duration-300 sm:max-h-[calc(100dvh-2rem)] sm:rounded-[28px] animate-in fade-in slide-in-from-bottom-4 sm:slide-in-from-center-0 ${toneStyles.panel} ${panelClassName}`}>
-        <div className={`pointer-events-none absolute inset-x-0 top-0 h-32 ${accentStyles.glow} blur-[52px]`} />
+    <div className="fixed inset-0 z-50 flex items-end justify-center bg-zinc-950/84 p-2 backdrop-blur-md sm:items-center sm:p-4">
+      <div className={`relative flex max-h-[calc(100dvh-1rem)] w-full ${maxWidthClassName} flex-col overflow-hidden rounded-[1.5rem] border shadow-[0_24px_70px_rgba(0,0,0,0.36)] transition-all duration-200 ease-out sm:max-h-[calc(100dvh-2rem)] sm:rounded-[1.5rem] animate-in fade-in zoom-in-95 slide-in-from-bottom-4 sm:slide-in-from-center-0 ${toneStyles.panel} ${panelClassName}`}>
+        <div className={`pointer-events-none absolute inset-x-0 top-0 h-32 ${accentStyles.glow} blur-[42px]`} />
 
-        <div className={`relative z-10 flex shrink-0 items-start justify-between gap-3 border-b px-4 py-4 sm:px-5 ${toneStyles.divider}`}>
+        <div className={`relative z-10 flex shrink-0 items-start justify-between gap-3 border-b px-5 py-5 sm:px-6 ${toneStyles.divider}`}>
           <div className="min-w-0">
             <h3 className={`flex items-center gap-2 font-fantasy text-sm font-bold uppercase tracking-[0.16em] sm:text-[0.95rem] ${toneStyles.title}`}>
               {Icon ? <Icon className={`h-5 w-5 shrink-0 ${accentStyles.icon}`} /> : null}
@@ -75,13 +83,13 @@ export default function ModalFrame({
             type="button"
             onClick={onClose}
             aria-label="Sluiten"
-            className={`inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full border transition-all duration-200 hover:scale-110 active:scale-95 ${toneStyles.close}`}
+            className={`inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full border transition-all duration-200 ease-out hover:scale-105 active:scale-95 ${toneStyles.close}`}
           >
             <X className="h-[18px] w-[18px]" />
           </button>
         </div>
 
-        <div className={`relative z-10 flex flex-1 flex-col overflow-y-auto px-4 py-4 sm:px-5 sm:py-5 ${bodyClassName}`}>
+        <div className={`relative z-10 flex flex-1 flex-col overflow-y-auto px-5 py-5 sm:px-6 sm:py-6 ${bodyClassName}`}>
           {children}
         </div>
       </div>

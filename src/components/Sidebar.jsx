@@ -16,6 +16,7 @@ export default function Sidebar({ activeTab, setActiveTab, onOpenSettings, role 
   const [sidebarWidth, setSidebarWidth] = useState(SIDEBAR_DEFAULT_WIDTH);
   const [isDragging, setIsDragging] = useState(false);
   const dragStateRef = useRef({ startX: 0, startWidth: SIDEBAR_DEFAULT_WIDTH });
+  const navRef = useRef(null);
 
   const tabs = [
     { id: 'handouts', icon: Scroll, label: 'Handouts' },
@@ -24,6 +25,13 @@ export default function Sidebar({ activeTab, setActiveTab, onOpenSettings, role 
     ...(role === 'gm' ? [{ id: 'preparations', icon: Crown, label: 'Voorbereidingen' }] : []),
     { id: 'notes', icon: NotebookPen, label: 'Kronieken' },
   ];
+
+  useEffect(() => {
+    if (navRef.current) {
+      navRef.current.scrollTop = 0;
+    }
+  }, [activeTab]);
+
 
   const isCollapsed = sidebarWidth <= SIDEBAR_COLLAPSE_WIDTH;
   const isIconRail = sidebarWidth <= 220;
@@ -78,9 +86,9 @@ export default function Sidebar({ activeTab, setActiveTab, onOpenSettings, role 
   return (
     <aside
       style={{ '--sidebar-width': `${sidebarWidth}px` }}
-      className="app-shell-mobile-nav fixed bottom-0 left-0 z-30 flex h-16 w-full flex-row items-center justify-around border-t border-stone-800 bg-stone-900/95 px-2 backdrop-blur-md md:relative md:h-auto md:shrink-0 md:w-[var(--sidebar-width)] md:min-w-[var(--sidebar-width)] md:max-w-[var(--sidebar-width)] md:flex-col md:justify-start md:border-r md:border-t-0 md:bg-stone-900/55 md:px-0 md:py-4 md:pb-3 md:backdrop-blur-sm"
+      className="app-shell-mobile-nav fixed bottom-0 left-0 z-30 flex h-16 w-full flex-row items-center justify-around border-t border-white/10 bg-zinc-950/88 px-2 backdrop-blur-md md:relative md:h-full md:shrink-0 md:w-[var(--sidebar-width)] md:min-w-[var(--sidebar-width)] md:max-w-[var(--sidebar-width)] md:flex-col md:justify-start md:border-r md:border-t-0 md:bg-zinc-950/78 md:px-0 md:py-4 md:pb-3 md:backdrop-blur-md md:flex md:flex-col md:overflow-hidden"
     >
-      <nav className={`flex w-full flex-row items-center justify-between gap-1 md:flex-col md:flex-1 md:pt-4 ${isCollapsed ? 'md:px-2' : 'md:px-3 md:gap-1.5'}`}>
+      <nav ref={navRef} className={`flex w-full flex-row items-center justify-between gap-1 md:flex-col md:flex-1 md:min-h-0 md:overflow-y-auto md:pr-2 md:no-scrollbar md:pt-4 ${isCollapsed ? 'md:px-2' : 'md:px-3 md:gap-1.5'}`}>
         {tabs.map((tab) => {
           const isActive = activeTab === tab.id;
           return (
@@ -89,18 +97,18 @@ export default function Sidebar({ activeTab, setActiveTab, onOpenSettings, role 
               onClick={() => setActiveTab(tab.id)}
               aria-label={tab.label}
               className={`
-                group relative flex min-h-[48px] min-w-0 flex-1 flex-col items-center justify-center rounded-lg p-2 transition-all duration-150 font-fantasy tracking-wider md:w-full md:flex-none ${isCollapsed ? 'md:min-h-[52px] md:px-2 md:py-2.5' : (isIconRail ? 'md:min-h-[46px] md:justify-center md:px-2 md:py-2' : 'md:min-h-[46px] md:flex-row md:justify-start md:gap-2.5 md:px-3 md:py-2')}
-                ${isActive 
-                  ? 'text-amber-400 md:bg-gradient-to-r md:from-amber-950/35 md:to-stone-900/70 md:border md:border-amber-900/40 md:shadow-[inset_0_0_12px_rgba(217,119,6,0.08)]' 
-                  : 'text-stone-400 md:border md:border-transparent md:hover:border-stone-700/60 md:hover:bg-stone-900/55 hover:text-stone-200'}
+                group relative flex min-h-[48px] min-w-0 flex-1 flex-col items-center justify-center rounded-xl border border-transparent p-2 text-sm font-medium tracking-normal transition-all duration-200 ease-out active:scale-[0.985] md:w-full md:flex-none ${isCollapsed ? 'md:min-h-[52px] md:px-2 md:py-2.5' : (isIconRail ? 'md:min-h-[46px] md:justify-center md:px-2 md:py-2' : 'md:min-h-[46px] md:flex-row md:justify-start md:gap-2.5 md:px-3 md:py-2')}
+                ${isActive
+                  ? 'border-white/10 bg-white/7 text-stone-50 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]'
+                  : 'text-stone-400 hover:bg-white/5 hover:text-stone-100 md:border md:border-transparent md:hover:border-white/10'}
               `}
               title={tab.label}
             >
-              {isActive && !isCollapsed ? <span className="hidden md:block absolute left-0 top-2 bottom-2 w-[3px] rounded-r bg-amber-500/90 shadow-[0_0_8px_rgba(245,158,11,0.35)] animate-pulse" /> : null}
-              <tab.icon className={`w-5 h-5 md:w-[17px] md:h-[17px] shrink-0 transition-colors ${isActive ? 'text-amber-400' : 'text-stone-500 md:group-hover:text-stone-300'}`} />
-              <span className={`${isCollapsed || isIconRail ? 'hidden' : 'hidden md:block'} max-w-full truncate text-[14px] font-bold uppercase md:tracking-[0.12em]`}>{tab.label}</span>
+              {isActive && !isCollapsed ? <span className="hidden md:block absolute left-0 top-2 bottom-2 w-[3px] rounded-r bg-[color:var(--color-amber-500)] shadow-[0_0_12px_rgba(245,158,11,0.32)]" /> : null}
+              <tab.icon className={`h-5 w-5 shrink-0 transition-colors duration-200 md:h-[17px] md:w-[17px] ${isActive ? 'text-amber-300' : 'text-stone-500 group-hover:text-stone-200'}`} />
+              <span className={`${isCollapsed || isIconRail ? 'hidden' : 'hidden md:block'} max-w-full truncate text-[14px] font-medium uppercase tracking-[0.12em]`}>{tab.label}</span>
               {isIconRail && !isCollapsed ? (
-                <span className="pointer-events-none absolute left-[calc(100%+10px)] top-1/2 z-40 hidden -translate-y-1/2 whitespace-nowrap rounded-md border border-stone-700 bg-stone-950/95 px-2 py-1 text-[10px] font-bold uppercase tracking-[0.12em] text-stone-200 shadow-md md:group-hover:block">
+                <span className="pointer-events-none absolute left-[calc(100%+10px)] top-1/2 z-40 hidden -translate-y-1/2 whitespace-nowrap rounded-md border border-white/10 bg-zinc-950/95 px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.12em] text-stone-200 shadow-lg md:group-hover:block">
                   {tab.label}
                 </span>
               ) : null}
@@ -113,12 +121,12 @@ export default function Sidebar({ activeTab, setActiveTab, onOpenSettings, role 
           onClick={onOpenSettings}
           aria-label="Configuratie"
           title="Configuratie"
-          className={`group relative flex min-h-[48px] min-w-0 flex-1 flex-col items-center justify-center rounded-lg p-2 transition-all duration-150 font-fantasy tracking-wider md:flex md:w-full md:flex-none ${isCollapsed ? 'md:min-h-[52px] md:px-2 md:py-2.5' : (isIconRail ? 'md:min-h-[46px] md:justify-center md:px-2 md:py-2' : 'md:min-h-[46px] md:flex-row md:justify-start md:gap-2.5 md:px-3 md:py-2')} text-stone-400 md:border md:border-transparent md:hover:border-stone-700/60 md:hover:bg-stone-900/55 hover:text-stone-200`}
+          className={`group relative flex min-h-[48px] min-w-0 flex-1 flex-col items-center justify-center rounded-xl border border-transparent p-2 text-sm font-medium tracking-normal transition-all duration-200 ease-out active:scale-[0.985] md:flex md:w-full md:flex-none ${isCollapsed ? 'md:min-h-[52px] md:px-2 md:py-2.5' : (isIconRail ? 'md:min-h-[46px] md:justify-center md:px-2 md:py-2' : 'md:min-h-[46px] md:flex-row md:justify-start md:gap-2.5 md:px-3 md:py-2')} text-stone-400 hover:bg-white/5 hover:text-stone-100 md:hover:border-white/10`}
         >
-          <Settings className="w-5 h-5 md:w-[17px] md:h-[17px] shrink-0 text-stone-500" />
-          <span className={`${isCollapsed || isIconRail ? 'hidden' : 'hidden md:block'} max-w-full truncate text-[14px] font-bold uppercase md:tracking-[0.12em]`}>Configuratie</span>
+          <Settings className="h-5 w-5 shrink-0 text-stone-500 transition-colors duration-200 md:h-[17px] md:w-[17px]" />
+          <span className={`${isCollapsed || isIconRail ? 'hidden' : 'hidden md:block'} max-w-full truncate text-[14px] font-medium uppercase tracking-[0.12em]`}>Configuratie</span>
           {isIconRail && !isCollapsed ? (
-            <span className="pointer-events-none absolute left-[calc(100%+10px)] top-1/2 z-40 hidden -translate-y-1/2 whitespace-nowrap rounded-md border border-stone-700 bg-stone-950/95 px-2 py-1 text-[10px] font-bold uppercase tracking-[0.12em] text-stone-200 shadow-md md:group-hover:block">
+            <span className="pointer-events-none absolute left-[calc(100%+10px)] top-1/2 z-40 hidden -translate-y-1/2 whitespace-nowrap rounded-md border border-white/10 bg-zinc-950/95 px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.12em] text-stone-200 shadow-lg md:group-hover:block">
               Configuratie
             </span>
           ) : null}
@@ -132,7 +140,7 @@ export default function Sidebar({ activeTab, setActiveTab, onOpenSettings, role 
         onDoubleClick={() => setSidebarWidth(SIDEBAR_DEFAULT_WIDTH)}
         className="absolute right-0 top-0 hidden h-full w-3 -translate-x-1/2 cursor-col-resize md:block"
       >
-        <span className={`absolute left-1/2 top-1/2 h-16 w-[3px] -translate-x-1/2 -translate-y-1/2 rounded-full transition-colors ${isDragging ? 'bg-amber-500 shadow-[0_0_12px_rgba(245,158,11,0.45)]' : 'bg-stone-800 hover:bg-stone-700'}`} />
+        <span className={`absolute left-1/2 top-1/2 h-16 w-[3px] -translate-x-1/2 -translate-y-1/2 rounded-full transition-colors duration-200 ${isDragging ? 'bg-amber-400 shadow-[0_0_12px_rgba(245,158,11,0.45)]' : 'bg-white/10 hover:bg-white/20'}`} />
       </button>
     </aside>
   );

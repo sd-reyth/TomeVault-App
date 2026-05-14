@@ -1,6 +1,58 @@
 import React, { useState } from 'react';
 import { createPortal } from 'react-dom';
-import { Info, Music2, Pause, Play, Volume2, VolumeX, ArrowLeft, ExternalLink, X } from 'lucide-react';
+import { Info, Music2, Pause, Play, Volume2, VolumeX, ExternalLink, X } from 'lucide-react';
+
+function getAmbienceTone(theme) {
+  if (theme === 'purple') {
+    return {
+      aura: 'radial-gradient(circle_at_20%_16%,rgba(168,85,247,0.16),transparent_34%),radial-gradient(circle_at_82%_10%,rgba(79,70,229,0.14),transparent_30%),radial-gradient(circle_at_50%_120%,rgba(124,58,237,0.12),transparent_42%)',
+      activeBorder: 'border-violet-500/35',
+      activeDot: 'bg-violet-300 shadow-[0_0_6px_rgba(196,181,253,0.85)]',
+      activeBadge: 'border-violet-400/40 bg-violet-500/12 text-violet-200',
+      activeText: 'text-violet-300/90',
+      actionOn: 'border-violet-500/35 bg-gradient-to-r from-violet-800 to-violet-700 text-violet-100 hover:from-violet-700 hover:to-violet-600',
+      valueText: 'text-violet-300',
+      creditsCount: 'text-violet-300/85',
+    };
+  }
+
+  if (theme === 'green') {
+    return {
+      aura: 'radial-gradient(circle_at_20%_16%,rgba(52,211,153,0.16),transparent_34%),radial-gradient(circle_at_82%_10%,rgba(16,185,129,0.14),transparent_30%),radial-gradient(circle_at_50%_120%,rgba(22,163,74,0.12),transparent_42%)',
+      activeBorder: 'border-emerald-500/35',
+      activeDot: 'bg-emerald-300 shadow-[0_0_6px_rgba(110,231,183,0.85)]',
+      activeBadge: 'border-emerald-400/40 bg-emerald-500/12 text-emerald-200',
+      activeText: 'text-emerald-300/90',
+      actionOn: 'border-emerald-500/35 bg-gradient-to-r from-emerald-800 to-emerald-700 text-emerald-100 hover:from-emerald-700 hover:to-emerald-600',
+      valueText: 'text-emerald-300',
+      creditsCount: 'text-emerald-300/85',
+    };
+  }
+
+  if (theme === 'light') {
+    return {
+      aura: 'radial-gradient(circle_at_20%_16%,rgba(251,191,36,0.14),transparent_34%),radial-gradient(circle_at_82%_10%,rgba(245,158,11,0.12),transparent_30%),radial-gradient(circle_at_50%_120%,rgba(217,119,6,0.1),transparent_42%)',
+      activeBorder: 'border-amber-500/40',
+      activeDot: 'bg-amber-500 shadow-[0_0_6px_rgba(245,158,11,0.75)]',
+      activeBadge: 'border-amber-500/35 bg-amber-500/10 text-amber-300',
+      activeText: 'text-amber-500/90',
+      actionOn: 'border-amber-500/35 bg-gradient-to-r from-amber-700 to-amber-600 text-amber-100 hover:from-amber-600 hover:to-amber-500',
+      valueText: 'text-amber-300',
+      creditsCount: 'text-amber-300/85',
+    };
+  }
+
+  return {
+    aura: 'radial-gradient(circle_at_20%_16%,rgba(251,191,36,0.14),transparent_34%),radial-gradient(circle_at_82%_10%,rgba(59,130,246,0.12),transparent_30%),radial-gradient(circle_at_50%_120%,rgba(217,119,6,0.12),transparent_42%)',
+    activeBorder: 'border-amber-600/40',
+    activeDot: 'bg-amber-400 shadow-[0_0_6px_rgba(245,158,11,0.8)]',
+    activeBadge: 'border-amber-500/30 bg-amber-500/10 text-amber-300',
+    activeText: 'text-amber-300/80',
+    actionOn: 'border-amber-500/35 bg-gradient-to-r from-amber-800 to-amber-700 text-amber-100 hover:from-amber-700 hover:to-amber-600',
+    valueText: 'text-amber-300',
+    creditsCount: 'text-amber-300/85',
+  };
+}
 
 export default function AmbiencePanel({
   role,
@@ -25,7 +77,7 @@ export default function AmbiencePanel({
   if (!isOpen) return null;
 
   const canControlSession = role === 'gm';
-  const isLightTheme = theme === 'light';
+  const ambienceTone = getAmbienceTone(theme);
 
   const SceneList = () => {
     const [expandedId, setExpandedId] = useState(null);
@@ -37,7 +89,7 @@ export default function AmbiencePanel({
           const isExpanded = expandedId === track.id;
 
           return (
-            <div key={track.id} className={`relative overflow-hidden rounded-xl border transition-all ${isActive ? 'border-amber-600/40' : 'border-stone-800/70 hover:border-stone-700/80'}`}>
+            <div key={track.id} className={`relative overflow-hidden rounded-xl border transition-all ${isActive ? ambienceTone.activeBorder : 'border-stone-800/70 hover:border-stone-700/80'}`}>
               {/* Color accent layer */}
               <div className={`absolute inset-0 bg-gradient-to-r ${track.accentClassName} pointer-events-none`} />
 
@@ -51,7 +103,7 @@ export default function AmbiencePanel({
                   className={`flex-1 flex items-center gap-3 h-full pl-3 pr-2 text-left min-w-0 ${!canControlSession ? 'cursor-default' : ''}`}
                 >
                   {/* Active dot */}
-                  <span className={`shrink-0 w-1.5 h-1.5 rounded-full ${isActive ? (isPlaying ? 'bg-amber-400 shadow-[0_0_6px_rgba(245,158,11,0.8)]' : 'bg-amber-400') : 'bg-stone-700'}`} />
+                  <span className={`shrink-0 w-1.5 h-1.5 rounded-full ${isActive ? (isPlaying ? ambienceTone.activeDot : ambienceTone.activeDot.split(' shadow-')[0]) : 'bg-stone-700'}`} />
 
                   {/* Scene name */}
                   <span className={`font-fantasy text-sm tracking-[0.1em] truncate ${isActive ? 'text-stone-100' : 'text-stone-300'}`}>
@@ -60,7 +112,7 @@ export default function AmbiencePanel({
 
                   {/* Active badge */}
                   {isActive && (
-                    <span className="shrink-0 text-[9px] uppercase tracking-[0.2em] px-1.5 py-0.5 rounded-full border border-amber-500/30 bg-amber-500/10 text-amber-300">
+                    <span className={`shrink-0 text-[9px] uppercase tracking-[0.2em] px-1.5 py-0.5 rounded-full border ${ambienceTone.activeBadge}`}>
                       {isPlaying ? 'Live' : 'Klaar'}
                     </span>
                   )}
@@ -106,59 +158,52 @@ export default function AmbiencePanel({
     <div
       data-ambience-panel-root="true"
       data-theme={theme || 'purple'}
-      className={`fixed inset-0 z-[60] flex flex-col ${isLightTheme ? 'bg-stone-900 text-stone-300' : 'bg-stone-950 text-stone-300'}`}
+      className={`fixed inset-0 z-[60] flex flex-col bg-zinc-950 text-stone-300`}
     >
+      <div className="pointer-events-none absolute inset-0" style={{ backgroundImage: ambienceTone.aura }} />
 
       {/* Header */}
-      <div className={`shrink-0 border-b backdrop-blur-sm px-4 md:px-8 py-4 flex items-center gap-4 ${isLightTheme ? 'border-stone-600/80 bg-stone-900/95' : 'border-stone-800/60 bg-stone-950/95'}`}>
-        <button
-          type="button"
-          onClick={onClose}
-          className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border transition-colors ${isLightTheme ? 'border-stone-600 bg-stone-900 text-stone-300 hover:border-stone-500 hover:text-stone-100' : 'border-stone-800 bg-stone-900/80 text-stone-400 hover:border-stone-700 hover:text-stone-200'}`}
-          title="Sluiten"
-        >
-          <ArrowLeft className="h-4 w-4" />
-        </button>
-        <div className="flex items-center gap-3 min-w-0 flex-1">
-          <Music2 className={`w-4 h-4 shrink-0 ${isLightTheme ? 'text-amber-600' : 'text-amber-500/70'}`} />
-          <div className="min-w-0">
+      <div className={`relative z-10 shrink-0 border-b px-4 py-4 backdrop-blur-md md:px-8 border-white/10 bg-zinc-950/82`}>
+        <div className="flex items-start gap-3 min-w-0">
+          <Music2 className={`w-4 h-4 shrink-0 ${ambienceTone.activeText}`} />
+          <div className="min-w-0 flex-1">
             <h1 className="font-fantasy font-bold text-stone-100 tracking-wide text-base md:text-lg leading-none truncate">Ambience aan tafel</h1>
-            <p className={`text-[10px] uppercase tracking-[0.16em] mt-1 ${isLightTheme ? 'text-stone-400' : 'text-stone-500'}`}>Sfeer voor de hele tafel</p>
+            <p className={`text-[10px] uppercase tracking-[0.16em] mt-1 text-stone-500`}>Sfeer voor de hele tafel</p>
+            {currentTrack ? (
+              <div className="mt-2 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-2.5 py-1 text-[10px] uppercase tracking-[0.14em]">
+                <span className="text-stone-500">Nu actief:</span>
+                <span className={ambienceTone.activeText}>{currentTrack.scene}</span>
+              </div>
+            ) : null}
           </div>
+          <button
+            type="button"
+            onClick={onClose}
+            className={`ml-auto flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border transition-all duration-200 ease-out active:scale-[0.985] border-white/10 bg-white/5 text-stone-400 hover:bg-white/8 hover:text-stone-100`}
+            title="Sluiten"
+            aria-label="Sluiten"
+          >
+            <X className="h-4 w-4" />
+          </button>
         </div>
-        {currentTrack && (
-          <div className="hidden sm:flex items-center gap-2 shrink-0">
-            <div className={`text-[10px] uppercase tracking-[0.16em] ${isLightTheme ? 'text-stone-400' : 'text-stone-500'}`}>Nu actief:</div>
-            <div className="text-sm font-fantasy text-amber-300/80">{currentTrack.scene}</div>
-          </div>
-        )}
-        <button
-          type="button"
-          onClick={onClose}
-          className={`ml-auto flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border transition-colors ${isLightTheme ? 'border-stone-600 bg-stone-900 text-stone-300 hover:border-stone-500 hover:text-stone-100' : 'border-stone-800 bg-stone-900/80 text-stone-400 hover:border-stone-700 hover:text-stone-200'}`}
-          title="Sluiten"
-          aria-label="Sluiten"
-        >
-          <X className="h-4 w-4" />
-        </button>
       </div>
 
       {/* Scrollable content */}
-      <div className="flex-1 overflow-y-auto">
-        <div className="max-w-2xl mx-auto px-4 md:px-8 py-8 space-y-6">
+      <div className="relative z-10 flex-1 overflow-y-auto">
+        <div className="mx-auto max-w-3xl space-y-6 px-4 py-8 md:px-8">
 
           {/* Now playing + play button */}
-          <div className={`rounded-2xl border p-5 ${isLightTheme ? 'border-stone-600 bg-stone-950/70 shadow-sm' : 'border-stone-800/80 bg-stone-900/40'}`}>
+          <div className={`rounded-3xl border p-5 shadow-[0_22px_60px_rgba(0,0,0,0.32)] backdrop-blur-md border-white/10 bg-zinc-950/72`}>
             <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
               <div className="min-w-0">
-                <div className={`text-[10px] uppercase tracking-[0.22em] ${isLightTheme ? 'text-stone-400' : 'text-stone-500'}`}>Nu actief</div>
+                <div className={`text-[10px] uppercase tracking-[0.22em] text-stone-500`}>Nu actief</div>
                 <div className="mt-2 font-fantasy text-xl tracking-[0.08em] text-stone-100">{currentTrack?.scene || 'Geen sfeer gekozen'}</div>
-                <div className={`mt-1 text-sm ${isLightTheme ? 'text-stone-300' : 'text-stone-400'}`}>{currentTrack?.subtitle || 'Kies een geverifieerde track om de tafel te kleuren.'}</div>
+                <div className={`mt-1 text-sm text-stone-400`}>{currentTrack?.subtitle || 'Kies een geverifieerde track om de tafel te kleuren.'}</div>
               </div>
               <button
                 type="button"
                 onClick={canControlSession ? onTogglePlayback : onUnlockAudio}
-                className={`h-10 inline-flex w-full items-center justify-center gap-2 rounded-xl border px-5 font-fantasy text-sm uppercase tracking-[0.16em] transition-colors sm:w-auto shrink-0 ${isPlaying ? 'border-amber-700/50 bg-amber-950/40 text-amber-100 hover:bg-amber-900/45' : (isLightTheme ? 'border-stone-600 bg-stone-900 text-stone-200 hover:border-amber-700/40 hover:text-amber-200' : 'border-stone-700 bg-stone-950 text-stone-200 hover:border-amber-700/40 hover:text-amber-100')}`}
+                className={`h-11 inline-flex w-full items-center justify-center gap-2 rounded-xl border px-5 text-sm uppercase tracking-[0.16em] transition-all duration-200 ease-out active:scale-[0.985] sm:w-auto shrink-0 ${isPlaying ? ambienceTone.actionOn : 'border-white/10 bg-white/5 text-stone-200 hover:bg-white/8'}`}
               >
                 {isPlaying ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
                 <span>{canControlSession ? (isPlaying ? 'Pauzeer' : 'Start sfeer') : 'Activeer audio'}</span>
@@ -168,13 +213,13 @@ export default function AmbiencePanel({
             {/* Volume sliders */}
             <div className={`mt-5 grid gap-3 ${canControlSession ? 'sm:grid-cols-2' : ''}`}>
               {canControlSession ? (
-                <label className={`rounded-xl border px-4 py-3 ${isLightTheme ? 'border-stone-600 bg-stone-950/75' : 'border-stone-800/80 bg-stone-950/60'}`}>
+                <label className={`rounded-2xl border px-4 py-3 border-white/10 bg-zinc-950/72`}>
                   <div className="flex items-center justify-between gap-3">
                     <div>
-                      <div className={`text-[10px] uppercase tracking-[0.2em] ${isLightTheme ? 'text-stone-400' : 'text-stone-500'}`}>Sessievolume</div>
-                      <div className={`mt-1 text-xs ${isLightTheme ? 'text-stone-300' : 'text-stone-400'}`}>Wat iedereen als basis hoort.</div>
+                      <div className={`text-[10px] uppercase tracking-[0.2em] text-stone-500`}>Sessievolume</div>
+                      <div className={`mt-1 text-xs text-stone-400`}>Wat iedereen als basis hoort.</div>
                     </div>
-                    <div className="font-fantasy text-sm tracking-[0.12em] text-amber-300">{sessionVolume}%</div>
+                    <div className={`font-fantasy text-sm tracking-[0.12em] ${ambienceTone.valueText}`}>{sessionVolume}%</div>
                   </div>
                   <input
                     type="range"
@@ -187,11 +232,11 @@ export default function AmbiencePanel({
                 </label>
               ) : null}
 
-              <label className={`rounded-xl border px-4 py-3 ${isLightTheme ? 'border-stone-600 bg-stone-950/75' : 'border-stone-800/80 bg-stone-950/60'}`}>
+              <label className={`rounded-xl border px-4 py-3 border-white/10 bg-zinc-950/72`}>
                 <div className="flex items-center justify-between gap-3">
                   <div>
-                    <div className={`text-[10px] uppercase tracking-[0.2em] ${isLightTheme ? 'text-stone-400' : 'text-stone-500'}`}>Jouw mix</div>
-                    <div className={`mt-1 text-xs ${isLightTheme ? 'text-stone-300' : 'text-stone-400'}`}>Pas lokaal aan zonder anderen te veranderen.</div>
+                    <div className={`text-[10px] uppercase tracking-[0.2em] text-stone-500`}>Jouw mix</div>
+                    <div className={`mt-1 text-xs text-stone-400`}>Pas lokaal aan zonder anderen te veranderen.</div>
                   </div>
                   <div className="flex items-center gap-2 font-fantasy text-sm tracking-[0.12em] text-stone-200">
                     {listenerVolume === 0 ? <VolumeX className="h-4 w-4 text-rose-300" /> : <Volume2 className="h-4 w-4 text-stone-400" />}
@@ -210,7 +255,7 @@ export default function AmbiencePanel({
             </div>
 
             {!canControlSession ? (
-              <p className={`mt-3 text-xs ${isLightTheme ? 'text-stone-400' : 'text-stone-500'}`}>
+              <p className={`mt-3 text-xs text-stone-500`}>
                 De GM kiest de scene. Jij kunt hier altijd je eigen volume afstellen of audio opnieuw activeren als je browser autoplay blokkeert.
               </p>
             ) : null}
@@ -242,8 +287,8 @@ export default function AmbiencePanel({
           {/* Scene selector */}
           <section>
             <div className="flex items-center justify-between mb-3">
-              <div className={`text-[10px] uppercase tracking-[0.24em] ${isLightTheme ? 'text-stone-400' : 'text-stone-500'}`}>Geverifieerde scenes</div>
-              <div className={`text-[10px] ${isLightTheme ? 'text-stone-400' : 'text-stone-600'}`}>{canControlSession ? 'GM kiest · tik op een rij' : 'Alleen bekijken'}</div>
+              <div className={`text-[10px] uppercase tracking-[0.24em] text-stone-500`}>Geverifieerde scenes</div>
+              <div className={`text-[10px] text-stone-600`}>{canControlSession ? 'GM kiest · tik op een rij' : 'Alleen bekijken'}</div>
             </div>
             <SceneList />
           </section>
@@ -253,13 +298,13 @@ export default function AmbiencePanel({
             <button
               type="button"
               onClick={onOpenSourcelist}
-              className="flex w-full items-center justify-between gap-2 text-left rounded-xl border border-stone-800/60 bg-stone-900/40 px-4 py-3 transition-colors hover:border-stone-700 hover:bg-stone-900/60"
+              className="flex w-full items-center justify-between gap-2 rounded-2xl border border-white/10 bg-zinc-950/70 px-4 py-3 text-left transition-all duration-200 ease-out hover:bg-zinc-950/90 hover:border-white/20"
             >
               <div className="flex items-center gap-2 min-w-0">
                 <Info className="h-4 w-4 text-stone-500 shrink-0" />
                 <span className="text-[11px] uppercase tracking-[0.16em] text-stone-400">Audiogebruik & credits</span>
               </div>
-              <span className="text-[10px] text-stone-600 whitespace-nowrap">{verifiedTracks.length} bronnen →</span>
+              <span className={`text-[10px] whitespace-nowrap ${ambienceTone.creditsCount}`}>{verifiedTracks.length} bronnen →</span>
             </button>
           </div>
 

@@ -1,12 +1,10 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Flame, Share2, Shield, Music, Pause, Volume2, Swords, User, LogOut, Settings, ChevronDown, Bell, BellRing, Dice5, MoreHorizontal } from 'lucide-react';
+import { Flame, Share2, Shield, Music, Pause, Volume2, Swords, User, LogOut, Settings, ChevronDown, Bell, BellRing, MoreHorizontal } from 'lucide-react';
 import AmbiencePanel from './AmbiencePanel';
 import RuntimeBadge from './RuntimeBadge';
-import DiceRollerSheet, { getDiceThemeChrome } from './DiceRollerSheet';
 import { COMBAT_STATUS, getTurnApproachRatio, getTurnsUntilMember, sortPartyByInitiative } from '../lib/battleUtils';
 
-export default function TopBar({ role, sessionId, sessionNumber, theme, combatStatus, currentTurnId, initiativeOrder, party, currentPlayerId, onLogout, ambience, onToggleAmbiencePanel, onCloseAmbiencePanel, onToggleAmbiencePlayback, onSelectAmbienceTrack, onSetSessionAmbienceVolume, onSetListenerAmbienceVolume, onUnlockAmbienceAudio, onToggleParty, onOpenShare, onOpenProfile, onOpenSettings, onOpenSessionPanel, onOpenSourcelist, onDiceRoll, runtimeBadge }) {
-  const diceThemeChrome = getDiceThemeChrome(theme);
+export default function TopBar({ role, sessionId, sessionNumber, theme, combatStatus, currentTurnId, initiativeOrder, party, currentPlayerId, onLogout, ambience, onToggleAmbiencePanel, onCloseAmbiencePanel, onToggleAmbiencePlayback, onSelectAmbienceTrack, onSetSessionAmbienceVolume, onSetListenerAmbienceVolume, onUnlockAmbienceAudio, onToggleParty, onOpenShare, onOpenProfile, onOpenSettings, onOpenSessionPanel, onOpenSourcelist, runtimeBadge }) {
   const sortedParty = sortPartyByInitiative(Array.isArray(party) ? party : [], Array.isArray(initiativeOrder) ? initiativeOrder : []);
   const turnsUntilMine = getTurnsUntilMember(sortedParty, initiativeOrder, currentTurnId, currentPlayerId);
   const turnApproachRatio = getTurnApproachRatio(sortedParty, initiativeOrder, currentTurnId, currentPlayerId);
@@ -30,7 +28,6 @@ export default function TopBar({ role, sessionId, sessionNumber, theme, combatSt
   const [isSessionMenuOpen, setIsSessionMenuOpen] = useState(false);
   const [isMobileActionsOpen, setIsMobileActionsOpen] = useState(false);
   const [turnAlert, setTurnAlert] = useState(null);
-  const [showDiceRoller, setShowDiceRoller] = useState(false);
   const sessionMenuRef = useRef(null);
   const mobileActionsRef = useRef(null);
   const lastTurnRef = useRef(currentTurnId || null);
@@ -159,11 +156,11 @@ export default function TopBar({ role, sessionId, sessionNumber, theme, combatSt
   }, [isMobileActionsOpen]);
 
   return (
-    <header className="relative shrink-0 z-30 border-b border-stone-800 bg-stone-900/80 backdrop-blur">
+    <header className="relative z-30 shrink-0 border-b border-white/10 bg-zinc-950/82 backdrop-blur-md">
       {turnAlert && role === 'player' ? (
         <div className="pointer-events-none absolute left-1/2 top-[calc(100%+0.4rem)] z-40 w-[calc(100%-1rem)] max-w-sm -translate-x-1/2">
           <div
-            className={`flex items-center justify-center gap-2 rounded-full border px-3 py-2 shadow-lg ${turnAlert.variant === 'now' ? 'border-amber-600/70 bg-amber-900/90 text-amber-100' : (turnAlert.variant === 'start' ? 'border-indigo-600/70 bg-indigo-950/90 text-indigo-100' : 'border-cyan-700/60 bg-cyan-950/85 text-cyan-100')}`}
+            className={`flex items-center justify-center gap-2 rounded-full border px-3 py-2 shadow-[0_12px_30px_rgba(0,0,0,0.28)] ${turnAlert.variant === 'now' ? 'border-amber-500/35 bg-amber-950/90 text-amber-100' : (turnAlert.variant === 'start' ? 'border-indigo-500/35 bg-indigo-950/90 text-indigo-100' : 'border-cyan-500/30 bg-cyan-950/88 text-cyan-100')}`}
             role="status"
             aria-live="polite"
             aria-label={turnAlert.label}
@@ -184,11 +181,11 @@ export default function TopBar({ role, sessionId, sessionNumber, theme, combatSt
 
           <div className="ml-0.5 flex min-w-0 items-center gap-1 sm:gap-1.5 md:ml-3 md:gap-2">
             <div
-              className="hidden h-9 items-center rounded-lg border border-amber-800/40 bg-amber-950/25 px-2.5 shadow-inner sm:flex md:px-3"
+              className="hidden h-9 items-center rounded-xl border border-white/10 bg-white/5 px-2.5 shadow-inner sm:flex md:px-3"
               title="Campagne sessienummer"
             >
-              <span className="mr-1.5 hidden text-[9px] uppercase tracking-[0.2em] text-amber-600/80 md:inline md:text-[10px]">Sessie</span>
-              <span className="font-fantasy text-[11px] tracking-[0.14em] text-amber-400 md:text-xs">#{Math.max(1, Number(sessionNumber) || 1)}</span>
+              <span className="mr-1.5 hidden text-[9px] uppercase tracking-[0.2em] text-stone-500 md:inline md:text-[10px]">Sessie</span>
+              <span className="text-[11px] font-medium tracking-[0.12em] text-stone-100 md:text-xs">#{Math.max(1, Number(sessionNumber) || 1)}</span>
             </div>
 
             <div ref={sessionMenuRef} className="relative h-9 min-w-0 max-w-full">
@@ -198,31 +195,31 @@ export default function TopBar({ role, sessionId, sessionNumber, theme, combatSt
                   setIsMobileActionsOpen(false);
                   setIsSessionMenuOpen((open) => !open);
                 }}
-                className={`flex h-full min-w-0 max-w-full items-center gap-1.5 rounded-lg border pl-2 pr-1.5 transition-colors sm:gap-2 sm:pl-2.5 sm:pr-2 ${
+                className={`flex h-full min-w-0 max-w-full items-center gap-1.5 rounded-xl border px-2 pr-1.5 transition-all duration-200 ease-out active:scale-[0.985] sm:gap-2 sm:pl-2.5 sm:pr-2 ${
                   isSessionMenuOpen
-                    ? 'border-amber-700/50 bg-stone-900/90 text-amber-300'
-                    : 'border-stone-700/60 bg-stone-950/60 text-stone-300 hover:border-stone-600/70 hover:text-stone-200'
+                    ? 'border-white/10 bg-white/7 text-stone-100'
+                    : 'border-white/10 bg-white/5 text-stone-300 hover:bg-white/7 hover:text-stone-100'
                 }`}
                 title="Sessiemenu openen"
               >
                 <span className="relative flex shrink-0 items-center justify-center">
-                  <span className="absolute h-2.5 w-2.5 rounded-full bg-amber-500/25" />
-                  <span className="relative z-10 h-1.5 w-1.5 rounded-full bg-amber-400 shadow-[0_0_8px_rgba(245,158,11,0.8)]" />
+                  <span className="absolute h-2.5 w-2.5 rounded-full bg-amber-400/20" />
+                  <span className="relative z-10 h-1.5 w-1.5 rounded-full bg-amber-300 shadow-[0_0_8px_rgba(251,191,36,0.6)]" />
                 </span>
-                <span className="font-fantasy text-[10px] tracking-[0.16em] text-amber-400 sm:hidden">{compactSessionLabel}</span>
-                <span className="hidden max-w-[140px] truncate font-fantasy text-xs tracking-[0.16em] text-amber-400 sm:inline md:max-w-[240px]">{sessionLabel}</span>
-                <ChevronDown className={`h-3.5 w-3.5 shrink-0 text-stone-500 transition-transform duration-150 ${isSessionMenuOpen ? 'rotate-180 text-amber-500' : ''}`} />
+                <span className="text-[10px] font-medium tracking-[0.14em] text-stone-100 sm:hidden">{compactSessionLabel}</span>
+                <span className="hidden max-w-[140px] truncate text-xs font-medium tracking-[0.12em] text-stone-100 sm:inline md:max-w-[240px]">{sessionLabel}</span>
+                <ChevronDown className={`h-3.5 w-3.5 shrink-0 text-stone-500 transition-transform duration-200 ${isSessionMenuOpen ? 'rotate-180 text-stone-100' : ''}`} />
               </button>
 
               {isSessionMenuOpen ? (
-                <div className="absolute left-0 top-[calc(100%+0.4rem)] z-50 w-44 rounded-xl border border-stone-700/70 bg-stone-950/98 p-1.5 shadow-2xl backdrop-blur">
+                <div className="absolute left-0 top-[calc(100%+0.4rem)] z-50 w-44 rounded-2xl border border-white/10 bg-zinc-950/98 p-1.5 shadow-[0_18px_50px_rgba(0,0,0,0.32)] backdrop-blur-md">
                   <button
                     type="button"
                     onClick={() => {
                       onOpenShare();
                       setIsSessionMenuOpen(false);
                     }}
-                    className="inline-flex h-8 w-full items-center gap-2 rounded-lg px-2.5 text-xs font-fantasy tracking-[0.08em] text-stone-300 transition-colors hover:bg-stone-800/80 hover:text-amber-300"
+                    className="inline-flex h-9 w-full items-center gap-2 rounded-xl px-2.5 text-xs font-medium tracking-[0.08em] text-stone-300 transition-all duration-200 ease-out hover:bg-white/5 hover:text-stone-100 active:scale-[0.985]"
                   >
                     <Share2 className="h-3.5 w-3.5" /> Deel sessie
                   </button>
@@ -233,19 +230,19 @@ export default function TopBar({ role, sessionId, sessionNumber, theme, combatSt
                         onOpenSessionPanel?.();
                         setIsSessionMenuOpen(false);
                       }}
-                      className="inline-flex h-8 w-full items-center gap-2 rounded-lg px-2.5 text-xs font-fantasy tracking-[0.08em] text-stone-300 transition-colors hover:bg-stone-800/80 hover:text-amber-300"
+                      className="inline-flex h-9 w-full items-center gap-2 rounded-xl px-2.5 text-xs font-medium tracking-[0.08em] text-stone-300 transition-all duration-200 ease-out hover:bg-white/5 hover:text-stone-100 active:scale-[0.985]"
                     >
                       <Settings className="h-3.5 w-3.5" /> Sessiebeheer
                     </button>
                   ) : null}
-                  <div className="my-1 h-px bg-stone-800/80" />
+                  <div className="my-1 h-px bg-white/10" />
                   <button
                     type="button"
                     onClick={() => {
                       onLogout();
                       setIsSessionMenuOpen(false);
                     }}
-                    className="inline-flex h-8 w-full items-center gap-2 rounded-lg px-2.5 text-xs font-fantasy tracking-[0.08em] text-stone-400 transition-colors hover:bg-rose-950/40 hover:text-rose-300 md:hidden"
+                    className="inline-flex h-9 w-full items-center gap-2 rounded-xl px-2.5 text-xs font-medium tracking-[0.08em] text-stone-400 transition-all duration-200 ease-out hover:bg-rose-500/10 hover:text-rose-200 active:scale-[0.985] md:hidden"
                   >
                     <LogOut className="h-3.5 w-3.5" /> Verlaat sessie
                   </button>
@@ -258,23 +255,14 @@ export default function TopBar({ role, sessionId, sessionNumber, theme, combatSt
         </div>
 
         <div className="flex shrink-0 items-center justify-end gap-1 sm:gap-1.5 md:gap-2">
-          <button
-            type="button"
-            onClick={() => setShowDiceRoller((value) => !value)}
-            className={`flex h-9 w-9 items-center justify-center rounded-lg transition-colors ${showDiceRoller ? diceThemeChrome.triggerActive : diceThemeChrome.triggerIdle}`}
-            title="Dobbelstenen"
-          >
-            <Dice5 className="h-5 w-5" />
-          </button>
-
           <div ref={ambienceShellRef} className="relative">
             <button
               type="button"
               onClick={onToggleAmbiencePanel}
-              className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border px-0 shadow-inner transition-colors md:w-auto md:gap-2 md:px-3 ${ambience?.isPlaying ? 'border-amber-700/55 bg-amber-950/35 text-amber-100' : 'border-stone-700/80 bg-stone-950/90 text-stone-300 hover:border-stone-600 hover:text-stone-100'}`}
+              className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border px-0 shadow-inner transition-all duration-200 ease-out active:scale-[0.985] md:w-auto md:gap-2 md:px-3 ${ambience?.isPlaying ? 'border-white/10 bg-white/7 text-stone-100' : 'border-white/10 bg-white/5 text-stone-300 hover:bg-white/7 hover:text-stone-100'}`}
               title={isPlayer ? 'Open audio-instellingen' : (ambience?.isPlaying ? 'Open actieve sessiesfeer' : 'Open sferenpaneel')}
             >
-              <span className="relative flex h-7 w-7 items-center justify-center rounded-lg bg-black/20">
+              <span className="relative flex h-7 w-7 items-center justify-center rounded-lg bg-white/5">
                 <span className={`absolute right-1.5 top-1.5 h-1.5 w-1.5 rounded-full ${ambience?.isPlaying ? 'bg-amber-400 shadow-[0_0_8px_rgba(245,158,11,0.7)]' : 'bg-stone-500'}`} />
                 {ambience?.isPlaying ? <Pause className="h-3.5 w-3.5" /> : <Music className="h-3.5 w-3.5" />}
               </span>
@@ -282,18 +270,18 @@ export default function TopBar({ role, sessionId, sessionNumber, theme, combatSt
               {isPlayer ? (
                 <div className="hidden text-left md:block">
                   <div className="text-[9px] uppercase tracking-[0.22em] text-stone-500">Audio</div>
-                  <div className="mt-0.5 font-fantasy text-[11px] tracking-[0.14em] text-current">Jouw volume</div>
+                  <div className="mt-0.5 text-[11px] font-medium tracking-[0.1em] text-current">Jouw volume</div>
                 </div>
               ) : (
                 <div className="hidden text-left md:block">
                   <div className="text-[9px] uppercase tracking-[0.22em] text-stone-500">{ambienceTitle}</div>
-                  <div className="mt-0.5 font-fantasy text-[11px] tracking-[0.14em] text-current">{ambienceSubtitle}</div>
+                  <div className="mt-0.5 text-[11px] font-medium tracking-[0.1em] text-current">{ambienceSubtitle}</div>
                 </div>
               )}
 
               {!isPlayer ? (
-                <div className="hidden items-center gap-1.5 border-l border-stone-800/80 pl-2 xl:flex">
-                  <div className="h-1.5 w-12 overflow-hidden rounded-full border border-stone-900 bg-stone-900">
+                <div className="hidden items-center gap-1.5 border-l border-white/10 pl-2 xl:flex">
+                  <div className="h-1.5 w-12 overflow-hidden rounded-full border border-white/10 bg-white/5">
                     <div className="h-full rounded-full bg-amber-500" style={{ width: ambienceFillWidth }} />
                   </div>
                   <Volume2 className="h-3.5 w-3.5 text-stone-500" />
@@ -325,7 +313,7 @@ export default function TopBar({ role, sessionId, sessionNumber, theme, combatSt
 
           <button
             onClick={onToggleParty}
-            className="relative flex h-9 w-9 items-center justify-center rounded-lg text-stone-400 transition-colors hover:bg-stone-800 hover:text-amber-400 lg:hidden"
+            className="relative flex h-10 w-10 items-center justify-center rounded-xl text-stone-400 transition-all duration-200 ease-out hover:bg-white/5 hover:text-stone-100 active:scale-[0.985] lg:hidden"
             title={partyButtonTitle}
           >
             <PartyIcon className={`h-5 w-5 ${combatStatus !== COMBAT_STATUS.IDLE ? 'text-amber-400' : ''}`} />
@@ -345,21 +333,21 @@ export default function TopBar({ role, sessionId, sessionNumber, theme, combatSt
             ) : null}
           </button>
 
-          <div className="hidden items-center gap-1 border-l border-stone-800/70 pl-2 md:flex md:gap-2 md:pl-2.5">
+          <div className="hidden items-center gap-1 border-l border-white/10 pl-2 md:flex md:gap-2 md:pl-2.5">
             <div className="hidden text-right lg:block">
-              <div className="text-sm font-fantasy font-bold uppercase tracking-[0.14em] text-stone-100">{role === 'gm' ? 'Game Master' : 'Avonturier'}</div>
-              <div className="text-[10px] font-bold uppercase tracking-[0.22em] text-stone-400">Aanwezig</div>
+              <div className="text-sm font-medium uppercase tracking-[0.14em] text-stone-100">{role === 'gm' ? 'Game Master' : 'Avonturier'}</div>
+              <div className="text-[10px] font-semibold uppercase tracking-[0.22em] text-stone-400">Aanwezig</div>
             </div>
 
             {role === 'player' ? (
-              <button onClick={onOpenProfile} className="flex h-9 w-9 items-center justify-center rounded-lg text-stone-400 transition-colors hover:bg-stone-800 hover:text-amber-400" title="Mijn Karakterblad">
+              <button onClick={onOpenProfile} className="flex h-10 w-10 items-center justify-center rounded-xl text-stone-400 transition-all duration-200 ease-out hover:bg-white/5 hover:text-stone-100 active:scale-[0.985]" title="Mijn Karakterblad">
                 <User className="h-5 w-5" />
               </button>
             ) : null}
 
             <button
               onClick={onLogout}
-              className="flex h-9 w-9 items-center justify-center rounded-lg text-stone-400 transition-colors hover:bg-stone-800 hover:text-rose-400"
+              className="flex h-10 w-10 items-center justify-center rounded-xl text-stone-400 transition-all duration-200 ease-out hover:bg-rose-500/10 hover:text-rose-200 active:scale-[0.985]"
               title="Verlaat Sessie"
             >
               <LogOut className="h-5 w-5" />
@@ -373,21 +361,21 @@ export default function TopBar({ role, sessionId, sessionNumber, theme, combatSt
                 setIsSessionMenuOpen(false);
                 setIsMobileActionsOpen((open) => !open);
               }}
-              className={`flex h-9 w-9 items-center justify-center rounded-lg border transition-colors ${isMobileActionsOpen ? 'border-amber-700/50 bg-stone-900/90 text-amber-300' : 'border-stone-700/60 bg-stone-950/60 text-stone-300 hover:border-stone-600/70 hover:text-stone-200'}`}
+              className={`flex h-10 w-10 items-center justify-center rounded-xl border transition-all duration-200 ease-out active:scale-[0.985] ${isMobileActionsOpen ? 'border-white/10 bg-white/7 text-stone-100' : 'border-white/10 bg-white/5 text-stone-300 hover:bg-white/7 hover:text-stone-100'}`}
               title="Meer acties"
             >
               <MoreHorizontal className="h-5 w-5" />
             </button>
 
             {isMobileActionsOpen ? (
-              <div className="absolute right-0 top-[calc(100%+0.4rem)] z-50 w-48 rounded-xl border border-stone-700/70 bg-stone-950/98 p-1.5 shadow-2xl backdrop-blur">
+              <div className="absolute right-0 top-[calc(100%+0.4rem)] z-50 w-48 rounded-2xl border border-white/10 bg-zinc-950/98 p-1.5 shadow-[0_18px_50px_rgba(0,0,0,0.32)] backdrop-blur-md">
                 <button
                   type="button"
                   onClick={() => {
                     onOpenShare();
                     setIsMobileActionsOpen(false);
                   }}
-                  className="inline-flex h-8 w-full items-center gap-2 rounded-lg px-2.5 text-xs font-fantasy tracking-[0.08em] text-stone-300 transition-colors hover:bg-stone-800/80 hover:text-amber-300"
+                  className="inline-flex h-9 w-full items-center gap-2 rounded-xl px-2.5 text-xs font-medium tracking-[0.08em] text-stone-300 transition-all duration-200 ease-out hover:bg-white/5 hover:text-stone-100 active:scale-[0.985]"
                 >
                   <Share2 className="h-3.5 w-3.5" /> Deel sessie
                 </button>
@@ -398,7 +386,7 @@ export default function TopBar({ role, sessionId, sessionNumber, theme, combatSt
                       onOpenSessionPanel?.();
                       setIsMobileActionsOpen(false);
                     }}
-                    className="inline-flex h-8 w-full items-center gap-2 rounded-lg px-2.5 text-xs font-fantasy tracking-[0.08em] text-stone-300 transition-colors hover:bg-stone-800/80 hover:text-amber-300"
+                    className="inline-flex h-9 w-full items-center gap-2 rounded-xl px-2.5 text-xs font-medium tracking-[0.08em] text-stone-300 transition-all duration-200 ease-out hover:bg-white/5 hover:text-stone-100 active:scale-[0.985]"
                   >
                     <Settings className="h-3.5 w-3.5" /> Sessiebeheer
                   </button>
@@ -410,7 +398,7 @@ export default function TopBar({ role, sessionId, sessionNumber, theme, combatSt
                       onOpenProfile?.();
                       setIsMobileActionsOpen(false);
                     }}
-                    className="inline-flex h-8 w-full items-center gap-2 rounded-lg px-2.5 text-xs font-fantasy tracking-[0.08em] text-stone-300 transition-colors hover:bg-stone-800/80 hover:text-amber-300"
+                    className="inline-flex h-9 w-full items-center gap-2 rounded-xl px-2.5 text-xs font-medium tracking-[0.08em] text-stone-300 transition-all duration-200 ease-out hover:bg-white/5 hover:text-stone-100 active:scale-[0.985]"
                   >
                     <User className="h-3.5 w-3.5" /> Mijn karakterblad
                   </button>
@@ -425,14 +413,14 @@ export default function TopBar({ role, sessionId, sessionNumber, theme, combatSt
                 >
                   <Settings className="h-3.5 w-3.5" /> Configuratie
                 </button>
-                <div className="my-1 h-px bg-stone-800/80" />
+                <div className="my-1 h-px bg-white/10" />
                 <button
                   type="button"
                   onClick={() => {
                     onLogout();
                     setIsMobileActionsOpen(false);
                   }}
-                  className="inline-flex h-8 w-full items-center gap-2 rounded-lg px-2.5 text-xs font-fantasy tracking-[0.08em] text-stone-400 transition-colors hover:bg-rose-950/40 hover:text-rose-300"
+                  className="inline-flex h-9 w-full items-center gap-2 rounded-xl px-2.5 text-xs font-medium tracking-[0.08em] text-stone-400 transition-all duration-200 ease-out hover:bg-rose-500/10 hover:text-rose-200 active:scale-[0.985]"
                 >
                   <LogOut className="h-3.5 w-3.5" /> Verlaat sessie
                 </button>
@@ -441,17 +429,6 @@ export default function TopBar({ role, sessionId, sessionNumber, theme, combatSt
           </div>
         </div>
       </div>
-      <DiceRollerSheet
-        isOpen={showDiceRoller}
-        theme={theme}
-        title="Snelle tafelrol"
-        subtitle="Gebruik dezelfde roller vanuit topbar en chat, ook op kleinere schermen."
-        onClose={() => setShowDiceRoller(false)}
-        onRoll={(payload) => {
-          onDiceRoll?.(payload);
-          setShowDiceRoller(false);
-        }}
-      />
     </header>
   );
 }

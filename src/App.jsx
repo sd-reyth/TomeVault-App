@@ -2297,39 +2297,6 @@ export default function TomeVaultApp() {
     });
   };
 
-  const formatDiceChatMessage = (payload = {}) => {
-    const lines = Array.isArray(payload?.lines) ? payload.lines : [];
-    if (!lines.length) return '';
-
-    if (lines.length === 1) {
-      const line = lines[0];
-      return `rolt ${line.count}d${line.sides}: [${line.rolls.join(', ')}] = ${payload.total}`;
-    }
-
-    const breakdown = lines
-      .map((line) => `${line.count}d${line.sides} = ${line.rolls.join(' + ')}`)
-      .join(' | ');
-    return `🎲 ${payload.total}!\n${breakdown}`;
-  };
-
-  const handleDiceRollToChat = async (payload = {}) => {
-    const text = formatDiceChatMessage(payload);
-    if (!text || !sessionDocId || !uid) return;
-
-    const localChatColor = typeof window === 'undefined'
-      ? null
-      : String(safeLocalStorageGet('tv_chatcolor', '') || '').trim();
-
-    try {
-      await handleSendChatRemote({
-        text,
-        color: localChatColor || 'indigo',
-      });
-    } catch (err) {
-      console.error('Dobbelsteenrol naar chat sturen mislukt:', err);
-    }
-  };
-
   const handleEditChatMessage = async (msgId, newText) => {
     if (!sessionDocId || !msgId) return;
     try {
@@ -3648,7 +3615,7 @@ export default function TomeVaultApp() {
   };
 
   return (
-    <div data-theme={theme} data-brightness-step={brightness} className="relative h-screen w-full bg-stone-950 text-stone-300 font-sans flex flex-col selection:bg-amber-500/30 bg-texture overflow-hidden">
+    <div data-theme={theme} data-brightness-step={brightness} className="tv-app-shell relative flex h-screen w-full flex-col overflow-hidden font-sans text-stone-300 selection:bg-amber-500/30">
       {appUpdateNotice ? (
         <div className="absolute inset-x-4 top-3 z-50 mx-auto max-w-3xl rounded-xl border border-amber-700/60 bg-amber-950/90 px-4 py-3 text-amber-100 shadow-lg shadow-amber-950/40 backdrop-blur">
           <div className="flex flex-wrap items-center justify-between gap-3">
@@ -3704,19 +3671,18 @@ export default function TomeVaultApp() {
           onOpenSettings={() => setIsSettingsOpen(true)}
           onOpenSessionPanel={() => setIsSessionPanelOpen(true)}
           onOpenSourcelist={() => setIsSourcelistOpen(true)}
-          onDiceRoll={handleDiceRollToChat}
           runtimeBadge={runtimeBadge}
         />
         
-        <div className="flex flex-1 overflow-hidden relative">
+        <div className="relative flex flex-1 overflow-hidden">
           <Sidebar activeTab={activeTab} setActiveTab={setActiveTab} onOpenSettings={() => setIsSettingsOpen(true)} role={role} />
           
-          <main className="app-shell-main relative flex-1 overflow-y-auto p-4 no-scrollbar md:p-6 transition-opacity duration-300">
-            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-96 bg-amber-900/5 blur-[100px] pointer-events-none" />
+          <main className="app-shell-main relative flex-1 overflow-hidden p-3 transition-opacity duration-300 md:p-5">
+            <div className="pointer-events-none absolute left-1/2 top-0 h-96 w-full -translate-x-1/2 bg-amber-400/10 blur-[120px]" />
             
-            <div className="max-w-[1120px] mx-auto h-full relative z-10">
+            <div className="tv-main-canvas relative z-10 mx-auto h-full max-w-[1180px]">
               {activeTab === 'handouts' && (
-                <div key="handouts-view" className="animate-in fade-in duration-200">
+                <div key="handouts-view" className="tv-tab-stage">
                   <HandoutsView 
                     role={role} 
                     handouts={handouts} 
@@ -3730,7 +3696,7 @@ export default function TomeVaultApp() {
                 </div>
               )}
               {activeTab === 'chat' && (
-                <div key="chat-view" className="animate-in fade-in duration-200">
+                <div key="chat-view" className="tv-tab-stage">
                   <ChatView
                     chat={chat}
                     setChat={setChat}
@@ -3747,7 +3713,7 @@ export default function TomeVaultApp() {
                 </div>
               )}
               {activeTab === 'inventory' && (
-                <div key="inventory-view" className="animate-in fade-in duration-200">
+                <div key="inventory-view" className="tv-tab-stage">
                   <InventoryView 
                     role={role} 
                     inventory={inventory} 
@@ -3765,7 +3731,7 @@ export default function TomeVaultApp() {
                 </div>
               )}
               {activeTab === 'preparations' && role === 'gm' && (
-                <div key="preparations-view" className="animate-in fade-in duration-200">
+                <div key="preparations-view" className="tv-tab-stage">
                   <PreparationsView
                     templates={preparations}
                     backups={preparationBackups}
@@ -3779,7 +3745,7 @@ export default function TomeVaultApp() {
                 </div>
               )}
               {activeTab === 'notes' && (
-                <div key="notes-view" className="animate-in fade-in duration-200">
+                <div key="notes-view" className="tv-tab-stage">
                   <NotesView 
                     role={role} 
                     notes={notes} 
@@ -3872,6 +3838,7 @@ export default function TomeVaultApp() {
         <PreparationModal
           isOpen={selectedPreparation !== null}
           preparation={selectedPreparation === 'new' ? null : selectedPreparation}
+          theme={theme}
           onClose={() => setSelectedPreparation(null)}
           onSave={async (draft, pendingFile) => {
             await handleSavePreparationRemote(draft, pendingFile);
@@ -3995,6 +3962,7 @@ export default function TomeVaultApp() {
           onClose={() => setIsSessionPanelOpen(false)}
           sessionId={sessionId}
           sessionNumber={campaignSessionNumber}
+          theme={theme}
           onSaveSessionNumber={async (n) => { await handleUpdateCampaignSessionNumber(n); }}
           onOpenShare={() => { setIsSessionPanelOpen(false); setShowShareModal(true); }}
         />
@@ -4002,6 +3970,7 @@ export default function TomeVaultApp() {
         <SourcelistModal
           isOpen={isSourcelistOpen}
           onClose={() => setIsSourcelistOpen(false)}
+          theme={theme}
           verifiedTracks={verifiedAmbienceTracks}
           archivedTracks={archivedAmbienceTracks}
         />
