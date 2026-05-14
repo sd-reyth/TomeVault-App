@@ -1,24 +1,20 @@
 import React from 'react';
-import { X } from 'lucide-react';
+import ModalFrame from './ModalFrame';
 import { resolveDisplayAvatar } from '../lib/placeholders';
 
 export default function PlayerPickerModal({ isOpen, players, preparation, onClose, onAssign }) {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-stone-950/80 p-4 backdrop-blur-sm">
-      <div className="w-full max-w-lg overflow-hidden rounded-2xl border border-stone-800 bg-stone-900 shadow-2xl">
-        <div className="flex items-center justify-between border-b border-stone-800/60 bg-stone-900/85 p-4">
-          <div>
-            <div className="text-[10px] uppercase tracking-[0.22em] text-stone-500">Toewijzen</div>
-            <h2 className="mt-1 font-fantasy text-lg tracking-[0.14em] text-stone-100">Aan wie wil je {preparation?.name || 'dit personage'} aanbieden?</h2>
-          </div>
-          <button onClick={onClose} className="rounded-lg p-1 text-stone-400 transition-colors hover:bg-stone-800 hover:text-rose-400">
-            <X className="h-5 w-5" />
-          </button>
-        </div>
-
-        <div className="max-h-[60vh] overflow-y-auto p-4 no-scrollbar">
+    <ModalFrame
+      isOpen={isOpen}
+      onClose={onClose}
+      title="Toewijzen"
+      subtitle={`Aan wie wil je ${preparation?.name || 'dit personage'} aanbieden?`}
+      accent="amber"
+      maxWidthClassName="max-w-lg"
+      bodyClassName="max-h-[60vh] overflow-y-auto p-4 no-scrollbar sm:p-5"
+    >
           {players.length === 0 ? (
             <div className="rounded-xl border border-dashed border-stone-800 bg-stone-950/40 px-5 py-8 text-center text-sm leading-7 text-stone-500">
               Er zijn nog geen actieve spelers om deze voorbereiding aan toe te wijzen.
@@ -47,8 +43,6 @@ export default function PlayerPickerModal({ isOpen, players, preparation, onClos
               ))}
             </div>
           )}
-        </div>
-      </div>
-    </div>
+    </ModalFrame>
   );
 }

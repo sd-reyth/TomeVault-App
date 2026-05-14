@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { X, Check, AlertCircle, Zap } from 'lucide-react';
+import { Check, AlertCircle, Zap } from 'lucide-react';
+import ModalFrame from './ModalFrame';
 import { resolveDisplayAvatar } from '../lib/placeholders';
 import { isIncapacitated } from '../lib/battleConditions';
 
@@ -38,24 +39,16 @@ function InitiativeSwapModal({
     : null;
 
   return (
-    <div className="fixed inset-0 z-[70] flex items-center justify-center bg-stone-950/80 p-4 backdrop-blur-sm">
-      <div className="w-full max-w-md overflow-hidden rounded-2xl border border-amber-800/50 bg-gradient-to-b from-stone-900 to-stone-950 shadow-2xl">
-        <div className="flex items-center justify-between border-b border-amber-800/30 px-5 py-4">
-          <div>
-            <h3 className="font-fantasy text-lg tracking-[0.14em] text-amber-300 flex items-center gap-2">
-              <Zap className="h-4 w-4" /> Initiative Swap
-            </h3>
-            <p className="mt-1 text-sm leading-5 text-stone-400">Wissel jouw initiativescore met een bondgenoot</p>
-          </div>
-          <button
-            type="button"
-            onClick={onClose}
-            className="rounded-lg p-1 text-stone-500 transition-colors hover:bg-stone-800 hover:text-stone-300"
-          >
-            <X className="h-5 w-5" />
-          </button>
-        </div>
-
+    <ModalFrame
+      isOpen={isOpen}
+      onClose={onClose}
+      title="Initiative Swap"
+      subtitle="Wissel jouw initiativescore met een bondgenoot"
+      icon={Zap}
+      accent="amber"
+      maxWidthClassName="max-w-md"
+      bodyClassName="gap-0 px-0 py-0 sm:px-0 sm:py-0"
+    >
         <div className="px-5 py-4">
           {incapacitatedMessage && (
             <div className="mb-4 flex items-start gap-2 rounded-lg border border-rose-900/50 bg-rose-950/20 p-3">
@@ -137,8 +130,7 @@ function InitiativeSwapModal({
             <Zap className="h-3.5 w-3.5" /> Wissel
           </button>
         </div>
-      </div>
-    </div>
+    </ModalFrame>
   );
 }
 

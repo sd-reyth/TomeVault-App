@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { UserPlus, ImagePlus, X } from 'lucide-react';
+import { UserPlus, ImagePlus } from 'lucide-react';
+import ModalFrame from './ModalFrame';
 
 export default function AddNpcModal({ isOpen, onClose, onSave }) {
   const [name, setName] = useState('');
@@ -35,20 +36,15 @@ export default function AddNpcModal({ isOpen, onClose, onSave }) {
   };
 
   return (
-    <div className="fixed inset-0 bg-stone-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-      <div className="bg-stone-900 border border-rose-900/50 rounded-2xl max-w-sm w-full shadow-2xl relative overflow-hidden">
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-32 bg-rose-600/10 blur-[50px] pointer-events-none" />
-        
-        <div className="p-4 border-b border-stone-800/50 flex justify-between items-center relative z-10">
-          <h3 className="font-fantasy font-bold text-stone-200 tracking-wider flex items-center gap-2">
-            <UserPlus className="w-5 h-5 text-rose-500" /> NPC Toevoegen
-          </h3>
-          <button onClick={onClose} className="text-stone-400 hover:text-rose-400 transition-colors">
-            <X className="w-5 h-5" />
-          </button>
-        </div>
-        
-        <form onSubmit={handleSave} className="p-6 relative z-10 flex flex-col gap-4">
+    <ModalFrame
+      isOpen={isOpen}
+      onClose={onClose}
+      title="NPC Toevoegen"
+      icon={UserPlus}
+      accent="rose"
+      bodyClassName="px-5 py-5 sm:px-6 sm:py-6"
+    >
+        <form onSubmit={handleSave} className="flex flex-col gap-4">
           
           <div className="flex justify-center mb-1">
             <label className="relative group cursor-pointer w-20 h-20 md:w-24 md:h-24 rounded-xl border-2 border-dashed border-rose-900/50 bg-stone-950/50 hover:bg-stone-900/80 flex items-center justify-center overflow-hidden transition-all shadow-inner">
@@ -115,7 +111,7 @@ export default function AddNpcModal({ isOpen, onClose, onSave }) {
             </div>
           </div>
 
-          <div className="flex gap-3 mt-4">
+          <div className="mt-4 flex gap-3">
             <button 
               type="button"
               onClick={onClose}
@@ -131,7 +127,6 @@ export default function AddNpcModal({ isOpen, onClose, onSave }) {
             </button>
           </div>
         </form>
-      </div>
-    </div>
+    </ModalFrame>
   );
 }

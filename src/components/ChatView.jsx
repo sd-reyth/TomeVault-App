@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { MessageSquare, Palette, Pencil, Trash2, X, Check, CornerUpLeft, SendHorizontal, Dice5 } from 'lucide-react';
-import DiceRoller from './DiceRoller';
+import DiceRollerSheet, { getDiceThemeChrome } from './DiceRollerSheet';
 import { safeLocalStorageGet, safeLocalStorageSet } from '../lib/browserStorage';
 import {
   mdiDiceD4,
@@ -29,6 +29,16 @@ const CHAT_COLORS = [
 
 function getColor(colorId) {
   return CHAT_COLORS.find(c => c.id === colorId) || CHAT_COLORS[0];
+}
+
+function isKnownChatColor(colorId) {
+  return CHAT_COLORS.some((color) => color.id === colorId);
+}
+
+function getStoredChatColor(fallback = null) {
+  const stored = String(safeLocalStorageGet('tv_chatcolor', '') || '').trim();
+  if (isKnownChatColor(stored)) return stored;
+  return isKnownChatColor(fallback) ? fallback : null;
 }
 
 const CHAT_DICE_ICON_PATHS = {
@@ -120,10 +130,11 @@ function parseDiceMessage(text) {
   };
 }
 
-function ChatView({ chat, setChat, role, uid, playerName, theme, onSendMessageRemote, onEditMessage, onDeleteMessage, onChangeColor }) {
+function ChatView({ chat, setChat, role, uid, playerName, preferredChatColor, theme, onSendMessageRemote, onEditMessage, onDeleteMessage, onChangeColor }) {
+  const diceThemeChrome = getDiceThemeChrome(theme);
   const [msg, setMsg] = useState('');
   const [isSending, setIsSending] = useState(false);
-  const [chatColor, setChatColor] = useState(() => safeLocalStorageGet('tv_chatcolor', null));
+  const [chatColor, setChatColor] = useState(() => getStoredChatColor(preferredChatColor));
   const [showColorPicker, setShowColorPicker] = useState(false);
   const [activeMenu, setActiveMenu] = useState(null);
   const [replyingTo, setReplyingTo] = useState(null);
@@ -133,11 +144,19 @@ function ChatView({ chat, setChat, role, uid, playerName, theme, onSendMessageRe
   const chatEndRef = useRef(null);
   const inputRef = useRef(null);
   const menuRef = useRef(null);
-  const dicePopoverRef = useRef(null);
 
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [chat]);
+
+  useEffect(() => {
+    const syncedColor = getStoredChatColor(preferredChatColor);
+    if (!syncedColor || syncedColor === chatColor) return;
+
+    setChatColor(syncedColor);
+    safeLocalStorageSet('tv_chatcolor', syncedColor);
+    setShowColorPicker(false);
+  }, [chatColor, preferredChatColor]);
 
   // Auto-show color picker on first open if no color chosen
   useEffect(() => {
@@ -153,19 +172,6 @@ function ChatView({ chat, setChat, role, uid, playerName, theme, onSendMessageRe
     document.addEventListener('mousedown', handler);
     return () => document.removeEventListener('mousedown', handler);
   }, [activeMenu]);
-
-  useEffect(() => {
-    if (!showDicePopover) return;
-
-    const handler = (e) => {
-      if (dicePopoverRef.current && !dicePopoverRef.current.contains(e.target)) {
-        setShowDicePopover(false);
-      }
-    };
-
-    document.addEventListener('mousedown', handler);
-    return () => document.removeEventListener('mousedown', handler);
-  }, [showDicePopover]);
 
   // Colors already taken by other users
   const occupiedColors = new Set(
@@ -596,26 +602,16 @@ function ChatView({ chat, setChat, role, uid, playerName, theme, onSendMessageRe
           />
           <div className={`flex items-center gap-2 ${editingMsg ? 'w-full sm:w-auto' : 'ml-auto sm:ml-0'}`}>
             {!editingMsg && (
-              <div className="relative" ref={dicePopoverRef}>
-                <button
-                  type="button"
-                  onClick={() => setShowDicePopover((prev) => !prev)}
-                  title="Dobbelstenen rollen"
-                  aria-label="Dobbelstenen rollen"
-                  className="h-9 w-9 flex items-center justify-center hover:bg-stone-800 rounded-lg text-stone-400 hover:text-amber-400 transition-colors disabled:opacity-50 shrink-0"
-                  disabled={isSending}
-                >
-                  <Dice5 className="w-5 h-5" />
-                </button>
-
-                {showDicePopover && (
-                  <div className="fixed inset-0 z-40 flex items-center justify-center pointer-events-none">
-                    <div className="pointer-events-auto">
-                      <DiceRoller theme={theme} onRoll={handleRollDice} />
-                    </div>
-                  </div>
-                )}
-              </div>
+              <button
+                type="button"
+                onClick={() => setShowDicePopover((prev) => !prev)}
+                title="Dobbelstenen rollen"
+                aria-label="Dobbelstenen rollen"
+                className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg transition-colors disabled:opacity-50 ${showDicePopover ? diceThemeChrome.triggerActive : diceThemeChrome.triggerIdle}`}
+                disabled={isSending}
+              >
+                <Dice5 className="w-5 h-5" />
+              </button>
             )}
             <button
               type="submit"
@@ -629,6 +625,15 @@ function ChatView({ chat, setChat, role, uid, playerName, theme, onSendMessageRe
           </div>
         </form>
       </div>
+
+      <DiceRollerSheet
+        isOpen={showDicePopover}
+        theme={theme}
+        title="Rol naar de chat"
+        subtitle="Werp je stenen vanuit dezelfde roller en stuur het resultaat direct als chatbericht."
+        onClose={() => setShowDicePopover(false)}
+        onRoll={handleRollDice}
+      />
     </div>
   );
 }

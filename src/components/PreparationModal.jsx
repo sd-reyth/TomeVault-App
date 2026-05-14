@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { X, ImagePlus, Trash2, Fingerprint, Plus, NotebookPen } from 'lucide-react';
 import { PROFILE_PROMPT_AVATARS, resolveDisplayAvatar } from '../lib/placeholders';
 import { STAT_SUGGESTIONS } from '../data/mockData';
+import ModalFrame from './ModalFrame';
 
 function getInitialPreparationState(preparation) {
   return {
@@ -78,19 +79,19 @@ export default function PreparationModal({ isOpen, preparation, onClose, onSave,
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center bg-stone-950/80 p-3 backdrop-blur-sm sm:items-center sm:p-4">
-      <div className="flex max-h-[calc(100dvh-1rem)] w-full max-w-md flex-col overflow-hidden rounded-2xl border border-stone-700/50 bg-stone-900 shadow-2xl sm:max-h-[90vh]">
-        <div className="relative h-24 w-full shrink-0 bg-gradient-to-r from-amber-950 to-stone-800 md:h-32">
-          <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI4IiBoZWlnaHQ9IjgiPgo8cmVjdCB3aWR0aD0iOCIgaGVpZ2h0PSI4IiBmaWxsPSIjZmZmIiBmaWxsLW9wYWNpdHk9IjAuMSIvPgo8L3N2Zz4=')] opacity-20 pointer-events-none" />
-          <button
-            onClick={onClose}
-            className="absolute right-4 top-4 z-10 rounded-lg bg-stone-950/50 p-1 text-stone-300 transition-colors hover:text-white"
-          >
-            <X className="h-5 w-5" />
-          </button>
-        </div>
-
-        <div className="relative z-20 mb-2 -mt-12 flex flex-col gap-3 px-4 sm:flex-row sm:items-end sm:justify-between sm:px-6 md:-mt-16">
+    <ModalFrame
+      isOpen={isOpen}
+      onClose={onClose}
+      title={preparation ? 'Voorbereiding Bewerken' : 'Nieuwe Voorbereiding'}
+      subtitle="Werk een voorbereid profiel uit met stats, verborgen eigenschappen en lore."
+      icon={NotebookPen}
+      accent="amber"
+      maxWidthClassName="max-w-md"
+      bodyClassName="px-0 py-0 overflow-y-hidden sm:px-0 sm:py-0"
+    >
+        <div className="flex flex-1 flex-col overflow-y-auto no-scrollbar px-4 pb-4 pt-4 sm:px-6 sm:pb-6">
+          <div className="mb-4 rounded-2xl border border-stone-800/70 bg-stone-950/55 p-4 shadow-inner">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
           <label className="group relative flex h-24 w-24 cursor-pointer items-center justify-center overflow-hidden rounded-xl border-4 border-stone-900 bg-stone-800 shadow-xl transition-all hover:border-amber-700/50 md:h-32 md:w-32">
             <input type="file" accept="image/*" className="hidden" onChange={handleImageChange} />
             <img
@@ -123,9 +124,9 @@ export default function PreparationModal({ isOpen, preparation, onClose, onSave,
               {preparation ? 'Opslaan' : 'Nieuw'}
             </button>
           </div>
-        </div>
+            </div>
+          </div>
 
-        <div className="relative z-10 flex flex-1 flex-col overflow-y-auto px-4 pb-4 pt-2 no-scrollbar sm:px-6 sm:pb-6">
           <div className="flex flex-1 flex-col space-y-5">
             <div>
               <input
@@ -302,7 +303,6 @@ export default function PreparationModal({ isOpen, preparation, onClose, onSave,
             </div>
           </div>
         </div>
-      </div>
-    </div>
+    </ModalFrame>
   );
 }

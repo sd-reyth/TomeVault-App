@@ -1,7 +1,8 @@
 import React, { useEffect, useRef, useState } from 'react';
 import QRCodeStyling from 'qr-code-styling';
-import { Copy, QrCode, Share2, X } from 'lucide-react';
+import { Copy, QrCode, Share2 } from 'lucide-react';
 import { buildSessionInviteUrl, toLegacyHashJoinTag, toSafeJoinTagForLink } from '../lib/sessionUtils';
+import ModalFrame from './ModalFrame';
 
 const THEME_COLORS = {
   purple: { dot: '#a78bfa', corner: '#7c3aed', bg: '#0c0a0f' },
@@ -68,8 +69,6 @@ function StyledQRCode({ value, theme }) {
 export default function ShareModal({ isOpen, onClose, sessionId, theme }) {
   const [copyFeedback, setCopyFeedback] = useState('');
 
-  if (!isOpen) return null;
-
   const resolvedTheme = theme || 'amber';
   const canonicalSessionCode = toLegacyHashJoinTag(sessionId);
   const scannerSafeCode = toSafeJoinTagForLink(sessionId);
@@ -83,24 +82,15 @@ export default function ShareModal({ isOpen, onClose, sessionId, theme }) {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center bg-stone-950/80 p-2 backdrop-blur-sm sm:items-center sm:p-4">
-      <div className="relative flex max-h-[calc(100dvh-1rem)] w-full max-w-sm flex-col overflow-hidden rounded-2xl border border-amber-900/40 bg-stone-900 shadow-2xl sm:max-h-[calc(100dvh-2rem)]">
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-32 bg-amber-500/10 blur-[50px] pointer-events-none" />
-        
-        <div className="relative z-10 flex shrink-0 items-center justify-between border-b border-stone-800/50 p-4">
-          <h3 className="font-fantasy font-bold text-stone-200 tracking-wider flex items-center gap-2">
-            <QrCode className="w-5 h-5 text-amber-400" /> Nodig Spelers Uit
-          </h3>
-          <button onClick={onClose} className="text-stone-400 hover:text-rose-400 transition-colors">
-            <X className="w-5 h-5" />
-          </button>
-        </div>
-        
-        <div className="relative z-10 flex flex-1 flex-col items-center overflow-y-auto p-4 sm:p-6">
-          <p className="text-stone-400 text-sm font-story text-center mb-6">
-            Laat je spelers deze QR-code scannen of deel direct de veilige join-link voor deze sessie.
-          </p>
-
+    <ModalFrame
+      isOpen={isOpen}
+      onClose={onClose}
+      title="Nodig spelers uit"
+      icon={QrCode}
+      subtitle="Laat je spelers deze QR-code scannen of deel direct de veilige join-link voor deze sessie."
+      accent="amber"
+      bodyClassName="items-center"
+    >
           <div className="w-full rounded-xl border border-stone-800 bg-stone-950/80 px-4 py-3 mb-4">
             <div className="text-[10px] uppercase tracking-[0.2em] text-stone-500">Sessiecode</div>
             <div className="mt-1 font-fantasy text-base tracking-[0.16em] text-amber-300">{canonicalSessionCode}</div>
@@ -143,8 +133,6 @@ export default function ShareModal({ isOpen, onClose, sessionId, theme }) {
               Delen
             </a>
           </div>
-        </div>
-      </div>
-    </div>
+    </ModalFrame>
   );
 }

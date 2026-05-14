@@ -98,6 +98,8 @@ import PlayerPickerModal from './components/PlayerPickerModal';
 import PreparationOfferModal from './components/PreparationOfferModal';
 import RightSidebar from './components/RightSidebar';
 import InitiativeSwapModal from './components/InitiativeSwapModal';
+import OwnerAdminPanel from './components/OwnerAdminPanel';
+import { resolveActivePlan } from './lib/accessPlans';
 import { isIncapacitated } from './lib/battleConditions';
 
 async function uploadImageToStorage(file, path) {
@@ -127,17 +129,35 @@ async function generateUniqueJoinTag(sessionName) {
   return `${base}#${String(Date.now()).slice(-4)}`;
 }
 
-async function writeMembership({ uid, sessionId, role, sessionName, joinTag }) {
+async function writeMembership({ uid, sessionId, role, sessionName, joinTag, status = 'active', preferredChatColor }) {
   if (!uid || !sessionId) return;
   const ref = doc(db, 'users', uid, 'memberships', sessionId);
-  await setDoc(ref, {
+  const payload = {
     sessionId,
-    role,
-    sessionName: sessionName || '',
-    joinTag: joinTag || '',
-    status: 'active',
     updatedAt: serverTimestamp(),
-  }, { merge: true });
+  };
+
+  if (typeof role === 'string') {
+    payload.role = role;
+  }
+
+  if (typeof sessionName !== 'undefined') {
+    payload.sessionName = sessionName || '';
+  }
+
+  if (typeof joinTag !== 'undefined') {
+    payload.joinTag = joinTag || '';
+  }
+
+  if (typeof status !== 'undefined') {
+    payload.status = status || 'active';
+  }
+
+  if (typeof preferredChatColor === 'string' && preferredChatColor.trim()) {
+    payload.preferredChatColor = preferredChatColor.trim();
+  }
+
+  await setDoc(ref, payload, { merge: true });
 }
 
 function loadStoredListenerAmbienceVolume() {
@@ -194,7 +214,7 @@ function toFriendlyAuthError(error, fallbackMessage) {
   }
 
   if (code.includes('invalid-credential') || message.includes('redirect_uri_mismatch')) {
-    return 'Google-login is nu niet correct geconfigureerd (redirect URI mismatch). Gebruik tijdelijk e-mail of gastmodus.';
+    return 'Google-login is nu niet correct geconfigureerd (redirect URI mismatch). Gebruik tijdelijk e-mail om in te loggen.';
   }
 
   return fallbackMessage;
@@ -431,13 +451,17 @@ export default function TomeVaultApp() {
     safeLocalStorageSet('tv_brightness', String(b));
   };
 
-  // Map brightness step (0-4) to a subtle background overlay opacity.
-  const brightnessOverlayOpacities = [0, 0.015, 0.03, 0.045, 0.06];
+  // Surface colors now respond to brightness directly; keep the shell vignette subtle.
+  const brightnessOverlayOpacities = [0, 0.004, 0.008, 0.012, 0.016];
   const brightnessOverlayOpacity = theme === 'light' ? 0 : (brightnessOverlayOpacities[brightness] ?? 0.03);
   
   const [handouts, setHandouts] = useState(MOCK_HANDOUTS);
   const [party, setParty] = useState(MOCK_PARTY);
   const [chat, setChat] = useState(MOCK_CHAT);
+  const [preferredChatColor, setPreferredChatColor] = useState(() => {
+    const stored = String(safeLocalStorageGet('tv_chatcolor', '') || '').trim();
+    return CHAT_ACCENT_COLORS[stored] ? stored : null;
+  });
   const [inventory, setInventory] = useState(MOCK_INVENTORY);
   const [inventoryLoaded, setInventoryLoaded] = useState(false);
   const [wallets, setWallets] = useState(MOCK_WALLETS);
@@ -461,8 +485,9 @@ export default function TomeVaultApp() {
 
   // Firebase auth state
   const [uid, setUid] = useState(null);
-  const [isGuest, setIsGuest] = useState(true);
   const [displayName, setDisplayName] = useState('');
+  const [isOwner, setIsOwner] = useState(false);
+  const [currentEntitlement, setCurrentEntitlement] = useState(null);
   const [authLoading, setAuthLoading] = useState(true);
   const [authError, setAuthError] = useState('');
   const [sessionError, setSessionError] = useState('');
@@ -518,6 +543,7 @@ export default function TomeVaultApp() {
   const [isNpcModalOpen, setIsNpcModalOpen] = useState(false);
   const [isAddItemModalOpen, setIsAddItemModalOpen] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [isOwnerPanelOpen, setIsOwnerPanelOpen] = useState(false);
   const [isSessionPanelOpen, setIsSessionPanelOpen] = useState(false);
   const [isSourcelistOpen, setIsSourcelistOpen] = useState(false);
   const [isArchiveExporting, setIsArchiveExporting] = useState(false);
@@ -530,6 +556,11 @@ export default function TomeVaultApp() {
   const [pendingPreparationOffer, setPendingPreparationOffer] = useState(null);
   const [campaignSessionNumber, setCampaignSessionNumber] = useState(1);
   const localDevBootstrap = useMemo(() => getLocalDevBootstrapConfig(), []);
+  const accessRole = role === 'gm' ? 'gm' : (role === 'player' ? 'player' : 'player');
+  const currentAccessPlan = useMemo(
+    () => resolveActivePlan({ role: accessRole, entitlement: currentEntitlement }),
+    [accessRole, currentEntitlement]
+  );
   const runtimeBadge = useMemo(
     () => getRuntimeBadgeState({ role, localDevBootstrap }),
     [localDevBootstrap, role]
@@ -542,6 +573,127 @@ export default function TomeVaultApp() {
     const listenerVolume = clampAmbienceVolume(listenerAmbienceVolume, 82) / 100;
     return Math.max(0, Math.min(1, sessionVolume * listenerVolume));
   }, [listenerAmbienceVolume, sessionAmbience.masterVolume]);
+
+  useEffect(() => {
+    const stored = String(safeLocalStorageGet('tv_chatcolor', '') || '').trim();
+    const localColor = CHAT_ACCENT_COLORS[stored] ? stored : null;
+
+    if (!uid || !sessionDocId) {
+      setPreferredChatColor(localColor);
+      return undefined;
+    }
+
+    let cancelled = false;
+    setPreferredChatColor(localColor);
+
+    const loadMembershipChatColor = async () => {
+      try {
+        const membershipSnap = await getDoc(doc(db, 'users', uid, 'memberships', sessionDocId));
+        const membershipColor = String(membershipSnap.data()?.preferredChatColor || '').trim();
+
+        if (cancelled || !CHAT_ACCENT_COLORS[membershipColor]) {
+          return;
+        }
+
+        safeLocalStorageSet('tv_chatcolor', membershipColor);
+        setPreferredChatColor(membershipColor);
+      } catch (err) {
+        console.error('Chatkleur voorkeur laden mislukt:', err);
+      }
+    };
+
+    loadMembershipChatColor();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [sessionDocId, uid]);
+
+  useEffect(() => {
+    if (!uid) {
+      setIsOwner(false);
+      setCurrentEntitlement(null);
+      setIsOwnerPanelOpen(false);
+      return undefined;
+    }
+
+    let cancelled = false;
+
+    const syncUserProfileAndOwnerState = async () => {
+      try {
+        const currentUser = auth.currentUser;
+        const normalizedEmail = String(currentUser?.email || '').trim().toLowerCase();
+        const inferredName = currentUser?.displayName || currentUser?.email?.split('@')[0] || displayName || 'Avonturier';
+
+        await setDoc(doc(db, 'users', uid), {
+          displayName: inferredName,
+          email: currentUser?.email || null,
+          normalizedEmail: normalizedEmail || null,
+          photoURL: currentUser?.photoURL || null,
+          lastSeenAt: serverTimestamp(),
+          updatedAt: serverTimestamp(),
+        }, { merge: true });
+
+        const adminSnap = await getDoc(doc(db, 'admins', uid));
+        if (!cancelled) {
+          setIsOwner(adminSnap.exists());
+        }
+      } catch (err) {
+        console.error('Gebruikersprofiel synchroniseren mislukt:', err);
+        if (!cancelled) {
+          setIsOwner(false);
+        }
+      }
+    };
+
+    void syncUserProfileAndOwnerState();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [displayName, uid]);
+
+  useEffect(() => {
+    if (!uid || !role) {
+      setCurrentEntitlement(null);
+      return undefined;
+    }
+
+    let cancelled = false;
+
+    const loadEntitlement = async () => {
+      try {
+        const entitlementSnap = await getDoc(doc(db, 'users', uid, 'entitlements', role));
+        if (!cancelled) {
+          setCurrentEntitlement(entitlementSnap.exists() ? entitlementSnap.data() : null);
+        }
+      } catch (err) {
+        console.error('Entitlement laden mislukt:', err);
+        if (!cancelled) {
+          setCurrentEntitlement(null);
+        }
+      }
+    };
+
+    void loadEntitlement();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [role, uid]);
+
+  useEffect(() => {
+    if (!uid || !role) return undefined;
+
+    void setDoc(doc(db, 'users', uid), {
+      lastKnownRole: role,
+      updatedAt: serverTimestamp(),
+    }, { merge: true }).catch((err) => {
+      console.error('Laatste gebruikersrol opslaan mislukt:', err);
+    });
+
+    return undefined;
+  }, [role, uid]);
 
   const resetAmbienceState = () => {
     const nextDefault = { ...DEFAULT_AMBIENCE_STATE };
@@ -1305,7 +1457,7 @@ export default function TomeVaultApp() {
     let didResolveAuth = false;
     const authLoadFallbackTimer = window.setTimeout(() => {
       if (didResolveAuth) return;
-      setAuthError('Authenticatie duurde te lang. Je kunt alsnog doorgaan met e-mail of gastmodus.');
+      setAuthError('Authenticatie duurde te lang. Probeer opnieuw met Google of e-mail.');
       setAuthLoading(false);
     }, 7000);
 
@@ -1327,14 +1479,15 @@ export default function TomeVaultApp() {
             autoResumeAttemptRef.current = '';
             const inferredName = user.displayName || user.email?.split('@')[0] || 'Avonturier';
             setUid(user.uid);
-            setIsGuest(user.isAnonymous);
             setDisplayName(inferredName);
             setPlayerName((prev) => prev || inferredName);
           } else {
             autoResumeAttemptRef.current = '';
             setUid(null);
-            setIsGuest(true);
             setDisplayName('');
+            setIsOwner(false);
+            setCurrentEntitlement(null);
+            setIsOwnerPanelOpen(false);
             setRole(null);
             setSessionId('');
             setSessionDocId('');
@@ -2198,13 +2351,18 @@ export default function TomeVaultApp() {
   };
 
   const handleUpdateChatColor = async (nextColor) => {
-    if (!sessionDocId || !uid || !nextColor) return;
+    const normalizedColor = String(nextColor || '').trim();
+    if (!sessionDocId || !uid || !CHAT_ACCENT_COLORS[normalizedColor]) return;
+
+    safeLocalStorageSet('tv_chatcolor', normalizedColor);
+    setPreferredChatColor(normalizedColor);
 
     try {
       const legacyDisplayName = role === 'gm' ? 'GM' : (playerName || displayName || 'Avonturier');
       const [uidSnap, legacySnap] = await Promise.all([
         getDocs(query(collection(db, 'sessions', sessionDocId, 'chatMessages'), where('uid', '==', uid))),
         getDocs(query(collection(db, 'sessions', sessionDocId, 'chatMessages'), where('displayName', '==', legacyDisplayName))),
+        writeMembership({ uid, sessionId: sessionDocId, preferredChatColor: normalizedColor }),
       ]);
 
       const allDocs = [...uidSnap.docs, ...legacySnap.docs];
@@ -2220,7 +2378,7 @@ export default function TomeVaultApp() {
       for (let i = 0; i < uniqueDocs.length; i += 450) {
         const batch = writeBatch(db);
         uniqueDocs.slice(i, i + 450).forEach((d) => {
-          batch.update(d.ref, { color: nextColor });
+          batch.update(d.ref, { color: normalizedColor });
         });
         await batch.commit();
       }
@@ -2228,7 +2386,7 @@ export default function TomeVaultApp() {
       setChat((prev) => prev.map((msg) => {
         const mineByUid = msg.uid && msg.uid === uid;
         const mineLegacy = !msg.uid && msg.author === legacyDisplayName;
-        return mineByUid || mineLegacy ? { ...msg, color: nextColor } : msg;
+        return mineByUid || mineLegacy ? { ...msg, color: normalizedColor } : msg;
       }));
     } catch (err) {
       console.error('Chatkleur historisch bijwerken mislukt:', err);
@@ -3428,7 +3586,7 @@ export default function TomeVaultApp() {
   };
 
   if (view === 'landing') {
-    // QR-code invite flow — no PIN required
+    // QR-code invite flow — no PIN required after sign-in
     if (showQRJoin) {
       return (
         <QRJoinScreen
@@ -3436,8 +3594,10 @@ export default function TomeVaultApp() {
           uid={uid}
           authLoading={authLoading}
           sessionBusy={sessionBusy}
+          authError={authError}
           sessionError={sessionError}
-          onAutoSignIn={handleSignInGuest}
+          onSignInGoogle={handleSignInGoogle}
+          onUseFullLogin={() => setQrJoinDone(true)}
           onJoin={(playerNameInput, code) => {
             setQrJoinDone(true);
             handleJoin('player', code, {
@@ -3460,12 +3620,9 @@ export default function TomeVaultApp() {
           playerName={playerName}
           setPlayerName={setPlayerName}
           uid={uid}
-          isGuest={isGuest}
-          displayName={displayName}
           authLoading={authLoading}
           authError={authError}
           onSignInGoogle={handleSignInGoogle}
-          onSignInGuest={handleSignInGuest}
           onSignInEmail={handleSignInEmail}
           onSignUpEmail={handleSignUpEmail}
           onSignOut={handleLogout}
@@ -3554,74 +3711,85 @@ export default function TomeVaultApp() {
         <div className="flex flex-1 overflow-hidden relative">
           <Sidebar activeTab={activeTab} setActiveTab={setActiveTab} onOpenSettings={() => setIsSettingsOpen(true)} role={role} />
           
-          <main className="app-shell-main relative flex-1 overflow-y-auto p-4 no-scrollbar md:p-6">
+          <main className="app-shell-main relative flex-1 overflow-y-auto p-4 no-scrollbar md:p-6 transition-opacity duration-300">
             <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-96 bg-amber-900/5 blur-[100px] pointer-events-none" />
             
             <div className="max-w-[1120px] mx-auto h-full relative z-10">
               {activeTab === 'handouts' && (
-                <HandoutsView 
-                  role={role} 
-                  handouts={handouts} 
-                  currentPlayerId={CURRENT_PLAYER_ID}
-                  onToggleVisibility={handleToggleVisibility}
-                  onToggleSecretVisibility={handleToggleSecretVisibility}
-                  onOpenHandout={(h) => setSelectedHandout(h)} 
-                  onCreateHandout={() => setSelectedHandout('new')}
-                  onClaim={(id) => handleClaimHandout(id, CURRENT_PLAYER_ID)}
-                />
+                <div key="handouts-view" className="animate-in fade-in duration-200">
+                  <HandoutsView 
+                    role={role} 
+                    handouts={handouts} 
+                    currentPlayerId={CURRENT_PLAYER_ID}
+                    onToggleVisibility={handleToggleVisibility}
+                    onToggleSecretVisibility={handleToggleSecretVisibility}
+                    onOpenHandout={(h) => setSelectedHandout(h)} 
+                    onCreateHandout={() => setSelectedHandout('new')}
+                    onClaim={(id) => handleClaimHandout(id, CURRENT_PLAYER_ID)}
+                  />
+                </div>
               )}
               {activeTab === 'chat' && (
-                <ChatView
-                  chat={chat}
-                  setChat={setChat}
-                  role={role}
-                  uid={uid}
-                  playerName={playerName || 'Speler'}
-                  theme={theme}
-                  onSendMessageRemote={handleSendChatRemote}
-                  onEditMessage={handleEditChatMessage}
-                  onDeleteMessage={handleDeleteChatMessage}
-                  onChangeColor={handleUpdateChatColor}
-                />
+                <div key="chat-view" className="animate-in fade-in duration-200">
+                  <ChatView
+                    chat={chat}
+                    setChat={setChat}
+                    role={role}
+                    uid={uid}
+                    playerName={playerName || 'Speler'}
+                    preferredChatColor={preferredChatColor}
+                    theme={theme}
+                    onSendMessageRemote={handleSendChatRemote}
+                    onEditMessage={handleEditChatMessage}
+                    onDeleteMessage={handleDeleteChatMessage}
+                    onChangeColor={handleUpdateChatColor}
+                  />
+                </div>
               )}
               {activeTab === 'inventory' && (
-                <InventoryView 
-                  role={role} 
-                  inventory={inventory} 
-                  wallets={wallets} 
-                  party={party} 
-                  currentPlayerId={CURRENT_PLAYER_ID} 
-                  handouts={handouts}
-                  onUnclaim={handleUnclaimHandout}
-                  onOpenHandout={(h) => setSelectedHandout(h)}
-                  onOpenAddItem={() => setIsAddItemModalOpen(true)}
-                  onUpdateItemAmount={handleUpdateItemAmount}
-                  onDeleteItem={handleDeleteItem}
-                  onAdjustWallet={handleAdjustWallet}
-                />
+                <div key="inventory-view" className="animate-in fade-in duration-200">
+                  <InventoryView 
+                    role={role} 
+                    inventory={inventory} 
+                    wallets={wallets} 
+                    party={party} 
+                    currentPlayerId={CURRENT_PLAYER_ID} 
+                    handouts={handouts}
+                    onUnclaim={handleUnclaimHandout}
+                    onOpenHandout={(h) => setSelectedHandout(h)}
+                    onOpenAddItem={() => setIsAddItemModalOpen(true)}
+                    onUpdateItemAmount={handleUpdateItemAmount}
+                    onDeleteItem={handleDeleteItem}
+                    onAdjustWallet={handleAdjustWallet}
+                  />
+                </div>
               )}
               {activeTab === 'preparations' && role === 'gm' && (
-                <PreparationsView
-                  templates={preparations}
-                  backups={preparationBackups}
-                  party={party}
-                  onCreatePreparation={() => setSelectedPreparation('new')}
-                  onEditPreparation={(preparation) => setSelectedPreparation(preparation)}
-                  onDeletePreparation={(preparation) => handleDeletePreparationRemote(preparation)}
-                  onAssignPreparation={(preparation) => setAssigningPreparation(preparation)}
-                  onRestoreBackup={handleRestorePreparationBackup}
-                />
+                <div key="preparations-view" className="animate-in fade-in duration-200">
+                  <PreparationsView
+                    templates={preparations}
+                    backups={preparationBackups}
+                    party={party}
+                    onCreatePreparation={() => setSelectedPreparation('new')}
+                    onEditPreparation={(preparation) => setSelectedPreparation(preparation)}
+                    onDeletePreparation={(preparation) => handleDeletePreparationRemote(preparation)}
+                    onAssignPreparation={(preparation) => setAssigningPreparation(preparation)}
+                    onRestoreBackup={handleRestorePreparationBackup}
+                  />
+                </div>
               )}
               {activeTab === 'notes' && (
-                <NotesView 
-                  role={role} 
-                  notes={notes} 
-                  setNotes={setNotes} 
-                  currentPlayerId={CURRENT_PLAYER_ID}
-                  onCreateNoteRemote={handleCreateNoteRemote}
-                  onUpdateNoteRemote={handleUpdateNoteRemote}
-                  onDeleteNoteRemote={handleDeleteNoteRemote}
-                />
+                <div key="notes-view" className="animate-in fade-in duration-200">
+                  <NotesView 
+                    role={role} 
+                    notes={notes} 
+                    setNotes={setNotes} 
+                    currentPlayerId={CURRENT_PLAYER_ID}
+                    onCreateNoteRemote={handleCreateNoteRemote}
+                    onUpdateNoteRemote={handleUpdateNoteRemote}
+                    onDeleteNoteRemote={handleDeleteNoteRemote}
+                  />
+                </div>
               )}
             </div>
           </main>
@@ -3809,7 +3977,17 @@ export default function TomeVaultApp() {
           exportBusy={isArchiveExporting}
           theme={theme}
           brightness={brightness}
+          currentPlanLabel={currentAccessPlan.label}
+          canOpenOwnerPanel={isOwner}
+          onOpenOwnerPanel={() => setIsOwnerPanelOpen(true)}
           onSaveSettings={handleSaveSettings}
+        />
+
+        <OwnerAdminPanel
+          isOpen={isOwnerPanelOpen}
+          onClose={() => setIsOwnerPanelOpen(false)}
+          uid={uid}
+          isOwner={isOwner}
         />
 
         <SessionManageModal

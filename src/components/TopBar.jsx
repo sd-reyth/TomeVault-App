@@ -1,11 +1,12 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Flame, Share2, Shield, Music, Pause, Volume2, Swords, User, LogOut, Settings, ChevronDown, Bell, BellRing, Dice5, MoreHorizontal } from 'lucide-react';
-import DiceRoller from './DiceRoller';
 import AmbiencePanel from './AmbiencePanel';
 import RuntimeBadge from './RuntimeBadge';
+import DiceRollerSheet, { getDiceThemeChrome } from './DiceRollerSheet';
 import { COMBAT_STATUS, getTurnApproachRatio, getTurnsUntilMember, sortPartyByInitiative } from '../lib/battleUtils';
 
 export default function TopBar({ role, sessionId, sessionNumber, theme, combatStatus, currentTurnId, initiativeOrder, party, currentPlayerId, onLogout, ambience, onToggleAmbiencePanel, onCloseAmbiencePanel, onToggleAmbiencePlayback, onSelectAmbienceTrack, onSetSessionAmbienceVolume, onSetListenerAmbienceVolume, onUnlockAmbienceAudio, onToggleParty, onOpenShare, onOpenProfile, onOpenSettings, onOpenSessionPanel, onOpenSourcelist, onDiceRoll, runtimeBadge }) {
+  const diceThemeChrome = getDiceThemeChrome(theme);
   const sortedParty = sortPartyByInitiative(Array.isArray(party) ? party : [], Array.isArray(initiativeOrder) ? initiativeOrder : []);
   const turnsUntilMine = getTurnsUntilMember(sortedParty, initiativeOrder, currentTurnId, currentPlayerId);
   const turnApproachRatio = getTurnApproachRatio(sortedParty, initiativeOrder, currentTurnId, currentPlayerId);
@@ -260,7 +261,7 @@ export default function TopBar({ role, sessionId, sessionNumber, theme, combatSt
           <button
             type="button"
             onClick={() => setShowDiceRoller((value) => !value)}
-            className="flex h-9 w-9 items-center justify-center rounded-lg text-stone-400 transition-colors hover:bg-stone-800 hover:text-amber-400"
+            className={`flex h-9 w-9 items-center justify-center rounded-lg transition-colors ${showDiceRoller ? diceThemeChrome.triggerActive : diceThemeChrome.triggerIdle}`}
             title="Dobbelstenen"
           >
             <Dice5 className="h-5 w-5" />
@@ -440,19 +441,17 @@ export default function TopBar({ role, sessionId, sessionNumber, theme, combatSt
           </div>
         </div>
       </div>
-      {showDiceRoller && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center pointer-events-none">
-          <div className="pointer-events-auto">
-            <DiceRoller
-              theme={theme}
-              onRoll={(payload) => {
-                onDiceRoll?.(payload);
-                setShowDiceRoller(false);
-              }}
-            />
-          </div>
-        </div>
-      )}
+      <DiceRollerSheet
+        isOpen={showDiceRoller}
+        theme={theme}
+        title="Snelle tafelrol"
+        subtitle="Gebruik dezelfde roller vanuit topbar en chat, ook op kleinere schermen."
+        onClose={() => setShowDiceRoller(false)}
+        onRoll={(payload) => {
+          onDiceRoll?.(payload);
+          setShowDiceRoller(false);
+        }}
+      />
     </header>
   );
 }

@@ -1,5 +1,6 @@
 import React from 'react';
-import { ExternalLink, ArrowLeft, Music } from 'lucide-react';
+import { ExternalLink, Music } from 'lucide-react';
+import ModalFrame from './ModalFrame';
 
 export default function SourcelistModal({
   isOpen,
@@ -10,27 +11,17 @@ export default function SourcelistModal({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-[70] bg-stone-950 flex flex-col">
-
-      {/* Header bar */}
-      <div className="shrink-0 border-b border-stone-800/60 bg-stone-950/95 backdrop-blur-sm px-4 md:px-8 py-4 flex items-center gap-4">
-        <button
-          type="button"
-          onClick={onClose}
-          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-stone-800 bg-stone-900/80 text-stone-400 transition-colors hover:border-stone-700 hover:text-stone-200"
-        >
-          <ArrowLeft className="h-4 w-4" />
-        </button>
-        <div className="flex items-center gap-3">
-          <Music className="w-4 h-4 text-amber-500/70" />
-          <div>
-            <h1 className="font-fantasy font-bold text-stone-100 tracking-wide text-base md:text-lg leading-none">Audiogebruik & Dankwoord</h1>
-            <p className="text-[10px] uppercase tracking-[0.16em] text-stone-500 mt-1">Credits voor alle sfeerlagen</p>
-          </div>
-        </div>
-      </div>
-
-      {/* Scrollable content */}
+    <ModalFrame
+      isOpen={isOpen}
+      onClose={onClose}
+      title="Audiogebruik & Dankwoord"
+      subtitle="Credits voor alle sfeerlagen en hun oorspronkelijke makers."
+      icon={Music}
+      accent="amber"
+      maxWidthClassName="max-w-5xl"
+      panelClassName="h-[calc(100dvh-1rem)] sm:h-[calc(100dvh-2rem)]"
+      bodyClassName="px-0 py-0 overflow-y-hidden sm:px-0 sm:py-0"
+    >
       <div className="flex-1 overflow-y-auto">
         <div className="max-w-2xl mx-auto px-4 md:px-8 py-8 space-y-6">
           
@@ -127,6 +118,6 @@ export default function SourcelistModal({
 
         </div>
       </div>
-    </div>
+    </ModalFrame>
   );
 }

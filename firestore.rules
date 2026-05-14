@@ -10,20 +10,37 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
+    function isOwner() {
+      return request.auth != null
+          && exists(/databases/$(database)/documents/admins/$(request.auth.uid));
+    }
+
     // Helper: fetch the GM UID from the parent session
     function isGM(sessionId) {
       return request.auth != null
           && get(/databases/$(database)/documents/sessions/$(sessionId)).data.gmUid == request.auth.uid;
     }
 
+    match /admins/{adminId} {
+      allow read: if request.auth != null && request.auth.uid == adminId;
+      allow write: if false;
+    }
+
     // User profiles
     match /users/{userId} {
-      allow read:   if request.auth != null;
+      allow read:   if request.auth != null && (request.auth.uid == userId || isOwner());
       allow write:  if request.auth != null && request.auth.uid == userId;
 
       // Memberships subcollection — cross-device session discovery
       match /memberships/{membershipId} {
         allow read, write: if request.auth != null && request.auth.uid == userId;
+      }
+
+      // Role-scoped billing / access entitlements.
+      // Examples: /users/{uid}/entitlements/gm and /users/{uid}/entitlements/player
+      match /entitlements/{audience} {
+        allow read: if request.auth != null && (request.auth.uid == userId || isOwner());
+        allow write: if isOwner();
       }
     }
 

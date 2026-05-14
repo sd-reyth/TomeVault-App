@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { ImagePlus, Package, X } from 'lucide-react';
+import { ImagePlus, Package } from 'lucide-react';
 import { ITEM_PLACEHOLDER_IMAGES } from '../lib/placeholders';
+import ModalFrame from './ModalFrame';
 
 function AddItemModal({ isOpen, onClose, onSave, role, party, currentPlayerId, itemToEdit }) {
   const [formData, setFormData] = useState({
@@ -44,20 +45,15 @@ function AddItemModal({ isOpen, onClose, onSave, role, party, currentPlayerId, i
   };
 
   return (
-    <div className="fixed inset-0 bg-stone-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-3 sm:p-4">
-      <div className="bg-stone-900 border border-stone-700/50 rounded-2xl max-w-sm w-full max-h-[calc(100dvh-1.5rem)] sm:max-h-[calc(100dvh-2rem)] shadow-2xl relative overflow-hidden flex flex-col">
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-32 bg-amber-600/10 blur-[50px] pointer-events-none" />
-        
-        <div className="p-4 border-b border-stone-800/50 flex justify-between items-center relative z-10 shrink-0">
-          <h3 className="font-fantasy font-bold text-stone-200 tracking-wider flex items-center gap-2">
-            <Package className="w-5 h-5 text-amber-600" /> {itemToEdit ? 'Item Bewerken' : 'Item Toevoegen'}
-          </h3>
-          <button onClick={onClose} className="text-stone-400 hover:text-rose-400 transition-colors">
-            <X className="w-5 h-5" />
-          </button>
-        </div>
-        
-        <form onSubmit={handleSave} className="relative z-10 flex flex-col min-h-0 flex-1">
+    <ModalFrame
+      isOpen={isOpen}
+      onClose={onClose}
+      title={itemToEdit ? 'Item Bewerken' : 'Item Toevoegen'}
+      icon={Package}
+      accent="amber"
+      bodyClassName="min-h-0 flex-1 gap-0 px-0 py-0 sm:px-0 sm:py-0"
+    >
+        <form onSubmit={handleSave} className="flex min-h-0 flex-1 flex-col">
           <div className="flex-1 min-h-0 overflow-y-auto space-y-4 px-4 py-4 sm:px-6 sm:py-6">
             {isGM && !itemToEdit && (
               <div>
@@ -145,7 +141,7 @@ function AddItemModal({ isOpen, onClose, onSave, role, party, currentPlayerId, i
                       key={url}
                       type="button"
                       onClick={() => handlePickPlaceholder(url)}
-                      className={`aspect-square rounded-md overflow-hidden border transition-all ${formData.imageUrl === url ? 'border-amber-500 shadow-[0_0_6px_rgba(217,119,6,0.4)]' : 'border-stone-700 hover:border-amber-700/60'}`}
+                      className={`aspect-square rounded-md overflow-hidden border transition-all duration-200 hover:scale-110 active:scale-95 ${formData.imageUrl === url ? 'border-amber-500 shadow-[0_0_6px_rgba(217,119,6,0.4)]' : 'border-stone-700 hover:border-amber-700/60'}`}
                     >
                       <img src={url} alt="" className="w-full h-full object-cover scale-[1.25]" loading="lazy" />
                     </button>
@@ -170,20 +166,19 @@ function AddItemModal({ isOpen, onClose, onSave, role, party, currentPlayerId, i
             <button 
               type="button"
               onClick={onClose}
-              className="h-9 flex-1 inline-flex items-center justify-center bg-stone-800 hover:bg-stone-700 border border-stone-700 text-stone-300 rounded-lg font-fantasy uppercase tracking-[0.16em] text-sm transition-colors"
+              className="h-9 flex-1 inline-flex items-center justify-center bg-stone-800 hover:bg-stone-700 border border-stone-700 text-stone-300 rounded-lg font-fantasy uppercase tracking-[0.16em] text-sm transition-all duration-200 active:scale-95"
             >
               Annuleren
             </button>
             <button 
               type="submit"
-              className="h-9 flex-1 inline-flex items-center justify-center border border-amber-700/60 bg-gradient-to-r from-amber-700 to-amber-600 hover:from-amber-600 hover:to-amber-500 text-stone-100 rounded-lg font-fantasy uppercase tracking-[0.16em] text-sm transition-colors shadow-sm"
+              className="h-9 flex-1 inline-flex items-center justify-center border border-amber-700/60 bg-gradient-to-r from-amber-700 to-amber-600 hover:from-amber-600 hover:to-amber-500 text-stone-100 rounded-lg font-fantasy uppercase tracking-[0.16em] text-sm transition-all duration-200 shadow-sm active:scale-95 hover:shadow-lg hover:shadow-amber-700/40"
             >
               {itemToEdit ? 'Opslaan' : 'Toevoegen'}
             </button>
           </div>
         </form>
-      </div>
-    </div>
+    </ModalFrame>
   );
 }
 

@@ -108,12 +108,9 @@ export default function LandingScreen({
   playerName,
   setPlayerName,
   uid,
-  isGuest,
-  displayName,
   authLoading,
   authError,
   onSignInGoogle,
-  onSignInGuest,
   onSignInEmail,
   onSignUpEmail,
   onSignOut,
@@ -871,7 +868,10 @@ export default function LandingScreen({
 
             {!uid ? (
               <div className="landing-surface w-full max-w-[34rem] rounded-[22px] p-5 md:p-6 text-left lg:max-w-[36rem]">
-                <div className="landing-kicker text-amber-500 text-center">Schuif aan</div>
+                <div className="landing-kicker text-amber-500 text-center">Log eerst in</div>
+                <p className="mt-3 text-center font-story text-sm leading-relaxed text-stone-300">
+                  TomeVault gebruikt nu een account-first toegang. Zo blijven je sessies, voorkeuren en herstelacties beschikbaar op elk apparaat.
+                </p>
                 <div className="mt-4 space-y-3">
                   <button
                     type="button"
@@ -881,19 +881,11 @@ export default function LandingScreen({
                   >
                     Doorgaan met Google
                   </button>
-                  <button
-                    type="button"
-                    onClick={onSignInGuest}
-                    disabled={authLoading || sessionBusy}
-                    className="landing-button landing-button-muted w-full disabled:opacity-60"
-                  >
-                    Doorgaan als Gast
-                  </button>
                 </div>
 
                 {inviteCode || isJoinPath ? (
                   <div className="mt-4 rounded-[20px] border border-indigo-900/35 bg-indigo-950/18 px-4 py-3 text-sm text-indigo-100 font-story leading-relaxed">
-                    Uitnodiging herkend{inviteCode ? ` voor ${inviteCode.toUpperCase()}` : ''}.
+                    Uitnodiging herkend{inviteCode ? ` voor ${inviteCode.toUpperCase()}` : ''}. Meld je aan en we houden deze code voor je vast.
                   </div>
                 ) : null}
 

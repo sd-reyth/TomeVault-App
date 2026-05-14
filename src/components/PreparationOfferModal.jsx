@@ -1,6 +1,7 @@
 import React from 'react';
 import { Crown } from 'lucide-react';
 import { resolveDisplayAvatar } from '../lib/placeholders';
+import ModalFrame from './ModalFrame';
 
 function formatModifier(value) {
   const safeValue = Number(value ?? 0) || 0;
@@ -17,8 +18,17 @@ export default function PreparationOfferModal({ isOpen, preparation, onAccept, o
   ].concat((preparation.customStats || []).slice(0, 4).map((stat) => `${stat.name} ${stat.value}`));
 
   return (
-    <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-stone-950/80 px-3 py-3 backdrop-blur-sm sm:items-center sm:p-4">
-      <div className="my-auto flex max-h-[calc(100dvh-0.75rem)] w-full max-w-xl flex-col overflow-hidden rounded-2xl border border-amber-900/30 bg-stone-900 shadow-2xl sm:max-h-[calc(100dvh-2rem)]">
+    <ModalFrame
+      isOpen={isOpen}
+      onClose={onReject}
+      title="Rolvoorstel"
+      subtitle="Een rol ligt voor je klaar. Bekijk eerst wat er verandert voordat je accepteert."
+      icon={Crown}
+      accent="amber"
+      maxWidthClassName="max-w-xl"
+      bodyClassName="px-0 py-0 overflow-y-hidden sm:px-0 sm:py-0"
+    >
+      <div className="flex flex-1 flex-col overflow-hidden">
         <div className="relative overflow-hidden border-b border-stone-800/60 bg-gradient-to-br from-stone-950 via-stone-900 to-amber-950/30 p-5">
           <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(245,158,11,0.16),transparent_40%)]" />
           <div className="relative z-10 flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.22em] text-amber-300">
@@ -85,6 +95,6 @@ export default function PreparationOfferModal({ isOpen, preparation, onAccept, o
           </div>
         </div>
       </div>
-    </div>
+    </ModalFrame>
   );
 }

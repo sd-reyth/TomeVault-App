@@ -831,11 +831,66 @@
 /* ── Color themes ────────────────────────────────────────────────────── */
 /* ── Default: Amber/Bruin (no overrides needed)                         */
 
+:is([data-theme="purple"], [data-theme="amber"], [data-theme="green"]) {
+  --tv-surface-950-mix: 6%;
+  --tv-surface-900-mix: 8%;
+  --tv-surface-800-mix: 10%;
+  --tv-surface-700-mix: 14%;
+  --tv-surface-600-mix: 18%;
+}
+
+:is([data-theme="purple"], [data-theme="amber"], [data-theme="green"])[data-brightness-step="0"] {
+  --tv-surface-950-mix: 0%;
+  --tv-surface-900-mix: 2%;
+  --tv-surface-800-mix: 4%;
+  --tv-surface-700-mix: 8%;
+  --tv-surface-600-mix: 12%;
+}
+
+:is([data-theme="purple"], [data-theme="amber"], [data-theme="green"])[data-brightness-step="1"] {
+  --tv-surface-950-mix: 3%;
+  --tv-surface-900-mix: 5%;
+  --tv-surface-800-mix: 7%;
+  --tv-surface-700-mix: 11%;
+  --tv-surface-600-mix: 15%;
+}
+
+:is([data-theme="purple"], [data-theme="amber"], [data-theme="green"])[data-brightness-step="2"] {
+  --tv-surface-950-mix: 6%;
+  --tv-surface-900-mix: 8%;
+  --tv-surface-800-mix: 10%;
+  --tv-surface-700-mix: 14%;
+  --tv-surface-600-mix: 18%;
+}
+
+:is([data-theme="purple"], [data-theme="amber"], [data-theme="green"])[data-brightness-step="3"] {
+  --tv-surface-950-mix: 9%;
+  --tv-surface-900-mix: 12%;
+  --tv-surface-800-mix: 15%;
+  --tv-surface-700-mix: 19%;
+  --tv-surface-600-mix: 24%;
+}
+
+:is([data-theme="purple"], [data-theme="amber"], [data-theme="green"])[data-brightness-step="4"] {
+  --tv-surface-950-mix: 12%;
+  --tv-surface-900-mix: 15%;
+  --tv-surface-800-mix: 18%;
+  --tv-surface-700-mix: 23%;
+  --tv-surface-600-mix: 28%;
+}
+
 /* ── Paars/Goud: violet accent + dark purple-tinted background          */
 [data-theme="purple"] {
-  --color-stone-950: #0d0916;
-  --color-stone-900: #130d22;
-  --color-stone-800: #1d1535;
+  --tv-stone-950-base: #0d0916;
+  --tv-stone-900-base: #130d22;
+  --tv-stone-800-base: #1d1535;
+  --tv-stone-700-base: #2a1f48;
+  --tv-stone-600-base: #38285c;
+  --color-stone-950: color-mix(in srgb, var(--tv-stone-950-base), white var(--tv-surface-950-mix));
+  --color-stone-900: color-mix(in srgb, var(--tv-stone-900-base), white var(--tv-surface-900-mix));
+  --color-stone-800: color-mix(in srgb, var(--tv-stone-800-base), white var(--tv-surface-800-mix));
+  --color-stone-700: color-mix(in srgb, var(--tv-stone-700-base), white var(--tv-surface-700-mix));
+  --color-stone-600: color-mix(in srgb, var(--tv-stone-600-base), white var(--tv-surface-600-mix));
   --color-amber-100: #ede9fe;
   --color-amber-200: #ddd6fe;
   --color-amber-300: #c4b5fd;
@@ -850,15 +905,30 @@
 
 /* ── Amber/Bruin: subtle warm tint on background                        */
 [data-theme="amber"] {
-  --color-stone-950: #0e0b08;
-  --color-stone-900: #161008;
+  --tv-stone-950-base: #0e0b08;
+  --tv-stone-900-base: #161008;
+  --tv-stone-800-base: #211811;
+  --tv-stone-700-base: #30231b;
+  --tv-stone-600-base: #44362b;
+  --color-stone-950: color-mix(in srgb, var(--tv-stone-950-base), white var(--tv-surface-950-mix));
+  --color-stone-900: color-mix(in srgb, var(--tv-stone-900-base), white var(--tv-surface-900-mix));
+  --color-stone-800: color-mix(in srgb, var(--tv-stone-800-base), white var(--tv-surface-800-mix));
+  --color-stone-700: color-mix(in srgb, var(--tv-stone-700-base), white var(--tv-surface-700-mix));
+  --color-stone-600: color-mix(in srgb, var(--tv-stone-600-base), white var(--tv-surface-600-mix));
 }
 
 /* ── Groen/Crème: emerald accent + deep forest-tinted background        */
 [data-theme="green"] {
-  --color-stone-950: #060e09;
-  --color-stone-900: #0a160b;
-  --color-stone-800: #0f2011;
+  --tv-stone-950-base: #060e09;
+  --tv-stone-900-base: #0a160b;
+  --tv-stone-800-base: #0f2011;
+  --tv-stone-700-base: #18321b;
+  --tv-stone-600-base: #224724;
+  --color-stone-950: color-mix(in srgb, var(--tv-stone-950-base), white var(--tv-surface-950-mix));
+  --color-stone-900: color-mix(in srgb, var(--tv-stone-900-base), white var(--tv-surface-900-mix));
+  --color-stone-800: color-mix(in srgb, var(--tv-stone-800-base), white var(--tv-surface-800-mix));
+  --color-stone-700: color-mix(in srgb, var(--tv-stone-700-base), white var(--tv-surface-700-mix));
+  --color-stone-600: color-mix(in srgb, var(--tv-stone-600-base), white var(--tv-surface-600-mix));
   --color-amber-100: #dcfce7;
   --color-amber-200: #bbf7d0;
   --color-amber-300: #86efac;
@@ -1025,98 +1095,4 @@
   color: rgb(148 139 124 / 0.8);
   border-color: rgba(208, 198, 180, 0.8);
   background: linear-gradient(180deg, rgba(251, 248, 241, 0.95), rgba(239, 233, 220, 0.78));
-}
-
-/* ── Subtle brightness steps for dark surfaces ─────────────────────── */
-[data-brightness-step="1"] .bg-stone-950,
-[data-brightness-step="1"] .bg-stone-900 {
-  background-color: rgb(22 19 17 / 1) !important;
-}
-
-[data-brightness-step="2"] .bg-stone-950,
-[data-brightness-step="2"] .bg-stone-900 {
-  background-color: rgb(28 24 22 / 1) !important;
-}
-
-[data-brightness-step="3"] .bg-stone-950,
-[data-brightness-step="3"] .bg-stone-900 {
-  background-color: rgb(34 29 27 / 1) !important;
-}
-
-[data-brightness-step="4"] .bg-stone-950,
-[data-brightness-step="4"] .bg-stone-900 {
-  background-color: rgb(40 35 32 / 1) !important;
-}
-
-.settings-modal-light .text-stone-200,
-.settings-modal-light .text-stone-300,
-.settings-modal-light .text-stone-400,
-.settings-modal-light .text-stone-500 {
-  color: rgb(87 83 78 / 1) !important;
-}
-
-.settings-modal-light .bg-stone-950,
-.settings-modal-light .bg-stone-900,
-.settings-modal-light .bg-stone-950\/80,
-.settings-modal-light .bg-stone-950\/60,
-.settings-modal-light .bg-stone-950\/40,
-.settings-modal-light .bg-stone-100 {
-  background-color: rgb(255 252 246 / 1) !important;
-}
-
-.settings-modal-light .border-stone-800,
-.settings-modal-light .border-stone-700,
-.settings-modal-light .border-stone-700\/50 {
-  border-color: rgb(229 224 213 / 1) !important;
-}
-
-.settings-modal-light .bg-stone-950\/80 {
-  background-color: rgb(250 247 240 / 1) !important;
-}
-
-.settings-modal-light .bg-stone-950\/40 {
-  background-color: rgb(248 244 235 / 1) !important;
-}
-
-.settings-modal-light .bg-stone-100 {
-  background-color: rgb(245 241 231 / 1) !important;
-}
-
-.settings-modal-light .text-stone-200,
-.settings-modal-light .text-stone-300,
-.settings-modal-light .text-stone-400,
-.settings-modal-light .text-stone-500,
-.settings-modal-light .border-stone-700,
-.settings-modal-light .border-stone-800 {
-  color: inherit;
-}
-
-.settings-modal-light .bg-stone-900\/50,
-.settings-modal-light .bg-stone-950\/40,
-.settings-modal-light .bg-stone-950\/60,
-.settings-modal-light .bg-stone-950\/80 {
-  background-color: rgb(250 247 240 / 1) !important;
-}
-
-.settings-modal-light .text-stone-700 {
-  color: rgb(68 64 60 / 1) !important;
-}
-
-.settings-modal-light .text-stone-400,
-.settings-modal-light .text-stone-500 {
-  color: rgb(120 113 108 / 1) !important;
-}
-
-.settings-modal-light .border-stone-300,
-.settings-modal-light .border-stone-200 {
-  border-color: rgb(229 224 213 / 1) !important;
-}
-
-.settings-modal-light .brightness-slider {
-  background: linear-gradient(90deg, rgba(180, 83, 9, 0.12), rgba(245, 158, 11, 0.34), rgba(245, 158, 11, 0.65));
-}
-
-.settings-modal-light .brightness-slider::-webkit-slider-runnable-track,
-.settings-modal-light .brightness-slider::-moz-range-track {
-  background: linear-gradient(90deg, rgba(180, 83, 9, 0.12), rgba(245, 158, 11, 0.34), rgba(245, 158, 11, 0.65));
 }

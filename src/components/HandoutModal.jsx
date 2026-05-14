@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { X, ImagePlus, Eye, EyeOff, Hand, Trash2, UserPlus } from 'lucide-react';
+import { ImagePlus, Eye, EyeOff, Hand, Trash2, UserPlus } from 'lucide-react';
 import { getHandoutIcon } from '../lib/handoutUtils';
 import { getAllPlaceholderImages, suggestHandoutImages } from '../lib/placeholders';
+import ModalFrame from './ModalFrame';
 
 function HandoutModal({ isOpen, onClose, handout, role, players = [], currentPlayerId, onSave, onDelete, onAddToInitiative, canAddToInitiative }) {
   const [isEditing, setIsEditing] = useState(false);
@@ -84,32 +85,24 @@ function HandoutModal({ isOpen, onClose, handout, role, players = [], currentPla
   };
 
   return (
-    <div className="fixed inset-0 bg-stone-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-      <div className="bg-stone-900 border border-amber-900/40 rounded-2xl max-w-2xl w-full shadow-2xl relative overflow-hidden flex flex-col max-h-[90vh]">
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-40 bg-amber-600/10 blur-[60px] pointer-events-none" />
-
-        <div className="p-4 border-b border-stone-800/50 flex justify-between items-center relative z-10 shrink-0 bg-stone-900/80 backdrop-blur-md">
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-lg bg-stone-950 border border-stone-800 flex items-center justify-center shadow-inner">
-              <Icon className="w-4 h-4 text-amber-600" />
-            </div>
-            <h3 className="font-fantasy font-bold text-stone-200 tracking-wider">
-              {handout ? 'Handout Inspecteren' : 'Nieuwe Handout'}
-            </h3>
-          </div>
-          <div className="flex items-center gap-2">
-            {isGM && handout && !isEditing && (
+    <ModalFrame
+      isOpen={isOpen}
+      onClose={onClose}
+      title={handout ? 'Handout Inspecteren' : 'Nieuwe Handout'}
+      subtitle={formData.type === 'npc' ? 'NPC, document of lootkaart beheren vanuit een gedeeld formaat.' : 'Documenten, loot en kaarten in hetzelfde uniforme venster.'}
+      icon={Icon}
+      accent={formData.type === 'npc' ? 'rose' : 'amber'}
+      maxWidthClassName="max-w-2xl"
+      bodyClassName="px-0 py-0 overflow-y-hidden sm:px-0 sm:py-0"
+    >
+        <div className="flex-1 overflow-y-auto no-scrollbar p-5 md:p-8">
+          {isGM && handout && !isEditing ? (
+            <div className="mb-4 flex justify-end">
               <button onClick={() => setIsEditing(true)} className="px-3 py-1.5 bg-stone-800 hover:bg-stone-700 text-stone-300 rounded text-xs font-fantasy tracking-wider uppercase transition-colors">
                 Bewerken
               </button>
-            )}
-            <button onClick={onClose} className="text-stone-400 hover:text-rose-400 transition-colors p-1">
-              <X className="w-5 h-5" />
-            </button>
-          </div>
-        </div>
-
-        <div className="flex-1 overflow-y-auto no-scrollbar relative z-10 p-5 md:p-8">
+            </div>
+          ) : null}
           {isEditing && isGM ? (
             <form id="handout-form" onSubmit={handleSave} className="flex flex-col gap-5">
               
@@ -539,8 +532,7 @@ function HandoutModal({ isOpen, onClose, handout, role, players = [], currentPla
             </div>
           </div>
         )}
-      </div>
-    </div>
+    </ModalFrame>
   );
 }
 

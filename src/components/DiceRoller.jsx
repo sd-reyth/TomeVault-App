@@ -55,10 +55,39 @@ function DiceTypeIcon({ sides, className = '' }) {
   );
 }
 
-export default function DiceRoller({ onRoll }) {
+function getRollActionAccent(theme) {
+  if (theme === 'purple') {
+    return {
+      backgroundColor: '#7c3aed',
+      boxShadow: '0 14px 34px -18px rgba(124, 58, 237, 0.42)',
+    };
+  }
+
+  if (theme === 'green') {
+    return {
+      backgroundColor: '#16a34a',
+      boxShadow: '0 14px 34px -18px rgba(22, 163, 74, 0.42)',
+    };
+  }
+
+  if (theme === 'light') {
+    return {
+      backgroundColor: '#b45309',
+      boxShadow: '0 14px 34px -18px rgba(180, 83, 9, 0.34)',
+    };
+  }
+
+  return {
+    backgroundColor: '#d97706',
+    boxShadow: '0 14px 34px -18px rgba(217, 119, 6, 0.42)',
+  };
+}
+
+export default function DiceRoller({ onRoll, theme, embedded = false }) {
   const [dice, setDice] = useState(
     DICE_TYPES.map((type) => ({ ...type, count: 0 }))
   );
+  const rollActionAccent = getRollActionAccent(theme);
 
   const totalDiceSelected = useMemo(
     () => dice.reduce((sum, entry) => sum + Number(entry.count || 0), 0),
@@ -107,29 +136,29 @@ export default function DiceRoller({ onRoll }) {
 
   return (
     <div
-      className="p-4 bg-stone-900/95 rounded-2xl border border-stone-700 shadow-2xl w-full max-w-xs mx-auto"
-      style={{ boxShadow: '0 16px 45px -22px rgba(16, 185, 129, 0.2)' }}
+      className={embedded ? 'w-full' : 'mx-auto w-full max-w-sm rounded-2xl border border-stone-700 bg-stone-900/95 p-4 shadow-2xl'}
+      style={embedded ? undefined : { boxShadow: rollActionAccent.boxShadow }}
     >
       <div className="flex flex-col gap-2.5 w-full">
         {dice.map((d, idx) => (
-          <div key={d.label} className="flex items-center gap-2 w-full">
-            <span className="inline-flex h-5 w-5 items-center justify-center">
-              <DiceTypeIcon sides={d.sides} className="h-4 w-4" />
+          <div key={d.label} className="flex items-center gap-2.5 w-full rounded-2xl border border-stone-800/80 bg-stone-900/70 px-2.5 py-2">
+            <span className="inline-flex h-6 w-6 items-center justify-center">
+              <DiceTypeIcon sides={d.sides} className="h-5 w-5" />
             </span>
             <span className="w-8 font-mono text-stone-200 text-[22px] leading-none">{d.label}</span>
             <button
               type="button"
-              className="h-7 w-7 rounded-md bg-stone-950 hover:bg-stone-800 text-stone-300 disabled:opacity-40 transition-colors"
+              className="h-8 w-8 rounded-xl border border-stone-800 bg-stone-950 hover:bg-stone-800 text-stone-300 disabled:opacity-40 transition-colors"
               onClick={() => handleChange(idx, -1)}
               disabled={d.count === 0}
               aria-label={`Verlaag aantal ${d.label}`}
             >
               -
             </button>
-            <span className="w-6 text-center text-stone-100 text-lg tabular-nums">{d.count}</span>
+            <span className="w-7 text-center text-stone-100 text-lg tabular-nums">{d.count}</span>
             <button
               type="button"
-              className="h-7 w-7 rounded-md bg-stone-950 hover:bg-stone-800 text-stone-300 disabled:opacity-40 transition-colors"
+              className="h-8 w-8 rounded-xl border border-stone-800 bg-stone-950 hover:bg-stone-800 text-stone-300 disabled:opacity-40 transition-colors"
               onClick={() => handleChange(idx, 1)}
               disabled={totalDiceSelected >= MAX_DICE_PER_ROLL}
               aria-label={`Verhoog aantal ${d.label}`}
@@ -144,8 +173,8 @@ export default function DiceRoller({ onRoll }) {
 
       <button
         type="button"
-        className="mt-4 px-6 py-2.5 rounded-xl text-stone-100 font-fantasy text-3xl uppercase tracking-widest shadow transition-colors disabled:opacity-40 block mx-auto"
-        style={{ backgroundColor: '#16954a' }}
+        className="mt-4 block w-full rounded-2xl px-6 py-3 text-stone-100 font-fantasy text-2xl uppercase tracking-[0.18em] shadow transition-colors disabled:opacity-40"
+        style={rollActionAccent}
         onClick={handleRoll}
         disabled={dice.every((d) => d.count === 0) || totalDiceSelected > MAX_DICE_PER_ROLL}
       >

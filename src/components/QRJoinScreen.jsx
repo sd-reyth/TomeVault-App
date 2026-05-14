@@ -1,32 +1,25 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Flame, Loader2, LogIn, Swords } from 'lucide-react';
+import { Flame, Loader2, LogIn, Mail, ShieldCheck, Swords } from 'lucide-react';
 import landingBackgroundVideo from '../../Video/landingBG.mp4';
 
 /**
  * Shown when the user arrives via a QR-code invite link (?code=…).
- * No PIN required — just a display name, then straight into the session.
+ * Joining stays PIN-free, but now requires an account before the player enters the session.
  */
 export default function QRJoinScreen({
   inviteCode,
   uid,
   authLoading,
   sessionBusy,
+  authError,
   sessionError,
-  onAutoSignIn,
+  onSignInGoogle,
+  onUseFullLogin,
   onJoin,
 }) {
   const videoRef = useRef(null);
   const [name, setName] = useState('');
   const [localError, setLocalError] = useState('');
-  const [autoSignInAttempted, setAutoSignInAttempted] = useState(false);
-
-  // Auto-trigger anonymous sign-in when the screen mounts, if not yet authenticated.
-  useEffect(() => {
-    if (!uid && !authLoading && !autoSignInAttempted) {
-      setAutoSignInAttempted(true);
-      onAutoSignIn?.();
-    }
-  }, [uid, authLoading, autoSignInAttempted, onAutoSignIn]);
 
   // Muted autoplay background video.
   useEffect(() => {
@@ -44,14 +37,14 @@ export default function QRJoinScreen({
       return;
     }
     if (!uid) {
-      setLocalError('Verbinding wordt tot stand gebracht… probeer het zo opnieuw.');
+      setLocalError('Log eerst in voordat je via deze uitnodiging kunt deelnemen.');
       return;
     }
     onJoin(trimmedName, inviteCode);
   };
 
-  const isBusy = authLoading || sessionBusy || (!uid && autoSignInAttempted);
-  const displayError = localError || sessionError;
+  const isBusy = authLoading || sessionBusy;
+  const displayError = localError || authError || sessionError;
 
   return (
     <div className="relative flex min-h-screen w-full flex-col items-center justify-center overflow-hidden bg-stone-950">
@@ -94,46 +87,97 @@ export default function QRJoinScreen({
 
         {/* Join form */}
         <div className="flex w-full flex-col gap-4">
-          <div>
-            <label className="mb-1.5 block text-[10px] font-bold uppercase tracking-widest text-stone-500">
-              Jouw naam aan tafel
-            </label>
-            <input
-              type="text"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && !isBusy && handleJoin()}
-              placeholder="Bijv. Aragorn"
-              maxLength={32}
-              disabled={isBusy}
-              className="h-11 w-full rounded-lg border border-stone-700 bg-stone-900/80 px-4 font-story text-sm text-stone-200 placeholder-stone-600 transition-colors focus:border-amber-600/60 focus:outline-none disabled:opacity-50"
-            />
-          </div>
+          {!uid ? (
+            <>
+              <div className="rounded-2xl border border-emerald-900/35 bg-emerald-950/18 px-4 py-3 text-sm font-story leading-relaxed text-emerald-100">
+                <div className="flex items-center gap-2 font-fantasy text-[11px] uppercase tracking-[0.18em] text-emerald-300">
+                  <ShieldCheck className="h-3.5 w-3.5" />
+                  Account vereist
+                </div>
+                <p className="mt-2 text-sm leading-relaxed text-emerald-100/90">
+                  Log eerst in om via deze uitnodiging verder te gaan. Daarna kun je zonder PIN meteen aan tafel aanschuiven.
+                </p>
+              </div>
 
-          {displayError && (
-            <p className="rounded-lg border border-rose-900/40 bg-rose-950/30 px-4 py-2.5 font-story text-sm text-rose-300">
-              {displayError}
-            </p>
+              {displayError && (
+                <p className="rounded-lg border border-rose-900/40 bg-rose-950/30 px-4 py-2.5 font-story text-sm text-rose-300">
+                  {displayError}
+                </p>
+              )}
+
+              <button
+                type="button"
+                onClick={() => onSignInGoogle?.()}
+                disabled={isBusy}
+                className="h-11 w-full inline-flex items-center justify-center gap-2.5 rounded-xl border border-amber-700/60 bg-gradient-to-r from-amber-700 to-amber-600 font-fantasy text-sm uppercase tracking-[0.18em] text-stone-100 shadow-lg shadow-amber-900/30 transition-all hover:from-amber-600 hover:to-amber-500 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {isBusy ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    Verbinden…
+                  </>
+                ) : (
+                  <>
+                    <LogIn className="h-4 w-4" />
+                    Doorgaan met Google
+                  </>
+                )}
+              </button>
+
+              <button
+                type="button"
+                onClick={() => onUseFullLogin?.()}
+                disabled={isBusy}
+                className="h-11 w-full inline-flex items-center justify-center gap-2.5 rounded-xl border border-stone-700 bg-stone-900/85 px-4 font-story text-sm text-stone-200 transition-colors hover:border-amber-700/50 hover:text-amber-100 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <Mail className="h-4 w-4" />
+                Gebruik e-mail of maak een account
+              </button>
+            </>
+          ) : (
+            <>
+              <div>
+                <label className="mb-1.5 block text-[10px] font-bold uppercase tracking-widest text-stone-500">
+                  Jouw naam aan tafel
+                </label>
+                <input
+                  type="text"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && !isBusy && handleJoin()}
+                  placeholder="Bijv. Aragorn"
+                  maxLength={32}
+                  disabled={isBusy}
+                  className="h-11 w-full rounded-lg border border-stone-700 bg-stone-900/80 px-4 font-story text-sm text-stone-200 placeholder-stone-600 transition-colors focus:border-amber-600/60 focus:outline-none disabled:opacity-50"
+                />
+              </div>
+
+              {displayError && (
+                <p className="rounded-lg border border-rose-900/40 bg-rose-950/30 px-4 py-2.5 font-story text-sm text-rose-300">
+                  {displayError}
+                </p>
+              )}
+
+              <button
+                type="button"
+                onClick={handleJoin}
+                disabled={isBusy}
+                className="h-11 w-full inline-flex items-center justify-center gap-2.5 rounded-xl border border-amber-700/60 bg-gradient-to-r from-amber-700 to-amber-600 font-fantasy text-sm uppercase tracking-[0.18em] text-stone-100 shadow-lg shadow-amber-900/30 transition-all hover:from-amber-600 hover:to-amber-500 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {isBusy ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    Deelnemen…
+                  </>
+                ) : (
+                  <>
+                    <LogIn className="h-4 w-4" />
+                    Direct deelnemen
+                  </>
+                )}
+              </button>
+            </>
           )}
-
-          <button
-            type="button"
-            onClick={handleJoin}
-            disabled={isBusy}
-            className="h-11 w-full inline-flex items-center justify-center gap-2.5 rounded-xl border border-amber-700/60 bg-gradient-to-r from-amber-700 to-amber-600 font-fantasy text-sm uppercase tracking-[0.18em] text-stone-100 shadow-lg shadow-amber-900/30 transition-all hover:from-amber-600 hover:to-amber-500 disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {isBusy ? (
-              <>
-                <Loader2 className="h-4 w-4 animate-spin" />
-                {authLoading || (!uid && autoSignInAttempted) ? 'Verbinden…' : 'Deelnemen…'}
-              </>
-            ) : (
-              <>
-                <LogIn className="h-4 w-4" />
-                Direct deelnemen
-              </>
-            )}
-          </button>
         </div>
 
         {/* Session code hint */}
@@ -144,17 +188,13 @@ export default function QRJoinScreen({
 
         {/* Fine print */}
         <p className="text-center font-story text-[11px] leading-5 text-stone-600">
-          Via QR-code deelnemen vereist geen PIN.
+          Via QR-code deelnemen vereist geen PIN, maar wel een account.
           <br />
           Lukt het niet?{' '}
           <button
             type="button"
             onClick={() => {
-              // Remove ?code= from the URL so LandingScreen shows normally.
-              const url = new URL(window.location.href);
-              url.searchParams.delete('code');
-              window.history.replaceState({}, '', url.toString());
-              window.location.reload();
+              onUseFullLogin?.();
             }}
             className="text-amber-500/70 underline underline-offset-2 hover:text-amber-400 transition-colors"
           >

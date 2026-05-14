@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { Crown, X, ImagePlus, Fingerprint, Plus, NotebookPen } from 'lucide-react';
+import { Crown, X, ImagePlus, Fingerprint, Plus, NotebookPen, UserRound } from 'lucide-react';
 import {
   resolveDisplayAvatar,
   PROFILE_PROMPT_AVATARS,
 } from '../lib/placeholders';
 import { STAT_SUGGESTIONS } from '../data/mockData';
 import { sendChatMessage } from '../lib/chatUtils';
+import ModalFrame from './ModalFrame';
 
 const CHAT_ACCENT_COLORS = {
   indigo: '#6366f1',
@@ -108,22 +109,19 @@ function CharacterProfileModal({ isOpen, onClose, character, role, currentPlayer
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center bg-stone-950/80 p-3 backdrop-blur-sm sm:items-center sm:p-4">
-      <div className="bg-stone-900 border border-stone-700/50 rounded-2xl max-w-md w-full shadow-2xl relative overflow-hidden flex flex-col max-h-[calc(100dvh-1rem)] sm:max-h-[90vh]">
-        
-        {/* Banner */}
-        <div
-          className={`h-24 md:h-32 w-full relative shrink-0 z-0 ${character.isNpc ? 'bg-gradient-to-r from-rose-950 to-rose-900' : 'bg-gradient-to-r from-amber-950 to-stone-800'}`}
-          style={bannerAccent ? { background: `linear-gradient(120deg, ${bannerAccent}55, #0b0b16 70%)` } : undefined}
-        >
-          <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI4IiBoZWlnaHQ9IjgiPgo8cmVjdCB3aWR0aD0iOCIgaGVpZ2h0PSI4IiBmaWxsPSIjZmZmIiBmaWxsLW9wYWNpdHk9IjAuMSIvPgo8L3N2Zz4=')] opacity-20 pointer-events-none" />
-          <button onClick={onClose} className="absolute top-4 right-4 text-stone-300 hover:text-white bg-stone-950/50 rounded-lg p-1 backdrop-blur-sm transition-colors z-10">
-            <X className="w-5 h-5" />
-          </button>
-        </div>
-
-        {/* Avatar Section */}
-        <div className="relative z-20 mb-2 -mt-12 flex flex-col gap-3 px-4 shrink-0 sm:flex-row sm:items-end sm:justify-between sm:px-6 md:-mt-16">
+    <ModalFrame
+      isOpen={isOpen}
+      onClose={onClose}
+      title="Karakterprofiel"
+      subtitle={character.isNpc ? 'NPC profiel en gevechtsgegevens' : 'Spelerprofiel, eigenschappen en lore'}
+      icon={UserRound}
+      accent={character.isNpc ? 'rose' : 'amber'}
+      maxWidthClassName="max-w-md"
+      bodyClassName="px-0 py-0 overflow-y-hidden sm:px-0 sm:py-0"
+    >
+        <div className="flex flex-1 flex-col overflow-y-auto no-scrollbar px-4 pb-4 pt-4 sm:px-6 sm:pb-6" style={bannerAccent ? { background: `linear-gradient(120deg, ${bannerAccent}22, rgba(12,10,15,0.96) 40%)` } : undefined}>
+          <div className="mb-4 rounded-2xl border border-stone-800/70 bg-stone-950/55 p-4 shadow-inner">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
           <label className={`relative group w-24 h-24 md:w-32 md:h-32 rounded-xl border-4 ${character.isNpc ? 'border-rose-950 bg-rose-900/50' : 'border-stone-900 bg-stone-800'} flex items-center justify-center overflow-hidden transition-all shadow-xl ${canEdit ? 'cursor-pointer hover:border-amber-700/50' : ''}`}>
             {canEdit && <input type="file" accept="image/*" className="hidden" onChange={handleImageChange} />}
             {(() => {
@@ -150,10 +148,9 @@ function CharacterProfileModal({ isOpen, onClose, character, role, currentPlayer
               Opslaan
             </button>
           )}
-        </div>
+            </div>
+          </div>
 
-        {/* Scrollbare Inhoud */}
-        <div className="relative z-10 flex flex-1 flex-col overflow-y-auto no-scrollbar px-4 pb-4 pt-2 sm:px-6 sm:pb-6">
           <div className="space-y-5 flex-1 flex flex-col">
             <div>
               {canEdit ? (
@@ -401,8 +398,7 @@ function CharacterProfileModal({ isOpen, onClose, character, role, currentPlayer
             </div>
           </div>
         </div>
-      </div>
-    </div>
+    </ModalFrame>
   );
 }
 
