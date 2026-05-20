@@ -91,7 +91,6 @@ function HandoutModal({ isOpen, onClose, handout, role, players = [], currentPla
       title={handout ? 'Handout Inspecteren' : 'Nieuwe Handout'}
       subtitle={formData.type === 'npc' ? 'NPC, document of lootkaart beheren vanuit een gedeeld formaat.' : 'Documenten, loot en kaarten in hetzelfde uniforme venster.'}
       icon={Icon}
-      accent={formData.type === 'npc' ? 'rose' : 'amber'}
       maxWidthClassName="max-w-2xl"
       bodyClassName="px-0 py-0 overflow-y-hidden sm:px-0 sm:py-0"
     >

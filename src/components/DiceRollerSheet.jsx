@@ -3,73 +3,23 @@ import { Dice5, X } from 'lucide-react';
 import DiceRoller from './DiceRoller';
 
 const DICE_THEME_CHROME = {
-  amber: {
-    triggerIdle: 'text-stone-400 hover:bg-amber-950/20 hover:text-amber-300',
-    triggerActive: 'border border-amber-700/50 bg-amber-950/35 text-amber-300',
-    surfaceBorder: 'border-amber-900/30',
-    badge: 'border-amber-700/40 bg-amber-950/35 text-amber-200',
-    title: 'text-amber-100',
-    buttonHex: '#d97706',
-    buttonGlow: 'rgba(217, 119, 6, 0.34)',
-  },
-  purple: {
-    triggerIdle: 'text-stone-300 hover:bg-amber-950/25 hover:text-amber-200',
-    triggerActive: 'border border-amber-700/45 bg-amber-950/35 text-amber-200',
-    surfaceBorder: 'border-amber-900/35',
-    badge: 'border-amber-700/45 bg-amber-950/35 text-amber-100',
-    title: 'text-amber-100',
-    buttonHex: '#b45309',
-    buttonGlow: 'rgba(180, 83, 9, 0.34)',
-  },
-  green: {
-    triggerIdle: 'text-stone-400 hover:bg-emerald-950/25 hover:text-emerald-300',
-    triggerActive: 'border border-emerald-700/50 bg-emerald-950/35 text-emerald-300',
-    surfaceBorder: 'border-emerald-900/35',
-    badge: 'border-emerald-700/40 bg-emerald-950/35 text-emerald-200',
-    title: 'text-emerald-100',
-    buttonHex: '#16a34a',
-    buttonGlow: 'rgba(22, 163, 74, 0.34)',
-  },
-  light: {
-    triggerIdle: 'text-stone-500 hover:bg-amber-100 hover:text-amber-800',
-    triggerActive: 'border border-amber-400/60 bg-amber-100 text-amber-800',
-    surfaceBorder: 'border-amber-300/70',
-    badge: 'border-amber-400/50 bg-amber-100 text-amber-800',
-    title: 'text-stone-900',
-    buttonHex: '#b45309',
-    buttonGlow: 'rgba(180, 83, 9, 0.26)',
-  },
+  triggerIdle: 'tv-text-sub hover:bg-white/5',
+  triggerActive: 'tv-surface tv-text',
+  surfaceBorder: 'border-white/10',
+  badge: 'border-white/15 bg-white/5 tv-text-sub',
+  title: 'tv-text',
+  buttonHex: 'var(--tv-accent)',
+  buttonGlow: 'var(--tv-shadow)',
 };
 
-export function getDiceThemeChrome(theme) {
-  return DICE_THEME_CHROME[theme] || DICE_THEME_CHROME.amber;
+export function getDiceThemeChrome() {
+  return DICE_THEME_CHROME;
 }
 
-function getSheetAtmosphere(theme) {
-  if (theme === 'purple') {
-    return {
-      surfaceGradient: 'linear-gradient(180deg, rgba(168, 85, 247, 0.14) 0%, rgba(9, 9, 11, 0.95) 42%)',
-      glowClass: 'bg-violet-300/12',
-    };
-  }
-
-  if (theme === 'green') {
-    return {
-      surfaceGradient: 'linear-gradient(180deg, rgba(52, 211, 153, 0.14) 0%, rgba(9, 9, 11, 0.95) 42%)',
-      glowClass: 'bg-emerald-300/12',
-    };
-  }
-
-  if (theme === 'light') {
-    return {
-      surfaceGradient: 'linear-gradient(180deg, rgba(251, 191, 36, 0.16) 0%, rgba(255, 251, 235, 0.92) 52%)',
-      glowClass: 'bg-amber-300/18',
-    };
-  }
-
+function getSheetAtmosphere() {
   return {
-    surfaceGradient: 'linear-gradient(180deg, rgba(245, 158, 11, 0.12) 0%, rgba(9, 9, 11, 0.95) 42%)',
-    glowClass: 'bg-amber-300/10',
+    surfaceGradient: 'linear-gradient(180deg, color-mix(in srgb, var(--tv-accent), transparent 84%) 0%, color-mix(in srgb, var(--tv-bg-modal), #000 8%) 52%)',
+    glowClass: 'tv-backdrop',
   };
 }
 
@@ -81,8 +31,8 @@ export default function DiceRollerSheet({
   title = 'Dobbelstenen',
   subtitle = 'Werp een snelle rol zonder de tafel te verlaten.',
 }) {
-  const chrome = getDiceThemeChrome(theme);
-  const atmosphere = getSheetAtmosphere(theme);
+  const chrome = getDiceThemeChrome();
+  const atmosphere = getSheetAtmosphere();
 
   useEffect(() => {
     if (!isOpen) return undefined;

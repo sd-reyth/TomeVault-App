@@ -24,7 +24,6 @@ export default function PreparationOfferModal({ isOpen, preparation, onAccept, o
       title="Rolvoorstel"
       subtitle="Een rol ligt voor je klaar. Bekijk eerst wat er verandert voordat je accepteert."
       icon={Crown}
-      accent="amber"
       maxWidthClassName="max-w-xl"
       bodyClassName="px-0 py-0 overflow-y-hidden sm:px-0 sm:py-0"
     >

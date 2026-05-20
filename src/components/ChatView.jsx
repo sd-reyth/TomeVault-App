@@ -131,7 +131,7 @@ function parseDiceMessage(text) {
 }
 
 function ChatView({ chat, setChat, role, uid, playerName, preferredChatColor, theme, onSendMessageRemote, onEditMessage, onDeleteMessage, onChangeColor }) {
-  const diceThemeChrome = getDiceThemeChrome(theme);
+  const diceThemeChrome = getDiceThemeChrome();
   const [msg, setMsg] = useState('');
   const [isSending, setIsSending] = useState(false);
   const [chatColor, setChatColor] = useState(() => getStoredChatColor(preferredChatColor));
@@ -473,38 +473,40 @@ function ChatView({ chat, setChat, role, uid, playerName, preferredChatColor, th
                       const visibleLines = isExpanded ? parsedDiceMessage.lines : parsedDiceMessage.lines.slice(0, 2);
 
                       return (
-                        <div className="mx-auto w-[248px] max-w-full rounded-2xl border border-white/10 bg-black/25 p-2.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] md:w-[262px] md:p-3">
-                          <div className="mb-2 flex items-center justify-between">
-                            <div className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-[0.14em] text-stone-300">
-                              <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" aria-hidden="true" style={{ color: '#f8fafc' }}>
-                                <path d={mdiDiceMultiple} fill="currentColor" />
-                              </svg>
-                              Worp
+                        <div className="mx-auto w-[262px] max-w-full rounded-2xl border border-amber-500/20 bg-black/25 p-2.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] md:w-[286px] md:p-3">
+                          <div className="grid grid-cols-[86px_minmax(0,1fr)] items-stretch gap-2">
+                            <div className="flex min-h-[84px] shrink-0 flex-col justify-center rounded-xl border border-amber-500/25 bg-[radial-gradient(circle_at_top,rgba(251,191,36,0.18),rgba(120,53,15,0.16)_58%,rgba(0,0,0,0)_100%)] px-2 py-2 text-center">
+                              <div className="mb-1 inline-flex items-center gap-1 text-[8px] font-semibold uppercase tracking-[0.16em] text-amber-200/90">
+                                <svg viewBox="0 0 24 24" className="h-3 w-3" fill="none" aria-hidden="true" style={{ color: '#fde68a' }}>
+                                  <path d={mdiDiceMultiple} fill="currentColor" />
+                                </svg>
+                                Totaal
+                              </div>
+                              <div className="font-fantasy text-4xl leading-none tracking-[0.08em] text-amber-100 drop-shadow-[0_0_10px_rgba(251,191,36,0.35)] md:text-[2.65rem]">
+                                {parsedDiceMessage.total}
+                              </div>
                             </div>
-                            <span className="rounded-lg border border-amber-300/35 bg-amber-300/10 px-2 py-0.5 text-lg font-extrabold leading-none text-amber-100 md:text-xl">
-                              {parsedDiceMessage.total}
-                            </span>
-                          </div>
 
-                          <div className="flex w-full flex-col gap-1.5 font-mono text-[11px] text-stone-200 md:text-xs">
-                            {visibleLines.map((entry, index) => {
-                              const rolls = Array.isArray(entry.rolls) ? entry.rolls : [];
-                              const shownRolls = isExpanded ? rolls : rolls.slice(0, maxCollapsedRollsPerLine);
-                              const hasHiddenRolls = !isExpanded && rolls.length > maxCollapsedRollsPerLine;
+                            <div className="flex min-h-[84px] min-w-0 flex-1 flex-col justify-center rounded-xl border border-white/10 bg-white/5 p-1.5 font-mono text-[11px] text-stone-200 md:text-xs">
+                              {visibleLines.map((entry, index) => {
+                                const rolls = Array.isArray(entry.rolls) ? entry.rolls : [];
+                                const shownRolls = isExpanded ? rolls : rolls.slice(0, maxCollapsedRollsPerLine);
+                                const hasHiddenRolls = !isExpanded && rolls.length > maxCollapsedRollsPerLine;
 
-                              return (
-                                <div key={`${entry.raw}-${index}`} className="rounded-lg border border-white/10 bg-white/5 px-2 py-1.5">
-                                  <div className="flex items-center gap-1.5 text-[11px] font-semibold text-stone-100">
-                                    {entry.sides ? <ChatDiceIcon sides={entry.sides} className="h-3.5 w-3.5 shrink-0" /> : null}
-                                    <span>{entry.raw}</span>
+                                return (
+                                  <div key={`${entry.raw}-${index}`} className="rounded-lg border border-white/10 bg-black/10 px-2 py-1.5">
+                                    <div className="flex items-center gap-1.5 text-[11px] font-semibold text-stone-100">
+                                      {entry.sides ? <ChatDiceIcon sides={entry.sides} className="h-3.5 w-3.5 shrink-0" /> : null}
+                                      <span>Werpt {entry.raw}</span>
+                                    </div>
+                                    <div className="mt-0.5 break-words tabular-nums text-stone-300">
+                                      = {shownRolls.join(' + ')}
+                                      {hasHiddenRolls ? ' + ...' : ''}
+                                    </div>
                                   </div>
-                                  <div className="mt-0.5 break-words tabular-nums text-stone-300">
-                                    = {shownRolls.join(' + ')}
-                                    {hasHiddenRolls ? ' + ...' : ''}
-                                  </div>
-                                </div>
-                              );
-                            })}
+                                );
+                              })}
+                            </div>
                           </div>
 
                           {hasOverflow ? (

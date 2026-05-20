@@ -702,3 +702,41 @@ TomeVault should feel like this:
 - consistent enough that users trust it immediately
 
 If a future design choice is stylish but inconsistent, the consistent choice wins.
+
+## Operational UX/UI Rules (May 2026)
+
+These rules are mandatory in addition to the spec above and come from validated live-session feedback.
+
+### Initiative Tracker Stability
+
+1. The right combat rail must not be a full-column scroll surface.
+2. Combat primary actions (start, pause, next turn, end) must stay visible without user scrolling in normal viewport sizes.
+3. Only the roster list may scroll when content overflow occurs.
+4. Roster scroll position should reset on key state transitions (opening rail, pin state switch, combat state changes).
+5. Decorative filler blocks may never push tactical controls out of view.
+
+### Horizontal Balance and Dead Space
+
+1. Main content should use available width before adding decorative empty margins.
+2. Two-column feature layouts (e.g. preparations + overview) should minimize visual dead zones on desktop.
+3. Minimum heights are only allowed when they solve a known empty-state issue.
+4. Do not keep hardcoded minimum heights that create fake whitespace during low-content sessions.
+
+### Mobile CTA Clarity
+
+1. Primary CTA buttons on mobile must include explicit text labels.
+2. Icon-only primary actions are forbidden for core creation flows.
+3. Financial and inventory controls must stay compact and information-dense; avoid broad empty gutters inside cards.
+
+### Dice Result Presentation
+
+1. Dice totals in chat use a hero presentation, not a plain metadata badge.
+2. Total value should be the visual anchor and immediately scannable under pressure.
+3. Breakdown rows remain secondary, compact, and optionally expandable.
+4. The roll result style should align with landing-screen atmosphere (framed, warm accent, premium readability).
+
+### Regression Protection
+
+1. Any UI change touching layout must be checked in both desktop and mobile breakpoints.
+2. Any UI change touching combat rail must verify button visibility and non-scrolling shell behavior.
+3. Any UI change touching dice rendering must verify readability in active chat traffic conditions.

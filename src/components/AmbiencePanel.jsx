@@ -2,55 +2,16 @@ import React, { useState } from 'react';
 import { createPortal } from 'react-dom';
 import { Info, Music2, Pause, Play, Volume2, VolumeX, ExternalLink, X } from 'lucide-react';
 
-function getAmbienceTone(theme) {
-  if (theme === 'purple') {
-    return {
-      aura: 'radial-gradient(circle_at_20%_16%,rgba(168,85,247,0.16),transparent_34%),radial-gradient(circle_at_82%_10%,rgba(79,70,229,0.14),transparent_30%),radial-gradient(circle_at_50%_120%,rgba(124,58,237,0.12),transparent_42%)',
-      activeBorder: 'border-violet-500/35',
-      activeDot: 'bg-violet-300 shadow-[0_0_6px_rgba(196,181,253,0.85)]',
-      activeBadge: 'border-violet-400/40 bg-violet-500/12 text-violet-200',
-      activeText: 'text-violet-300/90',
-      actionOn: 'border-violet-500/35 bg-gradient-to-r from-violet-800 to-violet-700 text-violet-100 hover:from-violet-700 hover:to-violet-600',
-      valueText: 'text-violet-300',
-      creditsCount: 'text-violet-300/85',
-    };
-  }
-
-  if (theme === 'green') {
-    return {
-      aura: 'radial-gradient(circle_at_20%_16%,rgba(52,211,153,0.16),transparent_34%),radial-gradient(circle_at_82%_10%,rgba(16,185,129,0.14),transparent_30%),radial-gradient(circle_at_50%_120%,rgba(22,163,74,0.12),transparent_42%)',
-      activeBorder: 'border-emerald-500/35',
-      activeDot: 'bg-emerald-300 shadow-[0_0_6px_rgba(110,231,183,0.85)]',
-      activeBadge: 'border-emerald-400/40 bg-emerald-500/12 text-emerald-200',
-      activeText: 'text-emerald-300/90',
-      actionOn: 'border-emerald-500/35 bg-gradient-to-r from-emerald-800 to-emerald-700 text-emerald-100 hover:from-emerald-700 hover:to-emerald-600',
-      valueText: 'text-emerald-300',
-      creditsCount: 'text-emerald-300/85',
-    };
-  }
-
-  if (theme === 'light') {
-    return {
-      aura: 'radial-gradient(circle_at_20%_16%,rgba(251,191,36,0.14),transparent_34%),radial-gradient(circle_at_82%_10%,rgba(245,158,11,0.12),transparent_30%),radial-gradient(circle_at_50%_120%,rgba(217,119,6,0.1),transparent_42%)',
-      activeBorder: 'border-amber-500/40',
-      activeDot: 'bg-amber-500 shadow-[0_0_6px_rgba(245,158,11,0.75)]',
-      activeBadge: 'border-amber-500/35 bg-amber-500/10 text-amber-300',
-      activeText: 'text-amber-500/90',
-      actionOn: 'border-amber-500/35 bg-gradient-to-r from-amber-700 to-amber-600 text-amber-100 hover:from-amber-600 hover:to-amber-500',
-      valueText: 'text-amber-300',
-      creditsCount: 'text-amber-300/85',
-    };
-  }
-
+function getAmbienceTone() {
   return {
-    aura: 'radial-gradient(circle_at_20%_16%,rgba(251,191,36,0.14),transparent_34%),radial-gradient(circle_at_82%_10%,rgba(59,130,246,0.12),transparent_30%),radial-gradient(circle_at_50%_120%,rgba(217,119,6,0.12),transparent_42%)',
-    activeBorder: 'border-amber-600/40',
-    activeDot: 'bg-amber-400 shadow-[0_0_6px_rgba(245,158,11,0.8)]',
-    activeBadge: 'border-amber-500/30 bg-amber-500/10 text-amber-300',
-    activeText: 'text-amber-300/80',
-    actionOn: 'border-amber-500/35 bg-gradient-to-r from-amber-800 to-amber-700 text-amber-100 hover:from-amber-700 hover:to-amber-600',
-    valueText: 'text-amber-300',
-    creditsCount: 'text-amber-300/85',
+    aura: 'radial-gradient(circle_at_20%_16%,color-mix(in srgb,var(--tv-accent),transparent 84%),transparent_34%),radial-gradient(circle_at_82%_10%,color-mix(in srgb,var(--tv-accent),transparent 88%),transparent_30%),radial-gradient(circle_at_50%_120%,color-mix(in srgb,var(--tv-accent),transparent 90%),transparent_42%)',
+    activeBorder: 'border-white/20',
+    activeDot: 'tv-magic-glow bg-white/80',
+    activeBadge: 'border-white/20 bg-white/10 tv-text',
+    activeText: 'tv-accent',
+    actionOn: 'tv-surface tv-text',
+    valueText: 'tv-accent',
+    creditsCount: 'tv-text-sub',
   };
 }
 
@@ -77,7 +38,7 @@ export default function AmbiencePanel({
   if (!isOpen) return null;
 
   const canControlSession = role === 'gm';
-  const ambienceTone = getAmbienceTone(theme);
+  const ambienceTone = getAmbienceTone();
 
   const SceneList = () => {
     const [expandedId, setExpandedId] = useState(null);

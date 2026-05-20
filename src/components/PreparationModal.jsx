@@ -35,8 +35,6 @@ export default function PreparationModal({ isOpen, preparation, onClose, onSave,
 
   if (!isOpen) return null;
 
-  const accent = theme === 'purple' ? 'purple' : (theme === 'green' ? 'emerald' : 'amber');
-
   const handleChange = (field, value) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
@@ -87,7 +85,6 @@ export default function PreparationModal({ isOpen, preparation, onClose, onSave,
       title={preparation ? 'Voorbereiding Bewerken' : 'Nieuwe Voorbereiding'}
       subtitle="Werk een voorbereid profiel uit met stats, verborgen eigenschappen en lore."
       icon={NotebookPen}
-      accent={accent}
       maxWidthClassName="max-w-md"
       bodyClassName="px-0 py-0 overflow-y-hidden sm:px-0 sm:py-0"
     >

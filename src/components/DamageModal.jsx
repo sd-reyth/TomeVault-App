@@ -33,7 +33,6 @@ export default function DamageModal({ isOpen, onClose, target, onSave }) {
       title="HP Beheer"
       subtitle={target.name}
       icon={HeartPulse}
-      accent="amber"
       bodyClassName="gap-4 px-5 py-5 sm:px-6 sm:py-6"
     >
           <div className="text-center mb-2">

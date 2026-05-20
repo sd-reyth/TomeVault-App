@@ -108,7 +108,7 @@ function getExistingTieOverrides(party = [], initiativeOrder = []) {
   return overrides;
 }
 
-function StatusTurnIndicator({ turnsUntil, ratio, isCurrentTurn }) {
+function StatusTurnIndicator({ turnsUntil, ratio, isCurrentTurn, theme = 'dark' }) {
   const safeRatio = Math.max(0, Math.min(1, Number(ratio) || 0));
   const angle = `${Math.round(safeRatio * 360)}deg`;
 
@@ -117,19 +117,19 @@ function StatusTurnIndicator({ turnsUntil, ratio, isCurrentTurn }) {
       className={`relative flex h-11 w-11 shrink-0 items-center justify-center rounded-full border ${
         isCurrentTurn
           ? 'border-amber-500/70 shadow-[0_0_18px_rgba(245,158,11,0.35)]'
-          : 'border-stone-700/70'
+          : 'border-white/20'
       }`}
       title={isCurrentTurn ? 'Jouw beurt' : `Nog ${turnsUntil ?? '-'} beurt(en)`}
     >
       <div
         className="absolute inset-0 rounded-full"
         style={{
-          background: `conic-gradient(var(--color-amber-500) 0deg ${angle}, rgba(255,255,255,0.08) ${angle} 360deg)`,
+          background: `conic-gradient(var(--tv-accent) 0deg ${angle}, rgba(255,255,255,0.08) ${angle} 360deg)`,
         }}
       />
-      <div className="absolute inset-[3px] rounded-full border border-stone-800 bg-stone-950/90" />
+      <div className="tv-surface absolute inset-[3px] rounded-full border" />
       <div className="relative z-10 flex flex-col items-center justify-center leading-none">
-        <span className={`font-fantasy text-[10px] tracking-[0.18em] ${isCurrentTurn ? 'text-amber-100' : 'text-stone-300'}`}>
+        <span className={`font-fantasy text-[10px] tracking-[0.18em] ${isCurrentTurn ? 'text-amber-100' : 'tv-text-sub'}`}>
           {isCurrentTurn ? 'NU' : (turnsUntil ?? '-')}
         </span>
       </div>
@@ -137,7 +137,7 @@ function StatusTurnIndicator({ turnsUntil, ratio, isCurrentTurn }) {
   );
 }
 
-function TurnClockBadge({ turnsUntil, ratio, isCurrentTurn }) {
+function TurnClockBadge({ turnsUntil, ratio, isCurrentTurn, theme = 'dark' }) {
   const safeRatio = Math.max(0, Math.min(1, Number(ratio) || 0));
   const angle = `${Math.round(safeRatio * 360)}deg`;
 
@@ -146,45 +146,45 @@ function TurnClockBadge({ turnsUntil, ratio, isCurrentTurn }) {
       className={`relative flex h-7 w-7 shrink-0 items-center justify-center rounded-full border ${
         isCurrentTurn
           ? 'border-amber-500/80 shadow-[0_0_10px_rgba(245,158,11,0.35)]'
-          : 'border-stone-700/80'
+          : 'border-white/20'
       }`}
       title={isCurrentTurn ? 'Nu aan zet' : `Nog ${turnsUntil ?? '-'} beurt(en)`}
     >
       <div
         className="absolute inset-0 rounded-full"
         style={{
-          background: `conic-gradient(var(--color-amber-500) 0deg ${angle}, rgba(255,255,255,0.08) ${angle} 360deg)`,
+          background: `conic-gradient(var(--tv-accent) 0deg ${angle}, rgba(255,255,255,0.08) ${angle} 360deg)`,
         }}
       />
-      <div className="absolute inset-[2px] rounded-full bg-stone-950/90" />
-      <span className={`relative z-10 text-[9px] font-fantasy tracking-[0.14em] ${isCurrentTurn ? 'text-amber-100' : 'text-stone-300'}`}>
+      <div className="tv-surface absolute inset-[2px] rounded-full" />
+      <span className={`relative z-10 text-[9px] font-fantasy tracking-[0.14em] ${isCurrentTurn ? 'text-amber-100' : 'tv-text-sub'}`}>
         {isCurrentTurn ? 'NU' : (turnsUntil ?? '-')}
       </span>
     </div>
   );
 }
 
-function OverlayDialog({ title, description, children, onClose, actions, showCloseButton = true }) {
+function OverlayDialog({ title, description, children, onClose, actions, showCloseButton = true, theme = 'dark' }) {
   return (
-    <div className="fixed inset-0 z-[70] flex items-center justify-center bg-zinc-950/82 p-4 backdrop-blur-md">
-      <div className="w-full max-w-md overflow-hidden rounded-3xl border border-white/10 bg-zinc-950/94 shadow-[0_24px_70px_rgba(0,0,0,0.36)]">
+    <div className="tv-backdrop fixed inset-0 z-[70] flex items-center justify-center p-4 backdrop-blur-md">
+      <div className="tv-surface tv-text w-full max-w-md overflow-hidden rounded-3xl border shadow-[0_24px_70px_rgba(0,0,0,0.36)]">
         <div className="flex items-center justify-between border-b border-white/10 px-5 py-4">
           <div>
-            <h3 className="font-fantasy text-lg tracking-[0.14em] text-stone-100">{title}</h3>
-            {description ? <p className="mt-1 text-sm leading-6 text-stone-400">{description}</p> : null}
+            <h3 className="font-fantasy text-lg tracking-[0.14em] tv-text">{title}</h3>
+            {description ? <p className="mt-1 text-sm leading-6 tv-text-sub">{description}</p> : null}
           </div>
           {showCloseButton ? (
             <button
               type="button"
               onClick={onClose}
-              className="rounded-lg p-1 text-stone-500 transition-colors hover:bg-stone-800 hover:text-rose-400"
+              className="rounded-lg p-1 transition-colors tv-text-sub hover:bg-white/10"
             >
               <X className="h-5 w-5" />
             </button>
           ) : <div className="h-7 w-7" />}
         </div>
         <div className="px-5 py-4">{children}</div>
-        <div className="flex items-center justify-end gap-3 border-t border-white/10 bg-white/5 px-5 py-4">
+        <div className="flex items-center justify-end gap-3 border-t border-white/10 px-5 py-4 bg-white/5">
           {actions}
         </div>
       </div>
@@ -231,6 +231,7 @@ function RightSidebar({
   const [conditionsTarget, setConditionsTarget] = useState(null);
   const [conditionsDraftIds, setConditionsDraftIds] = useState([]);
   const dragStateRef = useRef({ startX: 0, startWidth: RIGHT_SIDEBAR_DEFAULT_WIDTH });
+  const rosterScrollRef = useRef(null);
 
   const isGm = role === 'gm';
   const battleActive = combatStatus === COMBAT_STATUS.ACTIVE;
@@ -322,6 +323,11 @@ function RightSidebar({
       window.removeEventListener('resize', syncPinnedState);
     };
   }, [isPinned, setIsPinned]);
+
+  useEffect(() => {
+    if (!rosterScrollRef.current) return;
+    rosterScrollRef.current.scrollTop = 0;
+  }, [isOpen, isPinned, combatStatus]);
 
   const handleResizeStart = (event) => {
     if (typeof window === 'undefined' || window.innerWidth < 768) return;
@@ -696,7 +702,7 @@ function RightSidebar({
       <aside
         style={{ '--battle-sidebar-width': `${sidebarWidth}px` }}
         className={`
-          fixed right-0 z-50 flex w-80 max-w-full flex-col border-l border-white/10 bg-zinc-950/92 shadow-[0_22px_60px_rgba(0,0,0,0.34)] backdrop-blur-md transition-transform duration-300 ease-in-out
+          fixed right-0 z-50 flex w-80 max-w-full flex-col overflow-hidden border-l border-white/10 bg-zinc-950/92 shadow-[0_22px_60px_rgba(0,0,0,0.34)] backdrop-blur-md transition-transform duration-300 ease-in-out
           ${(isOpen || isPinned) ? 'translate-x-0' : 'translate-x-full'}
           ${isPinned ? 'top-0 h-full md:relative md:h-full md:translate-x-0 md:z-0 md:w-[var(--battle-sidebar-width)] md:min-w-[var(--battle-sidebar-width)] md:max-w-[var(--battle-sidebar-width)] md:bg-zinc-950/70 md:shadow-none' : 'app-shell-overlay-frame'}
           lg:relative lg:top-0 lg:h-full lg:translate-x-0 lg:z-0 lg:flex lg:w-[var(--battle-sidebar-width)] lg:min-w-[var(--battle-sidebar-width)] lg:max-w-[var(--battle-sidebar-width)] lg:bg-zinc-950/70 lg:shadow-none
@@ -910,9 +916,9 @@ function RightSidebar({
           ) : null}
         </div>
 
-        <div className="flex flex-1 flex-col overflow-y-auto px-3.5 py-3.5 no-scrollbar md:px-4 md:py-4">
+        <div className="flex flex-1 flex-col overflow-hidden px-3.5 py-3.5 md:px-4 md:py-4">
           {showInfo ? (
-            <div className="rounded-xl border border-stone-800 bg-stone-950/60 p-4">
+            <div className="mb-3 rounded-xl border border-stone-800 bg-stone-950/60 p-4">
               <div className="text-[10px] font-bold uppercase tracking-[0.18em] text-stone-500">Slagorde info</div>
               <div className="mt-3 space-y-2">
                 {[
@@ -927,15 +933,14 @@ function RightSidebar({
           ) : null}
 
           {sortedParty.length === 0 && !showPlayerRollPanel ? (
-            <div className="mt-3 flex min-h-[220px] items-center justify-center rounded-xl border border-dashed border-stone-800 bg-stone-950/30 px-6 text-center shadow-inner">
+            <div className="flex min-h-[220px] flex-1 items-center justify-center rounded-xl border border-dashed border-stone-800 bg-stone-950/30 px-6 text-center shadow-inner">
               <div>
                 <div className="mb-2 text-[10px] font-bold uppercase tracking-[0.24em] text-stone-600">Nog leeg</div>
                 <p className="font-story text-sm italic leading-relaxed text-stone-500">Voeg spelers, NPC’s of handout-personages toe aan de lijst.</p>
               </div>
             </div>
-          ) : null}
-
-          <div className="space-y-3">
+          ) : (
+            <div ref={rosterScrollRef} className="min-h-0 flex-1 space-y-3 overflow-y-auto pr-1 no-scrollbar">
           {sortedParty.map((member) => {
             const isCurrentTurn = combatInProgress && member.id === currentTurnId;
             const hiddenNpcForPlayer = !isGm && member.isNpc && member.isRevealed === false;
@@ -1110,22 +1115,8 @@ function RightSidebar({
               </div>
             );
           })}
-          </div>
-
-          {sortedParty.length > 0 ? (
-            <div className="mt-auto pt-3">
-              <div className="rounded-xl border border-white/10 bg-white/5 px-3 py-3 shadow-inner">
-                <div className="text-[10px] font-bold uppercase tracking-[0.18em] text-stone-500">
-                  {combatInProgress ? 'Live tracker' : 'Ruststand overzicht'}
-                </div>
-                <p className="mt-1 text-xs leading-5 text-stone-400">
-                  {combatInProgress
-                    ? (currentTurnDisplayName ? `${currentTurnDisplayName} staat nu op punt. Gebruik de ledenkaarten voor snelle HP/AC updates.` : 'Gevecht actief. Gebruik de ledenkaarten voor snelle updates.')
-                    : 'Bereid initiative en conditions voor; zodra je start blijft deze volgorde centraal zichtbaar.'}
-                </p>
-              </div>
             </div>
-          ) : null}
+          )}
         </div>
 
         {role === 'gm' ? (

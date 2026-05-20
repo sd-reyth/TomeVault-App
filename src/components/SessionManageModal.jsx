@@ -24,13 +24,6 @@ export default function SessionManageModal({
   const canonicalSessionCode = toLegacyHashJoinTag(sessionId || '');
   const scannerSafeCode = toSafeJoinTagForLink(sessionId || '');
   const joinUrl = buildSessionInviteUrl(sessionId || '');
-  const accent = theme === 'purple' ? 'purple' : (theme === 'green' ? 'emerald' : 'amber');
-  const actionClass = theme === 'purple'
-    ? 'border-violet-500/35 bg-gradient-to-r from-violet-700 to-violet-600 hover:from-violet-600 hover:to-violet-500 hover:shadow-violet-700/40'
-    : (theme === 'green'
-      ? 'border-emerald-500/35 bg-gradient-to-r from-emerald-700 to-emerald-600 hover:from-emerald-600 hover:to-emerald-500 hover:shadow-emerald-700/40'
-      : 'border-amber-500/35 bg-gradient-to-r from-amber-700 to-amber-600 hover:from-amber-600 hover:to-amber-500 hover:shadow-amber-700/40');
-  const codeColor = theme === 'purple' ? 'text-violet-300' : (theme === 'green' ? 'text-emerald-300' : 'text-amber-300');
 
   const handleCopy = async (value, type) => {
     try {
@@ -55,7 +48,6 @@ export default function SessionManageModal({
       title="Sessiebeheer"
       icon={Hash}
       subtitle="Werk het campagnenummer bij en houd uitnodigingsgegevens direct bij de hand."
-      accent={accent}
       bodyClassName="gap-5"
     >
 
@@ -104,7 +96,7 @@ export default function SessionManageModal({
                     <Hash className="h-3.5 w-3.5 shrink-0 text-stone-500" />
                     <div className="min-w-0">
                       <div className="mb-0.5 text-[9px] uppercase tracking-[0.2em] text-stone-500">Sessiecode</div>
-                      <div className={`truncate text-xs tracking-[0.14em] ${codeColor}`}>{canonicalSessionCode}</div>
+                      <div className="truncate text-xs tracking-[0.14em] tv-accent">{canonicalSessionCode}</div>
                     </div>
                   </div>
                   <button
@@ -157,7 +149,7 @@ export default function SessionManageModal({
             <button
               type="button"
               onClick={handleSave}
-              className={`inline-flex h-10 w-full items-center justify-center gap-2 rounded-xl border px-4 text-sm uppercase tracking-[0.16em] text-stone-100 shadow-sm transition-all duration-200 ease-out hover:shadow-lg active:scale-[0.985] ${actionClass}`}
+              className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-xl border border-[var(--tv-border)] bg-[var(--tv-accent)] px-4 text-sm uppercase tracking-[0.16em] text-stone-100 shadow-sm transition-all duration-200 ease-out hover:opacity-90 hover:shadow-lg active:scale-[0.985]"
             >
               <Save className="h-4 w-4" /> Opslaan
             </button>

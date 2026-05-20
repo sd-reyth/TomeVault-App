@@ -45,7 +45,6 @@ function InitiativeSwapModal({
       title="Initiative Swap"
       subtitle="Wissel jouw initiativescore met een bondgenoot"
       icon={Zap}
-      accent="amber"
       maxWidthClassName="max-w-md"
       bodyClassName="gap-0 px-0 py-0 sm:px-0 sm:py-0"
     >

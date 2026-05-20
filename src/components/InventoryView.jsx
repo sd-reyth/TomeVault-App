@@ -94,14 +94,13 @@ function InventoryView({ role, inventory, wallets, party, currentPlayerId, hando
           <p className="mt-1 text-xs italic text-stone-400 md:mt-2 md:text-sm">Goudstukken, uitrusting en magische artefacten.</p>
         </div>
         <button onClick={onOpenAddItem} className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-xl border border-amber-500/35 bg-gradient-to-r from-amber-700 to-amber-600 px-4 text-sm uppercase tracking-[0.16em] text-stone-100 shadow-sm transition-all duration-200 ease-out hover:from-amber-600 hover:to-amber-500 hover:shadow-lg hover:shadow-amber-700/35 active:scale-[0.985] sm:w-auto">
-          <Plus className="h-4 w-4 shrink-0" /> <span className="hidden sm:inline">Nieuw</span>
+          <Plus className="h-4 w-4 shrink-0" /> <span>Nieuw item</span>
         </button>
       </div>
 
       <div className="flex-1 overflow-y-auto space-y-6 md:space-y-8 no-scrollbar pb-10">
         {role === 'gm' && wallets.party && (
-          <div className="relative overflow-hidden rounded-2xl border border-amber-500/25 bg-amber-500/10 p-4 backdrop-blur-sm md:p-6">
-            <div className="absolute right-0 top-0 h-32 w-32 rounded-full bg-amber-300/10 blur-2xl" />
+          <div className="relative overflow-visible py-2 md:py-3">
             <WalletSection
               title="Gezamenlijke Kas (GM)"
               wallet={wallets.party}

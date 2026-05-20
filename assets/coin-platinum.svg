@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256" fill="none">
+  <defs>
+    <radialGradient id="platinumCore" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(128 96) rotate(90) scale(140)">
+      <stop offset="0" stop-color="#F5FDFF"/>
+      <stop offset="0.45" stop-color="#D3EEFF"/>
+      <stop offset="1" stop-color="#79AFCF"/>
+    </radialGradient>
+    <linearGradient id="platinumRim" x1="40" y1="42" x2="218" y2="214" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FFFFFF"/>
+      <stop offset="0.52" stop-color="#BFD8EA"/>
+      <stop offset="1" stop-color="#7B9CB4"/>
+    </linearGradient>
+  </defs>
+  <circle cx="128" cy="128" r="92" fill="url(#platinumCore)"/>
+  <circle cx="128" cy="128" r="92" stroke="url(#platinumRim)" stroke-width="14"/>
+  <ellipse cx="104" cy="86" rx="52" ry="26" fill="#FFFFFF" fill-opacity="0.36"/>
+  <ellipse cx="162" cy="174" rx="44" ry="20" fill="#0F2E45" fill-opacity="0.18"/>
+</svg>

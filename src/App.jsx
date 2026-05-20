@@ -428,32 +428,48 @@ export default function TomeVaultApp() {
   const [qrJoinDone, setQrJoinDone] = useState(false);
   const showQRJoin = Boolean(qrInviteCode && view === 'landing' && !qrJoinDone);
   const [theme, setTheme] = useState(() => {
-    const saved = safeLocalStorageGet('tv_theme');
-    if (saved) {
-      if (saved === 'parchment' || saved === 'sunlight') return 'amber';
-      return saved;
-    }
-    return 'purple';
+    if (typeof window === 'undefined') return 'midnight-tome';
+    return window.localStorage.getItem('tomevault-theme') || 'midnight-tome';
   });
 
-  const handleThemeChange = (t) => {
-    setTheme(t);
-    safeLocalStorageSet('tv_theme', t);
+  const applyTheme = (newTheme) => {
+    if (typeof document !== 'undefined') {
+      document.documentElement.setAttribute('data-theme', newTheme);
+    }
+    if (typeof window !== 'undefined') {
+      window.localStorage.setItem('tomevault-theme', newTheme);
+    }
+    setTheme(newTheme);
   };
+
+  useEffect(() => {
+    if (typeof document !== 'undefined') {
+      document.documentElement.setAttribute('data-theme', theme);
+    }
+  }, [theme]);
 
   const [brightness, setBrightness] = useState(() => {
     const saved = safeLocalStorageGet('tv_brightness');
     return Number(saved) || 2; // Default to 2 (Normaal)
   });
 
+  // Map brightness steps (0-4) to actual CSS filter values
+  const brightnessFilterValues = [0.62, 0.80, 1.0, 1.18, 1.36];
+
   const handleBrightnessChange = (b) => {
     setBrightness(b);
     safeLocalStorageSet('tv_brightness', String(b));
+    document.documentElement.style.setProperty('--tv-brightness', String(brightnessFilterValues[b] ?? 1));
   };
 
-  // Surface colors now respond to brightness directly; keep the shell vignette subtle.
-  const brightnessOverlayOpacities = [0, 0.004, 0.008, 0.012, 0.016];
-  const brightnessOverlayOpacity = theme === 'light' ? 0 : (brightnessOverlayOpacities[brightness] ?? 0.03);
+  useEffect(() => {
+    document.documentElement.style.setProperty('--tv-brightness', String(brightnessFilterValues[brightness] ?? 1));
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [brightness]);
+
+  // Ambience overlay kept for atmospheric tint only (fixed subtle opacity)
+  const brightnessOverlayOpacities = [0, 0.15, 0.35, 0.55, 0.75];
+  const brightnessOverlayOpacity = brightnessOverlayOpacities[brightness] ?? 0.35;
   
   const [handouts, setHandouts] = useState(MOCK_HANDOUTS);
   const [party, setParty] = useState(MOCK_PARTY);
@@ -3181,7 +3197,7 @@ export default function TomeVaultApp() {
 
   const handleSaveSettings = async ({ nextPlayerName, nextTheme, nextBrightness, nextSessionNumber }) => {
     if (typeof nextPlayerName === 'string') setPlayerName(nextPlayerName);
-    if (typeof nextTheme === 'string') handleThemeChange(nextTheme);
+    if (typeof nextTheme === 'string') applyTheme(nextTheme);
     if (Number.isFinite(nextBrightness)) handleBrightnessChange(nextBrightness);
     if (role === 'gm' && Number.isFinite(Number(nextSessionNumber))) {
       await handleUpdateCampaignSessionNumber(nextSessionNumber);
@@ -3615,7 +3631,7 @@ export default function TomeVaultApp() {
   };
 
   return (
-    <div data-theme={theme} data-brightness-step={brightness} className="tv-app-shell relative flex h-screen w-full flex-col overflow-hidden font-sans text-stone-300 selection:bg-amber-500/30">
+    <div className="tv-app tv-app-shell relative flex h-screen w-full flex-col overflow-hidden font-sans tv-text" data-theme={theme} data-brightness-step={brightness}>
       {appUpdateNotice ? (
         <div className="absolute inset-x-4 top-3 z-50 mx-auto max-w-3xl rounded-xl border border-amber-700/60 bg-amber-950/90 px-4 py-3 text-amber-100 shadow-lg shadow-amber-950/40 backdrop-blur">
           <div className="flex flex-wrap items-center justify-between gap-3">
@@ -3632,7 +3648,7 @@ export default function TomeVaultApp() {
       ) : null}
       <div
         aria-hidden="true"
-        className="brightness-overlay pointer-events-none absolute inset-0 z-0"
+        className="tv-ambience-overlay pointer-events-none absolute inset-0 z-0"
         style={{ opacity: brightnessOverlayOpacity }}
       />
       <div className="relative z-10 flex h-full flex-col">
@@ -3680,7 +3696,7 @@ export default function TomeVaultApp() {
           <main className="app-shell-main relative flex-1 overflow-hidden p-3 transition-opacity duration-300 md:p-5">
             <div className="pointer-events-none absolute left-1/2 top-0 h-96 w-full -translate-x-1/2 bg-amber-400/10 blur-[120px]" />
             
-            <div className="tv-main-canvas relative z-10 mx-auto h-full max-w-[1180px]">
+            <div className="tv-main-canvas relative z-10 mx-auto h-full max-w-full">
               {activeTab === 'handouts' && (
                 <div key="handouts-view" className="tv-tab-stage">
                   <HandoutsView 

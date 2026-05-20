@@ -41,7 +41,6 @@ export default function AddNpcModal({ isOpen, onClose, onSave }) {
       onClose={onClose}
       title="NPC Toevoegen"
       icon={UserPlus}
-      accent="rose"
       bodyClassName="px-5 py-5 sm:px-6 sm:py-6"
     >
         <form onSubmit={handleSave} className="flex flex-col gap-4">

@@ -11,7 +11,6 @@ export default function PlayerPickerModal({ isOpen, players, preparation, onClos
       onClose={onClose}
       title="Toewijzen"
       subtitle={`Aan wie wil je ${preparation?.name || 'dit personage'} aanbieden?`}
-      accent="amber"
       maxWidthClassName="max-w-lg"
       bodyClassName="max-h-[60vh] overflow-y-auto p-4 no-scrollbar sm:p-5"
     >

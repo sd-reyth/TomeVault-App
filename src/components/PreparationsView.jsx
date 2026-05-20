@@ -128,8 +128,8 @@ export default function PreparationsView({
         </div>
       </header>
 
-      <div className="grid items-start gap-4 xl:grid-cols-[minmax(0,1.2fr)_320px] xl:gap-5">
-        <div className="min-h-[360px] rounded-3xl border border-white/10 bg-zinc-950/72 p-4 shadow-[0_22px_60px_rgba(0,0,0,0.32)] backdrop-blur-md md:p-5">
+      <div className="grid items-start gap-4 xl:grid-cols-[minmax(0,1.35fr)_296px] xl:gap-4">
+        <div className="min-h-0 rounded-3xl border border-white/10 bg-zinc-950/72 p-4 shadow-[0_22px_60px_rgba(0,0,0,0.32)] backdrop-blur-md md:p-5">
           <div className="flex flex-col gap-3 border-b border-white/10 pb-4 sm:flex-row sm:items-start sm:justify-between">
             <div className="min-w-0">
               <h2 className="font-fantasy text-lg uppercase tracking-[0.14em] text-stone-100">Bibliotheek</h2>
@@ -246,7 +246,7 @@ export default function PreparationsView({
           )}
         </div>
 
-        <aside className="rounded-3xl border border-white/10 bg-zinc-950/72 p-4 shadow-[0_22px_60px_rgba(0,0,0,0.3)] backdrop-blur-md md:p-5 xl:sticky xl:top-4">
+        <aside className="rounded-3xl border border-white/10 bg-zinc-950/72 p-4 shadow-[0_22px_60px_rgba(0,0,0,0.3)] backdrop-blur-md md:p-5 xl:sticky xl:top-3">
           <div className="flex items-center justify-between gap-3 text-stone-100">
             <div className="flex items-center gap-2">
               <ShieldCheck className="h-4 w-4 text-amber-400" />

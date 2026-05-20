@@ -11,13 +11,6 @@ export default function SourcelistModal({
 }) {
   if (!isOpen) return null;
 
-  const accent = theme === 'purple' ? 'purple' : (theme === 'green' ? 'emerald' : 'amber');
-  const verifiedTitleClass = theme === 'purple' ? 'text-violet-300/85' : (theme === 'green' ? 'text-emerald-300/85' : 'text-amber-600/80');
-  const quoteBorderClass = theme === 'purple' ? 'border-l-violet-500/45' : (theme === 'green' ? 'border-l-emerald-500/45' : 'border-l-amber-600/40');
-  const openSourceClass = theme === 'purple'
-    ? 'hover:border-violet-400/60 hover:text-violet-200'
-    : (theme === 'green' ? 'hover:border-emerald-400/60 hover:text-emerald-200' : 'hover:border-amber-400/50 hover:text-amber-100');
-
   return (
     <ModalFrame
       isOpen={isOpen}
@@ -25,7 +18,6 @@ export default function SourcelistModal({
       title="Audiogebruik & Dankwoord"
       subtitle="Credits voor alle sfeerlagen en hun oorspronkelijke makers."
       icon={Music}
-      accent={accent}
       maxWidthClassName="max-w-5xl"
       panelClassName="h-[calc(100dvh-1rem)] sm:h-[calc(100dvh-2rem)]"
       bodyClassName="px-0 py-0 overflow-y-hidden sm:px-0 sm:py-0"
@@ -36,7 +28,7 @@ export default function SourcelistModal({
           {/* Verified Tracks */}
           {verifiedTracks.length > 0 && (
             <section>
-              <div className={`mb-3 text-[10px] font-bold uppercase tracking-[0.2em] ${verifiedTitleClass}`}>
+              <div className="mb-3 text-[10px] font-bold uppercase tracking-[0.2em] tv-accent">
                 Geverifieerde bronnen
               </div>
               <div className="space-y-3">
@@ -68,7 +60,7 @@ export default function SourcelistModal({
                     </div>
 
                     {/* Thank you quote */}
-                    <div className={`mb-3 rounded-lg border border-white/10 bg-white/5 px-3 py-2.5 border-l-2 ${quoteBorderClass}`}>
+                    <div className="mb-3 rounded-lg border border-white/10 bg-white/5 px-3 py-2.5 border-l-2 border-l-[var(--tv-accent)]">
                       <p className="text-sm leading-5 text-stone-300 font-story italic">
                         "{track.source.thankYou}"
                       </p>
@@ -79,7 +71,7 @@ export default function SourcelistModal({
                       href={track.source.url}
                       target="_blank"
                       rel="noreferrer"
-                      className={`inline-flex items-center gap-2 rounded-lg border border-white/10 bg-white/5 px-3 py-1.5 text-xs font-fantasy uppercase tracking-[0.14em] text-stone-300 transition-all duration-200 hover:bg-white/7 active:scale-95 ${openSourceClass}`}
+                      className="inline-flex items-center gap-2 rounded-lg border border-white/10 bg-white/5 px-3 py-1.5 text-xs font-fantasy uppercase tracking-[0.14em] text-stone-300 transition-all duration-200 hover:bg-white/7 hover:border-[var(--tv-accent)]/60 hover:text-stone-100 active:scale-95"
                     >
                       <ExternalLink className="h-3.5 w-3.5" />
                       Open bron

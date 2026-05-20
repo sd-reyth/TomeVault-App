@@ -115,7 +115,6 @@ function CharacterProfileModal({ isOpen, onClose, character, role, currentPlayer
       title="Karakterprofiel"
       subtitle={character.isNpc ? 'NPC profiel en gevechtsgegevens' : 'Spelerprofiel, eigenschappen en lore'}
       icon={UserRound}
-      accent={character.isNpc ? 'rose' : 'amber'}
       maxWidthClassName="max-w-md"
       bodyClassName="px-0 py-0 overflow-y-hidden sm:px-0 sm:py-0"
     >

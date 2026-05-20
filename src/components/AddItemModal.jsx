@@ -50,7 +50,6 @@ function AddItemModal({ isOpen, onClose, onSave, role, party, currentPlayerId, i
       onClose={onClose}
       title={itemToEdit ? 'Item Bewerken' : 'Item Toevoegen'}
       icon={Package}
-      accent="amber"
       bodyClassName="min-h-0 flex-1 gap-0 px-0 py-0 sm:px-0 sm:py-0"
     >
         <form onSubmit={handleSave} className="flex min-h-0 flex-1 flex-col">

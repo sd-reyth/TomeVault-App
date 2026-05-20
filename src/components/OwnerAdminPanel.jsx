@@ -138,7 +138,6 @@ export default function OwnerAdminPanel({ isOpen, onClose, uid, isOwner = false 
       onClose={onClose}
       title="Owner Panel"
       icon={Settings}
-      accent="amber"
       maxWidthClassName="max-w-2xl"
       bodyClassName="gap-5 sm:gap-6"
     >

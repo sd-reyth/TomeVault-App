@@ -55,87 +55,24 @@ function DiceTypeIcon({ sides, className = '' }) {
   );
 }
 
-function getRollActionAccent(theme) {
-  if (theme === 'purple') {
-    return {
-      backgroundColor: '#7c3aed',
-      boxShadow: '0 14px 34px -18px rgba(124, 58, 237, 0.42)',
-    };
-  }
-
-  if (theme === 'green') {
-    return {
-      backgroundColor: '#16a34a',
-      boxShadow: '0 14px 34px -18px rgba(22, 163, 74, 0.42)',
-    };
-  }
-
-  if (theme === 'light') {
-    return {
-      backgroundColor: '#b45309',
-      boxShadow: '0 14px 34px -18px rgba(180, 83, 9, 0.34)',
-    };
-  }
-
+function getRollActionAccent() {
   return {
-    backgroundColor: '#d97706',
-    boxShadow: '0 14px 34px -18px rgba(217, 119, 6, 0.42)',
+    backgroundColor: 'var(--tv-accent)',
+    boxShadow: 'var(--tv-shadow)',
   };
 }
 
-function getRollerPalette(theme) {
-  if (theme === 'purple') {
-    return {
-      panelBorder: 'rgba(168, 85, 247, 0.30)',
-      panelBg: 'linear-gradient(180deg, rgba(168, 85, 247, 0.12) 0%, rgba(17, 24, 39, 0.86) 58%)',
-      rowBorder: 'rgba(196, 181, 253, 0.24)',
-      rowBg: 'rgba(46, 16, 101, 0.34)',
-      stepperBorder: 'rgba(196, 181, 253, 0.28)',
-      stepperBg: 'rgba(30, 27, 75, 0.44)',
-      labelColor: '#ede9fe',
-      countColor: '#f5f3ff',
-      metaColor: '#c4b5fd',
-    };
-  }
-
-  if (theme === 'green') {
-    return {
-      panelBorder: 'rgba(52, 211, 153, 0.28)',
-      panelBg: 'linear-gradient(180deg, rgba(52, 211, 153, 0.10) 0%, rgba(17, 24, 39, 0.86) 58%)',
-      rowBorder: 'rgba(110, 231, 183, 0.18)',
-      rowBg: 'rgba(6, 78, 59, 0.36)',
-      stepperBorder: 'rgba(110, 231, 183, 0.24)',
-      stepperBg: 'rgba(2, 44, 34, 0.5)',
-      labelColor: '#d1fae5',
-      countColor: '#ecfdf5',
-      metaColor: '#86efac',
-    };
-  }
-
-  if (theme === 'light') {
-    return {
-      panelBorder: 'rgba(180, 83, 9, 0.32)',
-      panelBg: 'linear-gradient(180deg, rgba(251, 191, 36, 0.20) 0%, rgba(255, 251, 235, 0.90) 62%)',
-      rowBorder: 'rgba(180, 83, 9, 0.22)',
-      rowBg: 'rgba(255, 248, 220, 0.72)',
-      stepperBorder: 'rgba(146, 64, 14, 0.25)',
-      stepperBg: 'rgba(255, 251, 235, 0.95)',
-      labelColor: '#78350f',
-      countColor: '#451a03',
-      metaColor: '#92400e',
-    };
-  }
-
+function getRollerPalette() {
   return {
-    panelBorder: 'rgba(251, 191, 36, 0.28)',
-    panelBg: 'linear-gradient(180deg, rgba(251, 191, 36, 0.10) 0%, rgba(17, 24, 39, 0.86) 58%)',
-    rowBorder: 'rgba(252, 211, 77, 0.18)',
-    rowBg: 'rgba(120, 53, 15, 0.30)',
-    stepperBorder: 'rgba(252, 211, 77, 0.24)',
-    stepperBg: 'rgba(69, 26, 3, 0.46)',
-    labelColor: '#fde68a',
-    countColor: '#fffbeb',
-    metaColor: '#fcd34d',
+    panelBorder: 'var(--tv-border)',
+    panelBg: 'linear-gradient(180deg, color-mix(in srgb, var(--tv-accent), transparent 85%) 0%, color-mix(in srgb, var(--tv-bg-surface), #000 10%) 58%)',
+    rowBorder: 'color-mix(in srgb, var(--tv-border), #fff 12%)',
+    rowBg: 'color-mix(in srgb, var(--tv-bg-surface), #000 6%)',
+    stepperBorder: 'var(--tv-border)',
+    stepperBg: 'color-mix(in srgb, var(--tv-bg-surface), #fff 8%)',
+    labelColor: 'var(--tv-text-primary)',
+    countColor: 'var(--tv-text-primary)',
+    metaColor: 'var(--tv-text-secondary)',
   };
 }
 
@@ -143,8 +80,8 @@ export default function DiceRoller({ onRoll, theme, embedded = false }) {
   const [dice, setDice] = useState(
     DICE_TYPES.map((type) => ({ ...type, count: 0 }))
   );
-  const rollActionAccent = getRollActionAccent(theme);
-  const palette = getRollerPalette(theme);
+  const rollActionAccent = getRollActionAccent();
+  const palette = getRollerPalette();
 
   const totalDiceSelected = useMemo(
     () => dice.reduce((sum, entry) => sum + Number(entry.count || 0), 0),
