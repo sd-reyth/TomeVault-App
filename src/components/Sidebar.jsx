@@ -86,7 +86,7 @@ export default function Sidebar({ activeTab, setActiveTab, onOpenSettings, role 
   return (
     <aside
       style={{ '--sidebar-width': `${sidebarWidth}px` }}
-      className="app-shell-mobile-nav fixed bottom-0 left-0 z-30 flex h-16 w-full flex-row items-center justify-around border-t border-white/10 bg-zinc-950/88 px-2 backdrop-blur-md md:relative md:h-full md:shrink-0 md:w-[var(--sidebar-width)] md:min-w-[var(--sidebar-width)] md:max-w-[var(--sidebar-width)] md:flex-col md:justify-start md:border-r md:border-t-0 md:bg-zinc-950/78 md:px-0 md:py-4 md:pb-3 md:backdrop-blur-md md:flex md:flex-col md:overflow-hidden"
+      className="app-shell-mobile-nav fixed bottom-0 left-0 z-30 flex h-16 w-full flex-row items-center justify-around border-t tv-nav-bg px-2 backdrop-blur-md md:relative md:h-full md:shrink-0 md:w-[var(--sidebar-width)] md:min-w-[var(--sidebar-width)] md:max-w-[var(--sidebar-width)] md:flex-col md:justify-start md:border-r md:border-t-0 md:px-0 md:py-4 md:pb-3 md:backdrop-blur-md md:flex md:flex-col md:overflow-hidden"
     >
       <nav ref={navRef} className={`flex w-full flex-row items-center justify-between gap-1 md:flex-col md:flex-1 md:min-h-0 md:overflow-y-auto md:pr-2 md:no-scrollbar md:pt-4 ${isCollapsed ? 'md:px-2' : 'md:px-3 md:gap-1.5'}`}>
         {tabs.map((tab) => {
@@ -98,17 +98,15 @@ export default function Sidebar({ activeTab, setActiveTab, onOpenSettings, role 
               aria-label={tab.label}
               className={`
                 group relative flex min-h-[48px] min-w-0 flex-1 flex-col items-center justify-center rounded-xl border border-transparent p-2 text-sm font-medium tracking-normal transition-all duration-200 ease-out active:scale-[0.985] md:w-full md:flex-none ${isCollapsed ? 'md:min-h-[52px] md:px-2 md:py-2.5' : (isIconRail ? 'md:min-h-[46px] md:justify-center md:px-2 md:py-2' : 'md:min-h-[46px] md:flex-row md:justify-start md:gap-2.5 md:px-3 md:py-2')}
-                ${isActive
-                  ? 'border-white/10 bg-white/7 text-stone-50 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]'
-                  : 'text-stone-400 hover:bg-white/5 hover:text-stone-100 md:border md:border-transparent md:hover:border-white/10'}
+                ${isActive ? 'tv-nav-item-active' : 'tv-nav-item'}
               `}
               title={tab.label}
             >
-              {isActive && !isCollapsed ? <span className="hidden md:block absolute left-0 top-2 bottom-2 w-[3px] rounded-r bg-[color:var(--color-amber-500)] shadow-[0_0_12px_rgba(245,158,11,0.32)]" /> : null}
-              <tab.icon className={`h-5 w-5 shrink-0 transition-colors duration-200 md:h-[17px] md:w-[17px] ${isActive ? 'text-amber-300' : 'text-stone-500 group-hover:text-stone-200'}`} />
+              {isActive && !isCollapsed ? <span className="hidden md:block absolute left-0 top-2 bottom-2 w-[3px] rounded-r tv-nav-indicator" /> : null}
+              <tab.icon className={`h-5 w-5 shrink-0 transition-colors duration-200 md:h-[17px] md:w-[17px] ${isActive ? 'tv-nav-icon-active' : 'tv-nav-icon'}`} />
               <span className={`${isCollapsed || isIconRail ? 'hidden' : 'hidden md:block'} max-w-full truncate text-[14px] font-medium uppercase tracking-[0.12em]`}>{tab.label}</span>
               {isIconRail && !isCollapsed ? (
-                <span className="pointer-events-none absolute left-[calc(100%+10px)] top-1/2 z-40 hidden -translate-y-1/2 whitespace-nowrap rounded-md border border-white/10 bg-zinc-950/95 px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.12em] text-stone-200 shadow-lg md:group-hover:block">
+                <span className="pointer-events-none absolute left-[calc(100%+10px)] top-1/2 z-40 hidden -translate-y-1/2 whitespace-nowrap rounded-md tv-nav-tooltip px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.12em] shadow-lg md:group-hover:block">
                   {tab.label}
                 </span>
               ) : null}
@@ -121,12 +119,12 @@ export default function Sidebar({ activeTab, setActiveTab, onOpenSettings, role 
           onClick={onOpenSettings}
           aria-label="Configuratie"
           title="Configuratie"
-          className={`group relative flex min-h-[48px] min-w-0 flex-1 flex-col items-center justify-center rounded-xl border border-transparent p-2 text-sm font-medium tracking-normal transition-all duration-200 ease-out active:scale-[0.985] md:flex md:w-full md:flex-none ${isCollapsed ? 'md:min-h-[52px] md:px-2 md:py-2.5' : (isIconRail ? 'md:min-h-[46px] md:justify-center md:px-2 md:py-2' : 'md:min-h-[46px] md:flex-row md:justify-start md:gap-2.5 md:px-3 md:py-2')} text-stone-400 hover:bg-white/5 hover:text-stone-100 md:hover:border-white/10`}
+          className={`group relative flex min-h-[48px] min-w-0 flex-1 flex-col items-center justify-center rounded-xl border border-transparent p-2 text-sm font-medium tracking-normal transition-all duration-200 ease-out active:scale-[0.985] md:flex md:w-full md:flex-none ${isCollapsed ? 'md:min-h-[52px] md:px-2 md:py-2.5' : (isIconRail ? 'md:min-h-[46px] md:justify-center md:px-2 md:py-2' : 'md:min-h-[46px] md:flex-row md:justify-start md:gap-2.5 md:px-3 md:py-2')} tv-nav-item`}
         >
-          <Settings className="h-5 w-5 shrink-0 text-stone-500 transition-colors duration-200 md:h-[17px] md:w-[17px]" />
+          <Settings className="h-5 w-5 shrink-0 tv-nav-icon transition-colors duration-200 md:h-[17px] md:w-[17px]" />
           <span className={`${isCollapsed || isIconRail ? 'hidden' : 'hidden md:block'} max-w-full truncate text-[14px] font-medium uppercase tracking-[0.12em]`}>Configuratie</span>
           {isIconRail && !isCollapsed ? (
-            <span className="pointer-events-none absolute left-[calc(100%+10px)] top-1/2 z-40 hidden -translate-y-1/2 whitespace-nowrap rounded-md border border-white/10 bg-zinc-950/95 px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.12em] text-stone-200 shadow-lg md:group-hover:block">
+            <span className="pointer-events-none absolute left-[calc(100%+10px)] top-1/2 z-40 hidden -translate-y-1/2 whitespace-nowrap rounded-md tv-nav-tooltip px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.12em] shadow-lg md:group-hover:block">
               Configuratie
             </span>
           ) : null}
@@ -140,7 +138,7 @@ export default function Sidebar({ activeTab, setActiveTab, onOpenSettings, role 
         onDoubleClick={() => setSidebarWidth(SIDEBAR_DEFAULT_WIDTH)}
         className="absolute right-0 top-0 hidden h-full w-3 -translate-x-1/2 cursor-col-resize md:block"
       >
-        <span className={`absolute left-1/2 top-1/2 h-16 w-[3px] -translate-x-1/2 -translate-y-1/2 rounded-full transition-colors duration-200 ${isDragging ? 'bg-amber-400 shadow-[0_0_12px_rgba(245,158,11,0.45)]' : 'bg-white/10 hover:bg-white/20'}`} />
+        <span className={`absolute left-1/2 top-1/2 h-16 w-[3px] -translate-x-1/2 -translate-y-1/2 rounded-full transition-colors duration-200 ${isDragging ? 'tv-nav-indicator' : 'bg-white/10 hover:bg-white/20'}`} />
       </button>
     </aside>
   );

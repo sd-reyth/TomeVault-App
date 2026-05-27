@@ -1105,19 +1105,82 @@ body {
   --tv-brightness: 1;
 }
 
-.tv-surface,
-.tv-backdrop {
+/*
+  Eén filter op de app-shell dekt alles:
+  topbar, left sidebar, right sidebar, main canvas,
+  chat, dice roller, modals, cards, knoppen, overlays.
+  position:fixed werkt nog correct omdat tv-app-shell h-screen/w-full is.
+*/
+.tv-app-shell {
   filter: brightness(var(--tv-brightness));
 }
 
-/* Sidebars, topbar en knoppen */
-[data-theme] aside,
-[data-theme] header,
-[data-theme] nav {
+/* AmbiencePanel gebruikt createPortal naar document.body — apart targeten */
+[data-ambience-panel-root] {
   filter: brightness(var(--tv-brightness));
 }
 
-/* Extra dramatische aanpassing voor Blood Moon glow */
+/* Blood Moon: behoud rode glow gecombineerd met brightness */
 [data-theme="blood-moon"] .tv-magic-glow {
   filter: brightness(var(--tv-brightness)) drop-shadow(var(--tv-glow));
+}
+
+/* ==================== SIDEBAR & TOPBAR SPECIFIC THEMING ==================== */
+/* Zorgt dat sidebars en topbar ook volledig meedoen met elk thema */
+
+.tv-nav-bg {
+  background: color-mix(in srgb, var(--tv-bg-canvas) 84%, transparent);
+  border-color: var(--tv-border);
+  color: var(--tv-text-primary);
+}
+
+.tv-topbar-bg {
+  background: color-mix(in srgb, var(--tv-bg-canvas) 84%, transparent);
+  border-color: var(--tv-border);
+  color: var(--tv-text-primary);
+}
+
+.tv-nav-item {
+  color: var(--tv-text-secondary);
+}
+
+.tv-nav-item:hover {
+  background: color-mix(in srgb, var(--tv-accent), transparent 92%);
+  color: var(--tv-text-primary);
+}
+
+.tv-nav-item-active {
+  background: color-mix(in srgb, var(--tv-accent), transparent 88%);
+  border-color: color-mix(in srgb, var(--tv-accent), transparent 65%) !important;
+  color: var(--tv-text-primary);
+  box-shadow: inset 0 1px 0 color-mix(in srgb, var(--tv-accent), transparent 80%);
+}
+
+.tv-nav-indicator {
+  background: var(--tv-accent);
+  box-shadow: 0 0 10px color-mix(in srgb, var(--tv-accent), transparent 40%);
+}
+
+.tv-nav-icon {
+  color: var(--tv-text-secondary);
+  transition: color 0.2s;
+}
+
+.tv-nav-item:hover .tv-nav-icon {
+  color: var(--tv-text-primary);
+}
+
+.tv-nav-icon-active {
+  color: var(--tv-accent);
+}
+
+.tv-nav-tooltip {
+  background: var(--tv-bg-modal);
+  border: 1px solid var(--tv-border);
+  color: var(--tv-text-primary);
+}
+
+.tv-sidebar .tv-surface,
+.tv-topbar .tv-surface {
+  background: color-mix(in srgb, var(--tv-bg-surface) 95%, var(--tv-ink) 5%);
 }

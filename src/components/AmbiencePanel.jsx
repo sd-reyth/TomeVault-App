@@ -118,7 +118,7 @@ export default function AmbiencePanel({
   const panel = (
     <div
       data-ambience-panel-root="true"
-      data-theme={theme || 'purple'}
+      data-theme={theme || 'midnight-tome'}
       className={`fixed inset-0 z-[60] flex flex-col bg-zinc-950 text-stone-300`}
     >
       <div className="pointer-events-none absolute inset-0" style={{ backgroundImage: ambienceTone.aura }} />

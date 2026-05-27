@@ -156,7 +156,7 @@ export default function TopBar({ role, sessionId, sessionNumber, theme, combatSt
   }, [isMobileActionsOpen]);
 
   return (
-    <header className="relative z-30 shrink-0 border-b border-white/10 bg-zinc-950/82 backdrop-blur-md">
+    <header className="relative z-30 shrink-0 border-b tv-topbar-bg backdrop-blur-md">
       {turnAlert && role === 'player' ? (
         <div className="pointer-events-none absolute left-1/2 top-[calc(100%+0.4rem)] z-40 w-[calc(100%-1rem)] max-w-sm -translate-x-1/2">
           <div
@@ -176,7 +176,7 @@ export default function TopBar({ role, sessionId, sessionNumber, theme, combatSt
         <div className="flex min-w-0 items-center gap-1.5 sm:gap-2 md:gap-3">
           <img src="/references/tomeVaultLogo1.png" alt="TomeVault" className="h-6 w-6 shrink-0 object-contain sm:h-7 sm:w-7 md:h-8 md:w-8" />
           <span className="hidden font-fantasy text-lg font-bold tracking-widest text-stone-100 sm:block md:text-xl">
-            TOME<span className="text-amber-600">VAULT</span>
+            TOME<span className="text-[color:var(--tv-accent)]">VAULT</span>
           </span>
 
           <div className="ml-0.5 flex min-w-0 items-center gap-1 sm:gap-1.5 md:ml-3 md:gap-2">
@@ -203,8 +203,8 @@ export default function TopBar({ role, sessionId, sessionNumber, theme, combatSt
                 title="Sessiemenu openen"
               >
                 <span className="relative flex shrink-0 items-center justify-center">
-                  <span className="absolute h-2.5 w-2.5 rounded-full bg-amber-400/20" />
-                  <span className="relative z-10 h-1.5 w-1.5 rounded-full bg-amber-300 shadow-[0_0_8px_rgba(251,191,36,0.6)]" />
+                  <span className="absolute h-2.5 w-2.5 rounded-full" style={{ background: 'color-mix(in srgb, var(--tv-accent), transparent 80%)' }} />
+                  <span className="relative z-10 h-1.5 w-1.5 rounded-full" style={{ background: 'var(--tv-accent)', boxShadow: 'var(--tv-glow)' }} />
                 </span>
                 <span className="text-[10px] font-medium tracking-[0.14em] text-stone-100 sm:hidden">{compactSessionLabel}</span>
                 <span className="hidden max-w-[140px] truncate text-xs font-medium tracking-[0.12em] text-stone-100 sm:inline md:max-w-[240px]">{sessionLabel}</span>
@@ -212,7 +212,7 @@ export default function TopBar({ role, sessionId, sessionNumber, theme, combatSt
               </button>
 
               {isSessionMenuOpen ? (
-                <div className="absolute left-0 top-[calc(100%+0.4rem)] z-50 w-44 rounded-2xl border border-white/10 bg-zinc-950/98 p-1.5 shadow-[0_18px_50px_rgba(0,0,0,0.32)] backdrop-blur-md">
+                <div className="absolute left-0 top-[calc(100%+0.4rem)] z-50 w-44 rounded-2xl border border-[color:var(--tv-border)] bg-[var(--tv-bg-modal)] p-1.5 shadow-[0_18px_50px_rgba(0,0,0,0.32)] backdrop-blur-md">
                   <button
                     type="button"
                     onClick={() => {
@@ -263,7 +263,10 @@ export default function TopBar({ role, sessionId, sessionNumber, theme, combatSt
               title={isPlayer ? 'Open audio-instellingen' : (ambience?.isPlaying ? 'Open actieve sessiesfeer' : 'Open sferenpaneel')}
             >
               <span className="relative flex h-7 w-7 items-center justify-center rounded-lg bg-white/5">
-                <span className={`absolute right-1.5 top-1.5 h-1.5 w-1.5 rounded-full ${ambience?.isPlaying ? 'bg-amber-400 shadow-[0_0_8px_rgba(245,158,11,0.7)]' : 'bg-stone-500'}`} />
+                <span
+                  className={`absolute right-1.5 top-1.5 h-1.5 w-1.5 rounded-full ${ambience?.isPlaying ? 'bg-[color:var(--tv-accent)]' : 'bg-stone-500'}`}
+                  style={ambience?.isPlaying ? { boxShadow: 'var(--tv-glow)' } : undefined}
+                />
                 {ambience?.isPlaying ? <Pause className="h-3.5 w-3.5" /> : <Music className="h-3.5 w-3.5" />}
               </span>
 
@@ -282,7 +285,7 @@ export default function TopBar({ role, sessionId, sessionNumber, theme, combatSt
               {!isPlayer ? (
                 <div className="hidden items-center gap-1.5 border-l border-white/10 pl-2 xl:flex">
                   <div className="h-1.5 w-12 overflow-hidden rounded-full border border-white/10 bg-white/5">
-                    <div className="h-full rounded-full bg-amber-500" style={{ width: ambienceFillWidth }} />
+                    <div className="h-full rounded-full bg-[color:var(--tv-accent)]" style={{ width: ambienceFillWidth }} />
                   </div>
                   <Volume2 className="h-3.5 w-3.5 text-stone-500" />
                 </div>
@@ -316,27 +319,30 @@ export default function TopBar({ role, sessionId, sessionNumber, theme, combatSt
             className="relative flex h-10 w-10 items-center justify-center rounded-xl text-stone-400 transition-all duration-200 ease-out hover:bg-white/5 hover:text-stone-100 active:scale-[0.985] lg:hidden"
             title={partyButtonTitle}
           >
-            <PartyIcon className={`h-5 w-5 ${combatStatus !== COMBAT_STATUS.IDLE ? 'text-amber-400' : ''}`} />
+            <PartyIcon className={`h-5 w-5 ${combatStatus !== COMBAT_STATUS.IDLE ? 'text-[color:var(--tv-accent)]' : ''}`} />
             {role === 'player' && combatStatus !== COMBAT_STATUS.IDLE ? (
-              <span className={`pointer-events-none absolute -right-0.5 -top-0.5 flex h-4 w-4 items-center justify-center rounded-full border ${isMyTurn ? 'border-amber-400 shadow-[0_0_10px_rgba(245,158,11,0.5)]' : 'border-stone-700'}`}>
+              <span
+                className={`pointer-events-none absolute -right-0.5 -top-0.5 flex h-4 w-4 items-center justify-center rounded-full border ${isMyTurn ? 'border-[color:var(--tv-accent)]' : 'border-stone-700'}`}
+                style={isMyTurn ? { boxShadow: 'var(--tv-glow)' } : undefined}
+              >
                 <span
                   className="absolute inset-0 rounded-full"
                   style={{
                     background: isMyTurn
-                      ? 'var(--color-amber-500)'
-                      : `conic-gradient(var(--color-amber-500) 0deg ${partyIndicatorAngle}, rgba(255,255,255,0.12) ${partyIndicatorAngle} 360deg)`,
+                      ? 'var(--tv-accent)'
+                      : `conic-gradient(var(--tv-accent) 0deg ${partyIndicatorAngle}, rgba(255,255,255,0.12) ${partyIndicatorAngle} 360deg)`,
                   }}
                 />
                 <span className="absolute inset-[2px] rounded-full bg-stone-950" />
-                <span className={`relative z-10 block h-1.5 w-1.5 rounded-full ${isMyTurn ? 'bg-amber-200 animate-pulse' : 'bg-stone-300'}`} />
+                <span className={`relative z-10 block h-1.5 w-1.5 rounded-full ${isMyTurn ? 'bg-[color:var(--tv-text-primary)] animate-pulse' : 'bg-stone-300'}`} />
               </span>
             ) : null}
           </button>
 
           <div className="hidden items-center gap-1 border-l border-white/10 pl-2 md:flex md:gap-2 md:pl-2.5">
             <div className="hidden text-right lg:block">
-              <div className="text-sm font-medium uppercase tracking-[0.14em] text-stone-100">{role === 'gm' ? 'Game Master' : 'Avonturier'}</div>
-              <div className="text-[10px] font-semibold uppercase tracking-[0.22em] text-stone-400">Aanwezig</div>
+              <div className="text-sm font-medium uppercase tracking-[0.14em] text-[color:var(--tv-text-primary)]">{role === 'gm' ? 'Game Master' : 'Avonturier'}</div>
+              <div className="text-[10px] font-semibold uppercase tracking-[0.22em] text-[color:var(--tv-text-secondary)]">Aanwezig</div>
             </div>
 
             {role === 'player' ? (
@@ -368,7 +374,7 @@ export default function TopBar({ role, sessionId, sessionNumber, theme, combatSt
             </button>
 
             {isMobileActionsOpen ? (
-              <div className="absolute right-0 top-[calc(100%+0.4rem)] z-50 w-48 rounded-2xl border border-white/10 bg-zinc-950/98 p-1.5 shadow-[0_18px_50px_rgba(0,0,0,0.32)] backdrop-blur-md">
+              <div className="absolute right-0 top-[calc(100%+0.4rem)] z-50 w-48 rounded-2xl border border-[color:var(--tv-border)] bg-[var(--tv-bg-modal)] p-1.5 shadow-[0_18px_50px_rgba(0,0,0,0.32)] backdrop-blur-md">
                 <button
                   type="button"
                   onClick={() => {
@@ -409,7 +415,7 @@ export default function TopBar({ role, sessionId, sessionNumber, theme, combatSt
                     onOpenSettings?.();
                     setIsMobileActionsOpen(false);
                   }}
-                  className="inline-flex h-8 w-full items-center gap-2 rounded-lg px-2.5 text-xs font-fantasy tracking-[0.08em] text-stone-300 transition-colors hover:bg-stone-800/80 hover:text-amber-300"
+                  className="inline-flex h-8 w-full items-center gap-2 rounded-lg px-2.5 text-xs font-fantasy tracking-[0.08em] text-stone-300 transition-colors hover:bg-white/5 hover:text-[color:var(--tv-accent)]"
                 >
                   <Settings className="h-3.5 w-3.5" /> Configuratie
                 </button>
