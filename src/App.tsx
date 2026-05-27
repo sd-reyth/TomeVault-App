@@ -1,9 +1,11 @@
 import { useState, useEffect } from 'react'
-import { Moon, Sun, Flame, Leaf, Droplet } from 'lucide-react'
+import { Moon, Sun, Flame, Leaf, Droplet, Users, Scroll, Sword } from 'lucide-react'
+import CampaignHub from './components/CampaignHub'
 
 function App() {
   const [theme, setTheme] = useState<'dawn-parchment' | 'midnight-tome' | 'ember-forge' | 'forest-scroll' | 'blood-moon'>('midnight-tome')
   const [brightness, setBrightness] = useState(1)
+  const [activeTab, setActiveTab] = useState<'hub' | 'handouts' | 'voorbereidingen'>('hub')
 
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', theme)
@@ -22,11 +24,8 @@ function App() {
     { id: 'blood-moon' as const, name: 'Blood Moon', icon: Droplet, color: '#c41e3a', premium: true },
   ]
 
-  const currentTheme = themes.find(t => t.id === theme)!
-
   return (
     <div className="tv-app min-h-screen bg-[var(--tv-bg-canvas)] text-[var(--tv-text-primary)]">
-      {/* Top Bar */}
       <header className="tv-topbar sticky top-0 z-50 border-b border-[var(--tv-border)] bg-[var(--tv-bg-surface)]/95 backdrop-blur-lg">
         <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -78,17 +77,28 @@ function App() {
       </header>
 
       <div className="flex max-w-7xl mx-auto">
-        {/* Left Sidebar */}
         <div className="w-72 border-r border-[var(--tv-border)] bg-[var(--tv-bg-surface)] min-h-[calc(100vh-4rem)] p-6">
           <div className="mb-8">
             <div className="text-xs uppercase tracking-[2px] text-[var(--tv-text-secondary)] mb-3">MENU</div>
             <nav className="space-y-1">
-              {['Handouts', 'Partychat', 'Schatkamer', 'Voorbereidingen', 'Kronieken'].map((item, i) => (
-                <div key={i} className="tv-nav-item px-4 py-2.5 rounded-xl flex items-center gap-3 text-sm cursor-pointer hover:bg-[var(--tv-bg-modal)]">
-                  <div className="w-2 h-2 rounded-full bg-[var(--tv-accent)]"></div>
-                  {item}
-                </div>
-              ))}
+              <div 
+                onClick={() => setActiveTab('hub')}
+                className={`px-4 py-2.5 rounded-xl flex items-center gap-3 text-sm cursor-pointer transition-all ${activeTab === 'hub' ? 'bg-[var(--tv-accent)]/10 text-[var(--tv-accent)]' : 'hover:bg-[var(--tv-bg-modal)]'}`}
+              >
+                <Users className="w-4 h-4" /> Campaign Hub
+              </div>
+              <div 
+                onClick={() => setActiveTab('handouts')}
+                className={`px-4 py-2.5 rounded-xl flex items-center gap-3 text-sm cursor-pointer transition-all ${activeTab === 'handouts' ? 'bg-[var(--tv-accent)]/10 text-[var(--tv-accent)]' : 'hover:bg-[var(--tv-bg-modal)]'}`}
+              >
+                <Scroll className="w-4 h-4" /> Handouts
+              </div>
+              <div 
+                onClick={() => setActiveTab('voorbereidingen')}
+                className={`px-4 py-2.5 rounded-xl flex items-center gap-3 text-sm cursor-pointer transition-all ${activeTab === 'voorbereidingen' ? 'bg-[var(--tv-accent)]/10 text-[var(--tv-accent)]' : 'hover:bg-[var(--tv-bg-modal)]'}`}
+              >
+                <Sword className="w-4 h-4" /> Voorbereidingen
+              </div>
             </nav>
           </div>
 
@@ -101,32 +111,32 @@ function App() {
           </div>
         </div>
 
-        {/* Main Content */}
         <div className="flex-1 p-8">
-          <div className="max-w-4xl mx-auto">
-            <div className="flex items-end justify-between mb-8">
-              <div>
-                <div className="text-sm text-[var(--tv-text-secondary)]">Welkom terug, Reyth</div>
-                <h2 className="text-4xl font-fantasy tracking-tight mt-1">Oude Geschriften</h2>
-              </div>
-              <button className="px-6 py-2.5 bg-[var(--tv-accent)] hover:bg-[var(--tv-accent)]/90 text-white rounded-2xl flex items-center gap-2 text-sm font-medium transition-all active:scale-[0.985]">
-                + Nieuw Handout
-              </button>
-            </div>
-
-            <div className="tv-surface rounded-3xl p-8 mb-8">
-              <div className="text-center py-12">
+          {activeTab === 'hub' && <CampaignHub />}
+          {activeTab === 'handouts' && (
+            <div className="max-w-4xl mx-auto">
+              <h2 className="text-4xl font-fantasy tracking-tight mb-4">Oude Geschriften</h2>
+              <p className="text-[var(--tv-text-secondary)] mb-8">Documenten, kaarten en magische voorwerpen ontdekt tijdens de reis.</p>
+              
+              <div className="tv-surface rounded-3xl p-8 text-center">
                 <div className="mx-auto w-16 h-16 rounded-2xl bg-[var(--tv-bg-modal)] flex items-center justify-center mb-4">
                   <span className="text-3xl">📜</span>
                 </div>
-                <h3 className="text-xl font-medium mb-2">Geen handouts gevonden</h3>
-                <p className="text-[var(--tv-text-secondary)] max-w-xs mx-auto">Maak je eerste handout of importeer een bestaand document.</p>
+                <h3 className="text-xl font-medium mb-2">Handouts komen binnenkort</h3>
+                <p className="text-[var(--tv-text-secondary)] max-w-xs mx-auto">We bouwen dit verder uit in de volgende iteratie.</p>
               </div>
             </div>
-          </div>
+          )}
+          {activeTab === 'voorbereidingen' && (
+            <div className="max-w-4xl mx-auto">
+              <h2 className="text-4xl font-fantasy tracking-tight mb-4">Voorbereidingen</h2>
+              <div className="tv-surface rounded-3xl p-8 text-center">
+                <p className="text-[var(--tv-text-secondary)]">Deze sectie wordt verder uitgewerkt.</p>
+              </div>
+            </div>
+          )}
         </div>
 
-        {/* Right Sidebar */}
         <div className="w-80 border-l border-[var(--tv-border)] bg-[var(--tv-bg-surface)] p-6 min-h-[calc(100vh-4rem)]">
           <div className="sticky top-20">
             <div className="flex items-center justify-between mb-4">
@@ -140,7 +150,7 @@ function App() {
                   <div className="w-12 h-12 rounded-xl bg-[var(--tv-bg-modal)] flex-shrink-0"></div>
                   <div className="min-w-0">
                     <div className="font-medium truncate">Karakter {i}</div>
-                    <div className="text-xs text-[var(--tv-text-secondary)]">HP 78/78 • AC 17</div>
+                    <div className="text-xs text-[var(--tv-text-secondary)] mt-1">HP 78/78 • AC 17</div>
                   </div>
                 </div>
               ))}
