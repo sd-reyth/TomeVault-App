@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Moon, Sun, Flame, Leaf, Droplet, Users, Scroll, Sword } from 'lucide-react'
+import { Moon, Sun, Flame, Leaf, Droplet, Users, Scroll, Sword, Plus } from 'lucide-react'
 import CampaignHub from './components/CampaignHub'
 
 function App() {
@@ -17,24 +17,25 @@ function App() {
   }, [brightness])
 
   const themes = [
-    { id: 'dawn-parchment' as const, name: 'Dawn Parchment', icon: Sun, color: '#f8f1e3' },
-    { id: 'midnight-tome' as const, name: 'Midnight Tome', icon: Moon, color: '#9f7dff' },
-    { id: 'ember-forge' as const, name: 'Ember Forge', icon: Flame, color: '#ff9d42' },
-    { id: 'forest-scroll' as const, name: 'Forest Scroll', icon: Leaf, color: '#6bc66b' },
-    { id: 'blood-moon' as const, name: 'Blood Moon', icon: Droplet, color: '#c41e3a', premium: true },
+    { id: 'dawn-parchment' as const, name: 'Dawn Parchment', icon: Sun },
+    { id: 'midnight-tome' as const, name: 'Midnight Tome', icon: Moon },
+    { id: 'ember-forge' as const, name: 'Ember Forge', icon: Flame },
+    { id: 'forest-scroll' as const, name: 'Forest Scroll', icon: Leaf },
+    { id: 'blood-moon' as const, name: 'Blood Moon', icon: Droplet, premium: true },
   ]
 
   return (
-    <div className="tv-app min-h-screen bg-[var(--tv-bg-canvas)] text-[var(--tv-text-primary)]">
-      <header className="tv-topbar sticky top-0 z-50 border-b border-[var(--tv-border)] bg-[var(--tv-bg-surface)]/95 backdrop-blur-lg">
+    <div className="tv-app min-h-screen bg-[var(--tv-bg-canvas)] text-[var(--tv-text-primary)] overflow-x-hidden">
+      {/* Top Bar */}
+      <header className="tv-topbar sticky top-0 z-50 border-b border-[var(--tv-border)] bg-[var(--tv-bg-surface)]/95 backdrop-blur-xl">
         <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-[var(--tv-accent)] flex items-center justify-center">
-              <span className="text-white text-xl">📜</span>
+            <div className="w-9 h-9 rounded-2xl bg-[var(--tv-accent)] flex items-center justify-center shadow-sm">
+              <span className="text-white text-2xl">📜</span>
             </div>
             <div>
-              <h1 className="font-fantasy text-2xl font-bold tracking-tight">TomeVault</h1>
-              <p className="text-xs text-[var(--tv-text-secondary)] -mt-1">Fantasy TTRPG Companion</p>
+              <h1 className="font-fantasy text-2xl font-bold tracking-[-0.5px]">TomeVault</h1>
+              <p className="text-[10px] text-[var(--tv-text-secondary)] -mt-1 tracking-[1px]">FANTASY TTRPG COMPANION</p>
             </div>
           </div>
 
@@ -52,7 +53,7 @@ function App() {
                   >
                     <Icon className="w-4 h-4" />
                     <span>{t.name}</span>
-                    {t.premium && <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-white/20">PREM</span>}
+                    {t.premium && <span className="text-[9px] px-1.5 py-px rounded-full bg-white/20">PREM</span>}
                   </button>
                 )
               })}
@@ -77,25 +78,26 @@ function App() {
       </header>
 
       <div className="flex max-w-7xl mx-auto">
-        <div className="w-72 border-r border-[var(--tv-border)] bg-[var(--tv-bg-surface)] min-h-[calc(100vh-4rem)] p-6">
+        {/* Left Sidebar */}
+        <div className="w-72 border-r border-[var(--tv-border)] bg-[var(--tv-bg-surface)] min-h-[calc(100vh-4rem)] p-6 hidden lg:block">
           <div className="mb-8">
             <div className="text-xs uppercase tracking-[2px] text-[var(--tv-text-secondary)] mb-3">MENU</div>
             <nav className="space-y-1">
               <div 
                 onClick={() => setActiveTab('hub')}
-                className={`px-4 py-2.5 rounded-xl flex items-center gap-3 text-sm cursor-pointer transition-all ${activeTab === 'hub' ? 'bg-[var(--tv-accent)]/10 text-[var(--tv-accent)]' : 'hover:bg-[var(--tv-bg-modal)]'}`}
+                className={`px-4 py-2.5 rounded-2xl flex items-center gap-3 text-sm cursor-pointer transition-all ${activeTab === 'hub' ? 'bg-[var(--tv-accent)]/10 text-[var(--tv-accent)]' : 'hover:bg-[var(--tv-bg-modal)]'}`}
               >
                 <Users className="w-4 h-4" /> Campaign Hub
               </div>
               <div 
                 onClick={() => setActiveTab('handouts')}
-                className={`px-4 py-2.5 rounded-xl flex items-center gap-3 text-sm cursor-pointer transition-all ${activeTab === 'handouts' ? 'bg-[var(--tv-accent)]/10 text-[var(--tv-accent)]' : 'hover:bg-[var(--tv-bg-modal)]'}`}
+                className={`px-4 py-2.5 rounded-2xl flex items-center gap-3 text-sm cursor-pointer transition-all ${activeTab === 'handouts' ? 'bg-[var(--tv-accent)]/10 text-[var(--tv-accent)]' : 'hover:bg-[var(--tv-bg-modal)]'}`}
               >
                 <Scroll className="w-4 h-4" /> Handouts
               </div>
               <div 
                 onClick={() => setActiveTab('voorbereidingen')}
-                className={`px-4 py-2.5 rounded-xl flex items-center gap-3 text-sm cursor-pointer transition-all ${activeTab === 'voorbereidingen' ? 'bg-[var(--tv-accent)]/10 text-[var(--tv-accent)]' : 'hover:bg-[var(--tv-bg-modal)]'}`}
+                className={`px-4 py-2.5 rounded-2xl flex items-center gap-3 text-sm cursor-pointer transition-all ${activeTab === 'voorbereidingen' ? 'bg-[var(--tv-accent)]/10 text-[var(--tv-accent)]' : 'hover:bg-[var(--tv-bg-modal)]'}`}
               >
                 <Sword className="w-4 h-4" /> Voorbereidingen
               </div>
@@ -104,40 +106,72 @@ function App() {
 
           <div className="pt-6 border-t border-[var(--tv-border)]">
             <div className="text-xs uppercase tracking-[2px] text-[var(--tv-text-secondary)] mb-3">HUIDIGE SESSIE</div>
-            <div className="bg-[var(--tv-bg-modal)] rounded-2xl p-4">
-              <div className="font-medium">my-dm-test-session#9776</div>
+            <div className="bg-[var(--tv-bg-modal)] rounded-3xl p-5">
+              <div className="font-medium text-sm">my-dm-test-session#9776</div>
               <div className="text-xs text-[var(--tv-text-secondary)] mt-1">4 spelers • 2 uur geleden</div>
+              <div className="mt-3 pt-3 border-t border-[var(--tv-border)] flex items-center gap-2 text-xs">
+                <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></div>
+                <span className="text-emerald-400">Live verbonden</span>
+              </div>
             </div>
           </div>
         </div>
 
-        <div className="flex-1 p-8">
+        {/* Main Content Area */}
+        <div className="flex-1 p-6 lg:p-8 min-w-0">
           {activeTab === 'hub' && <CampaignHub />}
           {activeTab === 'handouts' && (
-            <div className="max-w-4xl mx-auto">
-              <h2 className="text-4xl font-fantasy tracking-tight mb-4">Oude Geschriften</h2>
-              <p className="text-[var(--tv-text-secondary)] mb-8">Documenten, kaarten en magische voorwerpen ontdekt tijdens de reis.</p>
-              
-              <div className="tv-surface rounded-3xl p-8 text-center">
-                <div className="mx-auto w-16 h-16 rounded-2xl bg-[var(--tv-bg-modal)] flex items-center justify-center mb-4">
-                  <span className="text-3xl">📜</span>
+            <div className="max-w-5xl mx-auto">
+              <div className="flex items-end justify-between mb-8">
+                <div>
+                  <h2 className="text-4xl font-fantasy tracking-tight">Oude Geschriften</h2>
+                  <p className="text-[var(--tv-text-secondary)] mt-1">Documenten, kaarten en magische voorwerpen ontdekt tijdens de reis.</p>
                 </div>
-                <h3 className="text-xl font-medium mb-2">Handouts komen binnenkort</h3>
-                <p className="text-[var(--tv-text-secondary)] max-w-xs mx-auto">We bouwen dit verder uit in de volgende iteratie.</p>
+                <button className="flex items-center gap-2 px-5 py-2.5 bg-[var(--tv-accent)] hover:bg-[var(--tv-accent)]/90 text-white rounded-2xl text-sm font-medium transition-all active:scale-[0.985]">
+                  <Plus className="w-4 h-4" /> Nieuw Handout
+                </button>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {[1,2,3,4].map(i => (
+                  <div key={i} className="tv-surface rounded-3xl p-6 hover:border-[var(--tv-accent)]/50 transition-all cursor-pointer">
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <div className="font-medium">Handout {i}</div>
+                        <div className="text-sm text-[var(--tv-text-secondary)] mt-1 line-clamp-2">Een mysterieus document gevonden in de oude bibliotheek...</div>
+                      </div>
+                      <div className="text-xs px-2 py-0.5 rounded bg-[var(--tv-bg-modal)] text-[var(--tv-text-secondary)]">SECRET</div>
+                    </div>
+                    <div className="mt-4 pt-4 border-t border-[var(--tv-border)] flex items-center justify-between text-xs text-[var(--tv-text-secondary)]">
+                      <div>2 dagen geleden</div>
+                      <div className="flex -space-x-2">
+                        <div className="w-6 h-6 rounded-full bg-[var(--tv-bg-modal)] border border-[var(--tv-border)]"></div>
+                        <div className="w-6 h-6 rounded-full bg-[var(--tv-bg-modal)] border border-[var(--tv-border)]"></div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
           )}
           {activeTab === 'voorbereidingen' && (
-            <div className="max-w-4xl mx-auto">
+            <div className="max-w-5xl mx-auto">
               <h2 className="text-4xl font-fantasy tracking-tight mb-4">Voorbereidingen</h2>
+              <p className="text-[var(--tv-text-secondary)] mb-8">Karakterprofielen, encounters en magische items die je wilt voorbereiden.</p>
+              
               <div className="tv-surface rounded-3xl p-8 text-center">
-                <p className="text-[var(--tv-text-secondary)]">Deze sectie wordt verder uitgewerkt.</p>
+                <div className="mx-auto w-16 h-16 rounded-2xl bg-[var(--tv-bg-modal)] flex items-center justify-center mb-4">
+                  <Sword className="w-8 h-8" />
+                </div>
+                <h3 className="text-xl font-medium mb-2">Voorbereidingen komen binnenkort</h3>
+                <p className="text-[var(--tv-text-secondary)] max-w-xs mx-auto">We bouwen dit verder uit in de volgende iteratie.</p>
               </div>
             </div>
           )}
         </div>
 
-        <div className="w-80 border-l border-[var(--tv-border)] bg-[var(--tv-bg-surface)] p-6 min-h-[calc(100vh-4rem)]">
+        {/* Right Sidebar */}
+        <div className="w-80 border-l border-[var(--tv-border)] bg-[var(--tv-bg-surface)] p-6 min-h-[calc(100vh-4rem)] hidden xl:block">
           <div className="sticky top-20">
             <div className="flex items-center justify-between mb-4">
               <div className="font-medium">Ruststand</div>
@@ -146,17 +180,22 @@ function App() {
 
             <div className="space-y-3">
               {[1,2,3].map(i => (
-                <div key={i} className="tv-surface rounded-2xl p-4 flex gap-4">
-                  <div className="w-12 h-12 rounded-xl bg-[var(--tv-bg-modal)] flex-shrink-0"></div>
-                  <div className="min-w-0">
+                <div key={i} className="tv-surface rounded-2xl p-4 flex gap-4 hover:border-[var(--tv-accent)]/50 transition-all">
+                  <div className="w-12 h-12 rounded-xl bg-[var(--tv-bg-modal)] flex-shrink-0 overflow-hidden">
+                    <div className="w-full h-full bg-gradient-to-br from-[var(--tv-accent)]/20 to-transparent"></div>
+                  </div>
+                  <div className="min-w-0 flex-1">
                     <div className="font-medium truncate">Karakter {i}</div>
-                    <div className="text-xs text-[var(--tv-text-secondary)] mt-1">HP 78/78 • AC 17</div>
+                    <div className="text-xs text-[var(--tv-text-secondary)] mt-0.5">HP 78/78 • AC 17</div>
+                    <div className="flex gap-1 mt-2">
+                      <div className="text-[10px] px-1.5 py-px rounded bg-emerald-500/10 text-emerald-400">OK</div>
+                    </div>
                   </div>
                 </div>
               ))}
             </div>
 
-            <button className="mt-6 w-full py-3 bg-[var(--tv-accent)] hover:bg-[var(--tv-accent)]/90 text-white rounded-2xl text-sm font-medium flex items-center justify-center gap-2 transition-all">
+            <button className="mt-6 w-full py-3.5 bg-[var(--tv-accent)] hover:bg-[var(--tv-accent)]/90 text-white rounded-2xl text-sm font-medium flex items-center justify-center gap-2 transition-all active:scale-[0.985]">
               <span>Start Gevecht</span>
             </button>
           </div>
