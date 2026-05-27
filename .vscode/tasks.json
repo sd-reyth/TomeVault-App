@@ -136,6 +136,28 @@
 			],
 			"isBackground": false,
 			"group": "build"
+		},
+		{
+			"label": "verify clean restore",
+			"type": "shell",
+			"command": "git",
+			"args": [
+				"status",
+				"--short",
+				"--branch"
+			],
+			"isBackground": false
+		},
+		{
+			"label": "check current git branch status",
+			"type": "shell",
+			"command": "git",
+			"args": [
+				"status",
+				"--short",
+				"--branch"
+			],
+			"isBackground": false
 		}
 	]
 }
