@@ -749,13 +749,13 @@ function RightSidebar({
                   </div>
                 </div>
 
-                <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-[1fr_auto]">
+                <div className="mt-3.5 grid grid-cols-1 gap-2.5 sm:grid-cols-[1fr_auto]">
                   {statusActionLabel ? (
                     <button
                       type="button"
                       disabled={isActionBusy}
                       onClick={handleStatusAction}
-                      className={`h-9 rounded-lg border text-xs font-fantasy uppercase tracking-[0.16em] transition-colors ${
+                      className={`h-10 rounded-lg border px-3 text-xs font-fantasy uppercase tracking-[0.16em] transition-colors ${
                         combatStatus === COMBAT_STATUS.ACTIVE
                           ? 'border-amber-700/60 bg-amber-950/35 text-amber-200 hover:border-amber-500/70 hover:bg-amber-900/35'
                           : combatStatus === COMBAT_STATUS.IDLE
@@ -774,7 +774,7 @@ function RightSidebar({
                     type="button"
                     onClick={() => setEndCombatConfirmOpen(true)}
                     disabled={!combatInProgress || isActionBusy}
-                    className={`inline-flex h-9 w-full items-center justify-center gap-2 rounded-lg border px-3 transition-colors sm:w-9 sm:px-0 ${combatInProgress && !isActionBusy ? 'border-rose-700/70 bg-rose-950/40 text-rose-300 hover:border-rose-500/80 hover:bg-rose-900/40 hover:text-rose-100' : 'cursor-not-allowed border-stone-800 bg-stone-950/60 text-stone-600'}`}
+                    className={`inline-flex h-10 w-full items-center justify-center gap-2 rounded-lg border px-3 transition-colors sm:w-10 sm:px-0 ${combatInProgress && !isActionBusy ? 'border-rose-700/70 bg-rose-950/40 text-rose-300 hover:border-rose-500/80 hover:bg-rose-900/40 hover:text-rose-100' : 'cursor-not-allowed border-stone-800 bg-stone-950/60 text-stone-600'}`}
                     title={combatInProgress ? 'Beëindig gevecht direct' : 'Nog geen gevecht om te beëindigen'}
                   >
                     <Skull className="h-4 w-4" />

@@ -172,8 +172,8 @@ export default function TopBar({ role, sessionId, sessionNumber, theme, combatSt
         </div>
       ) : null}
 
-      <div className="grid h-14 grid-cols-[minmax(0,1fr)_auto] items-center gap-2 px-2.5 sm:gap-3 sm:px-3 md:h-16 md:gap-4 md:px-5">
-        <div className="flex min-w-0 items-center gap-1.5 sm:gap-2 md:gap-3">
+      <div className="grid h-14 grid-cols-[minmax(0,1fr)_auto] items-center gap-2.5 px-2.5 sm:gap-3.5 sm:px-3 md:h-16 md:gap-4 md:px-5">
+        <div className="flex min-w-0 items-center gap-2 sm:gap-2.5 md:gap-3.5">
           <img src="/references/tomeVaultLogo1.png" alt="TomeVault" className="h-6 w-6 shrink-0 object-contain sm:h-7 sm:w-7 md:h-8 md:w-8" />
           <span className="hidden font-fantasy text-lg font-bold tracking-widest text-stone-100 sm:block md:text-xl">
             TOME<span className="text-[color:var(--tv-accent)]">VAULT</span>
@@ -254,7 +254,7 @@ export default function TopBar({ role, sessionId, sessionNumber, theme, combatSt
           </div>
         </div>
 
-        <div className="flex shrink-0 items-center justify-end gap-1 sm:gap-1.5 md:gap-2">
+        <div className="flex shrink-0 items-center justify-end gap-1.5 sm:gap-2 md:gap-2.5">
           <div ref={ambienceShellRef} className="relative">
             <button
               type="button"

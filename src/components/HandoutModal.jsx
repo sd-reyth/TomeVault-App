@@ -499,7 +499,7 @@ function HandoutModal({ isOpen, onClose, handout, role, players = [], currentPla
         </div>
 
         {isGM && isEditing && (
-          <div className="p-4 border-t border-stone-800/50 bg-stone-900/80 backdrop-blur-md flex justify-between items-center shrink-0">
+          <div className="tv-modal-footer p-4 backdrop-blur-md flex justify-between items-center shrink-0 sm:px-5">
             {handout ? (
               <button 
                 onClick={() => onDelete(handout.id)} 

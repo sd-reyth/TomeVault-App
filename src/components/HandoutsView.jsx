@@ -172,7 +172,7 @@ function HandoutsView({ role, handouts, currentPlayerId, onToggleVisibility, onT
                 value={searchQuery}
                 onChange={(event) => setSearchQuery(event.target.value)}
                 placeholder="Zoek op titel, inhoud, type of secret..."
-                className="h-10 w-full rounded-xl border border-white/10 bg-zinc-950/75 pl-9 pr-3 text-sm text-stone-200 outline-none transition-colors placeholder:text-stone-500 focus:border-amber-500/50 focus:bg-zinc-950"
+                className="h-10 w-full rounded-xl border border-white/20 bg-zinc-950/90 pl-9 pr-3 text-sm text-stone-200 outline-none transition-colors placeholder:text-stone-500 focus:border-amber-500/60 focus:bg-zinc-950"
               />
             </label>
 
@@ -181,7 +181,7 @@ function HandoutsView({ role, handouts, currentPlayerId, onToggleVisibility, onT
               <select
                 value={sortBy}
                 onChange={(event) => setSortBy(event.target.value)}
-                className="h-10 w-full rounded-xl border border-white/10 bg-zinc-950/75 pl-9 pr-3 text-sm text-stone-200 outline-none transition-colors focus:border-amber-500/50 focus:bg-zinc-950"
+                className="h-10 w-full rounded-xl border border-white/20 bg-zinc-950/90 pl-9 pr-3 text-sm text-stone-200 outline-none transition-colors focus:border-amber-500/60 focus:bg-zinc-950"
               >
                 <option value="newest">Nieuwste eerst</option>
                 <option value="oldest">Oudste eerst</option>
@@ -196,7 +196,7 @@ function HandoutsView({ role, handouts, currentPlayerId, onToggleVisibility, onT
             <select
               value={typeFilter}
               onChange={(event) => setTypeFilter(event.target.value)}
-              className="h-10 w-full rounded-xl border border-white/10 bg-zinc-950/75 px-3 text-sm text-stone-200 outline-none transition-colors focus:border-amber-500/50 focus:bg-zinc-950"
+              className="h-10 w-full rounded-xl border border-white/20 bg-zinc-950/90 px-3 text-sm text-stone-200 outline-none transition-colors focus:border-amber-500/60 focus:bg-zinc-950"
             >
               <option value="all">Alle types</option>
               {typeOptions.map((type) => (
@@ -207,7 +207,7 @@ function HandoutsView({ role, handouts, currentPlayerId, onToggleVisibility, onT
             <select
               value={statusFilter}
               onChange={(event) => setStatusFilter(event.target.value)}
-              className="h-10 w-full rounded-xl border border-white/10 bg-zinc-950/75 px-3 text-sm text-stone-200 outline-none transition-colors focus:border-amber-500/50 focus:bg-zinc-950"
+              className="h-10 w-full rounded-xl border border-white/20 bg-zinc-950/90 px-3 text-sm text-stone-200 outline-none transition-colors focus:border-amber-500/60 focus:bg-zinc-950"
             >
               {statusOptions.map((option) => (
                 <option key={option.value} value={option.value}>{option.label}</option>
@@ -386,8 +386,9 @@ function HandoutsView({ role, handouts, currentPlayerId, onToggleVisibility, onT
           </div>
         )})}
         {processedHandouts.length === 0 && (
-          <div className="col-span-full rounded-2xl border-2 border-dashed border-white/10 bg-white/5 py-16 text-center text-base italic text-stone-600 md:py-24 md:text-lg">
-            Geen handouts gevonden voor je huidige zoek- en filterinstellingen.
+          <div className="col-span-full rounded-2xl border-2 border-dashed border-white/20 bg-zinc-950/65 py-16 text-center shadow-inner md:py-24">
+            <p className="empty-state-text text-base md:text-lg">Geen handouts gevonden voor je huidige zoek- en filterinstellingen.</p>
+            <p className="mt-2 text-xs uppercase tracking-[0.16em] text-stone-500">Pas filters of zoekterm aan om resultaten te tonen</p>
           </div>
         )}
       </div>

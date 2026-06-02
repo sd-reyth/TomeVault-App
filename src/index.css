@@ -956,7 +956,16 @@ body {
   --color-amber-600: #7c3aed;
 }
 
-/* ====================== DAWN PARCHMENT ====================== */
+/* ==================== ENCHANTED REALMS - UNIFIED THEMING ==================== */
+
+:root {
+  --tv-ink: #2c2218;
+  --tv-parchment: #f8f1e3;
+  --tv-gold: #d4a017;
+  --tv-shadow-soft: 0 4px 12px -2px rgb(0 0 0 / 0.12);
+}
+
+/* DAWN PARCHMENT (Light) */
 [data-theme="dawn-parchment"] {
   --tv-bg-canvas: #f8f1e3;
   --tv-bg-surface: #f0e6d2;
@@ -968,14 +977,9 @@ body {
   --tv-shadow: 0 6px 16px -4px rgb(140 110 70 / 0.25);
   --tv-overlay: rgba(140, 110, 70, 0.08);
   --tv-glow: 0 0 12px rgb(156 111 46);
-
-  --color-amber-300: #d4a017;
-  --color-amber-400: #c3923a;
-  --color-amber-500: #9c6f2e;
-  --color-amber-600: #7b561f;
 }
 
-/* ====================== MIDNIGHT TOME ====================== */
+/* MIDNIGHT TOME */
 [data-theme="midnight-tome"] {
   --tv-bg-canvas: #1a1625;
   --tv-bg-surface: #252038;
@@ -987,14 +991,9 @@ body {
   --tv-shadow: 0 6px 16px -4px rgb(110 80 200 / 0.3);
   --tv-overlay: rgba(110, 80, 200, 0.15);
   --tv-glow: 0 0 12px rgb(159 125 255);
-
-  --color-amber-300: #c4b5fd;
-  --color-amber-400: #a78bfa;
-  --color-amber-500: #9f7dff;
-  --color-amber-600: #7c3aed;
 }
 
-/* ====================== EMBER FORGE ====================== */
+/* EMBER FORGE */
 [data-theme="ember-forge"] {
   --tv-bg-canvas: #2b1f18;
   --tv-bg-surface: #3d2a20;
@@ -1006,14 +1005,9 @@ body {
   --tv-shadow: 0 6px 16px -4px rgb(200 90 30 / 0.35);
   --tv-overlay: rgba(200, 90, 30, 0.18);
   --tv-glow: 0 0 12px rgb(255 157 66);
-
-  --color-amber-300: #ffbe7a;
-  --color-amber-400: #ffad59;
-  --color-amber-500: #ff9d42;
-  --color-amber-600: #d97706;
 }
 
-/* ====================== FOREST SCROLL ====================== */
+/* FOREST SCROLL */
 [data-theme="forest-scroll"] {
   --tv-bg-canvas: #1f2a22;
   --tv-bg-surface: #2a3a2f;
@@ -1025,14 +1019,9 @@ body {
   --tv-shadow: 0 6px 16px -4px rgb(80 150 80 / 0.3);
   --tv-overlay: rgba(80, 150, 80, 0.15);
   --tv-glow: 0 0 12px rgb(107 198 107);
-
-  --color-amber-300: #9ce29c;
-  --color-amber-400: #83d683;
-  --color-amber-500: #6bc66b;
-  --color-amber-600: #16a34a;
 }
 
-/* ====================== BLOOD MOON (PREMIUM) ====================== */
+/* BLOOD MOON (Premium) */
 [data-theme="blood-moon"] {
   --tv-bg-canvas: #1a0f14;
   --tv-bg-surface: #2c1a22;
@@ -1044,47 +1033,22 @@ body {
   --tv-shadow: 0 6px 16px -4px rgb(196 30 58 / 0.45);
   --tv-overlay: rgba(196, 30, 58, 0.22);
   --tv-glow: 0 0 18px rgb(196 30 58);
-
-  --color-amber-300: #ef8798;
-  --color-amber-400: #dd4d68;
-  --color-amber-500: #c41e3a;
-  --color-amber-600: #9f1239;
 }
 
-/* Shared shell/canvas application for every new theme. */
-[data-theme] .tv-app-shell,
-[data-theme] .tv-app {
-  background:
-    radial-gradient(circle at 16% 14%, color-mix(in srgb, var(--tv-accent), transparent 90%), transparent 34%),
-    radial-gradient(circle at 84% 8%, color-mix(in srgb, var(--tv-accent), transparent 92%), transparent 30%),
-    radial-gradient(circle at 50% 120%, color-mix(in srgb, var(--tv-accent), transparent 90%), transparent 44%),
-    linear-gradient(180deg, var(--tv-bg-canvas) 0%, color-mix(in srgb, var(--tv-bg-canvas), #000 8%) 100%);
-  color: var(--tv-text-primary);
-}
-
-[data-theme] .tv-main-canvas {
-  border-color: var(--tv-border);
-  background: linear-gradient(180deg, color-mix(in srgb, var(--tv-bg-surface), #fff 8%), var(--tv-bg-surface));
-  box-shadow: var(--tv-shadow);
-}
-
-/* Semantic utility classes */
-.tv-surface {
-  background: var(--tv-bg-surface);
-  border: 1px solid var(--tv-border);
-  box-shadow: var(--tv-shadow);
-}
-
+/* Semantische classes */
+.tv-surface { background: var(--tv-bg-surface); border: 1px solid var(--tv-border); box-shadow: var(--tv-shadow); }
 .tv-text { color: var(--tv-text-primary); }
 .tv-text-sub { color: var(--tv-text-secondary); }
 .tv-accent { color: var(--tv-accent); }
 .tv-backdrop { background: var(--tv-overlay); }
 .tv-magic-glow { filter: drop-shadow(var(--tv-glow)); }
 
-/* Optional brightness overlay (works for all themes) */
-.tv-ambience-overlay {
-  background: var(--tv-overlay);
-  opacity: 0.6;
+/* Brightness control */
+:root { --tv-brightness: 1; }
+.tv-app, .tv-surface, .tv-backdrop { filter: brightness(var(--tv-brightness)); }
+
+[data-theme="blood-moon"] .tv-magic-glow {
+  filter: brightness(var(--tv-brightness)) drop-shadow(var(--tv-glow));
 }
 
 .premium-badge {
@@ -1150,10 +1114,12 @@ body {
 }
 
 .tv-nav-item-active {
-  background: color-mix(in srgb, var(--tv-accent), transparent 88%);
-  border-color: color-mix(in srgb, var(--tv-accent), transparent 65%) !important;
+  background: color-mix(in srgb, var(--tv-accent), transparent 84%);
+  border-color: color-mix(in srgb, var(--tv-accent), transparent 52%) !important;
   color: var(--tv-text-primary);
-  box-shadow: inset 0 1px 0 color-mix(in srgb, var(--tv-accent), transparent 80%);
+  box-shadow:
+    inset 0 1px 0 color-mix(in srgb, var(--tv-accent), transparent 80%),
+    0 0 0 1px color-mix(in srgb, var(--tv-accent), transparent 72%);
 }
 
 .tv-nav-indicator {
@@ -1183,4 +1149,30 @@ body {
 .tv-sidebar .tv-surface,
 .tv-topbar .tv-surface {
   background: color-mix(in srgb, var(--tv-bg-surface) 95%, var(--tv-ink) 5%);
+}
+
+/* Priority visual pass: readability and empty state legibility */
+[data-theme="midnight-tome"],
+[data-theme="ember-forge"],
+[data-theme="forest-scroll"],
+[data-theme="blood-moon"] {
+  --tv-text-secondary: color-mix(in srgb, var(--tv-text-primary), #fff 24%);
+  --tv-border: color-mix(in srgb, var(--tv-border), #fff 18%);
+  --tv-overlay: rgba(8, 8, 12, 0.5);
+}
+
+[data-theme="dawn-parchment"] {
+  --tv-text-secondary: #4f3c2a;
+  --tv-border: #bfa781;
+  --tv-overlay: rgba(70, 48, 18, 0.16);
+}
+
+.empty-state-text {
+  color: color-mix(in srgb, var(--tv-text-primary), #fff 8%);
+  font-style: italic;
+}
+
+.tv-modal-footer {
+  border-top: 1px solid color-mix(in srgb, var(--tv-border), transparent 42%);
+  background: color-mix(in srgb, var(--tv-bg-modal), #000 16%);
 }

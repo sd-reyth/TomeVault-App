@@ -6,9 +6,32 @@ export function isLocalDevHost(hostname) {
   return host === 'localhost' || host === '127.0.0.1';
 }
 
+function buildBootstrapConfig({
+  role,
+  roleSource,
+  host,
+  joinTag,
+  pin,
+  sessionName,
+  playerName,
+  environment,
+}) {
+  return {
+    role,
+    roleSource,
+    host,
+    joinTag,
+    pin,
+    sessionName,
+    playerName,
+    environment,
+  };
+}
+
 export function getLocalDevBootstrapConfig() {
   if (typeof window === 'undefined' || !isLocalDevHost(window.location.hostname)) return null;
 
+  const host = String(window.location.hostname || '').toLowerCase();
   const params = new URLSearchParams(window.location.search);
   const rawDev = String(params.get('dev') || '').trim().toLowerCase();
   if (!rawDev) return null;
@@ -25,15 +48,16 @@ export function getLocalDevBootstrapConfig() {
     ? String(params.get('tag') || params.get('devTag') || 'dev-lab-0000').trim()
     : rawDev;
 
-  return {
+  return buildBootstrapConfig({
     role,
     roleSource,
-    host: String(window.location.hostname || '').toLowerCase(),
+    host,
     joinTag: joinTag || 'dev-lab-0000',
     pin: String(params.get('pin') || params.get('devPin') || '1234').trim() || '1234',
     sessionName: String(params.get('session') || params.get('devSession') || 'Dev Lab').trim() || 'Dev Lab',
     playerName: String(params.get('name') || params.get('devName') || 'Elara').trim() || 'Elara',
-  };
+    environment: 'local-dev',
+  });
 }
 
 export function getRuntimeBadgeState({ role, localDevBootstrap }) {

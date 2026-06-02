@@ -6,12 +6,13 @@ import WalletSection from './WalletSection';
 
 function ItemCard({ item, role, currentPlayerId, canManageInventory, onUpdateItemAmount, onDeleteItem }) {
   const description = String(item.desc || '').replace(/\s+/g, ' ').trim();
+  const [imageFailed, setImageFailed] = useState(false);
 
   return (
     <div className="flex items-start gap-3 rounded-xl border border-white/10 bg-white/5 p-3 shadow-sm transition-all duration-200 ease-out hover:bg-white/7 hover:border-white/20">
       <div className="h-10 w-10 shrink-0 overflow-hidden rounded-lg border border-white/10 bg-zinc-950/90 shadow-inner flex items-center justify-center">
-        {item.imageUrl ? (
-          <img src={item.imageUrl} alt="" className="w-full h-full object-cover scale-[1.25]" />
+        {item.imageUrl && !imageFailed ? (
+          <img src={item.imageUrl} alt="" className="w-full h-full object-cover scale-[1.25]" onError={() => setImageFailed(true)} />
         ) : (
           <Package className="w-5 h-5 text-stone-500" />
         )}

@@ -16,25 +16,25 @@ function WalletSection({ title, wallet, isGm, editable = false, onAdjust }) {
     {
       key: 'platinum',
       label: 'PLATINUM',
-      imageSrc: '/assets/coin-platinum.svg',
+      icon: 'P',
       glowColor: 'bg-sky-300/20',
     },
     {
       key: 'gold',
       label: 'GOLD',
-      imageSrc: '/assets/coin-gold.svg',
+      icon: 'G',
       glowColor: 'bg-amber-400/20',
     },
     {
       key: 'silver',
       label: 'SILVER',
-      imageSrc: '/assets/coin-silver.svg',
+      icon: 'S',
       glowColor: 'bg-slate-200/18',
     },
     {
       key: 'bronze',
       label: 'COPPER',
-      imageSrc: '/assets/coin-copper.svg',
+      icon: 'C',
       glowColor: 'bg-orange-400/20',
     },
   ];
@@ -140,12 +140,13 @@ function WalletSection({ title, wallet, isGm, editable = false, onAdjust }) {
               className={`pointer-events-none absolute -top-5 h-24 w-24 ${coin.glowColor} rounded-full blur-3xl sm:h-28 sm:w-28 md:h-32 md:w-32`}
               aria-hidden="true"
             />
-            <img
-              src={coin.imageSrc}
-              alt={coin.label}
-              className="relative z-10 h-14 w-14 drop-shadow-[0_10px_24px_rgba(0,0,0,0.45)] transition-transform duration-300 group-hover:-translate-y-1 sm:h-16 sm:w-16 md:h-20 md:w-20"
+            <div
+              aria-label={coin.label}
+              className="relative z-10 flex h-14 w-14 items-center justify-center rounded-full border border-white/20 bg-zinc-950/90 text-2xl shadow-[0_10px_24px_rgba(0,0,0,0.45)] transition-transform duration-300 group-hover:-translate-y-1 sm:h-16 sm:w-16 sm:text-[1.75rem] md:h-20 md:w-20 md:text-[2.15rem]"
               style={{ animation: `walletFloat 4.6s ease-in-out ${index * 0.24}s infinite` }}
-            />
+            >
+              <span className="leading-none" aria-hidden="true">{coin.icon}</span>
+            </div>
 
             <div className="mt-5 flex items-center gap-1 sm:gap-2">
               <button
