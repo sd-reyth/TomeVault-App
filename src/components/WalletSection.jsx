@@ -9,6 +9,7 @@ function WalletSection({
   description,
   onPrimaryAction,
   primaryActionLabel = 'Nieuw item',
+  hideSummaryCard = false,
 }) {
   const [editingCoin, setEditingCoin] = useState(null);
   const [inputValue, setInputValue] = useState('');
@@ -212,7 +213,7 @@ function WalletSection({
                   <button
                     type="button"
                     onClick={() => handleAdjust(coin.key, -1)}
-                    className="h-7 w-7 rounded-md border border-white/12 bg-black/30 text-sm leading-none text-white/40 transition-colors hover:border-white/30 hover:text-[var(--tv-accent)]"
+                    className="h-8 w-8 rounded-md border border-white/12 bg-black/30 text-sm leading-none text-white/40 transition-colors hover:border-white/30 hover:text-[var(--tv-accent)] md:h-7 md:w-7"
                     aria-label={`${coin.label} verminderen`}
                   >
                     -
@@ -225,14 +226,14 @@ function WalletSection({
                       onChange={handleInputChange}
                       onBlur={() => handleInputSubmit(coin.key)}
                       onKeyDown={(e) => e.key === 'Enter' && handleInputSubmit(coin.key)}
-                      className="hide-arrows w-14 bg-transparent text-center font-fantasy text-3xl font-bold text-white drop-shadow-md focus:outline-none"
+                      className="hide-arrows w-14 bg-transparent text-center font-fantasy text-2xl font-bold text-white drop-shadow-md focus:outline-none md:text-3xl"
                       autoFocus
                     />
                   ) : (
                     <button
                       type="button"
                       onClick={() => beginEditCoin(coin.key)}
-                      className="min-w-[2.4ch] cursor-text text-center font-fantasy text-3xl font-bold text-white drop-shadow-md"
+                      className="min-w-[2.4ch] cursor-text text-center font-fantasy text-2xl font-bold text-white drop-shadow-md md:text-3xl"
                       aria-label={`${coin.label} aanpassen`}
                     >
                       {safeWallet[coin.key]}
@@ -242,7 +243,7 @@ function WalletSection({
                   <button
                     type="button"
                     onClick={() => handleAdjust(coin.key, 1)}
-                    className="h-7 w-7 rounded-md border border-white/12 bg-black/30 text-sm leading-none text-white/40 transition-colors hover:border-white/30 hover:text-[var(--tv-accent)]"
+                    className="h-8 w-8 rounded-md border border-white/12 bg-black/30 text-sm leading-none text-white/40 transition-colors hover:border-white/30 hover:text-[var(--tv-accent)] md:h-7 md:w-7"
                     aria-label={`${coin.label} verhogen`}
                   >
                     +
@@ -253,6 +254,7 @@ function WalletSection({
           ))}
         </div>
 
+        {!hideSummaryCard ? (
         <div className="rounded-2xl border border-white/12 bg-black/35 p-4 shadow-[0_14px_32px_rgba(0,0,0,0.26)] backdrop-blur-sm md:p-5">
           <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
             <div>
@@ -282,6 +284,7 @@ function WalletSection({
             </div>
           )}
         </div>
+        ) : null}
       </div>
 
       <style>

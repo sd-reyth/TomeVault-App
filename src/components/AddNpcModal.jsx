@@ -77,7 +77,7 @@ export default function AddNpcModal({ isOpen, onClose, onSave }) {
             />
           </div>
 
-          <div className="grid grid-cols-3 gap-3 rounded-xl border border-white/10 bg-white/5 p-3 shadow-inner">
+          <div className="grid grid-cols-2 gap-3 rounded-xl border border-white/10 bg-white/5 p-3 shadow-inner sm:grid-cols-3">
             <div>
               <label className="mb-1.5 block text-[10px] font-bold uppercase tracking-widest text-stone-400">HP</label>
               <input 
@@ -105,22 +105,22 @@ export default function AddNpcModal({ isOpen, onClose, onSave }) {
                 required
                 value={initMod}
                 onChange={e => setInitMod(e.target.value)}
-                className="h-10 w-full rounded-xl border border-white/10 bg-zinc-950/55 px-3 text-center text-sm font-sans text-stone-200 transition-all duration-200 focus:outline-none focus:border-rose-400/70 hide-arrows"
+                className="h-10 w-full rounded-xl border border-white/10 bg-zinc-950/55 px-3 text-center text-sm font-sans text-stone-200 transition-all duration-200 focus:outline-none focus:border-rose-400/70 hide-arrows col-span-2 sm:col-span-1"
               />
             </div>
           </div>
 
-          <div className="mt-4 flex gap-3">
+          <div className="mt-4 flex flex-col-reverse gap-3 sm:flex-row">
             <button 
               type="button"
               onClick={onClose}
-              className="h-9 flex-1 inline-flex items-center justify-center bg-white/5 hover:bg-white/7 border border-white/10 text-stone-300 rounded-lg font-fantasy uppercase tracking-[0.16em] text-sm transition-all duration-200 active:scale-95"
+              className="h-10 flex-1 inline-flex items-center justify-center bg-white/5 hover:bg-white/7 border border-white/10 text-stone-300 rounded-lg font-fantasy uppercase tracking-[0.16em] text-sm transition-all duration-200 active:scale-95"
             >
               Annuleren
             </button>
             <button 
               type="submit"
-              className="h-9 flex-1 inline-flex items-center justify-center border border-rose-800/50 bg-gradient-to-r from-rose-800 to-rose-700 hover:from-rose-700 hover:to-rose-600 text-stone-100 rounded-lg font-fantasy uppercase tracking-[0.16em] text-sm transition-all duration-200 shadow-sm active:scale-95"
+              className="h-10 flex-1 inline-flex items-center justify-center border border-rose-800/50 bg-gradient-to-r from-rose-800 to-rose-700 hover:from-rose-700 hover:to-rose-600 text-stone-100 rounded-lg font-fantasy uppercase tracking-[0.16em] text-sm transition-all duration-200 shadow-sm active:scale-95"
             >
               Toevoegen
             </button>

@@ -71,6 +71,13 @@ function ItemCard({ item, role, currentPlayerId, canManageInventory, onUpdateIte
 function InventoryView({ role, inventory, wallets, party, currentPlayerId, handouts, onUnclaim, onOpenHandout, onOpenAddItem, onUpdateItemAmount, onDeleteItem, onAdjustWallet }) {
   const [searchByPlayer, setSearchByPlayer] = useState({});
   const [filterByPlayer, setFilterByPlayer] = useState({});
+  const partyWallet = wallets.party || { platinum: 0, gold: 0, silver: 0, bronze: 0 };
+  const totalBronze =
+    Number(partyWallet.platinum || 0) * 1000000 +
+    Number(partyWallet.gold || 0) * 10000 +
+    Number(partyWallet.silver || 0) * 100 +
+    Number(partyWallet.bronze || 0);
+  const totalGoldEquivalent = totalBronze / 10000;
 
   const playersToShow = role === 'gm'
     ? party.filter((p) => !p.isNpc)
@@ -87,6 +94,14 @@ function InventoryView({ role, inventory, wallets, party, currentPlayerId, hando
     { value: 'overig', label: 'Overig' },
   ], []);
 
+  const formatGoldEquivalent = (value) => {
+    if (value === 0) return '0';
+    return Number(value.toFixed(2)).toLocaleString('nl-NL', {
+      minimumFractionDigits: value < 1 ? 2 : 0,
+      maximumFractionDigits: 2,
+    });
+  };
+
   return (
     <div className="relative flex h-full min-h-0 flex-col overflow-hidden rounded-2xl border border-white/10 bg-zinc-950/72 shadow-[0_22px_60px_rgba(0,0,0,0.34)] backdrop-blur-md">
       <div className="absolute inset-0 opacity-[0.03] bg-[radial-gradient(circle_at_top,rgba(251,191,36,0.10),transparent_36%),url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI4IiBoZWlnaHQ9IjgiPgo8cmVjdCB3aWR0aD0iOCIgaGVpZ2h0PSI4IiBmaWxsPSIjZmZmIiBmaWxsLW9wYWNpdHk9IjAuMSIvPgo8L3N2Zz4=')] pointer-events-none" />
@@ -96,9 +111,21 @@ function InventoryView({ role, inventory, wallets, party, currentPlayerId, hando
             <h2 className="font-fantasy text-2xl font-bold tracking-[0.1em] tv-heading-shimmer md:text-3xl">De Schatkamer</h2>
             <p className="mt-1 text-xs italic text-stone-400 md:text-sm">Goudstukken, uitrusting en magische artefacten.</p>
           </div>
-          <button onClick={onOpenAddItem} className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-xl px-4 text-sm uppercase tracking-[0.16em] active:scale-[0.985] sm:w-auto tv-button-primary">
-            <Plus className="h-4 w-4 shrink-0" /> <span>Nieuw item</span>
-          </button>
+
+          <div className="flex w-full items-stretch sm:w-auto">
+            <div className="flex min-w-0 flex-1 flex-col justify-center rounded-l-xl border border-white/10 bg-black/25 px-3 py-2.5 sm:min-w-[190px]">
+              <span className="text-[10px] uppercase tracking-[0.18em] text-stone-500">Totale waarde</span>
+              <span className="mt-1 truncate text-lg font-semibold tabular-nums text-stone-100 md:text-xl">{formatGoldEquivalent(totalGoldEquivalent)} goud</span>
+            </div>
+            <button
+              onClick={onOpenAddItem}
+              title="Nieuw item"
+              aria-label="Nieuw item"
+              className="inline-flex min-w-13 items-center justify-center rounded-l-none rounded-r-xl border border-l-0 border-white/10 px-0 transition-all duration-200 active:scale-[0.985] tv-button-primary"
+            >
+              <Plus className="h-6 w-6 shrink-0 md:h-7 md:w-7" />
+            </button>
+          </div>
         </div>
 
       <div className="relative z-10 flex-1 overflow-y-auto space-y-6 p-3 pb-10 no-scrollbar md:space-y-8 md:p-4">
@@ -113,6 +140,7 @@ function InventoryView({ role, inventory, wallets, party, currentPlayerId, hando
               onAdjust={(coinKey, delta) => onAdjustWallet?.('party', coinKey, delta)}
               onPrimaryAction={onOpenAddItem}
               primaryActionLabel="Nieuw item"
+              hideSummaryCard={true}
             />
           </div>
         )}

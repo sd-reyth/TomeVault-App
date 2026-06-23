@@ -167,13 +167,13 @@ function AddItemModal({ isOpen, onClose, onSave, role, party, currentPlayerId, i
             <button 
               type="button"
               onClick={onClose}
-              className="h-9 flex-1 inline-flex items-center justify-center bg-white/5 hover:bg-white/7 border border-white/10 text-stone-300 rounded-lg font-fantasy uppercase tracking-[0.16em] text-sm transition-all duration-200 active:scale-95"
+              className="h-10 flex-1 inline-flex items-center justify-center bg-white/5 hover:bg-white/7 border border-white/10 text-stone-300 rounded-lg font-fantasy uppercase tracking-[0.16em] text-sm transition-all duration-200 active:scale-95"
             >
               Annuleren
             </button>
             <button 
               type="submit"
-              className="h-9 flex-1 inline-flex items-center justify-center rounded-lg font-fantasy uppercase tracking-[0.16em] text-sm active:scale-95 tv-button-primary"
+              className="h-10 flex-1 inline-flex items-center justify-center rounded-lg font-fantasy uppercase tracking-[0.16em] text-sm active:scale-95 tv-button-primary"
             >
               {itemToEdit ? 'Opslaan' : 'Toevoegen'}
             </button>

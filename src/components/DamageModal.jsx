@@ -49,27 +49,27 @@ export default function DamageModal({ isOpen, onClose, target, onSave }) {
               placeholder="Voer hoeveelheid in..."
               value={amount}
               onChange={e => setAmount(e.target.value)}
-              className="w-full h-9 bg-white/5 border border-white/10 rounded-lg px-4 text-center text-xl text-stone-200 focus:outline-none focus:border-[var(--tv-accent)]/70 focus:bg-white/7 transition-colors font-sans hide-arrows"
+              className="w-full h-10 bg-white/5 border border-white/10 rounded-lg px-4 text-center text-xl text-stone-200 focus:outline-none focus:border-[var(--tv-accent)]/70 focus:bg-white/7 transition-colors font-sans hide-arrows"
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-3 mt-2">
+          <div className="mt-2 grid grid-cols-1 gap-3 sm:grid-cols-2">
             <button 
               onClick={handleDamage}
-              className="h-9 inline-flex w-full items-center justify-center bg-rose-950/30 hover:bg-rose-900/40 border border-rose-800/50 text-rose-300 rounded-lg font-fantasy uppercase tracking-[0.16em] text-sm transition-all duration-200 shadow-sm active:scale-95"
+              className="h-10 inline-flex w-full items-center justify-center bg-rose-950/30 hover:bg-rose-900/40 border border-rose-800/50 text-rose-300 rounded-lg font-fantasy uppercase tracking-[0.16em] text-sm transition-all duration-200 shadow-sm active:scale-95"
             >
               - Schade
             </button>
             <button 
               onClick={handleHeal}
-              className="h-9 inline-flex w-full items-center justify-center bg-emerald-950/30 hover:bg-emerald-900/40 border border-emerald-800/50 text-emerald-300 rounded-lg font-fantasy uppercase tracking-[0.16em] text-sm transition-all duration-200 shadow-sm active:scale-95"
+              className="h-10 inline-flex w-full items-center justify-center bg-emerald-950/30 hover:bg-emerald-900/40 border border-emerald-800/50 text-emerald-300 rounded-lg font-fantasy uppercase tracking-[0.16em] text-sm transition-all duration-200 shadow-sm active:scale-95"
             >
               + Genezing
             </button>
           </div>
           <button 
             onClick={handleSet}
-            className="h-9 w-full inline-flex items-center justify-center mt-2 bg-white/5 hover:bg-white/7 border border-white/10 text-stone-300 rounded-lg font-fantasy uppercase tracking-[0.16em] text-xs transition-all duration-200 active:scale-95"
+            className="mt-2 h-10 w-full inline-flex items-center justify-center bg-white/5 hover:bg-white/7 border border-white/10 text-stone-300 rounded-lg font-fantasy uppercase tracking-[0.16em] text-xs transition-all duration-200 active:scale-95"
           >
             Stel exact in
           </button>
