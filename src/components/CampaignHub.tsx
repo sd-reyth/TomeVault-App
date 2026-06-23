@@ -1,5 +1,8 @@
 import { useState } from 'react'
 import { Plus, Users, Eye, EyeOff, Share2 } from 'lucide-react'
+import ScreenHeader from './ScreenHeader'
+import ModalFooter from './ModalFooter'
+import TextReveal from './TextReveal'
 
 interface Campaign {
   id: string
@@ -65,19 +68,15 @@ export default function CampaignHub() {
 
   return (
     <div className="max-w-6xl mx-auto">
-      <div className="flex items-end justify-between mb-8">
-        <div>
-          <h2 className="text-4xl font-fantasy tracking-tight">Campaign Hub</h2>
-          <p className="text-[var(--tv-text-secondary)] mt-1">Beheer je avonturen en deel reveals in real-time</p>
-        </div>
-        <button 
-          onClick={() => setShowCreateModal(true)}
-          className="flex items-center gap-2 px-6 py-3 bg-[var(--tv-accent)] hover:bg-[var(--tv-accent)]/90 text-white rounded-2xl font-medium transition-all active:scale-[0.985]"
-        >
-          <Plus className="w-4 h-4" />
-          Nieuwe Campaign
-        </button>
-      </div>
+      <ScreenHeader
+        title="Campaign Hub"
+        subtitle="Beheer je avonturen en deel reveals in real-time"
+        primaryAction={{
+          label: 'Nieuwe Campaign',
+          icon: Plus,
+          onClick: () => setShowCreateModal(true),
+        }}
+      />
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         {/* Campaign List */}
@@ -102,7 +101,7 @@ export default function CampaignHub() {
                       <div className="font-medium">{campaign.name}</div>
                       <div className="text-sm text-[var(--tv-text-secondary)] line-clamp-2 mt-1">{campaign.description}</div>
                     </div>
-                    <div className={`text-xs px-2 py-0.5 rounded ${campaign.isActive ? 'bg-emerald-500/10 text-emerald-400' : 'bg-zinc-500/10'}`}>
+                    <div className={`text-xs px-2 py-0.5 rounded-lg font-medium ${campaign.isActive ? 'badge-status-active' : 'badge-status-archived'}`}>
                       {campaign.isActive ? 'Live' : 'Gearchiveerd'}
                     </div>
                   </div>
@@ -169,7 +168,10 @@ export default function CampaignHub() {
                       ))}
                     </div>
                   ) : (
-                    "Nog geen reveals gedeeld. Deel je eerste reveal om het journal te vullen."
+                    <TextReveal
+                      summary="Nog geen reveals gedeeld."
+                      details="Deel je eerste reveal om het journal te vullen en je spelers op de hoogte te houden van nieuwe ontdekkingen."
+                    />
                   )}
                 </div>
               </div>
@@ -188,7 +190,7 @@ export default function CampaignHub() {
 
       {/* Create Campaign Modal */}
       {showCreateModal && (
-        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-[100] p-6">
+        <div className="fixed inset-0 bg-[color:var(--tv-modal-overlay)] flex items-center justify-center z-[100] p-6">
           <div className="tv-surface w-full max-w-md rounded-3xl p-8">
             <h3 className="text-2xl font-fantasy mb-6">Nieuwe Campaign</h3>
             
@@ -201,21 +203,13 @@ export default function CampaignHub() {
               autoFocus
             />
 
-            <div className="flex gap-3 mt-6">
-              <button 
-                onClick={() => setShowCreateModal(false)}
-                className="flex-1 py-3 rounded-2xl border border-[var(--tv-border)] hover:bg-[var(--tv-bg-modal)]"
-              >
-                Annuleren
-              </button>
-              <button 
-                onClick={createCampaign}
-                disabled={!newCampaignName.trim()}
-                className="flex-1 py-3 rounded-2xl bg-[var(--tv-accent)] text-white disabled:opacity-50"
-              >
-                Maak Campaign
-              </button>
-            </div>
+            <ModalFooter
+              cancelLabel="Annuleren"
+              confirmLabel="Maak Campaign"
+              onCancel={() => setShowCreateModal(false)}
+              onConfirm={createCampaign}
+              confirmDisabled={!newCampaignName.trim()}
+            />
           </div>
         </div>
       )}

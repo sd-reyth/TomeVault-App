@@ -8,6 +8,17 @@
   --tv-parchment: #f8f1e3;
   --tv-gold: #d4a017;
   --tv-shadow-soft: 0 4px 12px -2px rgb(0 0 0 / 0.12);
+
+  /* Modal scrim — dedicated dark backdrop for centered modals (theme-safe). */
+  --tv-modal-overlay: rgba(0, 0, 0, 0.6);
+
+  /* Semantic status / type colors — dark-theme friendly defaults.
+     The light theme (dawn-parchment) overrides these for contrast. */
+  --tv-type-secret: #f87171;
+  --tv-type-map: #fbbf24;
+  --tv-type-lore: #60a5fa;
+  --tv-status-active: #34d399;
+  --tv-status-archived: #a1a1aa;
 }
 
 /* DAWN PARCHMENT (Light) */
@@ -22,6 +33,12 @@
   --tv-shadow: 0 6px 16px -4px rgb(140 110 70 / 0.25);
   --tv-overlay: rgba(140, 110, 70, 0.08);
   --tv-glow: 0 0 12px rgb(156 111 46);
+  /* Darker variants so status/type badges stay legible on the light parchment. */
+  --tv-type-secret: #b91c1c;
+  --tv-type-map: #92400e;
+  --tv-type-lore: #1d4ed8;
+  --tv-status-active: #047857;
+  --tv-status-archived: #6b6357;
 }
 
 /* MIDNIGHT TOME */
@@ -87,6 +104,56 @@
 .tv-accent { color: var(--tv-accent); }
 .tv-backdrop { background: var(--tv-overlay); }
 .tv-magic-glow { filter: drop-shadow(var(--tv-glow)); }
+
+/* ==================== TYPE / STATUS BADGES ====================
+   Token-driven so they stay readable across all 5 themes (incl. light Dawn). */
+.badge-type-secret {
+  background: color-mix(in srgb, var(--tv-type-secret), transparent 88%);
+  color: var(--tv-type-secret);
+  border: 1px solid color-mix(in srgb, var(--tv-type-secret), transparent 55%);
+}
+.badge-type-map {
+  background: color-mix(in srgb, var(--tv-type-map), transparent 88%);
+  color: var(--tv-type-map);
+  border: 1px solid color-mix(in srgb, var(--tv-type-map), transparent 55%);
+}
+.badge-type-lore {
+  background: color-mix(in srgb, var(--tv-type-lore), transparent 88%);
+  color: var(--tv-type-lore);
+  border: 1px solid color-mix(in srgb, var(--tv-type-lore), transparent 55%);
+}
+.badge-status-active {
+  background: color-mix(in srgb, var(--tv-status-active), transparent 88%);
+  color: var(--tv-status-active);
+  border: 1px solid color-mix(in srgb, var(--tv-status-active), transparent 55%);
+}
+.badge-status-archived {
+  background: color-mix(in srgb, var(--tv-status-archived), transparent 88%);
+  color: var(--tv-status-archived);
+  border: 1px solid color-mix(in srgb, var(--tv-status-archived), transparent 55%);
+}
+
+/* ==================== BUTTON RECIPES ====================
+   Centralized so primary/secondary actions are consistent everywhere. */
+.tv-button-primary {
+  background: var(--tv-accent);
+  color: #fff;
+  border-radius: 1rem;
+  transition: all 0.15s ease;
+}
+.tv-button-primary:hover:not(:disabled) { filter: brightness(1.08); }
+.tv-button-primary:active:not(:disabled) { transform: scale(0.985); }
+.tv-button-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.tv-button-secondary {
+  background: transparent;
+  color: var(--tv-text-primary);
+  border: 1px solid var(--tv-border);
+  border-radius: 1rem;
+  transition: all 0.15s ease;
+}
+.tv-button-secondary:hover { background: var(--tv-bg-modal); }
+.tv-button-secondary:active { transform: scale(0.985); }
 
 /* Brightness control */
 :root { --tv-brightness: 1; }

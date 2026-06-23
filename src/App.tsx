@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { Moon, Sun, Flame, Leaf, Droplet, Users, Scroll, Sword, Plus } from 'lucide-react'
 import CampaignHub from './components/CampaignHub'
 import HandoutsPage from './components/HandoutsPage'
+import ScreenHeader from './components/ScreenHeader'
 
 function App() {
   const [theme, setTheme] = useState<'dawn-parchment' | 'midnight-tome' | 'ember-forge' | 'forest-scroll' | 'blood-moon'>('midnight-tome')
@@ -109,8 +110,8 @@ function App() {
               <div className="font-medium text-sm">my-dm-test-session#9776</div>
               <div className="text-xs text-[var(--tv-text-secondary)] mt-1">4 spelers • 2 uur geleden</div>
               <div className="mt-3 pt-3 border-t border-[var(--tv-border)] flex items-center gap-2 text-xs">
-                <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></div>
-                <span className="text-emerald-400">Live verbonden</span>
+                <div className="w-2 h-2 rounded-full bg-[var(--tv-status-active)] animate-pulse"></div>
+                <span className="text-[var(--tv-status-active)]">Live verbonden</span>
               </div>
             </div>
           </div>
@@ -121,8 +122,10 @@ function App() {
           {activeTab === 'handouts' && <HandoutsPage />}
           {activeTab === 'voorbereidingen' && (
             <div className="max-w-5xl mx-auto">
-              <h2 className="text-4xl font-fantasy tracking-tight mb-4">Voorbereidingen</h2>
-              <p className="text-[var(--tv-text-secondary)] mb-8">Karakterprofielen, encounters en magische items die je wilt voorbereiden.</p>
+              <ScreenHeader
+                title="Voorbereidingen"
+                subtitle="Karakterprofielen, encounters en magische items die je wilt voorbereiden."
+              />
               
               <div className="tv-surface rounded-3xl p-8 text-center">
                 <div className="mx-auto w-16 h-16 rounded-2xl bg-[var(--tv-bg-modal)] flex items-center justify-center mb-4">
@@ -152,7 +155,7 @@ function App() {
                     <div className="font-medium truncate">Karakter {i}</div>
                     <div className="text-xs text-[var(--tv-text-secondary)] mt-0.5">HP 78/78 • AC 17</div>
                     <div className="flex gap-1 mt-2">
-                      <div className="text-[10px] px-1.5 py-px rounded bg-emerald-500/10 text-emerald-400">OK</div>
+                      <div className="text-[10px] px-1.5 py-px rounded-lg font-medium badge-status-active">OK</div>
                     </div>
                   </div>
                 </div>
