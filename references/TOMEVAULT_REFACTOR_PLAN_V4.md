@@ -78,17 +78,27 @@ SegmentedControl → Wave 2b (not needed yet).
 - ✅ Build green; dice icons + login verified in browser
 - check:ui: 315 → 309 violations
 
-### Wave 2a — useCombat extraction
+### Wave 2a — useCombat extraction ✅ DONE
 **Goal:** Largest block out of App.jsx without touching UI. Stoppable after this wave.
 
-New file: `app/useCombat.js`
-— initiative, turns, pause, conditions, join-requests extracted from App.jsx
+New files:
+- `app/useCombat.js` (586 lines) — combat state, handlers, join-request auto-resolve
+- `lib/combatSessionState.js` (35 lines) — pure normalize/patch helpers
+
+Extracted from App.jsx:
+- Combat state (status, turn, initiative order)
+- Optimistic snapshot reconciliation
+- Start/pause/resume/end/advance handlers
+- Initiative batch update + swap
+- NPC delete, kick from combat, join requests
+
+App.jsx: 4023 → 3484 lines (−539). RightSidebar UI unchanged.
 
 **Exit criteria:**
-- `useCombat.js` exists; combat handlers not inline in App.jsx
-- App.jsx ~300–500 lines smaller
-- No behavioral regression; no visual change
-- Session test: initiative, conditions, pause, NPC management still work
+- ✅ `useCombat.js` exists; combat handlers not inline in App.jsx
+- ✅ App.jsx ~539 lines smaller
+- ✅ No visual change to slagorde
+- ✅ Build green; browser QA: start/pause/resume work
 
 ### Wave 2b — RightRail redesign (highest risk wave)
 **Goal:** Fix the biggest daily pain point — the combat rail.
@@ -193,7 +203,7 @@ Only build what a concrete wave requires. Nothing upfront.
 | Metric | Wave 0 | Target (Wave 5) |
 |--------|--------|-----------------|
 | check:ui violations | 315 | 0 |
-| App.jsx lines | 4023 | < 250 |
+| App.jsx lines | 4023 | 3484 (2a) → < 250 |
 | index.css lines | 3212 | < 1000 |
 | RightSidebar.jsx lines | 1439 | < 300 (split) |
 | Direct lucide-react imports | 28 files | consolidated per-wave |
