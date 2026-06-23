@@ -117,7 +117,7 @@ function HandoutsView({ role, handouts, currentPlayerId, onToggleVisibility, onT
     <div className="flex h-full flex-col gap-5 md:gap-6">
       <div className="tv-panel-header flex flex-col gap-4 pb-5 md:pb-6 sm:flex-row sm:items-end sm:justify-between sm:gap-3">
         <div>
-          <h2 className="text-2xl font-semibold tracking-[0.12em] text-stone-100 md:text-3xl">Oude Geschriften</h2>
+          <h2 className="font-fantasy text-2xl font-bold tracking-[0.1em] tv-heading-shimmer md:text-3xl">Oude Geschriften</h2>
           <p className="tv-panel-copy mt-1 text-xs md:mt-2 md:text-sm">Documenten, kaarten en magische voorwerpen ontdekt tijdens de reis.</p>
         </div>
         

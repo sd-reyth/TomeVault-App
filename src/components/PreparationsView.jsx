@@ -99,7 +99,7 @@ export default function PreparationsView({
       <header className="tv-panel-header pb-5 md:pb-6">
         <div className="flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
           <div className="max-w-2xl min-w-0">
-            <h1 className="text-2xl font-semibold tracking-[0.12em] text-stone-100 md:text-3xl">Voorbereidingen</h1>
+            <h1 className="font-fantasy text-2xl font-bold tracking-[0.1em] tv-heading-shimmer md:text-3xl">Voorbereidingen</h1>
             <p className="tv-panel-copy mt-1 text-xs md:mt-2 md:text-sm">
               Volledige karakterprofielen die je bewaart, verfijnt en later soepel aan een speler koppelt.
             </p>

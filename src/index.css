@@ -18,14 +18,14 @@
   appearance: none;
   height: 0.4rem;
   border-radius: 999px;
-  background: linear-gradient(90deg, var(--tv-accent-rgb-strong), var(--tv-accent-rgb-subtle));
+  background: color-mix(in srgb, var(--tv-accent), transparent 52%);
   outline: none;
 }
 
 .ambience-slider::-webkit-slider-runnable-track {
   height: 0.4rem;
   border-radius: 999px;
-  background: linear-gradient(90deg, rgba(245, 158, 11, 0.72), rgba(120, 53, 15, 0.4));
+  background: color-mix(in srgb, var(--tv-accent), transparent 52%);
 }
 
 .ambience-slider::-webkit-slider-thumb {
@@ -33,26 +33,26 @@
   width: 1rem;
   height: 1rem;
   margin-top: -0.3rem;
-  border: 1px solid rgba(251, 191, 36, 0.35);
+  border: 1px solid color-mix(in srgb, var(--tv-accent), transparent 50%);
   border-radius: 999px;
-  background: #fef3c7;
-  box-shadow: 0 0 0 4px rgba(245, 158, 11, 0.16);
+  background: color-mix(in srgb, var(--tv-accent), #fff 60%);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--tv-accent), transparent 78%);
 }
 
 .ambience-slider::-moz-range-track {
   height: 0.4rem;
   border: none;
   border-radius: 999px;
-  background: linear-gradient(90deg, rgba(245, 158, 11, 0.72), rgba(120, 53, 15, 0.4));
+  background: color-mix(in srgb, var(--tv-accent), transparent 52%);
 }
 
 .ambience-slider::-moz-range-thumb {
   width: 1rem;
   height: 1rem;
-  border: 1px solid rgba(251, 191, 36, 0.35);
+  border: 1px solid color-mix(in srgb, var(--tv-accent), transparent 50%);
   border-radius: 999px;
-  background: #fef3c7;
-  box-shadow: 0 0 0 4px rgba(245, 158, 11, 0.16);
+  background: color-mix(in srgb, var(--tv-accent), #fff 60%);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--tv-accent), transparent 78%);
 }
 
 /* iPhone notch safe area */
@@ -72,8 +72,8 @@
 /* Radial vignette overlay for background */
 .bg-texture {
   background-image:
-    radial-gradient(circle at 18% 14%, rgba(245, 158, 11, 0.04), transparent 24%),
-    radial-gradient(circle at 82% 18%, rgba(99, 102, 241, 0.04), transparent 20%),
+    radial-gradient(circle at 18% 14%, color-mix(in srgb, var(--tv-accent), transparent 96%), transparent 24%),
+    radial-gradient(circle at 82% 18%, color-mix(in srgb, var(--tv-border), transparent 94%), transparent 20%),
     radial-gradient(circle at center, transparent 0%, rgba(0, 0, 0, 0.56) 100%);
 }
 
@@ -224,15 +224,22 @@ body {
   color: var(--tv-text-primary);
   background: linear-gradient(135deg, color-mix(in srgb, var(--tv-accent), #000 34%), color-mix(in srgb, var(--tv-accent), #fff 10%));
   box-shadow: 0 14px 30px color-mix(in srgb, var(--tv-accent), transparent 76%);
+  transform: translateY(0);
   transition:
     filter 180ms ease,
     box-shadow 180ms ease,
-    transform 180ms ease;
+    transform 160ms ease;
 }
 
 .tv-button-primary:hover {
-  filter: brightness(1.05);
-  box-shadow: 0 18px 36px color-mix(in srgb, var(--tv-accent), transparent 68%);
+  filter: brightness(1.08);
+  box-shadow: 0 18px 36px color-mix(in srgb, var(--tv-accent), transparent 62%);
+  transform: translateY(-1px);
+}
+
+.tv-button-primary:active {
+  transform: translateY(0) scale(0.985);
+  filter: brightness(0.97);
 }
 
 .tv-button-accent-muted {
@@ -1147,11 +1154,53 @@ body {
 .tv-text-sub { color: var(--tv-text-secondary); }
 .tv-accent { color: var(--tv-accent); }
 .tv-backdrop { background: var(--tv-overlay); }
+.tv-modal-top-glow { background: var(--tv-overlay); }
 .tv-magic-glow { filter: drop-shadow(var(--tv-glow)); }
+
+/* ====== ANIMATION UTILITIES ====== */
+@keyframes tv-shimmer {
+  0% { background-position: -200% center; }
+  100% { background-position: 200% center; }
+}
+
+@keyframes tv-breathe-glow {
+  0%, 100% { box-shadow: 0 0 6px color-mix(in srgb, var(--tv-accent), transparent 72%); }
+  50% { box-shadow: 0 0 18px color-mix(in srgb, var(--tv-accent), transparent 36%); }
+}
+
+@keyframes tv-pulse-ring {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.55; }
+}
+
+/* Sweeping shimmer for fantasy headings */
+.tv-heading-shimmer {
+  background-image: linear-gradient(
+    90deg,
+    var(--tv-text-primary) 30%,
+    color-mix(in srgb, var(--tv-accent), var(--tv-text-primary) 58%) 50%,
+    var(--tv-text-primary) 70%
+  );
+  background-size: 200% auto;
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: tv-shimmer 6s linear infinite;
+}
+
+/* Glowing breathe — use on active indicators */
+.tv-breathe-glow {
+  animation: tv-breathe-glow 2.4s ease-in-out infinite;
+}
+
+/* Pulsing ring — use on current turn indicators */
+.tv-pulse-ring {
+  animation: tv-pulse-ring 1.8s ease-in-out infinite;
+}
 
 /* Brightness control */
 :root { --tv-brightness: 1; }
-.tv-app, .tv-surface, .tv-backdrop { filter: brightness(var(--tv-brightness)); }
+.tv-app, .tv-surface { filter: brightness(var(--tv-brightness)); }
 
 [data-theme="blood-moon"] .tv-magic-glow {
   filter: brightness(var(--tv-brightness)) drop-shadow(var(--tv-glow));

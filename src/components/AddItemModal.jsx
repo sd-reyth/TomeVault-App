@@ -60,7 +60,7 @@ function AddItemModal({ isOpen, onClose, onSave, role, party, currentPlayerId, i
                 <select 
                   value={formData.ownerId} 
                   onChange={e => setFormData({...formData, ownerId: e.target.value})}
-                  className="h-10 w-full appearance-none rounded-xl border border-white/10 bg-white/5 px-3 text-sm font-fantasy tracking-wider text-stone-200 transition-all duration-200 focus:outline-none focus:border-amber-400/70 focus:bg-white/7"
+                  className="h-10 w-full appearance-none rounded-xl border border-white/10 bg-white/5 px-3 text-sm text-stone-200 transition-all duration-200 focus:outline-none focus:border-[var(--tv-accent)]/55 focus:bg-white/7"
                 >
                   {playerOptions.map(p => (
                     <option key={p.id} value={p.id}>{p.name}</option>
@@ -78,7 +78,7 @@ function AddItemModal({ isOpen, onClose, onSave, role, party, currentPlayerId, i
                 value={formData.name}
                 onChange={e => setFormData({...formData, name: e.target.value})}
                 placeholder="Bijv. Magisch Touw"
-                className="h-10 w-full rounded-xl border border-white/10 bg-white/5 px-3 text-sm font-story text-stone-200 placeholder-stone-500 transition-all duration-200 focus:outline-none focus:border-amber-400/70 focus:bg-white/7"
+                className="h-10 w-full rounded-xl border border-white/10 bg-white/5 px-3 text-sm text-stone-200 placeholder-stone-500 transition-all duration-200 focus:outline-none focus:border-[var(--tv-accent)]/55 focus:bg-white/7"
               />
             </div>
 
@@ -91,7 +91,7 @@ function AddItemModal({ isOpen, onClose, onSave, role, party, currentPlayerId, i
                   min="1"
                   value={formData.amount}
                   onChange={e => setFormData({...formData, amount: parseInt(e.target.value) || 1})}
-                  className="h-10 w-full rounded-xl border border-white/10 bg-white/5 px-3 text-sm font-sans text-stone-200 transition-all duration-200 focus:outline-none focus:border-amber-400/70 focus:bg-white/7 hide-arrows"
+                  className="h-10 w-full rounded-xl border border-white/10 bg-white/5 px-3 text-sm text-stone-200 transition-all duration-200 focus:outline-none focus:border-[var(--tv-accent)]/55 focus:bg-white/7 hide-arrows"
                 />
               </div>
 
@@ -100,7 +100,7 @@ function AddItemModal({ isOpen, onClose, onSave, role, party, currentPlayerId, i
                 <select
                   value={formData.category || 'overig'}
                   onChange={e => setFormData({ ...formData, category: e.target.value })}
-                  className="h-10 w-full appearance-none rounded-xl border border-white/10 bg-white/5 px-3 text-sm font-story text-stone-200 transition-all duration-200 focus:outline-none focus:border-amber-400/70 focus:bg-white/7"
+                  className="h-10 w-full appearance-none rounded-xl border border-white/10 bg-white/5 px-3 text-sm text-stone-200 transition-all duration-200 focus:outline-none focus:border-[var(--tv-accent)]/55 focus:bg-white/7"
                 >
                   <option value="overig">Overig</option>
                   <option value="wapen">Wapen</option>
@@ -158,7 +158,7 @@ function AddItemModal({ isOpen, onClose, onSave, role, party, currentPlayerId, i
                 value={formData.desc}
                 onChange={e => setFormData({...formData, desc: e.target.value})}
                 placeholder="Wat doet het of hoe ziet het eruit?"
-                className="w-full resize-none rounded-xl border border-white/10 bg-white/5 px-3 py-2.5 text-sm font-story text-stone-200 placeholder-stone-500 transition-all duration-200 focus:outline-none focus:border-amber-400/70 focus:bg-white/7"
+                className="w-full resize-none rounded-xl border border-white/10 bg-white/5 px-3 py-2.5 text-sm font-story text-stone-200 placeholder-stone-500 transition-all duration-200 focus:outline-none focus:border-[var(--tv-accent)]/55 focus:bg-white/7"
               />
             </div>
           </div>

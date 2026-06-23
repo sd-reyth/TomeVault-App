@@ -140,7 +140,7 @@ function NotesView({
               type="text"
               value={activeNote.title}
               onChange={(e) => handleUpdateNote('title', e.target.value)}
-              className="mb-4 border-b border-white/10 bg-transparent pb-2 text-2xl font-semibold tracking-[0.08em] text-stone-100 outline-none transition-colors focus:border-amber-500/45 md:text-3xl"
+              className="mb-4 border-b border-white/10 bg-transparent pb-2 font-fantasy text-2xl font-bold tracking-[0.08em] tv-text outline-none transition-colors focus:border-[var(--tv-accent)]/45 md:text-3xl"
               placeholder="Titel van je notitie..."
             />
             <textarea
