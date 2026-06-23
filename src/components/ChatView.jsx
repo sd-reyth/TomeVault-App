@@ -323,11 +323,8 @@ function ChatView({ chat, setChat, role, uid, playerName, preferredChatColor, th
   };
 
   return (
-    <div className="relative h-full flex flex-col rounded-2xl border border-white/10 bg-zinc-950/72 shadow-[0_22px_60px_rgba(0,0,0,0.34)] backdrop-blur-md">
-      <div className="absolute inset-0 opacity-[0.03] bg-[radial-gradient(circle_at_top,rgba(251,191,36,0.10),transparent_36%),url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI4IiBoZWlnaHQ9IjgiPgo8cmVjdCB3aWR0aD0iOCIgaGVpZ2h0PSI4IiBmaWxsPSIjZmZmIiBmaWxsLW9wYWNpdHk9IjAuMSIvPgo8L3N2Zz4=')] pointer-events-none" />
-
-      {/* Header */}
-      <div className="relative z-10 flex shrink-0 flex-col gap-2 border-b border-white/10 bg-white/5 p-3 shadow-sm sm:flex-row sm:items-center sm:justify-between md:p-4">
+    <div className="tv-view-shell relative z-10 h-full">
+      <div className="tv-view-shell-header flex shrink-0 flex-col gap-2 p-3 sm:flex-row sm:items-center sm:justify-between md:p-4">
         <h2 className="flex items-center gap-2 text-xs font-medium font-fantasy uppercase tracking-[0.18em] text-stone-100 md:text-sm">
           <MessageSquare className="h-4 w-4 text-[var(--tv-accent)]" /> Fluisteringen
         </h2>
@@ -402,8 +399,9 @@ function ChatView({ chat, setChat, role, uid, playerName, preferredChatColor, th
       {/* Messages */}
       <div ref={messagesContainerRef} className="relative z-10 flex-1 overflow-y-auto px-3 py-4 no-scrollbar md:px-5">
         {chat.length === 0 && (
-          <div className="flex h-full min-h-[120px] items-center justify-center px-6 text-center text-sm italic text-stone-600">
-            De stilte hangt zwaar in de lucht...<br />Spreek als eerste.
+          <div className="tv-empty-state mx-auto my-8 max-w-md">
+            <p className="tv-empty-state-title">Nog geen berichten</p>
+            <p className="text-sm">Stuur het eerste bericht of rol een dobbelsteen met <span className="font-mono">roll d20</span>.</p>
           </div>
         )}
         {chat.map((c, i) => {

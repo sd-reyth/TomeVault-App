@@ -100,19 +100,25 @@ body,
 
 body {
   margin: 0;
-  background: #070709;
-  color: #e7e5e4;
+  background: var(--tv-bg-canvas, #070709);
+  color: var(--tv-text-primary, #e7e5e4);
 }
 
 .tv-app-shell {
   position: relative;
   overflow: hidden;
   isolation: isolate;
+  color: var(--tv-text-primary);
   background:
-    radial-gradient(circle at 16% 14%, rgba(251, 191, 36, 0.14), transparent 34%),
-    radial-gradient(circle at 84% 8%, rgba(59, 130, 246, 0.11), transparent 30%),
-    radial-gradient(circle at 50% 120%, rgba(217, 119, 6, 0.13), transparent 44%),
-    linear-gradient(180deg, #0b0b0f 0%, #070709 45%, #050506 100%);
+    radial-gradient(circle at 16% 14%, color-mix(in srgb, var(--tv-accent), transparent 86%), transparent 34%),
+    radial-gradient(circle at 84% 8%, color-mix(in srgb, var(--tv-accent), transparent 92%), transparent 30%),
+    radial-gradient(circle at 50% 120%, color-mix(in srgb, var(--tv-accent), transparent 88%), transparent 44%),
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--tv-bg-canvas), #fff 3%) 0%,
+      var(--tv-bg-canvas) 45%,
+      color-mix(in srgb, var(--tv-bg-canvas), #000 10%) 100%
+    );
 }
 
 .tv-app-shell::before {
@@ -139,7 +145,11 @@ body {
   inset: 0;
   pointer-events: none;
   z-index: 0;
-  background: radial-gradient(circle at center, transparent 34%, rgba(0, 0, 0, 0.56) 100%);
+  background: radial-gradient(
+    circle at center,
+    transparent 34%,
+    color-mix(in srgb, var(--tv-bg-canvas), #000 42%) 100%
+  );
 }
 
 .tv-main-canvas {
@@ -150,11 +160,11 @@ body {
   overflow: hidden;
   border: 1px solid var(--tv-shell-edge);
   border-radius: 1.4rem;
-  background: linear-gradient(180deg, var(--tv-shell-glass), rgba(8, 8, 10, 0.66));
+  background: linear-gradient(180deg, var(--tv-shell-glass), var(--tv-shell-deep));
   backdrop-filter: blur(14px);
   box-shadow:
-    0 18px 54px rgba(0, 0, 0, 0.36),
-    inset 0 1px 0 rgba(255, 255, 255, 0.055);
+    var(--tv-shadow),
+    inset 0 1px 0 color-mix(in srgb, var(--tv-border), transparent 55%);
 }
 
 .tv-main-canvas::before {
@@ -164,8 +174,91 @@ body {
   border-radius: inherit;
   pointer-events: none;
   background:
-    radial-gradient(circle at top right, rgba(251, 191, 36, 0.085), transparent 30%),
-    radial-gradient(circle at 8% 88%, rgba(59, 130, 246, 0.07), transparent 34%);
+    radial-gradient(circle at top right, color-mix(in srgb, var(--tv-accent), transparent 92%), transparent 30%),
+    radial-gradient(circle at 8% 88%, color-mix(in srgb, var(--tv-accent), transparent 94%), transparent 34%);
+}
+
+/* Shared screen shell for in-session tab views */
+.tv-view-shell {
+  position: relative;
+  display: flex;
+  min-height: 0;
+  flex-direction: column;
+  overflow: hidden;
+  border-radius: 1rem;
+  border: 1px solid color-mix(in srgb, var(--tv-border), transparent 35%);
+  background: color-mix(in srgb, var(--tv-view-surface), transparent 4%);
+  box-shadow: var(--tv-shadow);
+  backdrop-filter: blur(12px);
+}
+
+.tv-view-shell::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.45;
+  background:
+    radial-gradient(circle at top, color-mix(in srgb, var(--tv-accent), transparent 94%), transparent 38%);
+}
+
+.tv-view-shell-header {
+  position: relative;
+  z-index: 1;
+  flex-shrink: 0;
+  border-bottom: 1px solid color-mix(in srgb, var(--tv-border), transparent 42%);
+  background: color-mix(in srgb, var(--tv-view-header), transparent 8%);
+  box-shadow: inset 0 1px 0 color-mix(in srgb, var(--tv-border), transparent 70%);
+}
+
+.tv-view-toolbar {
+  border: 1px solid color-mix(in srgb, var(--tv-border), transparent 38%);
+  background: color-mix(in srgb, var(--tv-bg-surface), transparent 12%);
+}
+
+.tv-view-card {
+  border: 1px solid color-mix(in srgb, var(--tv-border), transparent 38%);
+  background: color-mix(in srgb, var(--tv-bg-surface), transparent 8%);
+  color: var(--tv-text-primary);
+  transition:
+    border-color 180ms ease,
+    background-color 180ms ease,
+    box-shadow 180ms ease,
+    transform 180ms ease;
+}
+
+.tv-view-card:hover {
+  border-color: color-mix(in srgb, var(--tv-accent), transparent 62%);
+  box-shadow: 0 12px 28px color-mix(in srgb, var(--tv-bg-canvas), transparent 20%);
+}
+
+.tv-rail-surface {
+  border-color: color-mix(in srgb, var(--tv-border), transparent 38%) !important;
+  background: color-mix(in srgb, var(--tv-bg-surface), transparent 6%) !important;
+  color: var(--tv-text-primary);
+}
+
+.tv-empty-state {
+  display: flex;
+  min-height: 8rem;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  border-radius: 1rem;
+  border: 1px dashed color-mix(in srgb, var(--tv-border), transparent 28%);
+  background: color-mix(in srgb, var(--tv-bg-surface), transparent 16%);
+  padding: 1.5rem;
+  text-align: center;
+  color: var(--tv-text-secondary);
+}
+
+.tv-empty-state-title {
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--tv-text-primary);
 }
 
 .tv-panel-shell {
@@ -1257,6 +1350,11 @@ body {
   --tv-shadow: 0 6px 16px -4px rgb(140 110 70 / 0.25);
   --tv-overlay: rgba(140, 110, 70, 0.08);
   --tv-glow: 0 0 12px rgb(156 111 46);
+  --tv-shell-edge: color-mix(in srgb, var(--tv-border), transparent 18%);
+  --tv-shell-glass: color-mix(in srgb, var(--tv-bg-surface), transparent 8%);
+  --tv-shell-deep: color-mix(in srgb, var(--tv-bg-canvas), #000 4%);
+  --tv-view-surface: color-mix(in srgb, var(--tv-bg-surface), transparent 4%);
+  --tv-view-header: color-mix(in srgb, var(--tv-bg-surface), transparent 10%);
 }
 
 /* MIDNIGHT TOME */
@@ -1271,6 +1369,11 @@ body {
   --tv-shadow: 0 6px 16px -4px rgb(110 80 200 / 0.3);
   --tv-overlay: rgba(110, 80, 200, 0.15);
   --tv-glow: 0 0 12px rgb(159 125 255);
+  --tv-shell-edge: color-mix(in srgb, var(--tv-border), transparent 30%);
+  --tv-shell-glass: color-mix(in srgb, var(--tv-bg-surface), transparent 18%);
+  --tv-shell-deep: color-mix(in srgb, var(--tv-bg-canvas), #000 14%);
+  --tv-view-surface: color-mix(in srgb, var(--tv-bg-surface), transparent 10%);
+  --tv-view-header: color-mix(in srgb, var(--tv-bg-surface), transparent 20%);
 }
 
 /* EMBER FORGE */
@@ -1285,6 +1388,11 @@ body {
   --tv-shadow: 0 6px 16px -4px rgb(200 90 30 / 0.35);
   --tv-overlay: rgba(200, 90, 30, 0.18);
   --tv-glow: 0 0 12px rgb(255 157 66);
+  --tv-shell-edge: color-mix(in srgb, var(--tv-border), transparent 28%);
+  --tv-shell-glass: color-mix(in srgb, var(--tv-bg-surface), transparent 16%);
+  --tv-shell-deep: color-mix(in srgb, var(--tv-bg-canvas), #000 12%);
+  --tv-view-surface: color-mix(in srgb, var(--tv-bg-surface), transparent 10%);
+  --tv-view-header: color-mix(in srgb, var(--tv-bg-surface), transparent 18%);
 }
 
 /* FOREST SCROLL */
@@ -1299,6 +1407,11 @@ body {
   --tv-shadow: 0 6px 16px -4px rgb(80 150 80 / 0.3);
   --tv-overlay: rgba(80, 150, 80, 0.15);
   --tv-glow: 0 0 12px rgb(107 198 107);
+  --tv-shell-edge: color-mix(in srgb, var(--tv-border), transparent 28%);
+  --tv-shell-glass: color-mix(in srgb, var(--tv-bg-surface), transparent 16%);
+  --tv-shell-deep: color-mix(in srgb, var(--tv-bg-canvas), #000 12%);
+  --tv-view-surface: color-mix(in srgb, var(--tv-bg-surface), transparent 10%);
+  --tv-view-header: color-mix(in srgb, var(--tv-bg-surface), transparent 18%);
 }
 
 /* BLOOD MOON (Premium) */
@@ -1313,6 +1426,11 @@ body {
   --tv-shadow: 0 6px 16px -4px rgb(196 30 58 / 0.45);
   --tv-overlay: rgba(196, 30, 58, 0.22);
   --tv-glow: 0 0 18px rgb(196 30 58);
+  --tv-shell-edge: color-mix(in srgb, var(--tv-border), transparent 24%);
+  --tv-shell-glass: color-mix(in srgb, var(--tv-bg-surface), transparent 14%);
+  --tv-shell-deep: color-mix(in srgb, var(--tv-bg-canvas), #000 14%);
+  --tv-view-surface: color-mix(in srgb, var(--tv-bg-surface), transparent 8%);
+  --tv-view-header: color-mix(in srgb, var(--tv-bg-surface), transparent 16%);
 }
 
 /* Semantische classes */

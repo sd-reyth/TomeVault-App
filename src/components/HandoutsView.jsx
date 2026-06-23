@@ -110,17 +110,15 @@ function HandoutsView({ role, handouts, currentPlayerId, onToggleVisibility, onT
     ];
 
   return (
-    <div className="relative flex h-full min-h-0 flex-col overflow-hidden rounded-2xl border border-white/10 bg-zinc-950/72 shadow-[0_22px_60px_rgba(0,0,0,0.34)] backdrop-blur-md">
-      <div className="absolute inset-0 opacity-[0.03] bg-[radial-gradient(circle_at_top,rgba(251,191,36,0.10),transparent_36%),url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI4IiBoZWlnaHQ9IjgiPgo8cmVjdCB3aWR0aD0iOCIgaGVpZ2h0PSI4IiBmaWxsPSIjZmZmIiBmaWxsLW9wYWNpdHk9IjAuMSIvPgo8L3N2Zz4=')] pointer-events-none" />
-
-      <div className="relative z-10 flex shrink-0 flex-col gap-4 border-b border-white/10 bg-white/5 p-3 shadow-sm sm:flex-row sm:items-center sm:justify-between sm:gap-3 md:p-4">
+    <div className="tv-view-shell relative z-10 h-full">
+      <div className="tv-view-shell-header flex shrink-0 flex-col gap-4 p-3 sm:flex-row sm:items-center sm:justify-between sm:gap-3 md:p-4">
         <div>
           <h2 className="font-fantasy text-2xl font-bold tracking-[0.1em] tv-heading-shimmer md:text-3xl">Oude Geschriften</h2>
           <p className="tv-panel-copy mt-1 text-xs md:text-sm">Documenten, kaarten en magische voorwerpen ontdekt tijdens de reis.</p>
         </div>
 
         <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row sm:items-center sm:justify-end">
-          <div className="flex w-full items-center justify-center rounded-xl border border-white/10 bg-white/5 p-1 sm:w-auto sm:justify-start">
+          <div className="tv-view-toolbar flex w-full items-center justify-center rounded-xl p-1 sm:w-auto sm:justify-start">
             <button
               onClick={() => setViewMode('list')}
               className={`inline-flex h-9 w-9 items-center justify-center rounded-lg border transition-all duration-200 ease-out ${viewMode === 'list' ? 'border-[var(--tv-accent)]/30 bg-[color-mix(in_srgb,var(--tv-accent),transparent_85%)] text-[var(--tv-accent)] shadow-sm' : 'border-transparent text-stone-500 hover:border-white/10 hover:bg-white/7 hover:text-stone-300'}`}
@@ -380,9 +378,9 @@ function HandoutsView({ role, handouts, currentPlayerId, onToggleVisibility, onT
           })}
 
           {processedHandouts.length === 0 ? (
-            <div className="tv-panel-block col-span-full border-2 border-dashed py-16 text-center shadow-inner md:py-24">
-              <p className="empty-state-text text-base md:text-lg">Geen handouts gevonden voor je huidige zoek- en filterinstellingen.</p>
-              <p className="mt-2 text-xs uppercase tracking-[0.16em] text-stone-500">Pas filters of zoekterm aan om resultaten te tonen</p>
+            <div className="tv-empty-state col-span-full md:py-16">
+              <p className="tv-empty-state-title">Geen handouts gevonden</p>
+              <p className="text-sm">Pas filters of zoekterm aan, of maak een nieuwe handout aan.</p>
             </div>
           ) : null}
         </div>

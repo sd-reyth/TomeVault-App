@@ -3694,7 +3694,7 @@ export default function TomeVaultApp() {
           <Sidebar activeTab={activeTab} setActiveTab={setActiveTab} onOpenSettings={() => setIsSettingsOpen(true)} role={role} />
           
           <main className="app-shell-main relative flex-1 min-h-0 min-w-0 overflow-hidden p-3 transition-opacity duration-300 md:p-5">
-            <div className="pointer-events-none absolute left-1/2 top-0 h-96 w-full -translate-x-1/2 bg-amber-400/10 blur-[120px]" />
+            <div className="pointer-events-none absolute left-1/2 top-0 h-96 w-full -translate-x-1/2 bg-[color-mix(in_srgb,var(--tv-accent),transparent_90%)] blur-[120px]" />
             
             <div className="tv-main-canvas relative z-10 mx-auto h-full max-w-full min-h-0">
               {activeTab === 'handouts' && (

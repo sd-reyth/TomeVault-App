@@ -702,10 +702,10 @@ function RightSidebar({
       <aside
         style={{ '--battle-sidebar-width': `${sidebarWidth}px` }}
         className={`
-          fixed left-0 right-0 z-50 flex flex-col overflow-hidden border-t border-white/8 bg-zinc-950/97 backdrop-blur-md transition-transform duration-300 ease-in-out
+          fixed left-0 right-0 z-50 flex flex-col overflow-hidden border-t backdrop-blur-md transition-transform duration-300 ease-in-out tv-rail-surface
           ${(isOpen || isPinned) ? 'translate-x-0' : 'translate-x-full'}
-          ${isPinned ? 'top-0 h-full md:relative md:h-full md:translate-x-0 md:z-0 md:left-auto md:right-0 md:border-l md:border-t-0 md:w-[var(--battle-sidebar-width)] md:min-w-[var(--battle-sidebar-width)] md:max-w-[var(--battle-sidebar-width)] md:bg-zinc-950/70 md:shadow-none' : 'app-shell-overlay-frame'}
-          lg:relative lg:left-auto lg:right-0 lg:top-0 lg:h-full lg:translate-x-0 lg:z-0 lg:flex lg:border-l lg:border-t-0 lg:w-[var(--battle-sidebar-width)] lg:min-w-[var(--battle-sidebar-width)] lg:max-w-[var(--battle-sidebar-width)] lg:bg-zinc-950/70 lg:shadow-none lg:shadow-[0_22px_60px_rgba(0,0,0,0.34)]
+          ${isPinned ? 'top-0 h-full md:relative md:h-full md:translate-x-0 md:z-0 md:left-auto md:right-0 md:border-l md:border-t-0 md:w-[var(--battle-sidebar-width)] md:min-w-[var(--battle-sidebar-width)] md:max-w-[var(--battle-sidebar-width)] md:shadow-none' : 'app-shell-overlay-frame'}
+          lg:relative lg:left-auto lg:right-0 lg:top-0 lg:h-full lg:translate-x-0 lg:z-0 lg:flex lg:border-l lg:border-t-0 lg:w-[var(--battle-sidebar-width)] lg:min-w-[var(--battle-sidebar-width)] lg:max-w-[var(--battle-sidebar-width)] lg:shadow-none lg:shadow-[0_22px_60px_rgba(0,0,0,0.34)]
         `}
       >
         <div className="absolute top-0 left-0 hidden h-full w-1 bg-gradient-to-b from-white/8 via-zinc-900 to-white/8 md:block" />
@@ -719,7 +719,7 @@ function RightSidebar({
           <span className={`absolute left-1/2 top-1/2 h-16 w-[3px] -translate-x-1/2 -translate-y-1/2 rounded-full transition-colors ${isDragging ? 'bg-white/60 shadow-[0_0_12px_rgba(255,255,255,0.25)]' : 'bg-white/10 hover:bg-white/25'}`} />
         </button>
 
-        <div className="mt-14 border-b border-white/10 bg-zinc-950/84 px-3.5 py-3 md:mt-0 md:px-4 md:py-3.5">
+        <div className="tv-view-shell-header mt-14 border-b px-3.5 py-3 md:mt-0 md:px-4 md:py-3.5">
           <div className="relative">
             {isGm ? (
               <div

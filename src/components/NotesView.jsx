@@ -101,8 +101,9 @@ function NotesView({
         
         <div className="flex-1 overflow-y-auto no-scrollbar p-2 space-y-1">
           {myNotes.length === 0 ? (
-            <div className="p-4 text-center text-sm italic text-stone-500">
-              Je kroniek is nog leeg...
+            <div className="tv-empty-state m-3">
+              <p className="tv-empty-state-title">Kroniek is leeg</p>
+              <p className="text-sm">Maak je eerste notitie met de knop rechtsboven.</p>
             </div>
           ) : (
             myNotes.map(note => (

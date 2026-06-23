@@ -95,10 +95,8 @@ export default function PreparationsView({
   };
 
   return (
-    <section className="relative flex h-full min-h-0 flex-col overflow-hidden rounded-2xl border border-white/10 bg-zinc-950/72 shadow-[0_22px_60px_rgba(0,0,0,0.34)] backdrop-blur-md">
-      <div className="absolute inset-0 opacity-[0.03] bg-[radial-gradient(circle_at_top,rgba(251,191,36,0.10),transparent_36%),url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI4IiBoZWlnaHQ9IjgiPgo8cmVjdCB3aWR0aD0iOCIgaGVpZ2h0PSI4IiBmaWxsPSIjZmZmIiBmaWxsLW9wYWNpdHk9IjAuMSIvPgo8L3N2Zz4=')] pointer-events-none" />
-
-      <header className="relative z-10 flex shrink-0 flex-col gap-4 border-b border-white/10 bg-white/5 p-3 shadow-sm xl:flex-row xl:items-center xl:justify-between md:p-4">
+    <section className="tv-view-shell relative z-10 h-full">
+      <header className="tv-view-shell-header flex shrink-0 flex-col gap-4 p-3 xl:flex-row xl:items-center xl:justify-between md:p-4">
           <div className="max-w-2xl min-w-0">
             <h1 className="font-fantasy text-2xl font-bold tracking-[0.1em] tv-heading-shimmer md:text-3xl">Voorbereidingen</h1>
             <p className="tv-panel-copy mt-1 text-xs md:mt-2 md:text-sm">
