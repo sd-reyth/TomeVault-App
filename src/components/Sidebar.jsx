@@ -104,9 +104,9 @@ export default function Sidebar({ activeTab, setActiveTab, onOpenSettings, role 
             >
               {isActive && !isCollapsed ? <span className="hidden md:block absolute left-0 top-2 bottom-2 w-[3px] rounded-r tv-nav-indicator" /> : null}
               <tab.icon className={`h-5 w-5 shrink-0 transition-colors duration-200 md:h-[17px] md:w-[17px] ${isActive ? 'tv-nav-icon-active' : 'tv-nav-icon'}`} />
-              <span className={`${isCollapsed || isIconRail ? 'hidden' : 'hidden md:block'} max-w-full truncate text-[14px] font-medium uppercase tracking-[0.12em]`}>{tab.label}</span>
+              <span className={`${isCollapsed || isIconRail ? 'hidden' : 'hidden md:block'} max-w-full truncate text-[14px] font-fantasy font-semibold uppercase tracking-[0.12em]`}>{tab.label}</span>
               {isIconRail && !isCollapsed ? (
-                <span className="pointer-events-none absolute left-[calc(100%+10px)] top-1/2 z-40 hidden -translate-y-1/2 whitespace-nowrap rounded-md tv-nav-tooltip px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.12em] shadow-lg md:group-hover:block">
+                <span className="pointer-events-none absolute left-[calc(100%+10px)] top-1/2 z-40 hidden -translate-y-1/2 whitespace-nowrap rounded-md tv-nav-tooltip px-2 py-1 text-[10px] font-fantasy font-semibold uppercase tracking-[0.12em] shadow-lg md:group-hover:block">
                   {tab.label}
                 </span>
               ) : null}
@@ -122,9 +122,9 @@ export default function Sidebar({ activeTab, setActiveTab, onOpenSettings, role 
           className={`group relative flex min-h-[48px] min-w-0 flex-1 flex-col items-center justify-center rounded-xl border border-transparent p-2 text-sm font-medium tracking-normal transition-all duration-200 ease-out active:scale-[0.985] md:flex md:w-full md:flex-none ${isCollapsed ? 'md:min-h-[54px] md:px-2 md:py-3' : (isIconRail ? 'md:min-h-[48px] md:justify-center md:px-2.5 md:py-2.5' : 'md:min-h-[50px] md:flex-row md:justify-start md:gap-3 md:px-3.5 md:py-2.5')} tv-nav-item`}
         >
           <Settings className="h-5 w-5 shrink-0 tv-nav-icon transition-colors duration-200 md:h-[17px] md:w-[17px]" />
-          <span className={`${isCollapsed || isIconRail ? 'hidden' : 'hidden md:block'} max-w-full truncate text-[14px] font-medium uppercase tracking-[0.12em]`}>Configuratie</span>
+          <span className={`${isCollapsed || isIconRail ? 'hidden' : 'hidden md:block'} max-w-full truncate text-[14px] font-fantasy font-semibold uppercase tracking-[0.12em]`}>Configuratie</span>
           {isIconRail && !isCollapsed ? (
-            <span className="pointer-events-none absolute left-[calc(100%+10px)] top-1/2 z-40 hidden -translate-y-1/2 whitespace-nowrap rounded-md tv-nav-tooltip px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.12em] shadow-lg md:group-hover:block">
+            <span className="pointer-events-none absolute left-[calc(100%+10px)] top-1/2 z-40 hidden -translate-y-1/2 whitespace-nowrap rounded-md tv-nav-tooltip px-2 py-1 text-[10px] font-fantasy font-semibold uppercase tracking-[0.12em] shadow-lg md:group-hover:block">
               Configuratie
             </span>
           ) : null}

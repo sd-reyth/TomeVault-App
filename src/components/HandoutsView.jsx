@@ -115,108 +115,110 @@ function HandoutsView({ role, handouts, currentPlayerId, onToggleVisibility, onT
 
   return (
     <div className="flex h-full flex-col gap-5 md:gap-6">
-      <div className="tv-panel-header flex flex-col gap-4 pb-5 md:pb-6 sm:flex-row sm:items-end sm:justify-between sm:gap-3">
-        <div>
-          <h2 className="font-fantasy text-2xl font-bold tracking-[0.1em] tv-heading-shimmer md:text-3xl">Oude Geschriften</h2>
-          <p className="tv-panel-copy mt-1 text-xs md:mt-2 md:text-sm">Documenten, kaarten en magische voorwerpen ontdekt tijdens de reis.</p>
-        </div>
-        
-        <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row sm:items-center sm:justify-end">
-          <div className="flex w-full items-center justify-center rounded-xl border border-white/10 bg-white/5 p-1 sm:w-auto sm:justify-start">
+      <div className="overflow-hidden rounded-2xl border border-white/10 bg-white/5 shadow-sm backdrop-blur-sm">
+        <div className="flex flex-col gap-4 border-b border-white/10 bg-white/5 p-3 shadow-sm sm:flex-row sm:items-center sm:justify-between sm:gap-3 md:p-4">
+          <div>
+            <h2 className="font-fantasy text-2xl font-bold tracking-[0.1em] tv-heading-shimmer md:text-3xl">Oude Geschriften</h2>
+            <p className="tv-panel-copy mt-1 text-xs md:text-sm">Documenten, kaarten en magische voorwerpen ontdekt tijdens de reis.</p>
+          </div>
+
+          <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row sm:items-center sm:justify-end">
+            <div className="flex w-full items-center justify-center rounded-xl border border-white/10 bg-white/5 p-1 sm:w-auto sm:justify-start">
             <button 
               onClick={() => setViewMode('list')} 
-              className={`inline-flex h-9 w-9 items-center justify-center rounded-lg border transition-all duration-200 ease-out ${viewMode === 'list' ? 'border-amber-500/30 bg-amber-500/10 text-amber-300 shadow-sm' : 'border-transparent text-stone-500 hover:border-white/10 hover:bg-white/7 hover:text-stone-300'}`}
+              className={`inline-flex h-9 w-9 items-center justify-center rounded-lg border transition-all duration-200 ease-out ${viewMode === 'list' ? 'border-[var(--tv-accent)]/30 bg-[color-mix(in_srgb,var(--tv-accent),transparent_85%)] text-[var(--tv-accent)] shadow-sm' : 'border-transparent text-stone-500 hover:border-white/10 hover:bg-white/7 hover:text-stone-300'}`}
               title="Lijst weergave"
             >
               <List className="h-4 w-4" />
             </button>
             <button 
               onClick={() => setViewMode('grid')} 
-              className={`inline-flex h-9 w-9 items-center justify-center rounded-lg border transition-all duration-200 ease-out ${viewMode === 'grid' ? 'border-amber-500/30 bg-amber-500/10 text-amber-300 shadow-sm' : 'border-transparent text-stone-500 hover:border-white/10 hover:bg-white/7 hover:text-stone-300'}`}
+              className={`inline-flex h-9 w-9 items-center justify-center rounded-lg border transition-all duration-200 ease-out ${viewMode === 'grid' ? 'border-[var(--tv-accent)]/30 bg-[color-mix(in_srgb,var(--tv-accent),transparent_85%)] text-[var(--tv-accent)] shadow-sm' : 'border-transparent text-stone-500 hover:border-white/10 hover:bg-white/7 hover:text-stone-300'}`}
               title="Blok weergave"
             >
               <LayoutGrid className="h-4 w-4" />
             </button>
           </div>
 
-          {role === 'gm' && (
-            <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:items-center">
-              <button
-                onClick={toggleClaimedVisibility}
-                disabled={claimedCount === 0}
-                className={`inline-flex h-10 w-full items-center justify-center gap-2 rounded-xl border px-3 text-[10px] uppercase tracking-[0.14em] shadow-sm transition-all duration-200 ease-out sm:w-auto ${claimedCount > 0 ? 'border-white/10 bg-white/5 text-stone-200 hover:border-amber-500/25 hover:bg-white/7 hover:text-amber-200 active:scale-[0.985]' : 'cursor-not-allowed border-white/10 bg-white/5 text-stone-600'}`}
-                title={allClaimedHidden ? 'Maak geclaimde handouts zichtbaar' : 'Verberg geclaimde handouts'}
-              >
-                {allClaimedHidden ? <Eye className="h-3.5 w-3.5 shrink-0" /> : <EyeOff className="h-3.5 w-3.5 shrink-0" />}
-                <span className="truncate">Geclaimd ({claimedCount})</span>
-              </button>
+            {role === 'gm' && (
+              <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:items-center">
+                <button
+                  onClick={toggleClaimedVisibility}
+                  disabled={claimedCount === 0}
+                  className={`inline-flex h-10 w-full items-center justify-center gap-2 rounded-xl border px-3 text-[10px] uppercase tracking-[0.14em] shadow-sm transition-all duration-200 ease-out sm:w-auto ${claimedCount > 0 ? 'border-white/10 bg-white/5 text-stone-200 hover:border-[var(--tv-accent)]/25 hover:bg-white/7 hover:text-[var(--tv-accent)] active:scale-[0.985]' : 'cursor-not-allowed border-white/10 bg-white/5 text-stone-600'}`}
+                  title={allClaimedHidden ? 'Maak geclaimde handouts zichtbaar' : 'Verberg geclaimde handouts'}
+                >
+                  {allClaimedHidden ? <Eye className="h-3.5 w-3.5 shrink-0" /> : <EyeOff className="h-3.5 w-3.5 shrink-0" />}
+                  <span className="truncate">Geclaimd ({claimedCount})</span>
+                </button>
 
-              <button
-                onClick={onCreateHandout}
-                className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-xl px-4 text-sm uppercase tracking-[0.16em] active:scale-[0.985] sm:w-auto tv-button-primary"
-              >
-                <Plus className="h-4 w-4 shrink-0" /> <span className="truncate">Nieuw</span>
-              </button>
-            </div>
-          )}
+                <button
+                  onClick={onCreateHandout}
+                  className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-xl px-4 text-sm uppercase tracking-[0.16em] active:scale-[0.985] sm:w-auto tv-button-primary"
+                >
+                  <Plus className="h-4 w-4 shrink-0" /> <span className="truncate">Nieuw</span>
+                </button>
+              </div>
+            )}
+          </div>
         </div>
-      </div>
 
-      <div className="tv-panel-block p-4 md:p-5">
-        <div className="flex flex-col gap-3 md:gap-4">
-          <div className="grid grid-cols-1 gap-2 md:grid-cols-[minmax(0,1fr)_160px]">
-            <label className="relative">
-              <Search className="absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-stone-500" />
-              <input
-                type="search"
-                value={searchQuery}
-                onChange={(event) => setSearchQuery(event.target.value)}
-                placeholder="Zoek op titel, inhoud, type of secret..."
-                className="tv-input-surface h-10 w-full rounded-xl pl-9 pr-3 text-sm outline-none transition-colors"
-              />
-            </label>
+        <div className="p-3 md:p-4">
+          <div className="flex flex-col gap-3 md:gap-4">
+            <div className="grid grid-cols-1 gap-2 md:grid-cols-[minmax(0,1fr)_160px]">
+              <label className="relative">
+                <Search className="absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-stone-500" />
+                <input
+                  type="search"
+                  value={searchQuery}
+                  onChange={(event) => setSearchQuery(event.target.value)}
+                  placeholder="Zoek op titel, inhoud, type of secret..."
+                  className="tv-input-surface h-10 w-full rounded-xl pl-9 pr-3 text-sm outline-none transition-colors"
+                />
+              </label>
 
-            <label className="relative">
-              <SlidersHorizontal className="absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-stone-500" />
+              <label className="relative">
+                <SlidersHorizontal className="absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-stone-500" />
+                <select
+                  value={sortBy}
+                  onChange={(event) => setSortBy(event.target.value)}
+                  className="tv-input-surface h-10 w-full rounded-xl pl-9 pr-3 text-sm outline-none transition-colors"
+                >
+                  <option value="newest">Nieuwste eerst</option>
+                  <option value="oldest">Oudste eerst</option>
+                  <option value="title-asc">Titel A-Z</option>
+                  <option value="title-desc">Titel Z-A</option>
+                  <option value="type">Type</option>
+                </select>
+              </label>
+            </div>
+
+            <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
               <select
-                value={sortBy}
-                onChange={(event) => setSortBy(event.target.value)}
-                className="tv-input-surface h-10 w-full rounded-xl pl-9 pr-3 text-sm outline-none transition-colors"
+                value={typeFilter}
+                onChange={(event) => setTypeFilter(event.target.value)}
+                className="tv-input-surface h-10 w-full rounded-xl px-3 text-sm outline-none transition-colors"
               >
-                <option value="newest">Nieuwste eerst</option>
-                <option value="oldest">Oudste eerst</option>
-                <option value="title-asc">Titel A-Z</option>
-                <option value="title-desc">Titel Z-A</option>
-                <option value="type">Type</option>
+                <option value="all">Alle types</option>
+                {typeOptions.map((type) => (
+                  <option key={type} value={type}>{type}</option>
+                ))}
               </select>
-            </label>
-          </div>
 
-          <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
-            <select
-              value={typeFilter}
-              onChange={(event) => setTypeFilter(event.target.value)}
-              className="tv-input-surface h-10 w-full rounded-xl px-3 text-sm outline-none transition-colors"
-            >
-              <option value="all">Alle types</option>
-              {typeOptions.map((type) => (
-                <option key={type} value={type}>{type}</option>
-              ))}
-            </select>
+              <select
+                value={statusFilter}
+                onChange={(event) => setStatusFilter(event.target.value)}
+                className="tv-input-surface h-10 w-full rounded-xl px-3 text-sm outline-none transition-colors"
+              >
+                {statusOptions.map((option) => (
+                  <option key={option.value} value={option.value}>{option.label}</option>
+                ))}
+              </select>
+            </div>
 
-            <select
-              value={statusFilter}
-              onChange={(event) => setStatusFilter(event.target.value)}
-              className="tv-input-surface h-10 w-full rounded-xl px-3 text-sm outline-none transition-colors"
-            >
-              {statusOptions.map((option) => (
-                <option key={option.value} value={option.value}>{option.label}</option>
-              ))}
-            </select>
-          </div>
-
-          <div className="text-[11px] text-stone-500">
-            {processedHandouts.length} van {visibleBaseHandouts.length} handouts zichtbaar
+            <div className="text-[11px] text-stone-500">
+              {processedHandouts.length} van {visibleBaseHandouts.length} handouts zichtbaar
+            </div>
           </div>
         </div>
       </div>
@@ -232,7 +234,7 @@ function HandoutsView({ role, handouts, currentPlayerId, onToggleVisibility, onT
           <div 
             key={handout.id} 
             onClick={() => onOpenHandout(handout)}
-            className={`group relative cursor-pointer overflow-hidden rounded-2xl border transition-all duration-200 ease-out flex ${viewMode === 'grid' ? 'flex-col' : 'flex-row items-stretch'} backdrop-blur-sm ${handout.isRevealed ? 'border-white/10 bg-white/5 shadow-lg hover:border-amber-500/25 hover:shadow-xl hover:shadow-black/25' : 'border-white/10 border-dashed bg-white/[0.03] opacity-70 hover:opacity-100 hover:border-white/20'}`}
+            className={`group relative cursor-pointer overflow-hidden rounded-2xl border transition-all duration-200 ease-out flex ${viewMode === 'grid' ? 'flex-col' : 'flex-row items-stretch'} backdrop-blur-sm ${handout.isRevealed ? 'border-white/10 bg-white/5 shadow-lg hover:border-[var(--tv-accent)]/25 hover:shadow-xl hover:shadow-black/25' : 'border-white/10 border-dashed bg-white/[0.03] opacity-70 hover:opacity-100 hover:border-white/20'}`}
           >
             <div className="absolute inset-0 opacity-[0.03] bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI4IiBoZWlnaHQ9IjgiPgo8cmVjdCB3aWR0aD0iOCIgaGVpZ2h0PSI4IiBmaWxsPSIjZmZmIiBmaWxsLW9wYWNpdHk9IjAuMSIvPgo8L3N2Zz4=')] pointer-events-none" />
 
@@ -245,7 +247,7 @@ function HandoutsView({ role, handouts, currentPlayerId, onToggleVisibility, onT
               )}
               
               {!handout.imageUrl ? (
-                <Icon className={`${viewMode === 'grid' ? 'w-10 h-10 md:w-12 md:h-12' : 'w-6 h-6 md:w-8 md:h-8'} text-amber-700/60 drop-shadow-md relative z-10`} strokeWidth={1.5} />
+                <Icon className={`${viewMode === 'grid' ? 'w-10 h-10 md:w-12 md:h-12' : 'w-6 h-6 md:w-8 md:h-8'} text-stone-600 drop-shadow-md relative z-10`} strokeWidth={1.5} />
               ) : null}
 
               {role === 'gm' && viewMode === 'grid' ? (

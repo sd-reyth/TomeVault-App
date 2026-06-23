@@ -96,8 +96,8 @@ export default function PreparationsView({
 
   return (
     <section className="flex h-full flex-col gap-4 md:gap-5">
-      <header className="tv-panel-header pb-5 md:pb-6">
-        <div className="flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
+      <header className="overflow-hidden rounded-2xl border border-white/10 bg-white/5 shadow-sm backdrop-blur-sm">
+        <div className="flex flex-col gap-4 border-b border-white/10 bg-white/5 p-3 shadow-sm xl:flex-row xl:items-center xl:justify-between md:p-4">
           <div className="max-w-2xl min-w-0">
             <h1 className="font-fantasy text-2xl font-bold tracking-[0.1em] tv-heading-shimmer md:text-3xl">Voorbereidingen</h1>
             <p className="tv-panel-copy mt-1 text-xs md:mt-2 md:text-sm">
@@ -142,7 +142,7 @@ export default function PreparationsView({
 
           {filteredTemplates.length === 0 ? (
             <div className="tv-panel-block flex min-h-[260px] flex-col items-center justify-center border-dashed px-6 py-10 text-center">
-              <div className="flex h-14 w-14 items-center justify-center rounded-2xl border border-amber-900/40 bg-amber-950/30 text-amber-400 shadow-inner">
+              <div className="flex h-14 w-14 items-center justify-center rounded-2xl border border-[color-mix(in_srgb,var(--tv-accent),transparent_60%)] bg-[color-mix(in_srgb,var(--tv-accent),transparent_86%)] tv-accent shadow-inner">
                 <Crown className="h-6 w-6" />
               </div>
               <h3 className="mt-5 font-fantasy text-xl tracking-[0.12em] text-stone-100">
@@ -249,13 +249,13 @@ export default function PreparationsView({
         <aside className="tv-panel-shell p-4 md:p-5 xl:sticky xl:top-3">
           <div className="flex items-center justify-between gap-3 text-stone-100">
             <div className="flex items-center gap-2">
-              <ShieldCheck className="h-4 w-4 text-amber-400" />
+              <ShieldCheck className="h-4 w-4 tv-accent" />
               <h2 className="font-fantasy text-lg uppercase tracking-[0.14em]">Overzicht</h2>
             </div>
             <button
               type="button"
               onClick={() => setShowInfo((value) => !value)}
-              className={`inline-flex h-9 w-9 items-center justify-center rounded-full border transition-all duration-200 ease-out ${showInfo ? 'border-amber-500/30 bg-amber-500/10 text-amber-300' : 'border-white/10 bg-white/5 text-stone-400 hover:bg-white/8 hover:text-amber-300'}`}
+              className={`inline-flex h-9 w-9 items-center justify-center rounded-full border transition-all duration-200 ease-out ${showInfo ? 'border-[var(--tv-accent)]/30 bg-[color-mix(in_srgb,var(--tv-accent),transparent_86%)] tv-accent' : 'border-white/10 bg-white/5 text-stone-400 hover:bg-white/8 hover:text-[var(--tv-accent)]'}`}
               title={showInfo ? 'Verberg extra uitleg' : 'Toon extra uitleg'}
             >
               <Info className="h-4 w-4" />

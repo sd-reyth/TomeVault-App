@@ -91,7 +91,7 @@ export default function PreparationModal({ isOpen, preparation, onClose, onSave,
         <div className="flex flex-1 flex-col overflow-y-auto no-scrollbar px-4 pb-4 pt-4 sm:px-6 sm:pb-6">
           <div className="mb-4 rounded-2xl border border-white/10 bg-zinc-950/72 p-4 shadow-inner">
             <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-          <label className="group relative flex h-24 w-24 cursor-pointer items-center justify-center overflow-hidden rounded-xl border-2 border-white/15 bg-white/5 shadow-xl transition-all hover:border-amber-500/60 md:h-32 md:w-32">
+          <label className="group relative flex h-24 w-24 cursor-pointer items-center justify-center overflow-hidden rounded-xl border-2 border-white/15 bg-white/5 shadow-xl transition-all hover:border-[var(--tv-accent)]/60 md:h-32 md:w-32">
             <input type="file" accept="image/*" className="hidden" onChange={handleImageChange} />
             <img
               src={resolveDisplayAvatar(formData.imageUrl, formData.id || 'new-preparation')}
@@ -133,7 +133,7 @@ export default function PreparationModal({ isOpen, preparation, onClose, onSave,
                 type="text"
                 value={formData.name || ''}
                 onChange={(event) => handleChange('name', event.target.value)}
-                className="w-full border-b border-white/10 bg-transparent px-1 py-1 text-2xl font-fantasy font-bold text-stone-100 outline-none transition-colors focus:border-amber-400/70 md:text-3xl"
+                className="w-full border-b border-white/10 bg-transparent px-1 py-1 text-2xl font-fantasy font-bold text-stone-100 outline-none transition-colors focus:border-[var(--tv-accent)]/70 md:text-3xl"
                 placeholder="Karakter Naam"
               />
               <input
@@ -155,8 +155,8 @@ export default function PreparationModal({ isOpen, preparation, onClose, onSave,
                     onClick={() => handlePickAvatar(url)}
                     className={`h-10 w-10 shrink-0 overflow-hidden rounded-lg border-2 transition-all ${
                       formData.imageUrl === url
-                        ? 'border-amber-500 shadow-[0_0_6px_rgba(217,119,6,0.5)]'
-                        : 'border-white/10 hover:border-amber-500/60'
+                        ? 'border-[var(--tv-accent)] shadow-[0_0_6px_color-mix(in_srgb,var(--tv-accent),transparent_50%)]'
+                        : 'border-white/10 hover:border-[var(--tv-accent)]/60'
                     }`}
                   >
                     <img src={url} alt="" className="h-full w-full object-cover object-center scale-[1.2]" loading="lazy" />
@@ -166,7 +166,7 @@ export default function PreparationModal({ isOpen, preparation, onClose, onSave,
                   type="button"
                   onClick={() => setShowAllPromptAvatars((value) => !value)}
                   className={`h-10 w-10 shrink-0 rounded-lg border-2 bg-white/5 font-fantasy text-lg text-stone-300 transition-all ${
-                    showAllPromptAvatars ? 'border-amber-500 bg-amber-950/30' : 'border-stone-700 hover:border-amber-700/60'
+                    showAllPromptAvatars ? 'border-[var(--tv-accent)] bg-[color-mix(in_srgb,var(--tv-accent),transparent_70%)]' : 'border-stone-700 hover:border-stone-600/60'
                   }`}
                   title="Toon alle prompt avatars"
                 >
@@ -184,8 +184,8 @@ export default function PreparationModal({ isOpen, preparation, onClose, onSave,
                         onClick={() => handlePickAvatar(url)}
                         className={`aspect-square overflow-hidden rounded-md border transition-all ${
                           formData.imageUrl === url
-                            ? 'border-amber-500 shadow-[0_0_6px_rgba(217,119,6,0.5)]'
-                            : 'border-white/10 hover:border-amber-500/60'
+                            ? 'border-[var(--tv-accent)] shadow-[0_0_6px_color-mix(in_srgb,var(--tv-accent),transparent_50%)]'
+                            : 'border-white/10 hover:border-[var(--tv-accent)]/60'
                         }`}
                       >
                         <img src={url} alt="" className="h-full w-full object-cover object-center scale-[1.2]" loading="lazy" />
@@ -206,14 +206,14 @@ export default function PreparationModal({ isOpen, preparation, onClose, onSave,
                       type="number"
                       value={formData.hp || 0}
                       onChange={(event) => handleChange('hp', event.target.value)}
-                      className="hide-arrows w-8 border-b border-white/10 bg-transparent text-center text-lg font-bold text-amber-400 outline-none focus:border-amber-500"
+                      className="hide-arrows w-8 border-b border-white/10 bg-transparent text-center text-lg font-bold text-[var(--tv-accent)] outline-none focus:border-[var(--tv-accent)]"
                     />
                     <span className="text-xs text-stone-600">/</span>
                     <input
                       type="number"
                       value={formData.maxHp || 0}
                       onChange={(event) => handleChange('maxHp', event.target.value)}
-                      className="hide-arrows w-8 border-b border-white/10 bg-transparent text-center text-xs font-bold text-stone-500 outline-none focus:border-amber-500"
+                      className="hide-arrows w-8 border-b border-white/10 bg-transparent text-center text-xs font-bold text-stone-500 outline-none focus:border-[var(--tv-accent)]"
                     />
                   </div>
                 </div>
@@ -224,7 +224,7 @@ export default function PreparationModal({ isOpen, preparation, onClose, onSave,
                     type="number"
                     value={formData.ac || 10}
                     onChange={(event) => handleChange('ac', event.target.value)}
-                    className="hide-arrows w-10 border-b border-white/10 bg-transparent text-center text-lg font-bold text-stone-200 outline-none focus:border-amber-500"
+                    className="hide-arrows w-10 border-b border-white/10 bg-transparent text-center text-lg font-bold text-stone-200 outline-none focus:border-[var(--tv-accent)]"
                   />
                 </div>
 
@@ -234,7 +234,7 @@ export default function PreparationModal({ isOpen, preparation, onClose, onSave,
                     type="number"
                     value={formData.initMod || 0}
                     onChange={(event) => handleChange('initMod', event.target.value)}
-                    className="hide-arrows w-10 border-b border-white/10 bg-transparent text-center text-lg font-bold text-stone-200 outline-none focus:border-amber-500"
+                    className="hide-arrows w-10 border-b border-white/10 bg-transparent text-center text-lg font-bold text-stone-200 outline-none focus:border-[var(--tv-accent)]"
                   />
                 </div>
               </div>
@@ -246,7 +246,7 @@ export default function PreparationModal({ isOpen, preparation, onClose, onSave,
               </h4>
               <div className="flex flex-wrap gap-2">
                 {(formData.customStats || []).map((stat) => (
-                  <div key={stat.id} className="flex items-center overflow-hidden rounded-lg border border-white/10 bg-white/5 shadow-inner transition-colors focus-within:border-amber-500/60">
+                  <div key={stat.id} className="flex items-center overflow-hidden rounded-lg border border-white/10 bg-white/5 shadow-inner transition-colors focus-within:border-[var(--tv-accent)]/60">
                     <input
                       list="preparation-stat-options"
                       value={stat.name}
@@ -254,7 +254,7 @@ export default function PreparationModal({ isOpen, preparation, onClose, onSave,
                         const cleanAbbr = event.target.value.split(' - ')[0].trim().toUpperCase();
                         updateCustomStat(stat.id, 'name', cleanAbbr);
                       }}
-                      className="w-16 border-r border-white/10 bg-transparent p-1.5 text-center text-[10px] font-bold uppercase tracking-widest text-amber-500 outline-none placeholder-stone-600"
+                      className="w-16 border-r border-white/10 bg-transparent p-1.5 text-center text-[10px] font-bold uppercase tracking-widest text-[var(--tv-accent)] outline-none placeholder-stone-600"
                       placeholder="NAAM"
                     />
                     <input
@@ -276,7 +276,7 @@ export default function PreparationModal({ isOpen, preparation, onClose, onSave,
                 <button
                   type="button"
                   onClick={addCustomStat}
-                  className="flex h-8 w-8 items-center justify-center rounded-lg border border-dashed border-white/15 bg-white/5 text-stone-500 transition-colors hover:border-amber-500/60 hover:text-amber-400"
+                  className="flex h-8 w-8 items-center justify-center rounded-lg border border-dashed border-white/15 bg-white/5 text-stone-500 transition-colors hover:border-[var(--tv-accent)]/60 hover:text-[var(--tv-accent)]"
                   title="Voeg eigenschap toe"
                 >
                   <Plus className="h-4 w-4" />
@@ -297,7 +297,7 @@ export default function PreparationModal({ isOpen, preparation, onClose, onSave,
                 value={formData.bio || ''}
                 onChange={(event) => handleChange('bio', event.target.value)}
                 placeholder="Achtergrondverhaal, spreuken, wapens of tijdelijke effecten..."
-                className="w-full flex-1 resize-none rounded-lg border border-white/10 bg-white/5 p-3 text-sm leading-relaxed text-stone-300 transition-colors focus:border-amber-500/60 focus:outline-none"
+                className="w-full flex-1 resize-none rounded-lg border border-white/10 bg-white/5 p-3 text-sm leading-relaxed text-stone-300 transition-colors focus:border-[var(--tv-accent)]/60 focus:outline-none"
               />
             </div>
           </div>

@@ -148,7 +148,7 @@ export default function QRJoinScreen({
                   placeholder="Bijv. Aragorn"
                   maxLength={32}
                   disabled={isBusy}
-                  className="h-11 w-full rounded-lg border border-white/10 bg-white/5 px-4 font-story text-sm text-stone-200 placeholder-stone-600 transition-colors focus:border-amber-400/70 focus:outline-none disabled:opacity-50"
+                  className="h-11 w-full rounded-lg border border-white/10 bg-white/5 px-4 font-story text-sm text-stone-200 placeholder-stone-600 transition-colors focus:border-[var(--tv-accent)]/70 focus:outline-none disabled:opacity-50"
                 />
               </div>
 
@@ -183,7 +183,7 @@ export default function QRJoinScreen({
         {/* Session code hint */}
         <div className="flex flex-col items-center gap-1 opacity-40">
           <span className="font-fantasy text-[9px] uppercase tracking-[0.2em] text-stone-500">Sessiecode</span>
-          <span className="font-fantasy text-xs tracking-[0.14em] text-amber-400/80">{inviteCode}</span>
+          <span className="font-fantasy text-xs tracking-[0.14em] text-[var(--tv-accent)]/80">{inviteCode}</span>
         </div>
 
         {/* Fine print */}
@@ -196,7 +196,7 @@ export default function QRJoinScreen({
             onClick={() => {
               onUseFullLogin?.();
             }}
-            className="text-amber-500/70 underline underline-offset-2 hover:text-amber-400 transition-colors"
+            className="text-[var(--tv-accent)]/70 underline underline-offset-2 hover:text-[var(--tv-accent)] transition-colors"
           >
             Gebruik het aanmeldformulier
           </button>

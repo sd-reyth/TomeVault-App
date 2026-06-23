@@ -99,7 +99,7 @@ function HandoutModal({ isOpen, onClose, handout, role, players = [], currentPla
             <form id="handout-form" onSubmit={handleSave} className="flex flex-col gap-5">
               
               <div className="flex justify-center w-full">
-                <label className="relative group cursor-pointer w-full h-32 md:h-40 rounded-xl border-2 border-dashed border-white/20 bg-white/5 hover:bg-white/7 hover:border-amber-400/50 flex items-center justify-center overflow-hidden transition-all shadow-inner">
+                <label className="relative group cursor-pointer w-full h-32 md:h-40 rounded-xl border-2 border-dashed border-white/20 bg-white/5 hover:bg-white/7 hover:border-[var(--tv-accent)]/50 flex items-center justify-center overflow-hidden transition-all shadow-inner">
                   <input type="file" accept="image/*" className="hidden" onChange={handleImageChange} />
                   {formData.imageUrl ? (
                     <>
@@ -112,7 +112,7 @@ function HandoutModal({ isOpen, onClose, handout, role, players = [], currentPla
                       </div>
                     </>
                   ) : (
-                    <div className="flex flex-col items-center gap-2 text-stone-500 group-hover:text-amber-500 transition-colors">
+                    <div className="flex flex-col items-center gap-2 text-stone-500 group-hover:text-[var(--tv-accent)] transition-colors">
                       <ImagePlus className="w-6 h-6 md:w-8 md:h-8" />
                       <span className="text-[10px] md:text-xs font-bold uppercase tracking-widest">Eigen afbeelding uploaden</span>
                     </div>
@@ -140,8 +140,8 @@ function HandoutModal({ isOpen, onClose, handout, role, players = [], currentPla
                           onClick={() => handlePickPlaceholder(url)}
                           className={`aspect-square rounded-lg overflow-hidden border-2 transition-all ${
                             formData.imageUrl === url
-                              ? 'border-amber-400 shadow-[0_0_8px_rgba(251,146,60,0.5)]'
-                              : 'border-white/10 hover:border-amber-400/50'
+                              ? 'border-[var(--tv-accent)] shadow-[0_0_8px_var(--tv-accent-shadow)]'
+                              : 'border-white/10 hover:border-[var(--tv-accent)]/50'
                           }`}
                         >
                           <img src={url} alt="" className="w-full h-full object-cover scale-[1.25]" loading="lazy" />
@@ -150,7 +150,7 @@ function HandoutModal({ isOpen, onClose, handout, role, players = [], currentPla
                       <button
                         type="button"
                         onClick={() => setShowAllPlaceholders((v) => !v)}
-                        className={`aspect-square rounded-lg border-2 transition-all text-stone-300 font-fantasy text-lg ${showAllPlaceholders ? 'border-amber-400 bg-amber-950/30' : 'border-white/10 hover:border-amber-400/50 bg-white/5'}`}
+                        className={`aspect-square rounded-lg border-2 transition-all text-stone-300 font-fantasy text-lg ${showAllPlaceholders ? 'border-[var(--tv-accent)] bg-[color-mix(in_srgb,var(--tv-accent),transparent_85%)]' : 'border-white/10 hover:border-[var(--tv-accent)]/50 bg-white/5'}`}
                         title="Toon alle placeholders"
                       >
                         ...
@@ -165,7 +165,7 @@ function HandoutModal({ isOpen, onClose, handout, role, players = [], currentPla
                               key={`all-${url}`}
                               type="button"
                               onClick={() => handlePickPlaceholder(url)}
-                              className={`aspect-square rounded-md overflow-hidden border transition-all ${formData.imageUrl === url ? 'border-amber-400 shadow-[0_0_6px_rgba(251,146,60,0.4)]' : 'border-white/10 hover:border-amber-400/50'}`}
+                              className={`aspect-square rounded-md overflow-hidden border transition-all ${formData.imageUrl === url ? 'border-[var(--tv-accent)] shadow-[0_0_6px_var(--tv-accent-shadow-sm)]' : 'border-white/10 hover:border-[var(--tv-accent)]/50'}`}
                             >
                               <img src={url} alt="" className="w-full h-full object-cover scale-[1.25]" loading="lazy" />
                             </button>
@@ -187,7 +187,7 @@ function HandoutModal({ isOpen, onClose, handout, role, players = [], currentPla
                     value={formData.title} 
                     onChange={e => setFormData({...formData, title: e.target.value})}
                     placeholder="Bijv. Geheime Brief van de Koning"
-                    className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-lg font-fantasy font-bold text-stone-100 placeholder-stone-500 focus:outline-none focus:border-amber-400/70 focus:bg-white/7 transition-all duration-200"
+                    className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-lg font-fantasy font-bold text-stone-100 placeholder-stone-500 focus:outline-none focus:border-[var(--tv-accent)]/70 focus:bg-white/7 transition-all duration-200"
                   />
                 </div>
                 <div className="w-full md:w-1/3">
@@ -201,7 +201,7 @@ function HandoutModal({ isOpen, onClose, handout, role, players = [], currentPla
                       assignedToUid: e.target.value === 'npc' ? null : prev.assignedToUid,
                       assignedToNick: e.target.value === 'npc' ? null : prev.assignedToNick,
                     }))}
-                    className="w-full appearance-none rounded-lg border border-white/10 bg-white/5 px-4 py-3 text-sm font-fantasy tracking-wider text-stone-300 transition-colors focus:outline-none focus:border-amber-500/60 focus:bg-white/7"
+                    className="w-full appearance-none rounded-lg border border-white/10 bg-white/5 px-4 py-3 text-sm font-fantasy tracking-wider text-stone-300 transition-colors focus:outline-none focus:border-[var(--tv-accent)]/60 focus:bg-white/7"
                   >
                     <option value="clue">Clue / Document</option>
                     <option value="loot">Loot / Voorwerp</option>
@@ -274,7 +274,7 @@ function HandoutModal({ isOpen, onClose, handout, role, players = [], currentPla
                   value={formData.content} 
                   onChange={e => setFormData({...formData, content: e.target.value})}
                   placeholder="Wat zien of lezen de spelers als ze dit bekijken?"
-                  className="w-full resize-none rounded-lg border border-white/10 bg-white/5 px-4 py-3 text-sm font-story leading-relaxed text-stone-300 placeholder-stone-500 transition-colors focus:outline-none focus:border-amber-500/60"
+                  className="w-full resize-none rounded-lg border border-white/10 bg-white/5 px-4 py-3 text-sm font-story leading-relaxed text-stone-300 placeholder-stone-500 transition-colors focus:outline-none focus:border-[var(--tv-accent)]/60"
                 />
               </div>
 

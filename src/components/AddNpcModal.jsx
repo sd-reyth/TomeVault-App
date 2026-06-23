@@ -73,7 +73,7 @@ export default function AddNpcModal({ isOpen, onClose, onSave }) {
               placeholder="Bijv. Goblin Aanvoerder"
               value={name}
               onChange={e => setName(e.target.value)}
-              className="h-10 w-full rounded-xl border border-white/10 bg-white/5 px-3 text-sm font-story text-stone-200 placeholder-stone-500 transition-all duration-200 focus:outline-none focus:border-rose-400/70 focus:bg-white/7"
+              className="h-10 w-full rounded-xl border border-white/10 bg-white/5 px-3 text-sm text-stone-200 placeholder-stone-500 transition-all duration-200 focus:outline-none focus:border-rose-400/70 focus:bg-white/7"
             />
           </div>
 

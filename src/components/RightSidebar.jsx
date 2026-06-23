@@ -731,6 +731,42 @@ function RightSidebar({
                       : 'border-[var(--tv-accent)]/35 bg-gradient-to-br from-[color-mix(in_srgb,var(--tv-accent),transparent_88%)] to-stone-950 hover:border-[var(--tv-accent)]/55')
                 } ${isActionBusy ? 'opacity-80' : ''}`}
               >
+                <div className="mb-3 flex items-center justify-between gap-3 border-b border-white/10 pb-3">
+                  <div>
+                    <div className="text-[10px] font-semibold uppercase tracking-[0.18em] tv-accent">Slagorde</div>
+                    <div className="mt-1 text-[11px] text-stone-500">Gevechtsstroom en GM-acties in één kaart.</div>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <button
+                      type="button"
+                      onClick={() => setShowInfo((value) => !value)}
+                      className={`inline-flex h-8 w-8 items-center justify-center rounded-full border transition-colors ${showInfo ? 'tv-button-accent-muted' : 'border-stone-800 bg-stone-950/70 text-stone-400 hover:text-stone-200'}`}
+                      title={showInfo ? 'Verberg slagorde-info' : 'Toon slagorde-info'}
+                    >
+                      <Info className="h-3.5 w-3.5" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setIsPinned?.(!isPinned)}
+                      className={`hidden h-8 w-8 items-center justify-center rounded-full border transition-colors md:inline-flex lg:hidden ${
+                        isPinned
+                          ? 'tv-button-accent-muted'
+                          : 'border-stone-800 bg-stone-950/70 text-stone-400 hover:text-stone-200'
+                      }`}
+                      title={isPinned ? 'Losgemaakt — sluit automatisch' : 'Vastzetten — blijft zichtbaar'}
+                    >
+                      {isPinned ? <Pin className="h-3.5 w-3.5" /> : <PinOff className="h-3.5 w-3.5" />}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => onClose?.()}
+                      className={`h-8 w-8 items-center justify-center rounded-full border border-stone-800 bg-stone-950/70 text-stone-400 transition-colors hover:text-rose-300 ${isPinned ? 'hidden' : 'inline-flex lg:hidden'}`}
+                    >
+                      <X className="h-4 w-4" />
+                    </button>
+                  </div>
+                </div>
+
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
                   <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border ${combatStatus === COMBAT_STATUS.ACTIVE ? 'tv-button-accent-muted' : 'border-stone-700/70 bg-stone-950/70 tv-accent'}`}>
                     <StatusIcon className="h-5 w-5" />
@@ -749,36 +785,35 @@ function RightSidebar({
                   </div>
                 </div>
 
-                <div className="mt-3.5 grid grid-cols-1 gap-2.5 sm:grid-cols-[1fr_auto]">
+                <div className="mt-3.5 grid grid-cols-2 gap-2">
                   {statusActionLabel ? (
                     <button
                       type="button"
                       disabled={isActionBusy}
                       onClick={handleStatusAction}
-                      className={`h-10 rounded-lg border px-3 text-xs font-fantasy uppercase tracking-[0.16em] transition-colors ${
+                      aria-label={statusActionLabel}
+                      title={statusActionLabel}
+                      className={`tv-action-square w-full rounded-xl transition-all duration-200 ${
                         combatStatus === COMBAT_STATUS.ACTIVE
                           ? 'tv-button-accent-muted'
                           : combatStatus === COMBAT_STATUS.IDLE
                             ? 'tv-button-primary'
-                            : 'border-stone-700 bg-stone-950 text-stone-200 hover:border-white/20 hover:text-stone-100'
+                            : 'border border-stone-700 bg-stone-950 text-stone-200 hover:border-white/20 hover:text-stone-100 hover:scale-[1.02] active:scale-[0.985]'
                       } ${isActionBusy ? 'cursor-wait opacity-70' : ''}`}
                     >
-                      <span className="inline-flex items-center justify-center gap-1.5">
-                        {combatStatus === COMBAT_STATUS.ACTIVE ? <Shield className="h-3.5 w-3.5" /> : <Swords className="h-3.5 w-3.5" />}
-                        {statusActionLabel}
-                      </span>
+                      {combatStatus === COMBAT_STATUS.ACTIVE ? <Shield className="h-4 w-4" /> : <Swords className="h-4 w-4" />}
                     </button>
-                  ) : <div />}
+                  ) : <div className="tv-action-square w-full rounded-xl border border-dashed border-white/10 bg-white/[0.02]" />}
 
                   <button
                     type="button"
                     onClick={() => setEndCombatConfirmOpen(true)}
                     disabled={!combatInProgress || isActionBusy}
-                    className={`inline-flex h-10 w-full items-center justify-center gap-2 rounded-lg border px-3 transition-colors sm:w-10 sm:px-0 ${combatInProgress && !isActionBusy ? 'border-rose-700/70 bg-rose-950/40 text-rose-300 hover:border-rose-500/80 hover:bg-rose-900/40 hover:text-rose-100' : 'cursor-not-allowed border-stone-800 bg-stone-950/60 text-stone-600'}`}
+                    aria-label="Beëindig gevecht direct"
+                    className={`tv-action-square w-full rounded-xl border transition-all duration-200 ${combatInProgress && !isActionBusy ? 'border-rose-700/70 bg-rose-950/40 text-rose-300 hover:border-rose-500/80 hover:bg-rose-900/40 hover:text-rose-100 hover:scale-[1.02] active:scale-[0.985]' : 'cursor-not-allowed border-stone-800 bg-stone-950/60 text-stone-600'}`}
                     title={combatInProgress ? 'Beëindig gevecht direct' : 'Nog geen gevecht om te beëindigen'}
                   >
                     <Skull className="h-4 w-4" />
-                    <span className="text-xs font-fantasy uppercase tracking-[0.14em] sm:hidden">Beëindig</span>
                   </button>
                 </div>
               </div>
@@ -790,6 +825,34 @@ function RightSidebar({
                     ? 'border-white/15 bg-gradient-to-r from-stone-950 to-stone-900'
                     : 'border-[var(--tv-accent)]/35 bg-gradient-to-br from-[color-mix(in_srgb,var(--tv-accent),transparent_88%)] to-stone-950')
               } ${isMyTurn ? 'ring-1 ring-[var(--tv-accent)]/45 tv-breathe-glow' : ''}`}>
+                <div className="mb-3 flex items-center justify-between gap-3 border-b border-white/10 pb-3">
+                  <div>
+                    <div className="text-[10px] font-semibold uppercase tracking-[0.18em] tv-accent">Slagorde</div>
+                    <div className="mt-1 text-[11px] text-stone-500">Volg beurt, ronde en je plek zonder extra ruis.</div>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <button
+                      type="button"
+                      onClick={() => setIsPinned?.(!isPinned)}
+                      className={`hidden h-8 w-8 items-center justify-center rounded-full border transition-colors md:inline-flex lg:hidden ${
+                        isPinned
+                          ? 'tv-button-accent-muted'
+                          : 'border-stone-800 bg-stone-950/70 text-stone-400 hover:text-stone-200'
+                      }`}
+                      title={isPinned ? 'Losgemaakt — sluit automatisch' : 'Vastzetten — blijft zichtbaar'}
+                    >
+                      {isPinned ? <Pin className="h-3.5 w-3.5" /> : <PinOff className="h-3.5 w-3.5" />}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => onClose?.()}
+                      className={`h-8 w-8 items-center justify-center rounded-full border border-stone-800 bg-stone-950/70 text-stone-400 transition-colors hover:text-rose-300 ${isPinned ? 'hidden' : 'inline-flex lg:hidden'}`}
+                    >
+                      <X className="h-4 w-4" />
+                    </button>
+                  </div>
+                </div>
+
                 <div className="flex flex-col gap-3 pr-0 sm:flex-row sm:items-start sm:pr-12">
                   <div className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border ${combatStatus === COMBAT_STATUS.ACTIVE ? 'tv-button-accent-muted' : 'border-stone-700/70 bg-stone-950/70 tv-accent'} ${isMyTurn ? 'tv-breathe-glow' : ''}`}>
                     <StatusIcon className="h-5 w-5" />
@@ -821,38 +884,6 @@ function RightSidebar({
               </div>
             )}
 
-            <div className="absolute right-3 top-3 flex items-center gap-1.5">
-              {role === 'gm' ? (
-                <button
-                  type="button"
-                  onClick={() => setShowInfo((value) => !value)}
-                  className={`inline-flex h-8 w-8 items-center justify-center rounded-full border transition-colors ${showInfo ? 'tv-button-accent-muted' : 'border-stone-800 bg-stone-950/70 text-stone-400 hover:text-stone-200'}`}
-                  title={showInfo ? 'Verberg slagorde-info' : 'Toon slagorde-info'}
-                >
-                  <Info className="h-3.5 w-3.5" />
-                </button>
-              ) : null}
-
-              <button
-                type="button"
-                onClick={() => setIsPinned?.(!isPinned)}
-                className={`hidden rounded-md p-1.5 transition-colors md:flex lg:hidden ${
-                  isPinned
-                    ? 'tv-button-accent-muted'
-                    : 'text-stone-400 hover:bg-stone-800 hover:text-stone-200'
-                }`}
-                title={isPinned ? 'Losgemaakt — sluit automatisch' : 'Vastzetten — blijft zichtbaar'}
-              >
-                {isPinned ? <Pin className="h-4 w-4" /> : <PinOff className="h-4 w-4" />}
-              </button>
-              <button
-                type="button"
-                onClick={() => onClose?.()}
-                className={`rounded-md p-1 text-stone-400 transition-colors hover:bg-stone-800 hover:text-rose-400 ${isPinned ? 'hidden' : 'lg:hidden'}`}
-              >
-                <X className="h-5 w-5" />
-              </button>
-            </div>
           </div>
 
           {showPlayerRollPanel ? (
@@ -964,11 +995,11 @@ function RightSidebar({
             const ConditionIcon = CONDITION_ICON_MAP[firstConditionMeta?.icon] || AlertCircle;
             const hasAlertFeat = member?.hasAlertFeat === true;
 
-            const cardClassName = `group relative flex cursor-pointer flex-row items-center gap-3 rounded-xl border p-2.5 shadow-sm transition-all hover:shadow-md md:p-3 ${
+            const cardClassName = `group relative flex cursor-pointer flex-row items-center gap-3 rounded-2xl border p-2.5 pr-14 shadow-sm transition-all hover:shadow-md md:p-3 md:pr-14 ${
               member.isNpc
                 ? 'border-rose-900/30 bg-rose-950/20 hover:border-rose-500/50'
                 : 'border-white/10 bg-stone-950/40 hover:border-white/25'
-            } ${hasConditions ? (CONDITION_COLORS[conditionColor] || '') : ''} ${isCurrentTurn ? (battleActive ? 'ring-1 ring-[var(--tv-accent)]/60 bg-[color-mix(in_srgb,var(--tv-accent),transparent_92%)] shadow-[0_0_12px_color-mix(in_srgb,var(--tv-accent),transparent_60%)]' : 'ring-1 ring-stone-600') : ''}`;
+            } ${hasConditions ? `tv-condition-pulse ${CONDITION_COLORS[conditionColor] || ''}` : ''} ${isCurrentTurn ? (battleActive ? 'ring-1 ring-[var(--tv-accent)]/60 bg-[color-mix(in_srgb,var(--tv-accent),transparent_92%)] shadow-[0_0_12px_color-mix(in_srgb,var(--tv-accent),transparent_60%)]' : 'ring-1 ring-stone-600') : ''}`;
 
             return (
               <div
@@ -980,66 +1011,72 @@ function RightSidebar({
                   <div className={`absolute -left-[1px] top-0 bottom-0 w-[3px] rounded-l-lg ${battleActive ? 'tv-breathe-glow' : 'bg-stone-500'}`} style={battleActive ? {background: 'var(--tv-accent)'} : {}} />
                 ) : null}
 
-                {hasConditions ? (
-                  <button
-                    type="button"
-                    onClick={(event) => {
-                      event.stopPropagation();
-                      if (isGm) openConditionsEditor(member);
-                    }}
-                    className={`absolute -top-2 -left-2 z-20 rounded-full border p-1 shadow-md ${CONDITION_BADGE_COLORS[conditionColor] || CONDITION_BADGE_COLORS.slate} ${isGm ? 'cursor-pointer hover:brightness-110' : 'cursor-default'}`}
-                    title={activeConditions.map((c) => getCondition(c.id)?.label).filter(Boolean).join(', ')}
-                  >
-                    <ConditionIcon className="h-3.5 w-3.5" />
-                    {extraConditionsCount > 0 ? (
-                      <span className="absolute -right-2 -top-2 inline-flex h-4 min-w-4 items-center justify-center rounded-full border border-stone-950 bg-stone-100 px-1 text-[9px] font-bold leading-none text-stone-900">
-                        +{extraConditionsCount}
-                      </span>
-                    ) : null}
-                  </button>
-                ) : (isGm ? (
-                  <button
-                    type="button"
-                    onClick={(event) => {
-                      event.stopPropagation();
-                      openConditionsEditor(member);
-                    }}
-                    className="absolute -top-2 -left-2 z-20 rounded-full border border-stone-700 bg-stone-950 p-1 text-stone-600 shadow-md transition-colors hover:border-white/25 hover:bg-stone-900 hover:text-stone-300 lg:opacity-0 lg:group-hover:opacity-100"
-                    title="Voeg conditions toe"
-                  >
-                    <AlertCircle className="h-4 w-4" />
-                  </button>
-                ) : null)}
+                {/* Action Panel */}
+                <div className="absolute bottom-1.5 right-1.5 top-1.5 z-10 flex w-11 flex-col items-center justify-start gap-2 overflow-hidden rounded-xl border border-white/8 bg-black/20 px-1 py-2 shadow-inner backdrop-blur-sm transition-all duration-200 ease-out md:w-11 md:translate-x-6 md:opacity-0 md:group-hover:translate-x-0 md:group-hover:opacity-100 md:group-focus-within:translate-x-0 md:group-focus-within:opacity-100">
+                  {/* Conditions Button */}
+                  {hasConditions ? (
+                    <button
+                      type="button"
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        if (isGm) openConditionsEditor(member);
+                      }}
+                      className={`tv-action-square-sm relative border shadow-md transition-all duration-200 hover:scale-110 active:scale-95 ${CONDITION_BADGE_COLORS[conditionColor] || CONDITION_BADGE_COLORS.slate} ${isGm ? 'cursor-pointer' : 'cursor-default'}`}
+                      title={activeConditions.map((c) => getCondition(c.id)?.label).filter(Boolean).join(', ')}
+                    >
+                      <ConditionIcon className="h-3.5 w-3.5" />
+                      {extraConditionsCount > 0 ? (
+                        <span className="absolute -right-2 -top-2 inline-flex h-4 min-w-4 items-center justify-center rounded-full border border-stone-950 bg-stone-100 px-1 text-[9px] font-bold leading-none text-stone-900">
+                          +{extraConditionsCount}
+                        </span>
+                      ) : null}
+                    </button>
+                  ) : (isGm ? (
+                    <button
+                      type="button"
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        openConditionsEditor(member);
+                      }}
+                      className="tv-action-square-sm border border-stone-700 bg-stone-950 text-stone-600 shadow-md transition-all duration-200 hover:border-white/25 hover:bg-stone-900 hover:text-stone-300 hover:scale-110 active:scale-95"
+                      title="Voeg conditions toe"
+                    >
+                      <AlertCircle className="h-4 w-4" />
+                    </button>
+                  ) : null)}
 
-                {isGm && member.isNpc ? (
-                  <button
-                    type="button"
-                    onClick={(event) => {
-                      event.stopPropagation();
-                      handleRemoveNpc(member.id);
-                    }}
-                    disabled={!canManageRoster}
-                    className={`absolute -top-2 -right-2 z-20 rounded-full border p-1.5 shadow-md transition-opacity ${canManageRoster ? 'border-rose-900 bg-rose-950 text-rose-500 opacity-100 hover:bg-rose-900 hover:text-rose-200 lg:opacity-0 lg:group-hover:opacity-100' : 'cursor-not-allowed border-stone-800 bg-stone-900 text-stone-600 opacity-100'}`}
-                    title={canManageRoster ? 'Verwijder NPC' : 'Pauzeer gevecht om NPC’s te beheren'}
-                  >
-                    <Trash2 className="h-3.5 w-3.5" />
-                  </button>
-                ) : null}
+                  {/* Delete NPC Button */}
+                  {isGm && member.isNpc ? (
+                    <button
+                      type="button"
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        handleRemoveNpc(member.id);
+                      }}
+                      disabled={!canManageRoster}
+                      className={`tv-action-square-sm border shadow-md transition-all duration-200 hover:scale-110 active:scale-95 ${canManageRoster ? 'border-rose-900 bg-rose-950 text-rose-500 hover:bg-rose-900 hover:text-rose-200' : 'cursor-not-allowed border-stone-800 bg-stone-900 text-stone-600'}`}
+                      title={canManageRoster ? 'Verwijder NPC' : 'Pauzeer gevecht om NPC\'s te beheren'}
+                    >
+                      <Trash2 className="h-3.5 w-3.5" />
+                    </button>
+                  ) : null}
 
-                {isGm && !member.isNpc && member.id !== currentPlayerId ? (
-                  <button
-                    type="button"
-                    onClick={(event) => {
-                      event.stopPropagation();
-                      setKickTarget(member);
-                    }}
-                    disabled={isActionBusy}
-                    className={`absolute -top-2 -right-2 z-20 rounded-full border p-1.5 shadow-md transition-opacity ${isActionBusy ? 'cursor-not-allowed border-stone-800 bg-stone-900 text-stone-600 opacity-100' : 'border-stone-700 bg-stone-950 text-stone-400 opacity-100 hover:bg-stone-800 hover:text-stone-100 lg:opacity-0 lg:group-hover:opacity-100'}`}
-                    title="Verwijder speler uit dit gevecht"
-                  >
-                    <UserMinus className="h-3.5 w-3.5" />
-                  </button>
-                ) : null}
+                  {/* Kick Player Button */}
+                  {isGm && !member.isNpc && member.id !== currentPlayerId ? (
+                    <button
+                      type="button"
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        setKickTarget(member);
+                      }}
+                      disabled={isActionBusy}
+                      className={`tv-action-square-sm border shadow-md transition-all duration-200 hover:scale-110 active:scale-95 ${isActionBusy ? 'cursor-not-allowed border-stone-800 bg-stone-900 text-stone-600' : 'border-stone-700 bg-stone-950 text-stone-400 hover:bg-stone-800 hover:text-stone-100'}`}
+                      title="Verwijder speler uit dit gevecht"
+                    >
+                      <UserMinus className="h-3.5 w-3.5" />
+                    </button>
+                  ) : null}
+                </div>
 
                 <div className={`flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-lg border font-fantasy text-lg font-bold shadow-inner transition-all md:h-11 md:w-11 ${
                   member.isNpc ? 'border-rose-900/50 bg-rose-950/40 text-rose-400' : 'border-white/10 bg-stone-900/80 tv-accent'
@@ -1120,49 +1157,39 @@ function RightSidebar({
         </div>
 
         {role === 'gm' ? (
-          <div className="space-y-2.5 border-t border-white/10 bg-zinc-950/84 px-3.5 pt-3 pb-[calc(env(safe-area-inset-bottom,0px)+0.625rem)] md:px-4 md:pt-3.5 md:pb-3">
-            <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+          <div className="border-t border-white/10 bg-zinc-950/84 px-3.5 pt-3 pb-[calc(env(safe-area-inset-bottom,0px)+0.625rem)] md:px-4 md:pt-3.5 md:pb-3">
+            <div className={`grid gap-2 ${battleActive ? 'grid-cols-3' : 'grid-cols-2'}`}>
               <button
                 type="button"
                 onClick={handleRollAll}
                 disabled={combatInProgress || isActionBusy}
                 title="Rol alle initiative"
                 aria-label="Rol alle initiative"
-                className={`h-9 rounded-lg border text-xs font-fantasy uppercase tracking-[0.14em] transition-colors shadow-inner ${combatInProgress ? 'cursor-not-allowed border-stone-800 bg-stone-950/60 text-stone-600' : 'border-stone-700 bg-stone-950 text-stone-300 hover:border-white/25 hover:bg-stone-800 hover:text-stone-100'}`}
+                className={`tv-action-square w-full rounded-xl border shadow-inner transition-all duration-200 ${combatInProgress ? 'cursor-not-allowed border-stone-800 bg-stone-950/60 text-stone-600' : 'border-stone-700 bg-stone-950 text-stone-300 hover:border-white/25 hover:bg-stone-800 hover:text-stone-100 hover:scale-[1.02] active:scale-[0.985]'}`}
               >
-                <span className="inline-flex items-center justify-center gap-1.5">
-                  <Dice5 className="h-3.5 w-3.5" />
-                  <span className="hidden xl:inline">Rol Allen</span>
-                </span>
+                <Dice5 className="h-4 w-4" />
               </button>
               <button
                 type="button"
                 onClick={onOpenNpcModal}
                 disabled={!canManageRoster || isActionBusy}
-                className={`h-9 rounded-lg border text-xs font-fantasy uppercase tracking-[0.14em] transition-colors shadow-inner ${canManageRoster ? 'border-stone-700 bg-stone-950 text-stone-300 hover:border-white/25 hover:bg-stone-800 hover:text-stone-100' : 'cursor-not-allowed border-stone-800 bg-stone-950/60 text-stone-600'}`}
+                aria-label="Voeg een losse NPC toe"
+                className={`tv-action-square w-full rounded-xl border shadow-inner transition-all duration-200 ${canManageRoster ? 'border-stone-700 bg-stone-950 text-stone-300 hover:border-white/25 hover:bg-stone-800 hover:text-stone-100 hover:scale-[1.02] active:scale-[0.985]' : 'cursor-not-allowed border-stone-800 bg-stone-950/60 text-stone-600'}`}
                 title={canManageRoster ? 'Voeg een losse NPC toe' : 'Pauzeer gevecht om NPC’s te beheren'}
               >
-                <span className="inline-flex items-center justify-center gap-1.5">
-                  <UserPlus className="h-3.5 w-3.5" />
-                  <span className="hidden xl:inline">NPC</span>
-                </span>
+                <UserPlus className="h-4 w-4" />
               </button>
-            </div>
-
-            {battleActive ? (
               <button
                 type="button"
                 onClick={handleAdvanceTurn}
                 disabled={isActionBusy}
-                className="flex h-11 w-full items-center justify-center gap-2 rounded-xl text-sm uppercase tracking-[0.14em] transition-all duration-200 ease-out disabled:cursor-not-allowed disabled:opacity-60 tv-button-primary"
+                aria-label="Volgende beurt"
+                title="Volgende beurt"
+                className={`tv-action-square w-full rounded-xl transition-all duration-200 ease-out disabled:cursor-not-allowed disabled:opacity-60 ${battleActive ? 'tv-button-primary' : 'hidden'}`}
               >
-                <span className="inline-flex items-center justify-center gap-2">
-                  <ChevronRight className="h-4 w-4" />
-                  Volgende
-                </span>
+                <ChevronRight className="h-4 w-4" />
               </button>
-            ) : null}
-
+            </div>
           </div>
         ) : null}
       </aside>

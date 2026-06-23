@@ -85,8 +85,11 @@ function NotesView({
   return (
     <div className="flex h-full flex-col gap-4 md:gap-6 lg:flex-row">
       <div className="tv-panel-shell h-52 w-full shrink-0 overflow-hidden sm:h-60 lg:h-full lg:w-1/3">
-        <div className="tv-panel-header flex items-center justify-between gap-3 px-4 py-4 md:px-5">
-          <h3 className="tv-panel-title">Kronieken</h3>
+        <div className="flex items-center justify-between gap-3 border-b border-white/10 bg-white/5 px-4 py-4 shadow-sm md:px-5">
+          <div>
+            <h3 className="tv-panel-title">Kronieken</h3>
+            <p className="mt-1 text-[11px] text-stone-500">Persoonlijke notities zonder losse panelen of extra ruis.</p>
+          </div>
           <button 
             onClick={handleCreateNote}
             className="tv-button-primary inline-flex h-10 w-10 items-center justify-center rounded-xl transition-all duration-200 ease-out active:scale-[0.985]"
@@ -108,12 +111,12 @@ function NotesView({
                 onClick={() => setActiveNoteId(note.id)}
                 className={`group flex cursor-pointer items-start justify-between rounded-xl p-3 transition-all duration-200 ease-out
                   ${activeNoteId === note.id 
-                    ? 'border border-amber-500/25 bg-amber-500/10 shadow-inner' 
+                    ? 'border border-[var(--tv-accent)]/25 bg-[color-mix(in_srgb,var(--tv-accent),transparent_88%)] shadow-inner' 
                     : 'border border-transparent hover:bg-white/7'}
                 `}
               >
                 <div className="min-w-0 flex-1 pr-2">
-                  <h4 className={`truncate text-sm tracking-[0.08em] ${activeNoteId === note.id ? 'text-amber-300' : 'text-stone-300 group-hover:text-stone-100'}`}>
+                  <h4 className={`truncate text-sm tracking-[0.08em] ${activeNoteId === note.id ? 'tv-accent' : 'text-stone-300 group-hover:text-stone-100'}`}>
                     {note.title}
                   </h4>
                   <p className="text-[10px] text-stone-500 mt-1">{note.lastEdited}</p>
@@ -136,6 +139,13 @@ function NotesView({
         
         {activeNote ? (
           <div className="relative z-10 flex h-full flex-1 flex-col p-5 md:p-6">
+            <div className="mb-4 flex items-center justify-between gap-3 border-b border-white/10 pb-3">
+              <div>
+                <div className="text-[10px] font-semibold uppercase tracking-[0.18em] tv-accent">Fluistertoon</div>
+                <div className="mt-1 text-xs text-stone-500">Schrijfvlak met dezelfde rustige kopstructuur als partychat.</div>
+              </div>
+              <span className="rounded-full border border-white/10 bg-white/5 px-2.5 py-1 text-[10px] uppercase tracking-[0.16em] text-stone-400">Privé</span>
+            </div>
             <input
               type="text"
               value={activeNote.title}

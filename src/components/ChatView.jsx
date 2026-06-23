@@ -328,8 +328,8 @@ function ChatView({ chat, setChat, role, uid, playerName, preferredChatColor, th
 
       {/* Header */}
       <div className="relative z-10 flex shrink-0 flex-col gap-2 border-b border-white/10 bg-white/5 p-3 shadow-sm sm:flex-row sm:items-center sm:justify-between md:p-4">
-        <h2 className="flex items-center gap-2 text-xs font-medium uppercase tracking-[0.18em] text-stone-100 md:text-sm">
-          <MessageSquare className="h-4 w-4 text-amber-300" /> Fluisteringen
+        <h2 className="flex items-center gap-2 text-xs font-medium font-fantasy uppercase tracking-[0.18em] text-stone-100 md:text-sm">
+          <MessageSquare className="h-4 w-4 text-[var(--tv-accent)]" /> Fluisteringen
         </h2>
         <button
           onClick={() => setShowColorPicker(true)}
@@ -473,16 +473,16 @@ function ChatView({ chat, setChat, role, uid, playerName, preferredChatColor, th
                       const visibleLines = isExpanded ? parsedDiceMessage.lines : parsedDiceMessage.lines.slice(0, 2);
 
                       return (
-                        <div className="mx-auto w-[262px] max-w-full rounded-2xl border border-amber-500/20 bg-black/25 p-2.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] md:w-[286px] md:p-3">
+                        <div className="mx-auto w-[262px] max-w-full rounded-2xl border border-[var(--tv-accent)]/20 bg-black/25 p-2.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] md:w-[286px] md:p-3">
                           <div className="grid grid-cols-[86px_minmax(0,1fr)] items-stretch gap-2">
-                            <div className="flex min-h-[84px] shrink-0 flex-col justify-center rounded-xl border border-amber-500/25 bg-[radial-gradient(circle_at_top,rgba(251,191,36,0.18),rgba(120,53,15,0.16)_58%,rgba(0,0,0,0)_100%)] px-2 py-2 text-center">
-                              <div className="mb-1 inline-flex items-center gap-1 text-[8px] font-semibold uppercase tracking-[0.16em] text-amber-200/90">
+                            <div className="flex min-h-[84px] shrink-0 flex-col justify-center rounded-xl border border-[var(--tv-accent)]/25 bg-[radial-gradient(circle_at_top,color-mix(in_srgb,var(--tv-accent),transparent 75%),color-mix(in_srgb,var(--tv-accent),transparent 80%_58%,rgba(0,0,0,0)_100%)] px-2 py-2 text-center">
+                              <div className="mb-1 inline-flex items-center gap-1 text-[8px] font-semibold uppercase tracking-[0.16em] text-[var(--tv-accent)]/90">
                                 <svg viewBox="0 0 24 24" className="h-3 w-3" fill="none" aria-hidden="true" style={{ color: '#fde68a' }}>
                                   <path d={mdiDiceMultiple} fill="currentColor" />
                                 </svg>
                                 Totaal
                               </div>
-                              <div className="font-fantasy text-4xl leading-none tracking-[0.08em] text-amber-100 drop-shadow-[0_0_10px_rgba(251,191,36,0.35)] md:text-[2.65rem]">
+                              <div className="font-fantasy text-4xl leading-none tracking-[0.08em] text-[var(--tv-accent)] drop-shadow-[0_0_10px_var(--tv-accent-shadow)] md:text-[2.65rem]">
                                 {parsedDiceMessage.total}
                               </div>
                             </div>
@@ -575,7 +575,7 @@ function ChatView({ chat, setChat, role, uid, playerName, preferredChatColor, th
         {/* Reply preview */}
         {replyingTo && !editingMsg && (
           <div className="flex items-start gap-2 px-3 pb-1 pt-2.5">
-            <div className="flex-1 overflow-hidden rounded-lg border-l-2 border-indigo-500 bg-white/5 px-2.5 py-1.5 text-[11px] italic text-stone-400">
+            <div className="flex-1 overflow-hidden rounded-lg border-l-2 border-[var(--tv-accent)] bg-white/5 px-2.5 py-1.5 text-[11px] italic text-stone-400">
               <span className="mb-0.5 block text-[10px] font-medium not-italic text-indigo-300">{replyingTo.author}</span>
               <span className="line-clamp-1">{replyingTo.text}</span>
             </div>
@@ -589,7 +589,7 @@ function ChatView({ chat, setChat, role, uid, playerName, preferredChatColor, th
         {editingMsg && (
           <div className="flex items-start gap-2 px-3 pb-1 pt-2.5">
             <div className="flex-1 overflow-hidden rounded-lg border-l-2 border-amber-500 bg-white/5 px-2.5 py-1.5 text-[11px] text-stone-400">
-              <span className="mb-0.5 block text-[10px] font-semibold uppercase tracking-wider text-amber-300">Bewerk modus</span>
+              <span className="mb-0.5 block text-[10px] font-semibold uppercase tracking-wider text-[var(--tv-accent)]">Bewerk modus</span>
               <span className="line-clamp-1 italic opacity-60">{editingMsg.text}</span>
             </div>
             <button onClick={cancelEdit} className="mt-1 shrink-0 text-stone-600 transition-colors hover:text-stone-400">
@@ -606,7 +606,7 @@ function ChatView({ chat, setChat, role, uid, playerName, preferredChatColor, th
             onChange={e => setMsg(e.target.value)}
             onClick={() => { if (!chatColor) setShowColorPicker(true); }}
             placeholder={chatColor ? (editingMsg ? 'Pas je bericht aan...' : 'Spreek in de schaduwen...') : 'Kies eerst een kleur...'}
-            className="h-10 min-w-0 w-full flex-[1_1_100%] rounded-xl border border-white/10 bg-white/5 px-3 text-sm italic text-stone-100 transition-colors placeholder-stone-500 focus:border-amber-500/50 focus:bg-white/7 focus:outline-none md:px-4 sm:flex-[1_1_auto]"
+            className="h-10 min-w-0 w-full flex-[1_1_100%] rounded-xl border border-white/10 bg-white/5 px-3 text-sm italic text-stone-100 transition-colors placeholder-stone-500 focus:border-[var(--tv-accent)]/50 focus:bg-white/7 focus:outline-none md:px-4 sm:flex-[1_1_auto]"
           />
           <div className={`flex items-center gap-2 ${editingMsg ? 'w-full sm:w-auto' : 'ml-auto sm:ml-0'}`}>
             {!editingMsg && (

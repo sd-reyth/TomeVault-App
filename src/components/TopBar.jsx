@@ -259,7 +259,7 @@ export default function TopBar({ role, sessionId, sessionNumber, theme, combatSt
             <button
               type="button"
               onClick={onToggleAmbiencePanel}
-              className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border px-0 shadow-inner transition-all duration-200 ease-out active:scale-[0.985] md:w-auto md:gap-2.5 md:px-3.5 ${ambience?.isPlaying ? 'border-white/10 bg-white/7 text-stone-100' : 'border-white/10 bg-white/5 text-stone-300 hover:bg-white/7 hover:text-stone-100'}`}
+              className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border px-0 shadow-inner transition-all duration-200 ease-out active:scale-[0.985] md:w-auto md:gap-2.5 md:px-3.5 ${ambience?.isPlaying ? 'border-white/10 bg-white/7 text-stone-100 tv-breathe-glow' : 'border-white/10 bg-white/5 text-stone-300 hover:bg-white/7 hover:text-stone-100'}`}
               title={isPlayer ? 'Open audio-instellingen' : (ambience?.isPlaying ? 'Open actieve sessiesfeer' : 'Open sferenpaneel')}
             >
               <span className="relative flex h-7 w-7 items-center justify-center rounded-lg bg-white/5">

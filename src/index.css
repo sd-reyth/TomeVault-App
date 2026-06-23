@@ -212,11 +212,39 @@ body {
     color 180ms ease,
     box-shadow 180ms ease,
     transform 180ms ease;
+  transform: translateY(0);
 }
 
 .tv-button-secondary:hover {
   background: color-mix(in srgb, var(--tv-accent), transparent 90%);
   border-color: color-mix(in srgb, var(--tv-accent), transparent 52%);
+  transform: translateY(-0.5px);
+  filter: brightness(1.04);
+}
+
+.tv-button-secondary:active {
+  transform: translateY(0) scale(0.985);
+  filter: brightness(0.98);
+}
+
+.tv-action-square,
+.tv-action-square-sm {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.tv-action-square {
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 0.75rem;
+}
+
+.tv-action-square-sm {
+  width: 2rem;
+  height: 2rem;
+  border-radius: 0.625rem;
 }
 
 .tv-button-primary {
@@ -1163,6 +1191,11 @@ body {
   100% { background-position: 200% center; }
 }
 
+@keyframes tv-condition-pulse {
+  0%, 100% { box-shadow: 0 0 8px color-mix(in srgb, var(--tv-accent), transparent 70%), inset 0 0 0 1px currentColor; }
+  50% { box-shadow: 0 0 16px color-mix(in srgb, var(--tv-accent), transparent 40%), inset 0 0 0 1px currentColor; }
+}
+
 @keyframes tv-breathe-glow {
   0%, 100% { box-shadow: 0 0 6px color-mix(in srgb, var(--tv-accent), transparent 72%); }
   50% { box-shadow: 0 0 18px color-mix(in srgb, var(--tv-accent), transparent 36%); }
@@ -1171,6 +1204,20 @@ body {
 @keyframes tv-pulse-ring {
   0%, 100% { opacity: 1; }
   50% { opacity: 0.55; }
+}
+
+/* Glow utilities */
+.tv-card-hover {
+  transition: all 200ms ease;
+}
+
+.tv-card-hover:hover {
+  box-shadow: 0 6px 20px color-mix(in srgb, var(--tv-accent), transparent 78%) !important;
+  transform: translateY(-2px);
+}
+
+.tv-condition-pulse {
+  animation: tv-condition-pulse 2.8s ease-in-out infinite;
 }
 
 /* Sweeping shimmer for fantasy headings */
@@ -1251,6 +1298,17 @@ body {
   background: color-mix(in srgb, var(--tv-bg-canvas) 84%, transparent);
   border-color: color-mix(in srgb, var(--tv-border), transparent 38%);
   color: var(--tv-text-primary);
+}
+
+/* ==================== TOPBAR SPECIFIC STYLING ==================== */
+header {
+  overflow: visible !important;
+  position: relative;
+}
+
+/* Session menu dropdown - ensure it's clickable and visible */
+header > div {
+  overflow: visible !important;
 }
 
 .tv-topbar-bg {

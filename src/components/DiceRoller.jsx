@@ -130,18 +130,18 @@ export default function DiceRoller({ onRoll, theme, embedded = false }) {
 
   return (
     <div
-      className={embedded ? 'w-full rounded-2xl border p-3.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]' : 'mx-auto w-full max-w-sm rounded-2xl border p-4 shadow-2xl'}
+      className={embedded ? 'w-full rounded-2xl border p-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] sm:p-3.5' : 'mx-auto w-full max-w-sm rounded-2xl border p-4 shadow-2xl'}
       style={{
         borderColor: palette.panelBorder,
         backgroundImage: palette.panelBg,
         boxShadow: embedded ? undefined : rollActionAccent.boxShadow,
       }}
     >
-      <div className="flex flex-col gap-2.5 w-full">
+      <div className={`w-full ${embedded ? 'grid grid-cols-1 gap-2 sm:grid-cols-2' : 'flex flex-col gap-2.5'}`}>
         {dice.map((d, idx) => (
           <div
             key={d.label}
-            className="flex items-center w-full rounded-2xl border px-3 py-2.5"
+            className={`flex w-full items-center rounded-2xl border ${embedded ? 'px-2.5 py-2 sm:px-3 sm:py-2.5' : 'px-3 py-2.5'}`}
             style={{
               borderColor: palette.rowBorder,
               backgroundColor: palette.rowBg,
@@ -151,13 +151,13 @@ export default function DiceRoller({ onRoll, theme, embedded = false }) {
               <span className="inline-flex h-6 w-6 items-center justify-center">
                 <DiceTypeIcon sides={d.sides} className="h-5 w-5" />
               </span>
-              <span className="w-10 font-mono text-base leading-none" style={{ color: palette.labelColor }}>{d.label}</span>
+              <span className="w-10 font-fantasy text-base leading-none" style={{ color: palette.labelColor }}>{d.label}</span>
             </div>
 
-            <div className="ml-auto inline-flex items-center gap-2">
+            <div className="ml-auto inline-flex items-center gap-1.5 sm:gap-2">
               <button
                 type="button"
-                className="h-8 w-8 rounded-xl border text-sm disabled:opacity-40 transition-colors"
+                className={`${embedded ? 'h-7 w-7 sm:h-8 sm:w-8' : 'h-8 w-8'} rounded-xl border text-sm disabled:opacity-40 transition-all hover:scale-105 active:scale-95`}
                 style={{
                   borderColor: palette.stepperBorder,
                   backgroundColor: palette.stepperBg,
@@ -169,10 +169,10 @@ export default function DiceRoller({ onRoll, theme, embedded = false }) {
               >
                 -
               </button>
-              <span className="w-8 text-center text-lg tabular-nums" style={{ color: palette.countColor }}>{d.count}</span>
+              <span className={`${embedded ? 'w-7 text-base sm:w-8 sm:text-lg' : 'w-8 text-lg'} text-center tabular-nums`} style={{ color: palette.countColor }}>{d.count}</span>
               <button
                 type="button"
-                className="h-8 w-8 rounded-xl border text-sm disabled:opacity-40 transition-colors"
+                className={`${embedded ? 'h-7 w-7 sm:h-8 sm:w-8' : 'h-8 w-8'} rounded-xl border text-sm disabled:opacity-40 transition-all hover:scale-105 active:scale-95`}
                 style={{
                   borderColor: palette.stepperBorder,
                   backgroundColor: palette.stepperBg,
@@ -195,7 +195,7 @@ export default function DiceRoller({ onRoll, theme, embedded = false }) {
 
       <button
         type="button"
-        className="mt-4 block w-full rounded-2xl px-6 py-3 text-stone-100 font-fantasy text-xl uppercase tracking-[0.16em] shadow transition-all duration-200 hover:brightness-110 disabled:opacity-40"
+        className={`mt-4 block w-full rounded-2xl px-6 text-stone-100 font-fantasy uppercase tracking-[0.16em] shadow transition-all duration-200 hover:brightness-110 disabled:opacity-40 ${embedded ? 'py-2.5 text-lg sm:py-3 sm:text-xl' : 'py-3 text-xl'}`}
         style={rollActionAccent}
         onClick={handleRoll}
         disabled={dice.every((d) => d.count === 0) || totalDiceSelected > MAX_DICE_PER_ROLL}

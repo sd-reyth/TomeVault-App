@@ -37,7 +37,7 @@ export default function DamageModal({ isOpen, onClose, target, onSave }) {
     >
           <div className="text-center mb-2">
             <span className="text-stone-400 text-sm uppercase tracking-widest font-bold">Huidige HP:</span>
-            <div className={`text-5xl font-fantasy font-bold mt-2 ${target.hp < 10 ? 'text-rose-500' : 'text-amber-500'}`}>
+            <div className={`text-5xl font-fantasy font-bold mt-2 ${target.hp < 10 ? 'text-rose-500' : 'text-[var(--tv-accent)]'}`}>
               {target.hp}
             </div>
           </div>
@@ -49,7 +49,7 @@ export default function DamageModal({ isOpen, onClose, target, onSave }) {
               placeholder="Voer hoeveelheid in..."
               value={amount}
               onChange={e => setAmount(e.target.value)}
-              className="w-full h-9 bg-white/5 border border-white/10 rounded-lg px-4 text-center text-xl text-stone-200 focus:outline-none focus:border-amber-400/70 focus:bg-white/7 transition-colors font-sans hide-arrows"
+              className="w-full h-9 bg-white/5 border border-white/10 rounded-lg px-4 text-center text-xl text-stone-200 focus:outline-none focus:border-[var(--tv-accent)]/70 focus:bg-white/7 transition-colors font-sans hide-arrows"
             />
           </div>
 
@@ -62,7 +62,7 @@ export default function DamageModal({ isOpen, onClose, target, onSave }) {
             </button>
             <button 
               onClick={handleHeal}
-              className="h-9 inline-flex w-full items-center justify-center bg-amber-950/30 hover:bg-amber-900/40 border border-amber-800/50 text-amber-300 rounded-lg font-fantasy uppercase tracking-[0.16em] text-sm transition-all duration-200 shadow-sm active:scale-95"
+              className="h-9 inline-flex w-full items-center justify-center bg-emerald-950/30 hover:bg-emerald-900/40 border border-emerald-800/50 text-emerald-300 rounded-lg font-fantasy uppercase tracking-[0.16em] text-sm transition-all duration-200 shadow-sm active:scale-95"
             >
               + Genezing
             </button>

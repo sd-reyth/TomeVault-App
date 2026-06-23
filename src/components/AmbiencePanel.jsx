@@ -83,7 +83,7 @@ export default function AmbiencePanel({
                 <button
                   type="button"
                   onClick={() => setExpandedId(isExpanded ? null : track.id)}
-                  className={`shrink-0 h-11 w-10 flex items-center justify-center transition-colors ${isExpanded ? 'text-amber-400' : 'text-stone-600 hover:text-stone-400'}`}
+                  className={`shrink-0 h-11 w-10 flex items-center justify-center transition-colors ${isExpanded ? 'text-[var(--tv-accent)]' : 'text-stone-600 hover:text-stone-400'}`}
                 >
                   {isExpanded ? <X className="h-3.5 w-3.5" /> : <Info className="h-3.5 w-3.5" />}
                 </button>
@@ -101,7 +101,7 @@ export default function AmbiencePanel({
                     href={track.source.url}
                     target="_blank"
                     rel="noreferrer"
-                    className="inline-flex items-center gap-1.5 text-[10px] uppercase tracking-[0.14em] text-stone-400 hover:text-amber-300 transition-colors"
+                    className="inline-flex items-center gap-1.5 text-[10px] uppercase tracking-[0.14em] text-stone-400 hover:text-[var(--tv-accent)] transition-colors"
                   >
                     <ExternalLink className="h-3 w-3" />
                     Open bron
@@ -224,13 +224,13 @@ export default function AmbiencePanel({
 
           {/* Audio unlock warning */}
           {needsAudioUnlock && (
-            <div className="rounded-xl border border-amber-700/40 bg-amber-950/35 px-4 py-3 text-sm text-amber-100">
+            <div className="rounded-xl border border-rose-700/40 bg-rose-950/35 px-4 py-3 text-sm text-rose-100">
               <div className="font-fantasy tracking-[0.12em]">Audio wacht op een klik</div>
-              <p className="mt-1 text-amber-100/80">De browser blokkeerde autoplay. Gebruik deze knop om de sfeer direct te activeren.</p>
+              <p className="mt-1 text-rose-100/80">De browser blokkeerde autoplay. Gebruik deze knop om de sfeer direct te activeren.</p>
               <button
                 type="button"
                 onClick={onUnlockAudio}
-                className="mt-3 h-9 inline-flex items-center gap-2 rounded-lg border border-amber-600/50 bg-amber-800/40 px-3 text-xs font-semibold uppercase tracking-[0.18em] text-amber-50 transition-colors hover:bg-amber-700/45"
+                className="mt-3 h-9 inline-flex items-center gap-2 rounded-lg border border-rose-600/50 bg-rose-800/40 px-3 text-xs font-semibold uppercase tracking-[0.18em] text-rose-50 transition-colors hover:bg-rose-700/45"
               >
                 <Music2 className="h-4 w-4" />
                 Audio inschakelen

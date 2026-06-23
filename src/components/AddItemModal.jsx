@@ -115,7 +115,7 @@ function AddItemModal({ isOpen, onClose, onSave, role, party, currentPlayerId, i
 
             <div>
               <label className="mb-1.5 block text-[10px] font-bold uppercase tracking-widest text-stone-400">Afbeelding</label>
-              <label className="relative flex h-24 w-full cursor-pointer items-center justify-center overflow-hidden rounded-xl border border-dashed border-white/20 bg-white/5 shadow-inner transition-all hover:border-amber-400/50 hover:bg-white/7 group">
+              <label className="relative flex h-24 w-full cursor-pointer items-center justify-center overflow-hidden rounded-xl border border-dashed border-white/20 bg-white/5 shadow-inner transition-all hover:border-[var(--tv-accent)]/50 hover:bg-white/7 group">
                 <input type="file" accept="image/*" className="hidden" onChange={handleImageChange} />
                 {formData.imageUrl ? (
                   <>
@@ -125,7 +125,7 @@ function AddItemModal({ isOpen, onClose, onSave, role, party, currentPlayerId, i
                     </div>
                   </>
                 ) : (
-                  <div className="flex flex-col items-center gap-1 text-stone-500 group-hover:text-amber-500 transition-colors">
+                    <div className="flex flex-col items-center gap-1 text-stone-500 group-hover:text-[var(--tv-accent)] transition-colors">
                     <ImagePlus className="w-5 h-5" />
                     <span className="text-[10px] uppercase tracking-widest font-bold">Upload</span>
                   </div>
@@ -142,7 +142,7 @@ function AddItemModal({ isOpen, onClose, onSave, role, party, currentPlayerId, i
                       key={url}
                       type="button"
                       onClick={() => handlePickPlaceholder(url)}
-                      className={`aspect-square rounded-md overflow-hidden border transition-all duration-200 hover:scale-110 active:scale-95 ${formData.imageUrl === url ? 'border-amber-400 shadow-[0_0_6px_rgba(251,146,60,0.4)]' : 'border-white/10 hover:border-amber-400/50'}`}
+                      className={`aspect-square rounded-md overflow-hidden border transition-all duration-200 hover:scale-110 active:scale-95 ${formData.imageUrl === url ? 'border-[var(--tv-accent)] shadow-[0_0_6px_var(--tv-accent-shadow-sm)]' : 'border-white/10 hover:border-[var(--tv-accent)]/50'}`}
                     >
                       <img src={url} alt="" className="w-full h-full object-cover scale-[1.25]" loading="lazy" />
                     </button>

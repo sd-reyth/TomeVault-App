@@ -22,7 +22,7 @@ function ItemCard({ item, role, currentPlayerId, canManageInventory, onUpdateIte
         <div className="flex justify-between items-start gap-2 mb-1">
           <span className="pr-2 text-sm font-medium leading-tight tracking-[0.08em] text-stone-100">{item.name}</span>
           <div className="flex items-center gap-1.5 md:gap-2 shrink-0">
-            <span className="rounded border border-amber-500/25 bg-amber-500/10 px-1.5 py-0.5 text-[10px] font-semibold text-amber-300 shadow-sm">x{item.amount}</span>
+            <span className="rounded border border-[var(--tv-accent)]/25 bg-[color-mix(in_srgb,var(--tv-accent),transparent_90%)] px-1.5 py-0.5 text-[10px] font-semibold text-[var(--tv-accent)] shadow-sm">x{item.amount}</span>
             {(role === 'gm' || item.ownerId === currentPlayerId) && (
               <div className="flex items-center gap-1 rounded border border-white/10 bg-zinc-950/80 px-1 py-0.5">
                 {role === 'gm' && (
@@ -38,7 +38,7 @@ function ItemCard({ item, role, currentPlayerId, canManageInventory, onUpdateIte
                     <button
                       type="button"
                       onClick={() => onUpdateItemAmount?.(item.id, Number(item.amount || 0) + 1)}
-                      className="h-4 w-4 rounded border border-white/10 text-[10px] leading-none text-stone-400 transition-colors hover:border-amber-400/35 hover:text-amber-300 md:h-5 md:w-5 md:text-xs"
+                      className="h-4 w-4 rounded border border-white/10 text-[10px] leading-none text-stone-400 transition-colors hover:border-[var(--tv-accent)]/35 hover:text-[var(--tv-accent)] md:h-5 md:w-5 md:text-xs"
                       title="Verhoog aantal"
                     >
                       +
@@ -89,14 +89,16 @@ function InventoryView({ role, inventory, wallets, party, currentPlayerId, hando
 
   return (
     <div className="h-full flex flex-col">
-      <div className="mb-6 flex flex-col gap-4 border-b border-white/10 pb-4 md:mb-8 sm:flex-row sm:items-end sm:justify-between sm:gap-3">
-        <div>
-          <h2 className="font-fantasy text-2xl font-bold tracking-[0.1em] tv-heading-shimmer md:text-3xl">De Schatkamer</h2>
-          <p className="mt-1 text-xs italic text-stone-400 md:mt-2 md:text-sm">Goudstukken, uitrusting en magische artefacten.</p>
+      <div className="mb-6 overflow-hidden rounded-2xl border border-white/10 bg-white/5 shadow-sm backdrop-blur-sm md:mb-8">
+        <div className="flex flex-col gap-4 border-b border-white/10 bg-white/5 p-3 shadow-sm sm:flex-row sm:items-center sm:justify-between sm:gap-3 md:p-4">
+          <div>
+            <h2 className="font-fantasy text-2xl font-bold tracking-[0.1em] tv-heading-shimmer md:text-3xl">De Schatkamer</h2>
+            <p className="mt-1 text-xs italic text-stone-400 md:text-sm">Goudstukken, uitrusting en magische artefacten.</p>
+          </div>
+          <button onClick={onOpenAddItem} className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-xl px-4 text-sm uppercase tracking-[0.16em] active:scale-[0.985] sm:w-auto tv-button-primary">
+            <Plus className="h-4 w-4 shrink-0" /> <span>Nieuw item</span>
+          </button>
         </div>
-        <button onClick={onOpenAddItem} className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-xl px-4 text-sm uppercase tracking-[0.16em] active:scale-[0.985] sm:w-auto tv-button-primary">
-          <Plus className="h-4 w-4 shrink-0" /> <span>Nieuw item</span>
-        </button>
       </div>
 
       <div className="flex-1 overflow-y-auto space-y-6 md:space-y-8 no-scrollbar pb-10">
@@ -137,7 +139,7 @@ function InventoryView({ role, inventory, wallets, party, currentPlayerId, hando
                 <div className="flex h-8 w-8 items-center justify-center overflow-hidden rounded-lg border border-white/10 bg-zinc-950 text-amber-300 shadow-inner">
                   <img src={resolveDisplayAvatar(player.avatar, player.id)} alt="Avatar" className="w-full h-full object-cover" />
                 </div>
-                <h3 className="text-lg font-semibold tracking-[0.12em] text-amber-300 md:text-xl">{player.name}</h3>
+                <h3 className="text-lg font-semibold tracking-[0.12em] text-[var(--tv-accent)] md:text-xl">{player.name}</h3>
               </div>
 
               <WalletSection
@@ -158,13 +160,13 @@ function InventoryView({ role, inventory, wallets, party, currentPlayerId, hando
                         value={searchByPlayer[player.id] || ''}
                         onChange={(e) => setSearchByPlayer((prev) => ({ ...prev, [player.id]: e.target.value }))}
                         placeholder="Zoek item..."
-                        className="h-10 w-full rounded-xl border border-white/10 bg-white/5 pl-7 pr-2 text-xs text-stone-200 transition-colors focus:border-amber-500/50 focus:bg-white/7 focus:outline-none sm:w-full"
+                        className="h-10 w-full rounded-xl border border-white/10 bg-white/5 pl-7 pr-2 text-xs text-stone-200 transition-colors focus:border-[var(--tv-accent)]/50 focus:bg-white/7 focus:outline-none sm:w-full"
                       />
                     </div>
                     <select
                       value={filterByPlayer[player.id] || 'all'}
                       onChange={(e) => setFilterByPlayer((prev) => ({ ...prev, [player.id]: e.target.value }))}
-                      className="h-10 w-full rounded-xl border border-white/10 bg-white/5 px-2 text-xs text-stone-200 transition-colors focus:border-amber-500/50 focus:bg-white/7 focus:outline-none sm:w-auto sm:min-w-[140px]"
+                      className="h-10 w-full rounded-xl border border-white/10 bg-white/5 px-2 text-xs text-stone-200 transition-colors focus:border-[var(--tv-accent)]/50 focus:bg-white/7 focus:outline-none sm:w-auto sm:min-w-[140px]"
                     >
                       {categoryOptions.map((opt) => (
                         <option key={opt.value} value={opt.value}>{opt.label}</option>
@@ -217,7 +219,7 @@ function InventoryView({ role, inventory, wallets, party, currentPlayerId, hando
                         return (
                           <div
                             key={handout.id}
-                            className="group flex cursor-pointer items-start gap-3 rounded-xl border border-white/10 bg-white/5 p-3 shadow-sm transition-all duration-200 ease-out hover:border-amber-500/25 hover:bg-white/7"
+                            className="group flex cursor-pointer items-start gap-3 rounded-xl border border-white/10 bg-white/5 p-3 shadow-sm transition-all duration-200 ease-out hover:border-[var(--tv-accent)]/25 hover:bg-white/7"
                             onClick={() => onOpenHandout(handout)}
                           >
                             <div className="relative flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-white/10 bg-zinc-950 shadow-inner">
@@ -229,7 +231,7 @@ function InventoryView({ role, inventory, wallets, party, currentPlayerId, hando
                             </div>
                             <div className="flex-1 min-w-0 flex flex-col justify-center">
                               <span className="truncate text-sm font-medium tracking-[0.08em] text-stone-100">{handout.title}</span>
-                              <span className="mt-1 text-[9px] font-semibold uppercase tracking-widest text-amber-300">{handout.type}</span>
+                              <span className="mt-1 text-[9px] font-semibold uppercase tracking-widest text-[var(--tv-accent)]">{handout.type}</span>
                             </div>
 
                             {(role === 'gm' || player.id === currentPlayerId) && (

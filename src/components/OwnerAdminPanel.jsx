@@ -141,7 +141,7 @@ export default function OwnerAdminPanel({ isOpen, onClose, uid, isOwner = false 
       maxWidthClassName="max-w-2xl"
       bodyClassName="gap-5 sm:gap-6"
     >
-      <div className="rounded-2xl border border-amber-800/40 bg-amber-950/20 p-4 text-sm text-amber-100/90">
+      <div className="rounded-2xl border border-[var(--tv-accent)]/40 bg-[color-mix(in_srgb,var(--tv-accent),transparent_80%)] p-4 text-sm text-[var(--tv-accent)]/90">
         Dit is de snelle owner-flow voor handmatige upgrades. Free plannen blijven impliciet: zonder entitlement krijgt een gebruiker automatisch GM Free of Player Free, afhankelijk van de context waarin hij de app gebruikt.
       </div>
 
@@ -155,13 +155,13 @@ export default function OwnerAdminPanel({ isOpen, onClose, uid, isOwner = false 
                 value={searchEmail}
                 onChange={(event) => setSearchEmail(event.target.value)}
                 placeholder="tester@example.com"
-                className="h-10 flex-1 rounded-lg border border-white/10 bg-white/5 px-3 text-sm text-stone-200 placeholder:text-stone-500 focus:border-amber-400/70 focus:outline-none focus:bg-white/7 transition-all duration-200"
+                className="h-10 flex-1 rounded-lg border border-white/10 bg-white/5 px-3 text-sm text-stone-200 placeholder:text-stone-500 focus:border-[var(--tv-accent)]/70 focus:outline-none focus:bg-white/7 transition-all duration-200"
               />
               <button
                 type="button"
                 onClick={handleLookupUser}
                 disabled={loading}
-                className="inline-flex h-10 shrink-0 items-center justify-center gap-2 rounded-lg border border-white/10 bg-white/5 px-4 font-fantasy text-xs uppercase tracking-[0.16em] text-stone-300 transition-all duration-200 hover:border-amber-400/50 hover:bg-white/7 hover:text-amber-200 active:scale-95 disabled:opacity-50"
+                className="inline-flex h-10 shrink-0 items-center justify-center gap-2 rounded-lg border border-white/10 bg-white/5 px-4 font-fantasy text-xs uppercase tracking-[0.16em] text-stone-300 transition-all duration-200 hover:border-[var(--tv-accent)]/50 hover:bg-white/7 hover:text-[var(--tv-accent)]/80 active:scale-95 disabled:opacity-50"
               >
                 <Search className="h-4 w-4" /> Zoek
               </button>
@@ -176,10 +176,10 @@ export default function OwnerAdminPanel({ isOpen, onClose, uid, isOwner = false 
                   <p className="mt-1 text-sm text-stone-400">{resolvedUser.email || searchEmail}</p>
                   <p className="mt-2 text-xs uppercase tracking-[0.16em] text-stone-500">UID: {resolvedUser.id}</p>
                   {resolvedUser.lastKnownRole ? (
-                    <p className="mt-2 text-xs uppercase tracking-[0.16em] text-amber-400">Laatste bekende rol: {resolvedUser.lastKnownRole}</p>
+                    <p className="mt-2 text-xs uppercase tracking-[0.16em] text-[var(--tv-accent)]">Laatste bekende rol: {resolvedUser.lastKnownRole}</p>
                   ) : null}
                 </div>
-                <div className="rounded-full border border-amber-700/40 bg-amber-950/30 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.18em] text-amber-200">
+                <div className="rounded-full border border-[var(--tv-accent)]/40 bg-[color-mix(in_srgb,var(--tv-accent),transparent_70%)] px-3 py-1 text-[10px] font-bold uppercase tracking-[0.18em] text-[var(--tv-accent)]/90">
                   Gevonden
                 </div>
               </div>
@@ -210,7 +210,7 @@ export default function OwnerAdminPanel({ isOpen, onClose, uid, isOwner = false 
             <select
               value={selectedPlanId}
               onChange={(event) => setSelectedPlanId(event.target.value)}
-              className="h-10 w-full rounded-lg border border-stone-700 bg-stone-950/80 px-3 text-sm text-stone-200 focus:border-amber-600/50 focus:outline-none"
+              className="h-10 w-full rounded-lg border border-stone-700 bg-stone-950/80 px-3 text-sm text-stone-200 focus:border-[var(--tv-accent)]/50 focus:outline-none"
             >
               {OWNER_GRANTABLE_PLAN_IDS.map((planId) => {
                 const plan = getPlanDefinition(planId, 'gm');
@@ -224,7 +224,7 @@ export default function OwnerAdminPanel({ isOpen, onClose, uid, isOwner = false 
             <select
               value={selectedDurationKey}
               onChange={(event) => setSelectedDurationKey(event.target.value)}
-              className="h-10 w-full rounded-lg border border-stone-700 bg-stone-950/80 px-3 text-sm text-stone-200 focus:border-amber-600/50 focus:outline-none"
+              className="h-10 w-full rounded-lg border border-stone-700 bg-stone-950/80 px-3 text-sm text-stone-200 focus:border-[var(--tv-accent)]/50 focus:outline-none"
             >
               {durationOptions.map(([key, option]) => (
                 <option key={key} value={key}>{option.label}</option>
