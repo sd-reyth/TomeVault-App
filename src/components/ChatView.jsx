@@ -325,12 +325,12 @@ function ChatView({ chat, setChat, role, uid, playerName, preferredChatColor, th
   return (
     <div className="tv-view-shell relative z-10 h-full">
       <div className="tv-view-shell-header flex shrink-0 flex-col gap-2 p-3 sm:flex-row sm:items-center sm:justify-between md:p-4">
-        <h2 className="flex items-center gap-2 text-xs font-medium font-fantasy uppercase tracking-[0.18em] text-stone-100 md:text-sm">
+        <h2 className="flex items-center gap-2 text-xs font-medium font-fantasy uppercase tracking-[0.18em] tv-text md:text-sm">
           <MessageSquare className="h-4 w-4 text-[var(--tv-accent)]" /> Fluisteringen
         </h2>
         <button
           onClick={() => setShowColorPicker(true)}
-          className="inline-flex w-full items-center justify-between gap-1.5 rounded-xl border border-white/10 bg-white/5 px-2.5 py-2 text-stone-300 transition-all duration-200 ease-out hover:bg-white/7 hover:text-stone-100 active:scale-[0.985] sm:w-auto sm:justify-start"
+          className="inline-flex w-full items-center justify-between gap-1.5 rounded-xl border border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] tv-panel-inset px-2.5 py-2 tv-text transition-all duration-200 ease-out hover:bg-white/7 hover:tv-text active:scale-[0.985] sm:w-auto sm:justify-start"
           title="Kies je chatkleur"
         >
           {chatColor
@@ -346,16 +346,16 @@ function ChatView({ chat, setChat, role, uid, playerName, preferredChatColor, th
       {/* Color picker overlay */}
       {showColorPicker && (
         <div className="absolute inset-0 z-30 flex items-start justify-center overflow-y-auto bg-zinc-950/86 p-3 backdrop-blur-md sm:p-4">
-          <div className="my-auto w-full max-w-sm shrink-0 rounded-3xl border border-white/10 bg-zinc-950 p-4 shadow-[0_20px_60px_rgba(0,0,0,0.4)] sm:p-6">
+          <div className="my-auto w-full max-w-sm shrink-0 rounded-3xl border border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] bg-zinc-950 p-4 shadow-[0_20px_60px_rgba(0,0,0,0.4)] sm:p-6">
             <div className="flex justify-between items-center mb-1">
-              <h3 className="text-sm uppercase tracking-[0.18em] text-stone-100">Kies jouw kleur</h3>
+              <h3 className="text-sm uppercase tracking-[0.18em] tv-text">Kies jouw kleur</h3>
               {chatColor && (
-                <button onClick={() => setShowColorPicker(false)} className="rounded-full p-1 text-stone-500 transition-colors hover:bg-white/5 hover:text-stone-100">
+                <button onClick={() => setShowColorPicker(false)} className="rounded-full p-1 tv-muted transition-colors hover:tv-panel-inset hover:tv-text">
                   <X className="w-4 h-4" />
                 </button>
               )}
             </div>
-            <p className="mb-4 text-xs italic text-stone-500">
+            <p className="mb-4 text-xs italic tv-muted">
               {role === 'gm'
                 ? 'Als Game Master kies je als eerste - jouw kleur is gereserveerd voor jou.'
                 : 'Grijze kleuren zijn bezet door andere spelers.'}
@@ -375,14 +375,14 @@ function ChatView({ chat, setChat, role, uid, playerName, preferredChatColor, th
                         ? 'border-white/20 bg-white/7 scale-105 shadow-lg'
                         : occupied
                         ? 'cursor-not-allowed border-white/5 opacity-25'
-                        : 'cursor-pointer border-white/10 hover:border-white/20 hover:bg-white/5'
+                        : 'cursor-pointer border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] hover:border-white/20 hover:tv-panel-inset'
                     }`}
                   >
                     <span
                       className="w-8 h-8 rounded-full"
                       style={{ backgroundColor: c.swatch, boxShadow: `0 0 10px ${c.swatch}66` }}
                     />
-                    <span className="w-full truncate text-center text-[8px] font-medium uppercase leading-none text-stone-400">{c.name}</span>
+                    <span className="w-full truncate text-center text-[8px] font-medium uppercase leading-none tv-text-sub">{c.name}</span>
                     {isActive && (
                       <span className="absolute right-1 top-1 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-white shadow">
                         <Check className="w-2 h-2 text-stone-900" strokeWidth={3} />
@@ -428,7 +428,7 @@ function ChatView({ chat, setChat, role, uid, playerName, preferredChatColor, th
                   <span className="text-[10px] font-medium tracking-[0.14em] md:text-xs" style={{ color: cs.swatch }}>
                     {c.author}
                   </span>
-                  <span className="text-[8px] text-stone-500 md:text-[9px]">{c.date ? `${c.date} • ${c.time}` : c.time}</span>
+                  <span className="text-[8px] tv-muted md:text-[9px]">{c.date ? `${c.date} • ${c.time}` : c.time}</span>
                 </div>
               )}
 
@@ -485,19 +485,19 @@ function ChatView({ chat, setChat, role, uid, playerName, preferredChatColor, th
                               </div>
                             </div>
 
-                            <div className="flex min-h-[84px] min-w-0 flex-1 flex-col justify-center rounded-xl border border-white/10 bg-white/5 p-1.5 font-mono text-[11px] text-stone-200 md:text-xs">
+                            <div className="flex min-h-[84px] min-w-0 flex-1 flex-col justify-center rounded-xl border border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] tv-panel-inset p-1.5 font-mono text-[11px] tv-text md:text-xs">
                               {visibleLines.map((entry, index) => {
                                 const rolls = Array.isArray(entry.rolls) ? entry.rolls : [];
                                 const shownRolls = isExpanded ? rolls : rolls.slice(0, maxCollapsedRollsPerLine);
                                 const hasHiddenRolls = !isExpanded && rolls.length > maxCollapsedRollsPerLine;
 
                                 return (
-                                  <div key={`${entry.raw}-${index}`} className="rounded-lg border border-white/10 bg-black/10 px-2 py-1.5">
-                                    <div className="flex items-center gap-1.5 text-[11px] font-semibold text-stone-100">
+                                  <div key={`${entry.raw}-${index}`} className="rounded-lg border border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] bg-black/10 px-2 py-1.5">
+                                    <div className="flex items-center gap-1.5 text-[11px] font-semibold tv-text">
                                       {entry.sides ? <ChatDiceIcon sides={entry.sides} className="h-3.5 w-3.5 shrink-0" /> : null}
                                       <span>Werpt {entry.raw}</span>
                                     </div>
-                                    <div className="mt-0.5 break-words tabular-nums text-stone-300">
+                                    <div className="mt-0.5 break-words tabular-nums tv-text">
                                       = {shownRolls.join(' + ')}
                                       {hasHiddenRolls ? ' + ...' : ''}
                                     </div>
@@ -512,7 +512,7 @@ function ChatView({ chat, setChat, role, uid, playerName, preferredChatColor, th
                               <button
                                 type="button"
                                 onClick={() => toggleDiceMessageExpansion(c.id)}
-                                className="text-[10px] font-semibold uppercase tracking-[0.12em] text-stone-400 transition-colors hover:text-stone-100"
+                                className="text-[10px] font-semibold uppercase tracking-[0.12em] tv-text-sub transition-colors hover:tv-text"
                                 aria-label={isExpanded ? 'Verberg berekening' : 'Toon volledige berekening'}
                               >
                                 {isExpanded ? 'Minder details' : 'Meer details'}
@@ -531,23 +531,23 @@ function ChatView({ chat, setChat, role, uid, playerName, preferredChatColor, th
                 {activeMenu === c.id && (
                   <div
                     ref={menuRef}
-                    className={`absolute bottom-full z-20 min-w-[140px] overflow-hidden rounded-2xl border border-white/10 bg-zinc-950 py-1 shadow-[0_18px_50px_rgba(0,0,0,0.34)] ${isOwn ? 'right-0' : 'left-0'} mb-1.5`}
+                    className={`absolute bottom-full z-20 min-w-[140px] overflow-hidden rounded-2xl border border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] bg-zinc-950 py-1 shadow-[0_18px_50px_rgba(0,0,0,0.34)] ${isOwn ? 'right-0' : 'left-0'} mb-1.5`}
                   >
                     <button
                       onClick={() => startReply(c)}
-                      className="flex w-full items-center gap-2.5 px-3 py-2 text-[11px] text-stone-300 transition-colors hover:bg-white/5 hover:text-stone-100"
+                      className="flex w-full items-center gap-2.5 px-3 py-2 text-[11px] tv-text transition-colors hover:tv-panel-inset hover:tv-text"
                     >
-                      <CornerUpLeft className="h-3.5 w-3.5 shrink-0 text-stone-500" />
+                      <CornerUpLeft className="h-3.5 w-3.5 shrink-0 tv-muted" />
                       Beantwoord
                     </button>
                     {isOwn && (
                       <>
-                        <div className="mx-2 my-0.5 border-t border-white/10" />
+                        <div className="mx-2 my-0.5 border-t border-[color-mix(in_srgb,var(--tv-border),transparent_42%)]" />
                         <button
                           onClick={() => startEdit(c)}
-                          className="flex w-full items-center gap-2.5 px-3 py-2 text-[11px] text-stone-300 transition-colors hover:bg-white/5 hover:text-stone-100"
+                          className="flex w-full items-center gap-2.5 px-3 py-2 text-[11px] tv-text transition-colors hover:tv-panel-inset hover:tv-text"
                         >
-                          <Pencil className="h-3.5 w-3.5 shrink-0 text-stone-500" />
+                          <Pencil className="h-3.5 w-3.5 shrink-0 tv-muted" />
                           Bewerk
                         </button>
                         <button
@@ -573,11 +573,11 @@ function ChatView({ chat, setChat, role, uid, playerName, preferredChatColor, th
         {/* Reply preview */}
         {replyingTo && !editingMsg && (
           <div className="flex items-start gap-2 px-3 pb-1 pt-2.5">
-            <div className="flex-1 overflow-hidden rounded-lg border-l-2 border-[var(--tv-accent)] bg-white/5 px-2.5 py-1.5 text-[11px] italic text-stone-400">
+            <div className="flex-1 overflow-hidden rounded-lg border-l-2 border-[var(--tv-accent)] tv-panel-inset px-2.5 py-1.5 text-[11px] italic tv-text-sub">
               <span className="mb-0.5 block text-[10px] font-medium not-italic text-indigo-300">{replyingTo.author}</span>
               <span className="line-clamp-1">{replyingTo.text}</span>
             </div>
-            <button onClick={() => setReplyingTo(null)} className="mt-1 shrink-0 text-stone-600 transition-colors hover:text-stone-400">
+            <button onClick={() => setReplyingTo(null)} className="mt-1 shrink-0 tv-muted transition-colors hover:tv-text-sub">
               <X className="w-3.5 h-3.5" />
             </button>
           </div>
@@ -586,11 +586,11 @@ function ChatView({ chat, setChat, role, uid, playerName, preferredChatColor, th
         {/* Edit mode indicator */}
         {editingMsg && (
           <div className="flex items-start gap-2 px-3 pb-1 pt-2.5">
-            <div className="flex-1 overflow-hidden rounded-lg border-l-2 border-amber-500 bg-white/5 px-2.5 py-1.5 text-[11px] text-stone-400">
+            <div className="flex-1 overflow-hidden rounded-lg border-l-2 border-amber-500 tv-panel-inset px-2.5 py-1.5 text-[11px] tv-text-sub">
               <span className="mb-0.5 block text-[10px] font-semibold uppercase tracking-wider text-[var(--tv-accent)]">Bewerk modus</span>
               <span className="line-clamp-1 italic opacity-60">{editingMsg.text}</span>
             </div>
-            <button onClick={cancelEdit} className="mt-1 shrink-0 text-stone-600 transition-colors hover:text-stone-400">
+            <button onClick={cancelEdit} className="mt-1 shrink-0 tv-muted transition-colors hover:tv-text-sub">
               <X className="w-3.5 h-3.5" />
             </button>
           </div>
@@ -624,7 +624,7 @@ function ChatView({ chat, setChat, role, uid, playerName, preferredChatColor, th
               disabled={isSending}
               title={editingMsg ? 'Bewerking opslaan' : 'Bericht versturen'}
               aria-label={editingMsg ? 'Bewerking opslaan' : 'Bericht versturen'}
-              className={`inline-flex h-10 items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/7 px-3.5 text-sm font-medium uppercase tracking-[0.16em] text-stone-100 transition-all duration-200 ease-out hover:bg-white/10 hover:text-white disabled:opacity-50 active:scale-[0.985] md:px-4 ${editingMsg ? 'flex-1 sm:flex-none' : 'shrink-0'}`}
+              className={`inline-flex h-10 items-center justify-center gap-2 rounded-xl border border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] bg-white/7 px-3.5 text-sm font-medium uppercase tracking-[0.16em] tv-text transition-all duration-200 ease-out hover:bg-white/10 hover:text-white disabled:opacity-50 active:scale-[0.985] md:px-4 ${editingMsg ? 'flex-1 sm:flex-none' : 'shrink-0'}`}
             >
               {editingMsg ? <Check className="w-4 h-4" /> : <SendHorizontal className="w-4 h-4" />}
             </button>

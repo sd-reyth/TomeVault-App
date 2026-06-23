@@ -39,33 +39,31 @@ export default function AddNpcModal({ isOpen, onClose, onSave }) {
     <ModalFrame
       isOpen={isOpen}
       onClose={onClose}
-      title="NPC Toevoegen"
+      title="NPC"
       icon={UserPlus}
-      bodyClassName="px-5 py-5 sm:px-6 sm:py-6"
     >
         <form onSubmit={handleSave} className="flex flex-col gap-4">
           
           <div className="flex justify-center mb-1">
-            <label className="relative flex h-20 w-20 cursor-pointer items-center justify-center overflow-hidden rounded-xl border-2 border-dashed border-rose-700/40 bg-white/5 shadow-inner transition-all hover:bg-white/7 md:h-24 md:w-24 group">
+            <label className="relative flex h-20 w-20 cursor-pointer items-center justify-center overflow-hidden rounded-xl border-2 border-dashed border-rose-700/40 tv-panel-inset shadow-inner transition-all hover:opacity-90 md:h-24 md:w-24 group">
               <input type="file" accept="image/*" className="hidden" onChange={handleImageChange} />
               {avatarUrl ? (
                 <>
                   <img src={avatarUrl} alt="NPC Portret preview" className="w-full h-full object-cover opacity-80 group-hover:opacity-50 transition-opacity" />
                   <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                    <ImagePlus className="w-6 h-6 text-stone-200 drop-shadow-md" />
+                    <ImagePlus className="w-6 h-6 tv-text drop-shadow-md" />
                   </div>
                 </>
               ) : (
-                <div className="flex flex-col items-center gap-1 text-stone-500 group-hover:text-rose-400 transition-colors">
+                <div className="flex flex-col items-center gap-1 tv-muted group-hover:text-rose-400 transition-colors">
                   <ImagePlus className="w-5 h-5 md:w-6 md:h-6" />
-                  <span className="text-[7px] md:text-[8px] font-bold uppercase tracking-widest">Portret</span>
                 </div>
               )}
             </label>
           </div>
 
           <div>
-            <label className="mb-1.5 block text-[10px] font-bold uppercase tracking-widest text-stone-400">Naam</label>
+            <label className="tv-label mb-1.5 block">Naam</label>
             <input 
               autoFocus
               type="text" 
@@ -73,54 +71,54 @@ export default function AddNpcModal({ isOpen, onClose, onSave }) {
               placeholder="Bijv. Goblin Aanvoerder"
               value={name}
               onChange={e => setName(e.target.value)}
-              className="h-10 w-full rounded-xl border border-white/10 bg-white/5 px-3 text-sm text-stone-200 placeholder-stone-500 transition-all duration-200 focus:outline-none focus:border-rose-400/70 focus:bg-white/7"
+              className="tv-field"
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-3 rounded-xl border border-white/10 bg-white/5 p-3 shadow-inner sm:grid-cols-3">
+          <div className="grid grid-cols-2 gap-3 tv-panel-inset p-3 sm:grid-cols-3">
             <div>
-              <label className="mb-1.5 block text-[10px] font-bold uppercase tracking-widest text-stone-400">HP</label>
+              <label className="tv-label mb-1.5 block">HP</label>
               <input 
                 type="number" 
                 required
                 value={hp}
                 onChange={e => setHp(e.target.value)}
-                className="h-10 w-full rounded-xl border border-white/10 bg-zinc-950/55 px-3 text-center text-sm font-sans text-stone-200 transition-all duration-200 focus:outline-none focus:border-rose-400/70 hide-arrows"
+                className="tv-field hide-arrows text-center"
               />
             </div>
             <div>
-              <label className="mb-1.5 block text-[10px] font-bold uppercase tracking-widest text-stone-400">AC</label>
+              <label className="tv-label mb-1.5 block">AC</label>
               <input 
                 type="number" 
                 required
                 value={ac}
                 onChange={e => setAc(e.target.value)}
-                className="h-10 w-full rounded-xl border border-white/10 bg-zinc-950/55 px-3 text-center text-sm font-sans text-stone-200 transition-all duration-200 focus:outline-none focus:border-rose-400/70 hide-arrows"
+                className="tv-field hide-arrows text-center"
               />
             </div>
             <div>
-              <label className="mb-1.5 block text-[10px] font-bold uppercase tracking-widest text-stone-400" title="Initiative Modifier">Init Mod</label>
+              <label className="tv-label mb-1.5 block" title="Initiative Modifier">Init</label>
               <input 
                 type="number" 
                 required
                 value={initMod}
                 onChange={e => setInitMod(e.target.value)}
-                className="h-10 w-full rounded-xl border border-white/10 bg-zinc-950/55 px-3 text-center text-sm font-sans text-stone-200 transition-all duration-200 focus:outline-none focus:border-rose-400/70 hide-arrows col-span-2 sm:col-span-1"
+                className="tv-field hide-arrows text-center col-span-2 sm:col-span-1"
               />
             </div>
           </div>
 
-          <div className="mt-4 flex flex-col-reverse gap-3 sm:flex-row">
+          <div className="mt-2 flex flex-col-reverse gap-3 sm:flex-row">
             <button 
               type="button"
               onClick={onClose}
-              className="h-10 flex-1 inline-flex items-center justify-center bg-white/5 hover:bg-white/7 border border-white/10 text-stone-300 rounded-lg font-fantasy uppercase tracking-[0.16em] text-sm transition-all duration-200 active:scale-95"
+              className="tv-button-secondary h-10 flex-1 rounded-lg"
             >
-              Annuleren
+              Annuleer
             </button>
             <button 
               type="submit"
-              className="h-10 flex-1 inline-flex items-center justify-center border border-rose-800/50 bg-gradient-to-r from-rose-800 to-rose-700 hover:from-rose-700 hover:to-rose-600 text-stone-100 rounded-lg font-fantasy uppercase tracking-[0.16em] text-sm transition-all duration-200 shadow-sm active:scale-95"
+              className="tv-button-primary h-10 flex-1 rounded-lg"
             >
               Toevoegen
             </button>

@@ -164,27 +164,28 @@ function TurnClockBadge({ turnsUntil, ratio, isCurrentTurn, theme = 'dark' }) {
   );
 }
 
-function OverlayDialog({ title, description, children, onClose, actions, showCloseButton = true, theme = 'dark' }) {
+function OverlayDialog({ title, description, children, onClose, actions, showCloseButton = true }) {
   return (
     <div className="tv-backdrop fixed inset-0 z-[70] flex items-center justify-center p-4 backdrop-blur-md">
-      <div className="tv-surface tv-text w-full max-w-md overflow-hidden rounded-3xl border shadow-[0_24px_70px_rgba(0,0,0,0.36)]">
-        <div className="flex items-center justify-between border-b border-white/10 px-5 py-4">
-          <div>
-            <h3 className="font-fantasy text-lg tracking-[0.14em] tv-text">{title}</h3>
-            {description ? <p className="mt-1 text-sm leading-6 tv-text-sub">{description}</p> : null}
+      <div className="tv-surface tv-text w-full max-w-md overflow-hidden rounded-3xl shadow-[0_24px_70px_rgba(0,0,0,0.36)]">
+        <div className="tv-modal-header items-center">
+          <div className="min-w-0">
+            <h3 className="tv-title-section">{title}</h3>
+            {description ? <p className="tv-meta mt-1">{description}</p> : null}
           </div>
           {showCloseButton ? (
             <button
               type="button"
               onClick={onClose}
-              className="rounded-lg p-1 transition-colors tv-text-sub hover:bg-white/10"
+              aria-label="Sluiten"
+              className="tv-icon-btn shrink-0"
             >
               <X className="h-5 w-5" />
             </button>
-          ) : <div className="h-7 w-7" />}
+          ) : <div className="h-9 w-9 shrink-0" />}
         </div>
         <div className="px-5 py-4">{children}</div>
-        <div className="flex items-center justify-end gap-3 border-t border-white/10 px-5 py-4 bg-white/5">
+        <div className="tv-modal-footer">
           {actions}
         </div>
       </div>
@@ -694,7 +695,7 @@ function RightSidebar({
     <>
       {isOpen && !isPinned ? (
         <div
-          className="app-shell-overlay-backdrop fixed inset-x-0 bottom-0 z-40 bg-stone-950/80 backdrop-blur-sm lg:hidden"
+          className="app-shell-overlay-backdrop tv-backdrop fixed inset-x-0 bottom-0 z-40 backdrop-blur-sm lg:hidden"
           onClick={onClose}
         />
       ) : null}
@@ -723,19 +724,16 @@ function RightSidebar({
           <div className="relative">
             {isGm ? (
               <div
-                className={`w-full rounded-2xl border px-4 py-4 text-left shadow-[0_0_18px_rgba(0,0,0,0.2)] transition-all ${
+                className={`w-full rounded-2xl border px-4 py-4 text-left shadow-[0_0_18px_rgba(0,0,0,0.2)] transition-all tv-combat-card ${
                   combatStatus === COMBAT_STATUS.IDLE
-                    ? 'border-white/10 bg-gradient-to-r from-stone-950 to-stone-900 hover:border-white/20'
+                    ? 'hover:border-[color-mix(in_srgb,var(--tv-border),transparent_20%)]'
                     : (combatStatus === COMBAT_STATUS.PAUSED
-                      ? 'border-white/15 bg-gradient-to-r from-stone-950 to-stone-900 hover:border-white/25'
-                      : 'border-[var(--tv-accent)]/35 bg-gradient-to-br from-[color-mix(in_srgb,var(--tv-accent),transparent_88%)] to-stone-950 hover:border-[var(--tv-accent)]/55')
+                      ? ''
+                      : 'tv-combat-card--active')
                 } ${isActionBusy ? 'opacity-80' : ''}`}
               >
-                <div className="mb-3 flex items-center justify-between gap-3 border-b border-white/10 pb-3">
-                  <div>
-                    <div className="text-[10px] font-semibold uppercase tracking-[0.18em] tv-accent">Slagorde</div>
-                    <div className="mt-1 text-[11px] text-stone-500">Status en tempo van het gevecht.</div>
-                  </div>
+                <div className="mb-3 flex items-center justify-between gap-3 border-b border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] pb-3">
+                  <div className="tv-label tv-accent">Slagorde</div>
                   <div className="flex items-center gap-1.5">
                     <button
                       type="button"
@@ -743,7 +741,7 @@ function RightSidebar({
                       className={`hidden h-8 w-8 items-center justify-center rounded-full border transition-colors md:inline-flex lg:hidden ${
                         isPinned
                           ? 'tv-button-accent-muted'
-                          : 'border-stone-800 bg-stone-950/70 text-stone-400 hover:text-stone-200'
+                          : 'tv-icon-action'
                       }`}
                       title={isPinned ? 'Losgemaakt — sluit automatisch' : 'Vastzetten — blijft zichtbaar'}
                     >
@@ -752,7 +750,8 @@ function RightSidebar({
                     <button
                       type="button"
                       onClick={() => onClose?.()}
-                      className={`h-8 w-8 items-center justify-center rounded-full border border-stone-800 bg-stone-950/70 text-stone-400 transition-colors hover:text-rose-300 ${isPinned ? 'hidden' : 'inline-flex lg:hidden'}`}
+                      aria-label="Sluiten"
+                      className={`tv-icon-btn tv-icon-btn--danger ${isPinned ? 'hidden' : 'inline-flex lg:hidden'}`}
                     >
                       <X className="h-4 w-4" />
                     </button>
@@ -760,20 +759,20 @@ function RightSidebar({
                 </div>
 
                 <div className="grid gap-3 sm:grid-cols-[40px_minmax(0,1fr)] sm:items-center">
-                  <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border ${combatStatus === COMBAT_STATUS.ACTIVE ? 'tv-button-accent-muted' : 'border-stone-700/70 bg-stone-950/70 tv-accent'}`}>
+                  <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border ${combatStatus === COMBAT_STATUS.ACTIVE ? 'tv-button-accent-muted' : 'tv-chip-surface tv-accent'}`}>
                     <StatusIcon className="h-5 w-5" />
                   </div>
 
                   <div className="min-w-0 flex-1">
                     <div className="flex flex-wrap items-center gap-2">
-                      <span className="font-fantasy text-sm tracking-[0.18em] text-stone-100 md:text-base">{statusTitle}</span>
+                      <span className="font-fantasy text-sm tracking-[0.18em] tv-text md:text-base">{statusTitle}</span>
                       {combatInProgress ? (
                         <span className="rounded-full border border-[color-mix(in_srgb,var(--tv-accent),transparent_55%)] bg-[color-mix(in_srgb,var(--tv-accent),transparent_84%)] px-2.5 py-1 text-[9px] font-bold uppercase tracking-[0.18em] tv-accent shadow-inner">
                           Ronde {turnRound}
                         </span>
                       ) : null}
                     </div>
-                    <p className="mt-1 text-xs leading-5 text-stone-300 md:text-[13px] md:leading-6">{gmStatusLine}</p>
+                    <p className="mt-1 text-xs leading-5 tv-text md:text-[13px] md:leading-6">{gmStatusLine}</p>
                   </div>
                 </div>
 
@@ -790,18 +789,18 @@ function RightSidebar({
                           ? 'tv-button-accent-muted'
                           : combatStatus === COMBAT_STATUS.IDLE
                             ? 'tv-button-primary'
-                            : 'border border-stone-700 bg-stone-950 text-stone-200 hover:border-white/20 hover:text-stone-100 hover:scale-[1.02] active:scale-[0.985]'
+                            : 'tv-button-secondary'
                       } ${isActionBusy ? 'cursor-wait opacity-70' : ''}`}
                     >
                       {combatStatus === COMBAT_STATUS.ACTIVE ? <Shield className="h-4 w-4" /> : <Swords className="h-4 w-4" />}
-                      <span>{statusActionLabel}</span>
+                      <span className="hidden sm:inline">{statusActionLabel}</span>
                     </button>
-                  ) : <div className="h-11 w-full rounded-xl border border-dashed border-white/10 bg-white/[0.02]" />}
+                  ) : <div className="h-11 w-full rounded-xl border border-dashed border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] tv-panel-inset opacity-60" />}
 
                   <button
                     type="button"
                     onClick={() => setShowInfo((value) => !value)}
-                    className={`tv-action-square rounded-xl border transition-all duration-200 ${showInfo ? 'tv-button-accent-muted' : 'border-stone-700 bg-stone-950 text-stone-300 hover:border-white/25 hover:bg-stone-800 hover:text-stone-100'}`}
+                    className={`tv-action-square tv-icon-action rounded-xl ${showInfo ? 'tv-button-accent-muted' : ''}`}
                     title={showInfo ? 'Verberg uitleg' : 'Toon uitleg'}
                     aria-label={showInfo ? 'Verberg uitleg' : 'Toon uitleg'}
                   >
@@ -813,7 +812,7 @@ function RightSidebar({
                     onClick={() => setEndCombatConfirmOpen(true)}
                     disabled={!combatInProgress || isActionBusy}
                     aria-label="Beëindig gevecht direct"
-                    className={`tv-action-square w-full rounded-xl border transition-all duration-200 ${combatInProgress && !isActionBusy ? 'border-rose-700/70 bg-rose-950/40 text-rose-300 hover:border-rose-500/80 hover:bg-rose-900/40 hover:text-rose-100 hover:scale-[1.02] active:scale-[0.985]' : 'cursor-not-allowed border-stone-800 bg-stone-950/60 text-stone-600'}`}
+                    className={`tv-action-square w-full rounded-xl border transition-all duration-200 ${combatInProgress && !isActionBusy ? 'border-rose-700/70 bg-rose-950/40 text-rose-300 hover:border-rose-500/80 hover:bg-rose-900/40 hover:text-rose-100 hover:scale-[1.02] active:scale-[0.985]' : 'cursor-not-allowed tv-chip-surface tv-muted opacity-60'}`}
                     title={combatInProgress ? 'Beëindig gevecht direct' : 'Nog geen gevecht om te beëindigen'}
                   >
                     <Skull className="h-4 w-4" />
@@ -821,18 +820,15 @@ function RightSidebar({
                 </div>
               </div>
             ) : (
-              <div className={`w-full rounded-2xl border px-4 py-4 text-left shadow-[0_0_18px_rgba(0,0,0,0.2)] ${
+              <div className={`w-full rounded-2xl border px-4 py-4 text-left shadow-[0_0_18px_rgba(0,0,0,0.2)] tv-combat-card ${
                 combatStatus === COMBAT_STATUS.IDLE
-                  ? 'border-white/10 bg-gradient-to-r from-stone-950 to-stone-900'
+                  ? ''
                   : (combatStatus === COMBAT_STATUS.PAUSED
-                    ? 'border-white/15 bg-gradient-to-r from-stone-950 to-stone-900'
-                    : 'border-[var(--tv-accent)]/35 bg-gradient-to-br from-[color-mix(in_srgb,var(--tv-accent),transparent_88%)] to-stone-950')
+                    ? ''
+                    : 'tv-combat-card--active')
               } ${isMyTurn ? 'ring-1 ring-[var(--tv-accent)]/45 tv-breathe-glow' : ''}`}>
-                <div className="mb-3 flex items-center justify-between gap-3 border-b border-white/10 pb-3">
-                  <div>
-                    <div className="text-[10px] font-semibold uppercase tracking-[0.18em] tv-accent">Slagorde</div>
-                    <div className="mt-1 text-[11px] text-stone-500">Volg beurt, ronde en je plek zonder extra ruis.</div>
-                  </div>
+                <div className="mb-3 flex items-center justify-between gap-3 border-b border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] pb-3">
+                  <div className="tv-label tv-accent">Slagorde</div>
                   <div className="flex items-center gap-1.5">
                     <button
                       type="button"
@@ -840,7 +836,7 @@ function RightSidebar({
                       className={`hidden h-8 w-8 items-center justify-center rounded-full border transition-colors md:inline-flex lg:hidden ${
                         isPinned
                           ? 'tv-button-accent-muted'
-                          : 'border-stone-800 bg-stone-950/70 text-stone-400 hover:text-stone-200'
+                          : 'tv-icon-action'
                       }`}
                       title={isPinned ? 'Losgemaakt — sluit automatisch' : 'Vastzetten — blijft zichtbaar'}
                     >
@@ -849,7 +845,8 @@ function RightSidebar({
                     <button
                       type="button"
                       onClick={() => onClose?.()}
-                      className={`h-8 w-8 items-center justify-center rounded-full border border-stone-800 bg-stone-950/70 text-stone-400 transition-colors hover:text-rose-300 ${isPinned ? 'hidden' : 'inline-flex lg:hidden'}`}
+                      aria-label="Sluiten"
+                      className={`tv-icon-btn tv-icon-btn--danger ${isPinned ? 'hidden' : 'inline-flex lg:hidden'}`}
                     >
                       <X className="h-4 w-4" />
                     </button>
@@ -857,21 +854,21 @@ function RightSidebar({
                 </div>
 
                 <div className="grid gap-3 sm:grid-cols-[48px_minmax(0,1fr)_auto] sm:items-start">
-                  <div className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border ${combatStatus === COMBAT_STATUS.ACTIVE ? 'tv-button-accent-muted' : 'border-stone-700/70 bg-stone-950/70 tv-accent'} ${isMyTurn ? 'tv-breathe-glow' : ''}`}>
+                  <div className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border ${combatStatus === COMBAT_STATUS.ACTIVE ? 'tv-button-accent-muted' : 'tv-chip-surface tv-accent'} ${isMyTurn ? 'tv-breathe-glow' : ''}`}>
                     <StatusIcon className="h-5 w-5" />
                   </div>
 
                   <div className="min-w-0 flex-1">
                     <div className="flex flex-wrap items-center gap-2">
-                      <span className="font-fantasy text-base tracking-[0.18em] text-stone-100 md:text-lg">{statusTitle}</span>
+                      <span className="font-fantasy text-base tracking-[0.18em] tv-text md:text-lg">{statusTitle}</span>
                       {combatInProgress ? (
                         <span className="rounded-full border border-[color-mix(in_srgb,var(--tv-accent),transparent_55%)] bg-[color-mix(in_srgb,var(--tv-accent),transparent_84%)] px-2.5 py-1 text-[9px] font-bold uppercase tracking-[0.18em] tv-accent shadow-inner">
                           Ronde {turnRound}
                         </span>
                       ) : null}
                     </div>
-                    <p className="mt-2 text-sm leading-6 text-stone-200">{playerStatusPrimaryLine}</p>
-                    <p className="mt-1 text-xs leading-5 text-stone-400 md:text-[13px] md:leading-6">{playerStatusSecondaryLine}</p>
+                    <p className="mt-2 text-sm leading-6 tv-text">{playerStatusPrimaryLine}</p>
+                    <p className="mt-1 text-xs leading-5 tv-text-sub md:text-[13px] md:leading-6">{playerStatusSecondaryLine}</p>
                   </div>
 
                   {combatInProgress ? (
@@ -890,7 +887,7 @@ function RightSidebar({
           </div>
 
           {showPlayerRollPanel ? (
-            <div className="mt-3 rounded-xl border border-white/10 bg-stone-950/55 px-3 py-3 shadow-inner">
+            <div className="mt-3 tv-panel-inset px-3 py-3">
               <div className="mb-2 text-[10px] font-bold uppercase tracking-[0.18em] tv-accent">Initiative</div>
               <div className="flex flex-col gap-2 sm:flex-row">
                 <input
@@ -900,7 +897,7 @@ function RightSidebar({
                     const value = parseInt(event.target.value, 10);
                     if (!Number.isNaN(value)) onUpdateStat?.(myCharacter.id, 'init', value);
                   }}
-                  className="hide-arrows w-full rounded-md border border-white/15 bg-stone-950/80 px-2 text-center font-bold tv-text outline-none focus:border-[var(--tv-accent)]/60 sm:w-18"
+                  className="hide-arrows w-full rounded-md border border-[color-mix(in_srgb,var(--tv-border),transparent_35%)] tv-input-surface px-2 text-center font-bold tv-text outline-none focus:border-[var(--tv-accent)]/60 sm:w-18"
                 />
                 <button
                   type="button"
@@ -914,27 +911,27 @@ function RightSidebar({
           ) : null}
 
           {showCombatJoinPanel ? (
-            <div className="mt-3 rounded-xl border border-indigo-900/40 bg-stone-950/55 px-3 py-3 shadow-inner">
+            <div className="mt-3 tv-panel-inset border-indigo-900/40 px-3 py-3">
               <div className="mb-2 text-[10px] font-bold uppercase tracking-[0.18em] text-indigo-400">Niet in gevecht</div>
-              <p className="mb-3 text-xs leading-5 text-stone-400">
+              <p className="mb-3 text-xs leading-5 tv-text-sub">
                 Je staat nu buiten de initiativelijst. Dien een verzoek in om weer mee te doen.
               </p>
               <button
                 type="button"
                 onClick={handleRequestJoinCombat}
                 disabled={!canRequestCombatJoin || isActionBusy}
-                className={`flex w-full items-center justify-center rounded-lg border px-3 py-2 text-xs font-fantasy uppercase tracking-[0.16em] transition-colors ${playerJoinRequestPending ? 'border-stone-800 bg-stone-950/55 text-stone-500' : (canRequestCombatJoin ? 'border-indigo-700/50 bg-indigo-950/30 text-indigo-200 hover:border-indigo-500/60 hover:bg-indigo-900/35' : 'border-stone-800 bg-stone-950/55 text-stone-600')}`}
+                className={`flex w-full items-center justify-center rounded-lg border px-3 py-2 text-xs font-fantasy uppercase tracking-[0.16em] transition-colors ${playerJoinRequestPending ? 'border-[color-mix(in_srgb,var(--tv-border),transparent_28%)] tv-panel-inset tv-muted' : (canRequestCombatJoin ? 'border-indigo-700/50 bg-indigo-950/30 text-indigo-200 hover:border-indigo-500/60 hover:bg-indigo-900/35' : 'border-[color-mix(in_srgb,var(--tv-border),transparent_28%)] tv-panel-inset tv-muted')}`}
               >
                 {playerJoinRequestPending ? 'In behandeling' : 'Meedoen'}
               </button>
               {playerJoinRequestPending ? (
-                <p className="mt-2 text-[11px] leading-5 text-stone-500">
+                <p className="mt-2 text-[11px] leading-5 tv-muted">
                   {combatStatus === COMBAT_STATUS.IDLE
                     ? 'Verzoek ontvangen. Je wordt automatisch teruggezet in de initiative tijdens ruststand.'
                     : 'Verzoek ontvangen. Je wordt automatisch toegevoegd zodra het gevecht eindigt en ruststand actief is.'}
                 </p>
               ) : (
-                <p className="mt-2 text-[11px] leading-5 text-stone-500">
+                <p className="mt-2 text-[11px] leading-5 tv-muted">
                   {combatStatus === COMBAT_STATUS.IDLE
                     ? 'In ruststand word je na het verzoek automatisch toegevoegd.'
                     : 'Tijdens pauze of gevecht blijft je verzoek in behandeling tot ruststand.'}
@@ -952,25 +949,25 @@ function RightSidebar({
 
         <div className="flex flex-1 flex-col overflow-hidden px-3.5 py-3.5 md:px-4 md:py-4">
           {showInfo ? (
-            <div className="mb-3 rounded-xl border border-stone-800 bg-stone-950/60 p-4">
-              <div className="text-[10px] font-bold uppercase tracking-[0.18em] text-stone-500">Slagorde info</div>
+            <div className="mb-3 rounded-xl border border-[color-mix(in_srgb,var(--tv-border),transparent_28%)] tv-chip-surface p-4">
+              <div className="text-[10px] font-bold uppercase tracking-[0.18em] tv-muted">Slagorde info</div>
               <div className="mt-3 space-y-2">
                 {[
                   'Ruststand laat iedereen initiative voorbereiden voordat de GM start.',
                   'Gevecht actief vergrendelt initiative-invoer en houdt beurt en ronde bij.',
                   'Pauzeren geeft ruimte om NPC’s toe te voegen of te verwijderen zonder de ronde kwijt te raken.',
                 ].map((line) => (
-                  <p key={line} className="text-sm leading-6 text-stone-500">{line}</p>
+                  <p key={line} className="text-sm leading-6 tv-muted">{line}</p>
                 ))}
               </div>
             </div>
           ) : null}
 
           {sortedParty.length === 0 && !showPlayerRollPanel ? (
-            <div className="flex min-h-[220px] flex-1 items-center justify-center rounded-xl border border-dashed border-stone-800 bg-stone-950/30 px-6 text-center shadow-inner">
+            <div className="flex min-h-[220px] flex-1 items-center justify-center rounded-xl border border-dashed border-[color-mix(in_srgb,var(--tv-border),transparent_28%)] tv-panel-inset px-6 text-center shadow-inner">
               <div>
-                <div className="mb-2 text-[10px] font-bold uppercase tracking-[0.24em] text-stone-600">Nog leeg</div>
-                <p className="font-story text-sm italic leading-relaxed text-stone-500">Voeg spelers, NPC’s of handout-personages toe aan de lijst.</p>
+                <div className="mb-2 text-[10px] font-bold uppercase tracking-[0.24em] tv-muted">Nog leeg</div>
+                <p className="font-story text-sm italic leading-relaxed tv-muted">Voeg spelers, NPC’s of handout-personages toe aan de lijst.</p>
               </div>
             </div>
           ) : (
@@ -1001,7 +998,7 @@ function RightSidebar({
             const cardClassName = `group relative grid cursor-pointer grid-cols-[44px_minmax(0,1fr)_40px] items-center gap-2.5 rounded-2xl border p-2.5 shadow-sm transition-all hover:shadow-md md:grid-cols-[44px_minmax(0,1fr)_auto_44px] md:gap-3 md:p-3 ${
               member.isNpc
                 ? 'border-rose-900/30 bg-rose-950/20 hover:border-rose-500/50'
-                : 'border-white/10 bg-stone-950/40 hover:border-white/25'
+                : 'border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] tv-view-card hover:border-[color-mix(in_srgb,var(--tv-accent),transparent_58%)]'
             } ${hasConditions ? `tv-condition-pulse ${CONDITION_COLORS[conditionColor] || ''}` : ''} ${isCurrentTurn ? (battleActive ? 'ring-1 ring-[var(--tv-accent)]/60 bg-[color-mix(in_srgb,var(--tv-accent),transparent_92%)] shadow-[0_0_12px_color-mix(in_srgb,var(--tv-accent),transparent_60%)]' : 'ring-1 ring-stone-600') : ''}`;
 
             return (
@@ -1015,7 +1012,7 @@ function RightSidebar({
                 ) : null}
 
                 {/* Action Panel */}
-                <div className="col-start-3 row-span-2 flex h-full min-h-[60px] flex-col items-center justify-center gap-1.5 rounded-xl border border-white/8 bg-black/20 px-1 py-1.5 shadow-inner backdrop-blur-sm md:col-start-4 md:opacity-70 md:transition-opacity md:duration-200 md:group-hover:opacity-100 md:group-focus-within:opacity-100">
+                <div className="col-start-3 row-span-2 flex h-full min-h-[60px] flex-col items-center justify-center gap-1.5 rounded-xl border border-[color-mix(in_srgb,var(--tv-border),transparent_48%)] tv-panel-inset px-1 py-1.5 shadow-inner backdrop-blur-sm md:col-start-4 md:opacity-70 md:transition-opacity md:duration-200 md:group-hover:opacity-100 md:group-focus-within:opacity-100">
                   {/* Conditions Button */}
                   {hasConditions ? (
                     <button
@@ -1041,7 +1038,7 @@ function RightSidebar({
                         event.stopPropagation();
                         openConditionsEditor(member);
                       }}
-                      className="tv-action-square-sm border border-stone-700 bg-stone-950 text-stone-600 shadow-md transition-all duration-200 hover:border-white/25 hover:bg-stone-900 hover:text-stone-300 hover:scale-110 active:scale-95"
+                      className="tv-action-square-sm border border-[color-mix(in_srgb,var(--tv-border),transparent_20%)] tv-input-surface tv-muted shadow-md transition-all duration-200 hover:border-[color-mix(in_srgb,var(--tv-accent),transparent_58%)] hover:tv-chip-surface hover:tv-text hover:scale-110 active:scale-95"
                       title="Voeg conditions toe"
                     >
                       <AlertCircle className="h-4 w-4" />
@@ -1057,7 +1054,7 @@ function RightSidebar({
                         handleRemoveNpc(member.id);
                       }}
                       disabled={!canManageRoster}
-                      className={`tv-action-square-sm border shadow-md transition-all duration-200 hover:scale-110 active:scale-95 ${canManageRoster ? 'border-rose-900 bg-rose-950 text-rose-500 hover:bg-rose-900 hover:text-rose-200' : 'cursor-not-allowed border-stone-800 bg-stone-900 text-stone-600'}`}
+                      className={`tv-action-square-sm border shadow-md transition-all duration-200 hover:scale-110 active:scale-95 ${canManageRoster ? 'border-rose-900 bg-rose-950 text-rose-500 hover:bg-rose-900 hover:text-rose-200' : 'cursor-not-allowed border-[color-mix(in_srgb,var(--tv-border),transparent_28%)] tv-chip-surface tv-muted'}`}
                       title={canManageRoster ? 'Verwijder NPC' : 'Pauzeer gevecht om NPC\'s te beheren'}
                     >
                       <Trash2 className="h-3.5 w-3.5" />
@@ -1073,7 +1070,7 @@ function RightSidebar({
                         setKickTarget(member);
                       }}
                       disabled={isActionBusy}
-                      className={`tv-action-square-sm border shadow-md transition-all duration-200 hover:scale-110 active:scale-95 ${isActionBusy ? 'cursor-not-allowed border-stone-800 bg-stone-900 text-stone-600' : 'border-stone-700 bg-stone-950 text-stone-400 hover:bg-stone-800 hover:text-stone-100'}`}
+                      className={`tv-action-square-sm border shadow-md transition-all duration-200 hover:scale-110 active:scale-95 ${isActionBusy ? 'cursor-not-allowed border-[color-mix(in_srgb,var(--tv-border),transparent_28%)] tv-chip-surface tv-muted' : 'border-[color-mix(in_srgb,var(--tv-border),transparent_20%)] tv-input-surface tv-text-sub hover:opacity-90 hover:tv-text'}`}
                       title="Verwijder speler uit dit gevecht"
                     >
                       <UserMinus className="h-3.5 w-3.5" />
@@ -1082,7 +1079,7 @@ function RightSidebar({
                 </div>
 
                 <div className={`flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-lg border font-fantasy text-lg font-bold shadow-inner transition-all md:h-11 md:w-11 ${
-                  member.isNpc ? 'border-rose-900/50 bg-rose-950/40 text-rose-400' : 'border-white/10 bg-stone-900/80 tv-accent'
+                  member.isNpc ? 'border-rose-900/50 bg-rose-950/40 text-rose-400' : 'border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] tv-chip-surface tv-accent'
                 } ${isCurrentTurn ? 'ring-1 ring-[var(--tv-accent)]/40' : ''}`}>
                   <img src={resolveDisplayAvatar(displayMemberAvatar, member.id)} alt={displayMemberName} className="h-full w-full object-cover opacity-80" />
                 </div>
@@ -1090,7 +1087,7 @@ function RightSidebar({
                 <div className="min-w-0 self-start">
                   <div className="flex min-w-0 items-start justify-between gap-2 md:mr-2 md:block">
                     <div className="min-w-0 flex items-center gap-1.5">
-                      <span className={`truncate font-fantasy text-sm font-bold tracking-wider ${member.isNpc ? 'text-rose-400' : 'text-stone-100'}`}>
+                      <span className={`truncate font-fantasy text-sm font-bold tracking-wider ${member.isNpc ? 'text-rose-400' : 'tv-text'}`}>
                         {displayMemberName}
                       </span>
                       {hasAlertFeat ? (
@@ -1108,7 +1105,7 @@ function RightSidebar({
                           isCurrentTurn={isCurrentTurn}
                         />
                       ) : null}
-                      <span className={`inline-flex min-w-[38px] items-center justify-center rounded border bg-stone-950 px-1.5 py-0.5 text-[10px] font-bold ${member.isNpc ? 'border-rose-900/50 text-rose-500' : 'border-white/15 tv-accent'} ${isCurrentTurn ? 'bg-stone-900 shadow-inner' : ''}`}>
+                      <span className={`inline-flex min-w-[38px] items-center justify-center rounded border tv-input-surface px-1.5 py-0.5 text-[10px] font-bold ${member.isNpc ? 'border-rose-900/50 text-rose-500' : 'border-[color-mix(in_srgb,var(--tv-border),transparent_35%)] tv-accent'} ${isCurrentTurn ? 'tv-chip-surface shadow-inner' : ''}`}>
                         <EditableStat
                           value={member.init}
                           onChange={(value) => onUpdateStat?.(member.id, 'init', value)}
@@ -1121,30 +1118,30 @@ function RightSidebar({
 
                   <div className="mt-1 grid grid-cols-2 gap-1.5 font-sans text-[10px] md:gap-2 md:text-[11px]">
                     <div
-                      className={`flex flex-1 items-center justify-between rounded border border-stone-800/50 bg-stone-950/80 px-1.5 py-0.5 ${isGm ? 'cursor-pointer hover:border-white/25' : ''}`}
+                      className={`flex flex-1 items-center justify-between rounded border border-[color-mix(in_srgb,var(--tv-border),transparent_28%)]/50 tv-input-surface px-1.5 py-0.5 ${isGm ? 'cursor-pointer hover:border-[color-mix(in_srgb,var(--tv-accent),transparent_58%)]' : ''}`}
                       onClick={(event) => {
                         event.stopPropagation();
                         if (isGm) onOpenDamageModal?.(member);
                       }}
                       title={isGm ? 'Klik om HP aan te passen' : 'Hit Points'}
                     >
-                      <span className="font-bold text-stone-400">HP</span>
+                      <span className="font-bold tv-text-sub">HP</span>
                       {hiddenNpcForPlayer ? (
-                        <span className="font-bold text-stone-500">?</span>
+                        <span className="font-bold tv-muted">?</span>
                       ) : (
                         <span className={member.hp < 10 ? 'font-bold text-rose-500' : 'font-bold tv-accent'}>{member.hp}</span>
                       )}
                     </div>
                     <div
-                      className="flex flex-1 items-center justify-between rounded border border-stone-800/50 bg-stone-950/80 px-1.5 py-0.5"
+                      className="flex flex-1 items-center justify-between rounded border border-[color-mix(in_srgb,var(--tv-border),transparent_28%)]/50 tv-input-surface px-1.5 py-0.5"
                       onClick={(event) => event.stopPropagation()}
                     >
-                      <span className="font-bold text-stone-400">AC</span>
+                      <span className="font-bold tv-text-sub">AC</span>
                       {hiddenNpcForPlayer ? (
-                        <span className="font-bold text-stone-500">?</span>
+                        <span className="font-bold tv-muted">?</span>
                       ) : (
                         <EditableStat
-                          className="font-bold text-stone-300"
+                          className="font-bold tv-text"
                           value={member.ac}
                           onChange={(value) => onUpdateStat?.(member.id, 'ac', value)}
                           disabled={!isGm}
@@ -1162,7 +1159,7 @@ function RightSidebar({
                       isCurrentTurn={isCurrentTurn}
                     />
                   ) : null}
-                  <span className={`inline-flex min-w-[44px] items-center justify-center rounded border bg-stone-950 px-2 py-0.5 text-xs font-bold ${member.isNpc ? 'border-rose-900/50 text-rose-500' : 'border-white/15 tv-accent'} ${isCurrentTurn ? 'bg-stone-900 shadow-inner' : ''}`}>
+                  <span className={`inline-flex min-w-[44px] items-center justify-center rounded border tv-input-surface px-2 py-0.5 text-xs font-bold ${member.isNpc ? 'border-rose-900/50 text-rose-500' : 'border-[color-mix(in_srgb,var(--tv-border),transparent_35%)] tv-accent'} ${isCurrentTurn ? 'tv-chip-surface shadow-inner' : ''}`}>
                     <EditableStat
                       value={member.init}
                       onChange={(value) => onUpdateStat?.(member.id, 'init', value)}
@@ -1179,7 +1176,7 @@ function RightSidebar({
         </div>
 
         {role === 'gm' ? (
-          <div className="border-t border-white/10 bg-zinc-950/84 px-3.5 pt-3 pb-[calc(env(safe-area-inset-bottom,0px)+0.625rem)] md:px-4 md:pt-3.5 md:pb-3">
+          <div className="tv-input-footer border-t px-3.5 pt-3 pb-[calc(env(safe-area-inset-bottom,0px)+0.625rem)] md:px-4 md:pt-3.5 md:pb-3">
             <div className={`grid gap-2 ${battleActive ? 'grid-cols-2' : 'grid-cols-2'}`}>
               <button
                 type="button"
@@ -1187,21 +1184,19 @@ function RightSidebar({
                 disabled={combatInProgress || isActionBusy}
                 title="Rol alle initiative"
                 aria-label="Rol alle initiative"
-                className={`inline-flex h-11 w-full items-center justify-center gap-2 rounded-xl border px-3 text-[11px] font-semibold uppercase tracking-[0.16em] shadow-inner transition-all duration-200 ${combatInProgress ? 'cursor-not-allowed border-stone-800 bg-stone-950/60 text-stone-600' : 'border-stone-700 bg-stone-950 text-stone-300 hover:border-white/25 hover:bg-stone-800 hover:text-stone-100 hover:scale-[1.02] active:scale-[0.985]'}`}
+                className={`tv-icon-btn h-11 w-full ${combatInProgress ? 'cursor-not-allowed opacity-50' : ''}`}
               >
                 <Dice5 className="h-4 w-4" />
-                <span>Alles rollen</span>
               </button>
               <button
                 type="button"
                 onClick={onOpenNpcModal}
                 disabled={!canManageRoster || isActionBusy}
                 aria-label="Voeg een losse NPC toe"
-                className={`inline-flex h-11 w-full items-center justify-center gap-2 rounded-xl border px-3 text-[11px] font-semibold uppercase tracking-[0.16em] shadow-inner transition-all duration-200 ${canManageRoster ? 'border-stone-700 bg-stone-950 text-stone-300 hover:border-white/25 hover:bg-stone-800 hover:text-stone-100 hover:scale-[1.02] active:scale-[0.985]' : 'cursor-not-allowed border-stone-800 bg-stone-950/60 text-stone-600'}`}
+                className={`tv-icon-btn h-11 w-full ${!canManageRoster || isActionBusy ? 'cursor-not-allowed opacity-50' : ''}`}
                 title={canManageRoster ? 'Voeg een losse NPC toe' : 'Pauzeer gevecht om NPC’s te beheren'}
               >
                 <UserPlus className="h-4 w-4" />
-                <span>NPC</span>
               </button>
             </div>
             {battleActive ? (
@@ -1211,10 +1206,10 @@ function RightSidebar({
                 disabled={isActionBusy}
                 aria-label="Volgende beurt"
                 title="Volgende beurt"
-                className="mt-2 inline-flex h-11 w-full items-center justify-center gap-2 rounded-xl px-3 text-[11px] font-semibold uppercase tracking-[0.16em] transition-all duration-200 ease-out disabled:cursor-not-allowed disabled:opacity-60 tv-button-primary"
+                className="mt-2 inline-flex h-11 w-full items-center justify-center gap-2 rounded-xl px-3 transition-all duration-200 ease-out disabled:cursor-not-allowed disabled:opacity-60 tv-button-primary"
               >
                 <ChevronRight className="h-4 w-4" />
-                <span>Volgende beurt</span>
+                <span className="hidden sm:inline">Volgende beurt</span>
               </button>
             ) : null}
           </div>
@@ -1231,7 +1226,7 @@ function RightSidebar({
               <button
                 type="button"
                 onClick={() => setEndCombatConfirmOpen(false)}
-                className="rounded-lg px-4 py-2 text-sm text-stone-400 transition-colors hover:text-stone-200"
+                className="rounded-lg px-4 py-2 text-sm tv-text-sub transition-colors hover:tv-text"
               >
                 Annuleer
               </button>
@@ -1262,7 +1257,7 @@ function RightSidebar({
               <button
                 type="button"
                 onClick={() => setPendingMissingAction(null)}
-                className="rounded-lg px-4 py-2 text-sm text-stone-400 transition-colors hover:text-stone-200"
+                className="rounded-lg px-4 py-2 text-sm tv-text-sub transition-colors hover:tv-text"
               >
                 Nog niet starten
               </button>
@@ -1278,9 +1273,9 @@ function RightSidebar({
         >
           <div className="space-y-2">
             {pendingMissingAction.missingMembers.map((member) => (
-              <div key={member.id} className="flex items-center justify-between rounded-xl border border-stone-800 bg-stone-950/50 px-3 py-2 text-sm text-stone-300">
+              <div key={member.id} className="flex items-center justify-between rounded-xl border border-[color-mix(in_srgb,var(--tv-border),transparent_28%)] tv-panel-inset px-3 py-2 text-sm tv-text">
                 <span>{member.name}</span>
-                <span className="text-[10px] uppercase tracking-[0.18em] text-stone-500">{member.isNpc ? 'NPC' : 'Speler'}</span>
+                <span className="text-[10px] uppercase tracking-[0.18em] tv-muted">{member.isNpc ? 'NPC' : 'Speler'}</span>
               </div>
             ))}
           </div>
@@ -1298,7 +1293,7 @@ function RightSidebar({
                 <button
                   type="button"
                   onClick={() => setTieResolutionState({ ...tieResolutionState, selectionMode: 'choice' })}
-                  className="rounded-lg px-4 py-2 text-sm text-stone-400 transition-colors hover:text-stone-200"
+                  className="rounded-lg px-4 py-2 text-sm tv-text-sub transition-colors hover:tv-text"
                 >
                   Terug
                 </button>
@@ -1315,7 +1310,7 @@ function RightSidebar({
                 <button
                   type="button"
                   onClick={() => setTieResolutionState({ ...tieResolutionState, selectionMode: 'manual' })}
-                  className="rounded-lg border border-stone-700 bg-stone-950 px-4 py-2 text-sm text-stone-300 transition-colors hover:border-white/25 hover:text-stone-100"
+                  className="rounded-lg border border-[color-mix(in_srgb,var(--tv-border),transparent_20%)] tv-input-surface px-4 py-2 text-sm tv-text transition-colors hover:border-[color-mix(in_srgb,var(--tv-accent),transparent_58%)] hover:tv-text"
                 >
                   Ik kies zelf
                 </button>
@@ -1330,7 +1325,7 @@ function RightSidebar({
             )
           )}
         >
-          <div className="mb-3 rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-xs leading-5 tv-text-sub">
+          <div className="mb-3 rounded-xl border border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] tv-panel-inset px-3 py-2 text-xs leading-5 tv-text-sub">
             Score {activeTieGroupMembers[0]?.init ?? '-'} · Init Mod {activeTieGroupMembers[0]?.initMod >= 0 ? `+${activeTieGroupMembers[0]?.initMod}` : activeTieGroupMembers[0]?.initMod}
           </div>
 
@@ -1339,13 +1334,13 @@ function RightSidebar({
               ? tieResolutionState.manualOrder.map((id) => activeTieGroupMembers.find((member) => member.id === id)).filter(Boolean)
               : activeTieGroupMembers
             ).map((member, index, list) => (
-              <div key={member.id} className="flex items-center gap-3 rounded-xl border border-stone-800 bg-stone-950/50 px-3 py-2.5">
-                <div className="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-stone-800 bg-stone-900/80">
+              <div key={member.id} className="flex items-center gap-3 rounded-xl border border-[color-mix(in_srgb,var(--tv-border),transparent_28%)] tv-panel-inset px-3 py-2.5">
+                <div className="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-[color-mix(in_srgb,var(--tv-border),transparent_28%)] tv-chip-surface">
                   <img src={resolveDisplayAvatar(member.avatar, member.id)} alt={member.name} className="h-full w-full object-cover opacity-80" />
                 </div>
                 <div className="min-w-0 flex-1">
-                  <div className="truncate font-fantasy text-sm tracking-[0.14em] text-stone-100">{member.name}</div>
-                  <div className="text-[10px] uppercase tracking-[0.18em] text-stone-500">{member.isNpc ? 'NPC' : 'Speler'}</div>
+                  <div className="truncate font-fantasy text-sm tracking-[0.14em] tv-text">{member.name}</div>
+                  <div className="text-[10px] uppercase tracking-[0.18em] tv-muted">{member.isNpc ? 'NPC' : 'Speler'}</div>
                 </div>
                 {tieResolutionState.selectionMode === 'manual' ? (
                   <div className="flex items-center gap-1">
@@ -1353,7 +1348,7 @@ function RightSidebar({
                       type="button"
                       onClick={() => moveTieMember(member.id, 'up')}
                       disabled={index === 0}
-                      className="rounded-md border border-stone-700 bg-stone-900 p-1.5 text-stone-300 transition-colors hover:border-white/25 hover:text-stone-100 disabled:cursor-not-allowed disabled:opacity-40"
+                      className="rounded-md border border-[color-mix(in_srgb,var(--tv-border),transparent_20%)] tv-chip-surface p-1.5 tv-text transition-colors hover:border-[color-mix(in_srgb,var(--tv-accent),transparent_58%)] hover:tv-text disabled:cursor-not-allowed disabled:opacity-40"
                     >
                       <ArrowUp className="h-3.5 w-3.5" />
                     </button>
@@ -1361,7 +1356,7 @@ function RightSidebar({
                       type="button"
                       onClick={() => moveTieMember(member.id, 'down')}
                       disabled={index === list.length - 1}
-                      className="rounded-md border border-stone-700 bg-stone-900 p-1.5 text-stone-300 transition-colors hover:border-white/25 hover:text-stone-100 disabled:cursor-not-allowed disabled:opacity-40"
+                      className="rounded-md border border-[color-mix(in_srgb,var(--tv-border),transparent_20%)] tv-chip-surface p-1.5 tv-text transition-colors hover:border-[color-mix(in_srgb,var(--tv-accent),transparent_58%)] hover:tv-text disabled:cursor-not-allowed disabled:opacity-40"
                     >
                       <ArrowDown className="h-3.5 w-3.5" />
                     </button>
@@ -1383,7 +1378,7 @@ function RightSidebar({
               <button
                 type="button"
                 onClick={() => setKickTarget(null)}
-                className="rounded-lg px-4 py-2 text-sm text-stone-400 transition-colors hover:text-stone-200"
+                className="rounded-lg px-4 py-2 text-sm tv-text-sub transition-colors hover:tv-text"
               >
                 Annuleer
               </button>
@@ -1398,8 +1393,8 @@ function RightSidebar({
             </>
           )}
         >
-          <div className="rounded-xl border border-stone-800 bg-stone-950/50 px-3 py-3 text-sm leading-6 text-stone-300">
-            Bevestig dat je <span className="font-fantasy tracking-[0.12em] text-stone-100">{kickTarget.name}</span> uit dit gevecht wilt halen.
+          <div className="rounded-xl border border-[color-mix(in_srgb,var(--tv-border),transparent_28%)] tv-panel-inset px-3 py-3 text-sm leading-6 tv-text">
+            Bevestig dat je <span className="font-fantasy tracking-[0.12em] tv-text">{kickTarget.name}</span> uit dit gevecht wilt halen.
           </div>
         </OverlayDialog>
       ) : null}
@@ -1431,7 +1426,7 @@ function RightSidebar({
                   className={`flex flex-col items-start rounded-lg border p-3 text-left transition-all ${
                     isActive
                       ? `${CONDITION_BADGE_COLORS[condition.color]} border-current`
-                      : 'border-stone-800 bg-stone-950/40 text-stone-500 hover:border-stone-700 hover:bg-stone-900/60'
+                      : 'border-[color-mix(in_srgb,var(--tv-border),transparent_28%)] tv-view-card tv-muted hover:border-[color-mix(in_srgb,var(--tv-border),transparent_20%)] hover:opacity-90/60'
                   }`}
                 >
                   <div className="mb-1 flex items-center gap-1.5">

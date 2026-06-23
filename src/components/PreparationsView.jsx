@@ -44,7 +44,7 @@ function getStatusMeta(preparation, party) {
 
   return {
     label: 'Klaar',
-    className: 'border-stone-800 bg-stone-950/70 text-stone-400',
+    className: 'border-[color-mix(in_srgb,var(--tv-border),transparent_28%)] tv-chip-surface tv-text-sub',
   };
 }
 
@@ -106,7 +106,7 @@ export default function PreparationsView({
 
           <div className="flex w-full flex-col gap-2 sm:flex-row sm:items-center xl:w-auto">
             <label className="tv-input-surface flex min-w-0 flex-1 items-center gap-2 rounded-xl px-3 py-2.5 shadow-inner xl:min-w-[300px]">
-              <Search className="h-4 w-4 shrink-0 text-stone-500" />
+              <Search className="h-4 w-4 shrink-0 tv-muted" />
               <input
                 type="search"
                 placeholder="Zoek een voorbereiding"
@@ -129,12 +129,12 @@ export default function PreparationsView({
       <div className="relative z-10 min-h-0 flex-1 overflow-y-auto p-3 no-scrollbar md:p-4">
         <div className="grid items-start gap-4 xl:grid-cols-[minmax(0,1.35fr)_296px] xl:gap-4">
         <div className="tv-panel-shell min-h-0 p-4 md:p-5">
-          <div className="flex flex-col gap-3 border-b border-white/10 pb-4 sm:flex-row sm:items-start sm:justify-between">
+          <div className="flex flex-col gap-3 border-b border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] pb-4 sm:flex-row sm:items-start sm:justify-between">
             <div className="min-w-0">
               <h2 className="tv-panel-title">Bibliotheek</h2>
               <p className="tv-panel-copy mt-1 text-sm leading-6">Profielen die klaarstaan om te verfijnen, bewaren of uit te delen.</p>
             </div>
-            <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-stone-400">
+            <span className="rounded-full border border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] tv-panel-inset px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] tv-text-sub">
               {filteredTemplates.length} in beeld
             </span>
           </div>
@@ -144,10 +144,10 @@ export default function PreparationsView({
               <div className="flex h-14 w-14 items-center justify-center rounded-2xl border border-[color-mix(in_srgb,var(--tv-accent),transparent_60%)] bg-[color-mix(in_srgb,var(--tv-accent),transparent_86%)] tv-accent shadow-inner">
                 <Crown className="h-6 w-6" />
               </div>
-              <h3 className="mt-5 font-fantasy text-xl tracking-[0.12em] text-stone-100">
+              <h3 className="mt-5 font-fantasy text-xl tracking-[0.12em] tv-text">
                 {templates.length === 0 ? 'Nog geen voorbereide personages' : 'Geen treffers voor deze zoekopdracht'}
               </h3>
-              <p className="mt-3 max-w-md text-sm leading-7 text-stone-500">
+              <p className="mt-3 max-w-md text-sm leading-7 tv-muted">
                 {templates.length === 0
                   ? 'Open Nieuw om een volledig profiel klaar te zetten of bewaar een bestaand spelersprofiel rechtstreeks vanuit het karaktervenster.'
                   : 'Pas je zoekterm aan of open een bestaand profiel om het verder te verfijnen.'}
@@ -162,10 +162,10 @@ export default function PreparationsView({
                 return (
                   <article
                     key={preparation.id}
-                    className="grid gap-4 rounded-2xl border border-white/10 bg-white/5 p-4 shadow-[0_18px_46px_rgba(0,0,0,0.24)] transition-all duration-200 ease-out hover:bg-white/7 hover:border-white/20 md:grid-cols-[72px_minmax(0,1fr)]"
+                    className="grid gap-4 rounded-2xl border border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] tv-panel-inset p-4 shadow-[0_18px_46px_rgba(0,0,0,0.24)] transition-all duration-200 ease-out hover:bg-white/7 hover:border-white/20 md:grid-cols-[72px_minmax(0,1fr)]"
                   >
                     <div className="flex justify-center md:justify-start">
-                      <div className="h-[72px] w-[72px] overflow-hidden rounded-2xl border border-stone-800 bg-stone-900 shadow-inner">
+                      <div className="h-[72px] w-[72px] overflow-hidden rounded-2xl border border-[color-mix(in_srgb,var(--tv-border),transparent_28%)] bg-stone-900 shadow-inner">
                         <img
                           src={resolveDisplayAvatar(preparation.imageUrl, preparation.id)}
                           alt={preparation.name || 'Voorbereid personage'}
@@ -178,16 +178,16 @@ export default function PreparationsView({
                       <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
                         <div className="min-w-0">
                           <div className="flex flex-wrap items-center gap-2">
-                            <h3 className="text-xl font-semibold tracking-[0.08em] text-stone-100">{preparation.name || 'Naamloos personage'}</h3>
+                            <h3 className="text-xl font-semibold tracking-[0.08em] tv-text">{preparation.name || 'Naamloos personage'}</h3>
                             <span className={`rounded-full border px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.18em] ${statusMeta.className}`}>
                               {statusMeta.label}
                             </span>
                           </div>
                           {preparation.subtitle ? (
-                            <p className="mt-1 text-sm italic text-stone-400">{preparation.subtitle}</p>
+                            <p className="mt-1 text-sm italic tv-text-sub">{preparation.subtitle}</p>
                           ) : null}
                         </div>
-                        <div className="text-[11px] uppercase tracking-[0.18em] text-stone-600">
+                        <div className="text-[11px] uppercase tracking-[0.18em] tv-muted">
                           Bijgewerkt {formatPreparationTime(preparation.updatedAtMs)}
                         </div>
                       </div>
@@ -196,14 +196,14 @@ export default function PreparationsView({
                         {statPills.map((pill) => (
                           <span
                             key={`${preparation.id}-${pill}`}
-                            className="rounded-full border border-white/10 bg-zinc-950/80 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-stone-300"
+                            className="rounded-full border border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] bg-zinc-950/80 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.16em] tv-text"
                           >
                             {pill}
                           </span>
                         ))}
                       </div>
 
-                      <p className="mt-3 line-clamp-3 text-sm leading-7 text-stone-400">
+                      <p className="mt-3 line-clamp-3 text-sm leading-7 tv-text-sub">
                         {preparation.bio || 'Nog geen achtergrond of notities toegevoegd.'}
                       </p>
 
@@ -246,7 +246,7 @@ export default function PreparationsView({
         </div>
 
         <aside className="tv-panel-shell p-4 md:p-5 xl:sticky xl:top-3">
-          <div className="flex items-center justify-between gap-3 text-stone-100">
+          <div className="flex items-center justify-between gap-3 tv-text">
             <div className="flex items-center gap-2">
               <ShieldCheck className="h-4 w-4 tv-accent" />
               <h2 className="font-fantasy text-lg uppercase tracking-[0.14em]">Overzicht</h2>
@@ -254,7 +254,7 @@ export default function PreparationsView({
             <button
               type="button"
               onClick={() => setShowInfo((value) => !value)}
-              className={`inline-flex h-9 w-9 items-center justify-center rounded-full border transition-all duration-200 ease-out ${showInfo ? 'border-[var(--tv-accent)]/30 bg-[color-mix(in_srgb,var(--tv-accent),transparent_86%)] tv-accent' : 'border-white/10 bg-white/5 text-stone-400 hover:bg-white/8 hover:text-[var(--tv-accent)]'}`}
+              className={`inline-flex h-9 w-9 items-center justify-center rounded-full border transition-all duration-200 ease-out ${showInfo ? 'border-[var(--tv-accent)]/30 bg-[color-mix(in_srgb,var(--tv-accent),transparent_86%)] tv-accent' : 'border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] tv-panel-inset tv-text-sub hover:bg-white/8 hover:text-[var(--tv-accent)]'}`}
               title={showInfo ? 'Verberg extra uitleg' : 'Toon extra uitleg'}
             >
               <Info className="h-4 w-4" />
@@ -268,20 +268,20 @@ export default function PreparationsView({
               { label: 'In gebruik', value: acceptedCount },
               { label: 'Herstelpunten', value: backups.length },
             ].map((item) => (
-              <article key={item.label} className="rounded-xl border border-white/10 bg-white/5 p-3">
-                <div className="text-[10px] font-bold uppercase tracking-[0.18em] text-stone-500">{item.label}</div>
-                <div className="mt-2 font-fantasy text-2xl text-stone-100">{item.value}</div>
+              <article key={item.label} className="rounded-xl border border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] tv-panel-inset p-3">
+                <div className="text-[10px] font-bold uppercase tracking-[0.18em] tv-muted">{item.label}</div>
+                <div className="mt-2 font-fantasy text-2xl tv-text">{item.value}</div>
               </article>
             ))}
           </div>
 
           {showInfo ? (
-            <div className="mt-4 rounded-xl border border-stone-800 bg-stone-950/60 p-4">
+            <div className="mt-4 rounded-xl border border-[color-mix(in_srgb,var(--tv-border),transparent_28%)] tv-chip-surface p-4">
               <div className="flex flex-wrap gap-2">
                 {['Inventaris blijft', 'Wallet blijft', 'Notities blijven'].map((pill) => (
                   <span
                     key={pill}
-                    className="rounded-full border border-stone-800 bg-stone-900/70 px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.16em] text-stone-400"
+                    className="rounded-full border border-[color-mix(in_srgb,var(--tv-border),transparent_28%)] bg-stone-900/70 px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.16em] tv-text-sub"
                   >
                     {pill}
                   </span>
@@ -294,26 +294,26 @@ export default function PreparationsView({
                   { title: '2. Werk het af', body: 'Controleer avatar, stats, verborgen eigenschappen en lore.' },
                   { title: '3. Toewijzen aan speler', body: 'Selecteer daarna direct de speler aan wie je dit personage wilt aanbieden.' },
                 ].map((step) => (
-                  <article key={step.title} className="rounded-lg border border-stone-800/80 bg-stone-950/50 p-3">
-                    <div className="text-xs font-fantasy uppercase tracking-[0.14em] text-stone-200">{step.title}</div>
-                    <p className="mt-2 text-sm leading-6 text-stone-500">{step.body}</p>
+                  <article key={step.title} className="rounded-lg border border-[color-mix(in_srgb,var(--tv-border),transparent_28%)]/80 tv-panel-inset p-3">
+                    <div className="text-xs font-fantasy uppercase tracking-[0.14em] tv-text">{step.title}</div>
+                    <p className="mt-2 text-sm leading-6 tv-muted">{step.body}</p>
                   </article>
                 ))}
               </div>
             </div>
           ) : null}
 
-          <div className="mt-6 border-t border-stone-800/80 pt-4">
+          <div className="mt-6 border-t border-[color-mix(in_srgb,var(--tv-border),transparent_28%)]/80 pt-4">
             <div className="flex items-center justify-between gap-3">
-              <h3 className="font-fantasy text-sm uppercase tracking-[0.14em] text-stone-200">Herstelpunten</h3>
+              <h3 className="font-fantasy text-sm uppercase tracking-[0.14em] tv-text">Herstelpunten</h3>
               <div className="flex items-center gap-2">
-                <span className="rounded-full border border-stone-800 bg-stone-950/70 px-2.5 py-1 text-[10px] uppercase tracking-[0.16em] text-stone-500">
+                <span className="rounded-full border border-[color-mix(in_srgb,var(--tv-border),transparent_28%)] tv-chip-surface px-2.5 py-1 text-[10px] uppercase tracking-[0.16em] tv-muted">
                   {backups.length}
                 </span>
                 <button
                   type="button"
                   onClick={() => setShowBackups((value) => !value)}
-                  className="rounded-md border border-stone-700 bg-stone-950/70 px-2.5 py-1 text-[10px] uppercase tracking-[0.16em] text-stone-300 transition-colors hover:border-amber-700/50 hover:text-amber-300 xl:hidden"
+                  className="rounded-md border border-[color-mix(in_srgb,var(--tv-border),transparent_20%)] tv-chip-surface px-2.5 py-1 text-[10px] uppercase tracking-[0.16em] tv-text transition-colors hover:border-amber-700/50 hover:text-amber-300 xl:hidden"
                 >
                   {showBackups ? 'Verberg' : 'Toon'}
                 </button>
@@ -322,16 +322,16 @@ export default function PreparationsView({
 
             {(showBackups || backups.length === 0) ? (
               backups.length === 0 ? (
-                <p className="mt-4 text-sm leading-7 text-stone-500">Na een acceptatie verschijnt hier automatisch een terugzetpunt.</p>
+                <p className="mt-4 text-sm leading-7 tv-muted">Na een acceptatie verschijnt hier automatisch een terugzetpunt.</p>
               ) : (
                 <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-1">
                   {backups.map((backup) => (
-                    <article key={backup.id} className="rounded-xl border border-white/10 bg-white/5 p-3">
-                      <p className="text-[11px] uppercase tracking-[0.16em] text-stone-500">
+                    <article key={backup.id} className="rounded-xl border border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] tv-panel-inset p-3">
+                      <p className="text-[11px] uppercase tracking-[0.16em] tv-muted">
                         Opgeslagen {formatPreparationTime(backup.createdAtMs)}
                       </p>
-                      <div className="mt-2 text-sm font-medium text-stone-200">{backup.playerName || 'Onbekende speler'}</div>
-                      <div className="mt-1 text-xs uppercase tracking-[0.16em] text-stone-600">via {backup.templateName || 'Naamloze voorbereiding'}</div>
+                      <div className="mt-2 text-sm font-medium tv-text">{backup.playerName || 'Onbekende speler'}</div>
+                      <div className="mt-1 text-xs uppercase tracking-[0.16em] tv-muted">via {backup.templateName || 'Naamloze voorbereiding'}</div>
                       {backup.restoredAtMs ? (
                         <p className="mt-3 text-[11px] uppercase tracking-[0.16em] text-amber-400">
                           Hersteld {formatPreparationTime(backup.restoredAtMs)}
@@ -340,7 +340,7 @@ export default function PreparationsView({
                       <button
                         type="button"
                         onClick={() => handleRestore(backup)}
-                        className="mt-3 w-full rounded-xl border border-white/10 bg-zinc-950/80 px-3 py-2 text-xs tracking-[0.14em] text-stone-200 transition-all duration-200 ease-out hover:bg-zinc-950 hover:border-amber-500/30 hover:text-amber-300"
+                        className="mt-3 w-full rounded-xl border border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] bg-zinc-950/80 px-3 py-2 text-xs tracking-[0.14em] tv-text transition-all duration-200 ease-out hover:bg-zinc-950 hover:border-amber-500/30 hover:text-amber-300"
                       >
                         Zet terug
                       </button>
@@ -349,7 +349,7 @@ export default function PreparationsView({
                 </div>
               )
             ) : (
-              <p className="mt-4 text-sm leading-7 text-stone-500 xl:hidden">Herstelpunten verborgen voor een compact mobiel overzicht.</p>
+              <p className="mt-4 text-sm leading-7 tv-muted xl:hidden">Herstelpunten verborgen voor een compact mobiel overzicht.</p>
             )}
           </div>
         </aside>

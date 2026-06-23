@@ -93,14 +93,14 @@ function SettingsModal({
                 type="button"
                 onClick={() => handleThemeClick(themeOption.value)}
                 title={themeOption.label}
-                className={`group flex min-h-12 items-center justify-between gap-2.5 rounded-xl border px-3 py-2.5 text-left transition-all duration-200 ease-out hover:scale-[1.01] active:scale-[0.985] ${isActive ? 'tv-surface tv-magic-glow' : 'border-white/10 bg-white/5 hover:border-white/20'}`}
+                className={`group flex min-h-12 items-center justify-between gap-2.5 rounded-xl border px-3 py-2.5 text-left transition-all duration-200 ease-out hover:scale-[1.01] active:scale-[0.985] ${isActive ? 'tv-surface tv-magic-glow' : 'border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] tv-panel-inset hover:border-white/20'}`}
               >
                 <div className="flex items-center gap-2.5">
                   <span
                     className="h-3.5 w-3.5 flex-shrink-0 rounded-full ring-1 ring-white/20"
                     style={{ background: themeOption.swatch, boxShadow: isActive ? `0 0 6px ${themeOption.swatch}88` : undefined }}
                   />
-                  <span className={`text-xs font-semibold tracking-[0.07em] transition-colors ${isActive ? 'tv-text' : 'text-stone-300 group-hover:text-stone-100'}`}>
+                  <span className={`text-xs font-semibold tracking-[0.07em] transition-colors ${isActive ? 'tv-text' : 'tv-text group-hover:tv-text'}`}>
                     {themeOption.shortLabel}
                   </span>
                 </div>
@@ -140,7 +140,7 @@ function SettingsModal({
         />
       </div>
 
-      <div className="flex flex-col gap-3 border-t border-white/10 pt-4">
+      <div className="flex flex-col gap-3 border-t border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] pt-4">
         <label className="block text-[10px] font-semibold uppercase tracking-[0.18em] tv-text-sub">Sessie Acties</label>
         {currentPlanLabel ? (
           <div className="rounded-2xl border px-3 py-3 tv-surface tv-text">
@@ -156,7 +156,7 @@ function SettingsModal({
             type="button"
             onClick={() => onExportArchive?.()}
             disabled={exportBusy}
-            className="flex h-10 w-full items-center justify-center gap-2 rounded-xl border text-sm font-medium uppercase tracking-[0.16em] transition-all duration-200 ease-out active:scale-[0.985] disabled:cursor-wait border-white/10 bg-white/7 tv-text"
+            className="flex h-10 w-full items-center justify-center gap-2 rounded-xl border text-sm font-medium uppercase tracking-[0.16em] transition-all duration-200 ease-out active:scale-[0.985] disabled:cursor-wait border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] bg-white/7 tv-text"
           >
             <Download className="h-4 w-4" /> {exportBusy ? 'Laden...' : (role === 'gm' ? 'Archief' : 'Profiel')}
           </button>
@@ -164,7 +164,7 @@ function SettingsModal({
           <button
             type="button"
             onClick={() => { onLogout(); onClose(); }}
-            className="flex h-10 w-full items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/5 text-rose-200 transition-all duration-200 ease-out active:scale-[0.985]"
+            className="flex h-10 w-full items-center justify-center gap-2 rounded-xl border border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] tv-panel-inset text-rose-200 transition-all duration-200 ease-out active:scale-[0.985]"
           >
             <LogOut className="h-4 w-4" /> Verlaat
           </button>
@@ -177,7 +177,7 @@ function SettingsModal({
               onClose();
               onOpenOwnerPanel?.();
             }}
-            className="flex h-10 w-full items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/5 tv-text transition-all duration-200 ease-out active:scale-[0.985]"
+            className="flex h-10 w-full items-center justify-center gap-2 rounded-xl border border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] tv-panel-inset tv-text transition-all duration-200 ease-out active:scale-[0.985]"
           >
             <Crown className="h-4 w-4" /> Owner Panel
           </button>

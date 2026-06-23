@@ -173,12 +173,12 @@ function WalletSection({
         {(title || description) && (
           <div className="mb-6 text-center md:mb-8">
             {title && (
-              <h2 className="text-3xl font-fantasy font-semibold text-stone-100/95 md:text-4xl">
+              <h2 className="text-3xl font-fantasy font-semibold tv-text/95 md:text-4xl">
                 {title}
               </h2>
             )}
             {description && (
-              <p className="mx-auto mt-2 max-w-2xl text-sm text-stone-300/80 md:text-base">
+              <p className="mx-auto mt-2 max-w-2xl text-sm tv-text/80 md:text-base">
                 {description}
               </p>
             )}
@@ -189,7 +189,7 @@ function WalletSection({
           {coins.map((coin, index) => (
             <div
               key={coin.key}
-              className="group relative overflow-hidden rounded-2xl border border-white/10 bg-zinc-950/45 p-4 shadow-[0_10px_30px_rgba(0,0,0,0.32)] transition-all duration-300 hover:-translate-y-0.5 hover:border-[color:var(--tv-accent)]/45 hover:shadow-[0_16px_34px_rgba(0,0,0,0.42)]"
+              className="group relative overflow-hidden rounded-2xl border border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] bg-zinc-950/45 p-4 shadow-[0_10px_30px_rgba(0,0,0,0.32)] transition-all duration-300 hover:-translate-y-0.5 hover:border-[color:var(--tv-accent)]/45 hover:shadow-[0_16px_34px_rgba(0,0,0,0.42)]"
             >
               <div
                 className={`pointer-events-none absolute -top-5 left-1/2 h-24 w-24 -translate-x-1/2 ${coin.glowColor} rounded-full blur-3xl transition-opacity duration-300 group-hover:opacity-90`}
@@ -205,7 +205,7 @@ function WalletSection({
                   <span className="leading-none" aria-hidden="true">{coin.icon}</span>
                 </div>
 
-                <div className="mb-1 text-[11px] uppercase tracking-[0.2em] text-stone-400/90">
+                <div className="mb-1 text-[11px] uppercase tracking-[0.2em] tv-text-sub/90">
                   {coin.label}
                 </div>
 
@@ -258,11 +258,11 @@ function WalletSection({
         <div className="rounded-2xl border border-white/12 bg-black/35 p-4 shadow-[0_14px_32px_rgba(0,0,0,0.26)] backdrop-blur-sm md:p-5">
           <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
             <div>
-              <div className="text-[11px] uppercase tracking-[0.2em] text-stone-400">Totale waarde</div>
-              <div className="mt-1 text-2xl font-semibold tabular-nums text-stone-100 md:text-3xl">
+              <div className="text-[11px] uppercase tracking-[0.2em] tv-text-sub">Totale waarde</div>
+              <div className="mt-1 text-2xl font-semibold tabular-nums tv-text md:text-3xl">
                 {formatGoldEquivalent(totalGoldEquivalent)} goud
               </div>
-              <p className="mt-1 text-xs text-stone-400/80">Automatisch bijgewerkt bij mutaties.</p>
+              <p className="mt-1 text-xs tv-text-sub/80">Automatisch bijgewerkt bij mutaties.</p>
             </div>
 
             {onPrimaryAction && (
@@ -277,7 +277,7 @@ function WalletSection({
           </div>
 
           {isEmptyWallet && (
-            <div className="mt-4 rounded-xl border border-dashed border-white/15 bg-white/5 px-4 py-3 text-sm text-stone-300/90">
+            <div className="mt-4 rounded-xl border border-dashed border-white/15 tv-panel-inset px-4 py-3 text-sm tv-text/90">
               {isGm
                 ? 'De kas is nog leeg. Voeg een buit-item toe of zet de eerste munten klaar voor het gezelschap.'
                 : 'Deze buidel is nog leeg. Voeg een item toe of ontvang buit van de groep.'}

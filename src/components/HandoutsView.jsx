@@ -121,14 +121,14 @@ function HandoutsView({ role, handouts, currentPlayerId, onToggleVisibility, onT
           <div className="tv-view-toolbar flex w-full items-center justify-center rounded-xl p-1 sm:w-auto sm:justify-start">
             <button
               onClick={() => setViewMode('list')}
-              className={`inline-flex h-9 w-9 items-center justify-center rounded-lg border transition-all duration-200 ease-out ${viewMode === 'list' ? 'border-[var(--tv-accent)]/30 bg-[color-mix(in_srgb,var(--tv-accent),transparent_85%)] text-[var(--tv-accent)] shadow-sm' : 'border-transparent text-stone-500 hover:border-white/10 hover:bg-white/7 hover:text-stone-300'}`}
+              className={`inline-flex h-9 w-9 items-center justify-center rounded-lg border transition-all duration-200 ease-out ${viewMode === 'list' ? 'border-[var(--tv-accent)]/30 bg-[color-mix(in_srgb,var(--tv-accent),transparent_85%)] text-[var(--tv-accent)] shadow-sm' : 'border-transparent tv-muted hover:border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] hover:bg-white/7 hover:tv-text'}`}
               title="Lijst weergave"
             >
               <List className="h-4 w-4" />
             </button>
             <button
               onClick={() => setViewMode('grid')}
-              className={`inline-flex h-9 w-9 items-center justify-center rounded-lg border transition-all duration-200 ease-out ${viewMode === 'grid' ? 'border-[var(--tv-accent)]/30 bg-[color-mix(in_srgb,var(--tv-accent),transparent_85%)] text-[var(--tv-accent)] shadow-sm' : 'border-transparent text-stone-500 hover:border-white/10 hover:bg-white/7 hover:text-stone-300'}`}
+              className={`inline-flex h-9 w-9 items-center justify-center rounded-lg border transition-all duration-200 ease-out ${viewMode === 'grid' ? 'border-[var(--tv-accent)]/30 bg-[color-mix(in_srgb,var(--tv-accent),transparent_85%)] text-[var(--tv-accent)] shadow-sm' : 'border-transparent tv-muted hover:border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] hover:bg-white/7 hover:tv-text'}`}
               title="Blok weergave"
             >
               <LayoutGrid className="h-4 w-4" />
@@ -140,7 +140,7 @@ function HandoutsView({ role, handouts, currentPlayerId, onToggleVisibility, onT
               <button
                 onClick={toggleClaimedVisibility}
                 disabled={claimedCount === 0}
-                className={`inline-flex h-10 w-full items-center justify-center gap-2 rounded-xl border px-3 text-[10px] uppercase tracking-[0.14em] shadow-sm transition-all duration-200 ease-out sm:w-auto ${claimedCount > 0 ? 'border-white/10 bg-white/5 text-stone-200 hover:border-[var(--tv-accent)]/25 hover:bg-white/7 hover:text-[var(--tv-accent)] active:scale-[0.985]' : 'cursor-not-allowed border-white/10 bg-white/5 text-stone-600'}`}
+                className={`inline-flex h-10 w-full items-center justify-center gap-2 rounded-xl border px-3 text-[10px] uppercase tracking-[0.14em] shadow-sm transition-all duration-200 ease-out sm:w-auto ${claimedCount > 0 ? 'border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] tv-panel-inset tv-text hover:border-[var(--tv-accent)]/25 hover:bg-white/7 hover:text-[var(--tv-accent)] active:scale-[0.985]' : 'cursor-not-allowed border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] tv-panel-inset tv-muted'}`}
                 title={allClaimedHidden ? 'Maak geclaimde handouts zichtbaar' : 'Verberg geclaimde handouts'}
               >
                 {allClaimedHidden ? <Eye className="h-3.5 w-3.5 shrink-0" /> : <EyeOff className="h-3.5 w-3.5 shrink-0" />}
@@ -162,7 +162,7 @@ function HandoutsView({ role, handouts, currentPlayerId, onToggleVisibility, onT
         <div className="flex flex-col gap-3 md:gap-4">
           <div className="grid grid-cols-1 gap-2 md:grid-cols-[minmax(0,1fr)_160px]">
             <label className="relative">
-              <Search className="absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-stone-500" />
+              <Search className="absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 tv-muted" />
               <input
                 type="search"
                 value={searchQuery}
@@ -173,7 +173,7 @@ function HandoutsView({ role, handouts, currentPlayerId, onToggleVisibility, onT
             </label>
 
             <label className="relative">
-              <SlidersHorizontal className="absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-stone-500" />
+              <SlidersHorizontal className="absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 tv-muted" />
               <select
                 value={sortBy}
                 onChange={(event) => setSortBy(event.target.value)}
@@ -211,7 +211,7 @@ function HandoutsView({ role, handouts, currentPlayerId, onToggleVisibility, onT
             </select>
           </div>
 
-          <div className="text-[11px] text-stone-500">
+          <div className="text-[11px] tv-muted">
             {processedHandouts.length} van {visibleBaseHandouts.length} handouts zichtbaar
           </div>
         </div>
@@ -274,14 +274,14 @@ function HandoutsView({ role, handouts, currentPlayerId, onToggleVisibility, onT
                     <div className="absolute right-2 top-1/2 z-20 flex -translate-y-1/2 items-center gap-1.5 md:right-3">
                       <button
                         onClick={(event) => { event.stopPropagation(); toggleSecretVisibility(handout.id); }}
-                        className={`rounded-lg border bg-zinc-950/92 p-1.5 shadow-sm transition-colors md:p-2 ${isSecretVisibleToPlayers(handout) ? 'border-cyan-500/45 text-cyan-300 hover:border-cyan-400' : 'border-white/10 text-stone-400 hover:border-cyan-500/35 hover:text-cyan-300'}`}
+                        className={`rounded-lg border bg-zinc-950/92 p-1.5 shadow-sm transition-colors md:p-2 ${isSecretVisibleToPlayers(handout) ? 'border-cyan-500/45 text-cyan-300 hover:border-cyan-400' : 'border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] tv-text-sub hover:border-cyan-500/35 hover:text-cyan-300'}`}
                         title={isSecretVisibleToPlayers(handout) ? 'Verberg Secret voor spelers' : 'Toon Secret aan alle spelers'}
                       >
                         <KeyRound className="h-4 w-4" />
                       </button>
                       <button
                         onClick={(event) => { event.stopPropagation(); toggleVisibility(handout.id); }}
-                        className="rounded-lg border border-white/10 bg-zinc-950/92 p-1.5 text-stone-400 shadow-sm transition-colors hover:border-amber-500/35 hover:text-amber-300 md:p-2"
+                        className="rounded-lg border border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] bg-zinc-950/92 p-1.5 tv-text-sub shadow-sm transition-colors hover:border-amber-500/35 hover:text-amber-300 md:p-2"
                         title={handout.isRevealed ? 'Verberg in de schaduwen' : 'Onthul aan de party'}
                       >
                         {handout.isRevealed ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
@@ -305,7 +305,7 @@ function HandoutsView({ role, handouts, currentPlayerId, onToggleVisibility, onT
                     </span>
 
                     {role === 'gm' && !handout.isRevealed ? (
-                      <span className={`flex shrink-0 items-center gap-1 rounded border border-white/10 bg-zinc-950 font-semibold uppercase tracking-widest text-stone-400 ${viewMode === 'grid' ? 'px-2 py-1 text-[9px]' : 'px-1.5 py-0.5 text-[8px]'}`}>
+                      <span className={`flex shrink-0 items-center gap-1 rounded border border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] bg-zinc-950 font-semibold uppercase tracking-widest tv-text-sub ${viewMode === 'grid' ? 'px-2 py-1 text-[9px]' : 'px-1.5 py-0.5 text-[8px]'}`}>
                         <EyeOff className="h-2.5 w-2.5 md:h-3 md:w-3" /> Verborgen
                       </span>
                     ) : null}
@@ -350,7 +350,7 @@ function HandoutsView({ role, handouts, currentPlayerId, onToggleVisibility, onT
                       <span className="rounded border border-rose-500/25 bg-rose-500/10 px-2 py-1 text-[9px] font-semibold uppercase tracking-[0.16em] text-rose-300">
                         HP {Number(handout.npcHp ?? 15) || 15}
                       </span>
-                      <span className="rounded border border-white/10 bg-zinc-950/80 px-2 py-1 text-[9px] font-semibold uppercase tracking-[0.16em] text-stone-300">
+                      <span className="rounded border border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] bg-zinc-950/80 px-2 py-1 text-[9px] font-semibold uppercase tracking-[0.16em] tv-text">
                         AC {Number(handout.npcAc ?? 12) || 12}
                       </span>
                       <span className="rounded border border-amber-500/25 bg-amber-500/10 px-2 py-1 text-[9px] font-semibold uppercase tracking-[0.16em] text-amber-300">

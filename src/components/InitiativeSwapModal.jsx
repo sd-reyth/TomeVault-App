@@ -64,12 +64,12 @@ function InitiativeSwapModal({
           )}
 
           {eligiblePartners.length === 0 ? (
-            <div className="rounded-lg border border-white/10 bg-white/5 p-4 text-center">
-              <p className="text-sm text-stone-400">Geen beschikbare bondgenoten om mee te wisselen.</p>
+            <div className="rounded-lg border border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] tv-panel-inset p-4 text-center">
+              <p className="text-sm tv-text-sub">Geen beschikbare bondgenoten om mee te wisselen.</p>
             </div>
           ) : (
             <>
-              <div className="mb-3 text-xs font-bold uppercase tracking-widest text-stone-500">
+              <div className="mb-3 text-xs font-bold uppercase tracking-widest tv-muted">
                 Kies een bondgenoot:
               </div>
               <div className="space-y-2 max-h-64 overflow-y-auto no-scrollbar">
@@ -88,11 +88,11 @@ function InitiativeSwapModal({
                         isSelected
                           ? 'tv-item-selected'
                           : (partnerIncapacitated || yourIncapacitated)
-                            ? 'border-white/10 bg-white/5 opacity-50 cursor-not-allowed'
-                            : 'border-white/10 bg-white/5 hover:border-white/25 hover:bg-white/7'
+                            ? 'border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] tv-panel-inset opacity-50 cursor-not-allowed'
+                            : 'border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] tv-panel-inset hover:border-white/25 hover:bg-white/7'
                       }`}
                     >
-                      <div className="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-white/10 bg-white/5">
+                      <div className="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] tv-panel-inset">
                         <img
                           src={resolveDisplayAvatar(partner.avatar, partner.id)}
                           alt={partner.name}
@@ -100,8 +100,8 @@ function InitiativeSwapModal({
                         />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <div className="truncate font-fantasy text-sm font-bold text-stone-100">{partner.name}</div>
-                        <div className="text-xs text-stone-500">Initiative: {partner.init ?? '-'}</div>
+                        <div className="truncate font-fantasy text-sm font-bold tv-text">{partner.name}</div>
+                        <div className="text-xs tv-muted">Initiative: {partner.init ?? '-'}</div>
                       </div>
                       {isSelected && <Check className="h-4 w-4 tv-accent shrink-0" />}
                     </button>
@@ -112,11 +112,11 @@ function InitiativeSwapModal({
           )}
         </div>
 
-        <div className="flex items-center justify-end gap-3 border-t border-white/10 bg-white/5 px-5 py-4">
+        <div className="flex items-center justify-end gap-3 border-t border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] tv-panel-inset px-5 py-4">
           <button
             type="button"
             onClick={onClose}
-            className="rounded-lg px-4 py-2 text-sm text-stone-400 transition-colors hover:text-stone-200"
+            className="rounded-lg px-4 py-2 text-sm tv-text-sub transition-colors hover:tv-text"
           >
             Annuleer
           </button>

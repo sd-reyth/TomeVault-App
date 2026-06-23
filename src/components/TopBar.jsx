@@ -240,7 +240,7 @@ export default function TopBar({ role, sessionId, sessionNumber, theme, combatSt
                       onLogout();
                       setIsSessionMenuOpen(false);
                     }}
-                    className="inline-flex h-10 w-full items-center gap-2 rounded-xl px-3 text-xs font-medium tracking-[0.08em] text-stone-400 transition-all duration-200 ease-out hover:bg-rose-500/10 hover:text-rose-200 active:scale-[0.985] md:hidden"
+                    className="inline-flex h-10 w-full items-center gap-2 rounded-xl px-3 text-xs font-medium tracking-[0.08em] tv-text-sub transition-all duration-200 ease-out hover:bg-rose-500/10 hover:text-rose-200 active:scale-[0.985] md:hidden"
                   >
                     <LogOut className="h-3.5 w-3.5" /> Verlaat sessie
                   </button>
@@ -260,7 +260,7 @@ export default function TopBar({ role, sessionId, sessionNumber, theme, combatSt
               className={`tv-chip-surface flex h-10 w-10 shrink-0 items-center justify-center rounded-xl px-0 shadow-inner transition-all duration-200 ease-out active:scale-[0.985] md:w-auto md:gap-2.5 md:px-3.5 ${ambience?.isPlaying ? 'tv-breathe-glow tv-text' : 'tv-muted hover:tv-text'}`}
               title={isPlayer ? 'Open audio-instellingen' : (ambience?.isPlaying ? 'Open actieve sessiesfeer' : 'Open sferenpaneel')}
             >
-              <span className="relative flex h-7 w-7 items-center justify-center rounded-lg bg-white/5">
+              <span className="relative flex h-7 w-7 items-center justify-center rounded-lg tv-panel-inset">
                 <span
                   className={`absolute right-1.5 top-1.5 h-1.5 w-1.5 rounded-full ${ambience?.isPlaying ? 'bg-[color:var(--tv-accent)]' : 'bg-stone-500'}`}
                   style={ambience?.isPlaying ? { boxShadow: 'var(--tv-glow)' } : undefined}
@@ -270,22 +270,22 @@ export default function TopBar({ role, sessionId, sessionNumber, theme, combatSt
 
               {isPlayer ? (
                 <div className="hidden text-left md:block">
-                  <div className="text-[9px] uppercase tracking-[0.22em] text-stone-500">Audio</div>
+                  <div className="text-[9px] uppercase tracking-[0.22em] tv-muted">Audio</div>
                   <div className="mt-0.5 text-[11px] font-medium tracking-[0.1em] text-current">Jouw volume</div>
                 </div>
               ) : (
                 <div className="hidden text-left md:block">
-                  <div className="text-[9px] uppercase tracking-[0.22em] text-stone-500">{ambienceTitle}</div>
+                  <div className="text-[9px] uppercase tracking-[0.22em] tv-muted">{ambienceTitle}</div>
                   <div className="mt-0.5 text-[11px] font-medium tracking-[0.1em] text-current">{ambienceSubtitle}</div>
                 </div>
               )}
 
               {!isPlayer ? (
-                <div className="hidden items-center gap-1.5 border-l border-white/10 pl-2 xl:flex">
-                  <div className="h-1.5 w-12 overflow-hidden rounded-full border border-white/10 bg-white/5">
+                <div className="hidden items-center gap-1.5 border-l border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] pl-2 xl:flex">
+                  <div className="h-1.5 w-12 overflow-hidden rounded-full border border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] tv-panel-inset">
                     <div className="h-full rounded-full bg-[color:var(--tv-accent)]" style={{ width: ambienceFillWidth }} />
                   </div>
-                  <Volume2 className="h-3.5 w-3.5 text-stone-500" />
+                  <Volume2 className="h-3.5 w-3.5 tv-muted" />
                 </div>
               ) : null}
             </button>
@@ -314,13 +314,13 @@ export default function TopBar({ role, sessionId, sessionNumber, theme, combatSt
 
           <button
             onClick={onToggleParty}
-            className="relative flex h-10 w-10 items-center justify-center rounded-xl text-stone-400 transition-all duration-200 ease-out hover:bg-white/5 hover:text-stone-100 active:scale-[0.985] lg:hidden"
+            className="relative flex h-10 w-10 items-center justify-center rounded-xl tv-text-sub transition-all duration-200 ease-out hover:tv-panel-inset hover:tv-text active:scale-[0.985] lg:hidden"
             title={partyButtonTitle}
           >
             <PartyIcon className={`h-5 w-5 ${combatStatus !== COMBAT_STATUS.IDLE ? 'text-[color:var(--tv-accent)]' : ''}`} />
             {role === 'player' && combatStatus !== COMBAT_STATUS.IDLE ? (
               <span
-                className={`pointer-events-none absolute -right-0.5 -top-0.5 flex h-4 w-4 items-center justify-center rounded-full border ${isMyTurn ? 'border-[color:var(--tv-accent)]' : 'border-stone-700'}`}
+                className={`pointer-events-none absolute -right-0.5 -top-0.5 flex h-4 w-4 items-center justify-center rounded-full border ${isMyTurn ? 'border-[color:var(--tv-accent)]' : 'border-[color-mix(in_srgb,var(--tv-border),transparent_20%)]'}`}
                 style={isMyTurn ? { boxShadow: 'var(--tv-glow)' } : undefined}
               >
                 <span
@@ -331,27 +331,27 @@ export default function TopBar({ role, sessionId, sessionNumber, theme, combatSt
                       : `conic-gradient(var(--tv-accent) 0deg ${partyIndicatorAngle}, rgba(255,255,255,0.12) ${partyIndicatorAngle} 360deg)`,
                   }}
                 />
-                <span className="absolute inset-[2px] rounded-full bg-stone-950" />
+                <span className="absolute inset-[2px] rounded-full tv-input-surface" />
                 <span className={`relative z-10 block h-1.5 w-1.5 rounded-full ${isMyTurn ? 'bg-[color:var(--tv-text-primary)] animate-pulse' : 'bg-stone-300'}`} />
               </span>
             ) : null}
           </button>
 
-          <div className="hidden items-center gap-1.5 border-l border-white/10 pl-2.5 md:flex md:gap-2.5 md:pl-3">
+          <div className="hidden items-center gap-1.5 border-l border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] pl-2.5 md:flex md:gap-2.5 md:pl-3">
             <div className="hidden text-right lg:block">
               <div className="text-sm font-medium uppercase tracking-[0.14em] text-[color:var(--tv-text-primary)]">{role === 'gm' ? 'Game Master' : 'Avonturier'}</div>
               <div className="text-[10px] font-semibold uppercase tracking-[0.22em] text-[color:var(--tv-text-secondary)]">Aanwezig</div>
             </div>
 
             {role === 'player' ? (
-              <button onClick={onOpenProfile} className="flex h-10 w-10 items-center justify-center rounded-xl text-stone-400 transition-all duration-200 ease-out hover:bg-white/5 hover:text-stone-100 active:scale-[0.985]" title="Mijn Karakterblad">
+              <button onClick={onOpenProfile} className="flex h-10 w-10 items-center justify-center rounded-xl tv-text-sub transition-all duration-200 ease-out hover:tv-panel-inset hover:tv-text active:scale-[0.985]" title="Mijn Karakterblad">
                 <User className="h-5 w-5" />
               </button>
             ) : null}
 
             <button
               onClick={onLogout}
-              className="flex h-10 w-10 items-center justify-center rounded-xl text-stone-400 transition-all duration-200 ease-out hover:bg-rose-500/10 hover:text-rose-200 active:scale-[0.985]"
+              className="flex h-10 w-10 items-center justify-center rounded-xl tv-text-sub transition-all duration-200 ease-out hover:bg-rose-500/10 hover:text-rose-200 active:scale-[0.985]"
               title="Verlaat Sessie"
             >
               <LogOut className="h-5 w-5" />
@@ -365,7 +365,7 @@ export default function TopBar({ role, sessionId, sessionNumber, theme, combatSt
                 setIsSessionMenuOpen(false);
                 setIsMobileActionsOpen((open) => !open);
               }}
-              className={`flex h-10 w-10 items-center justify-center rounded-xl border transition-all duration-200 ease-out active:scale-[0.985] ${isMobileActionsOpen ? 'border-white/10 bg-white/7 text-stone-100' : 'border-white/10 bg-white/5 text-stone-300 hover:bg-white/7 hover:text-stone-100'}`}
+              className={`flex h-10 w-10 items-center justify-center rounded-xl border transition-all duration-200 ease-out active:scale-[0.985] ${isMobileActionsOpen ? 'border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] bg-white/7 tv-text' : 'border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] tv-panel-inset tv-text hover:bg-white/7 hover:tv-text'}`}
               title="Meer acties"
             >
               <MoreHorizontal className="h-5 w-5" />
@@ -424,7 +424,7 @@ export default function TopBar({ role, sessionId, sessionNumber, theme, combatSt
                     onLogout();
                     setIsMobileActionsOpen(false);
                   }}
-                  className="inline-flex h-10 w-full items-center gap-2 rounded-xl px-3 text-xs font-medium tracking-[0.08em] text-stone-400 transition-all duration-200 ease-out hover:bg-rose-500/10 hover:text-rose-200 active:scale-[0.985]"
+                  className="inline-flex h-10 w-full items-center gap-2 rounded-xl px-3 text-xs font-medium tracking-[0.08em] tv-text-sub transition-all duration-200 ease-out hover:bg-rose-500/10 hover:text-rose-200 active:scale-[0.985]"
                 >
                   <LogOut className="h-3.5 w-3.5" /> Verlaat sessie
                 </button>

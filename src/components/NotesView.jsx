@@ -85,10 +85,10 @@ function NotesView({
   return (
     <div className="flex h-full flex-col gap-4 md:gap-6 lg:flex-row">
       <div className="tv-panel-shell h-52 w-full shrink-0 overflow-hidden sm:h-60 lg:h-full lg:w-1/3">
-        <div className="flex items-center justify-between gap-3 border-b border-white/10 bg-white/5 px-4 py-4 shadow-sm md:px-5">
+        <div className="flex items-center justify-between gap-3 border-b border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] tv-panel-inset px-4 py-4 shadow-sm md:px-5">
           <div>
             <h3 className="tv-panel-title">Kronieken</h3>
-            <p className="mt-1 text-[11px] text-stone-500">Persoonlijke notities zonder losse panelen of extra ruis.</p>
+            <p className="mt-1 text-[11px] tv-muted">Persoonlijke notities zonder losse panelen of extra ruis.</p>
           </div>
           <button 
             onClick={handleCreateNote}
@@ -117,14 +117,14 @@ function NotesView({
                 `}
               >
                 <div className="min-w-0 flex-1 pr-2">
-                  <h4 className={`truncate text-sm tracking-[0.08em] ${activeNoteId === note.id ? 'tv-accent' : 'text-stone-300 group-hover:text-stone-100'}`}>
+                  <h4 className={`truncate text-sm tracking-[0.08em] ${activeNoteId === note.id ? 'tv-accent' : 'tv-text group-hover:tv-text'}`}>
                     {note.title}
                   </h4>
-                  <p className="text-[10px] text-stone-500 mt-1">{note.lastEdited}</p>
+                  <p className="text-[10px] tv-muted mt-1">{note.lastEdited}</p>
                 </div>
                 <button 
                   onClick={(e) => { e.stopPropagation(); handleDeleteNote(note.id); }}
-                  className="rounded p-1 text-stone-600 opacity-100 transition-all hover:bg-white/7 hover:text-rose-300 lg:opacity-0 lg:group-hover:opacity-100"
+                  className="rounded p-1 tv-muted opacity-100 transition-all hover:bg-white/7 hover:text-rose-300 lg:opacity-0 lg:group-hover:opacity-100"
                   title="Verwijder"
                 >
                   <Trash2 className="w-3.5 h-3.5" />
@@ -140,33 +140,33 @@ function NotesView({
         
         {activeNote ? (
           <div className="relative z-10 flex h-full flex-1 flex-col p-5 md:p-6">
-            <div className="mb-4 flex items-center justify-between gap-3 border-b border-white/10 pb-3">
+            <div className="mb-4 flex items-center justify-between gap-3 border-b border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] pb-3">
               <div>
                 <div className="text-[10px] font-semibold uppercase tracking-[0.18em] tv-accent">Fluistertoon</div>
-                <div className="mt-1 text-xs text-stone-500">Schrijfvlak met dezelfde rustige kopstructuur als partychat.</div>
+                <div className="mt-1 text-xs tv-muted">Schrijfvlak met dezelfde rustige kopstructuur als partychat.</div>
               </div>
-              <span className="rounded-full border border-white/10 bg-white/5 px-2.5 py-1 text-[10px] uppercase tracking-[0.16em] text-stone-400">Privé</span>
+              <span className="rounded-full border border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] tv-panel-inset px-2.5 py-1 text-[10px] uppercase tracking-[0.16em] tv-text-sub">Privé</span>
             </div>
             <input
               type="text"
               value={activeNote.title}
               onChange={(e) => handleUpdateNote('title', e.target.value)}
-              className="mb-4 border-b border-white/10 bg-transparent pb-2 font-fantasy text-2xl font-bold tracking-[0.08em] tv-text outline-none transition-colors focus:border-[var(--tv-accent)]/45 md:text-3xl"
+              className="mb-4 border-b border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] bg-transparent pb-2 font-fantasy text-2xl font-bold tracking-[0.08em] tv-text outline-none transition-colors focus:border-[var(--tv-accent)]/45 md:text-3xl"
               placeholder="Titel van je notitie..."
             />
             <textarea
               value={activeNote.content}
               onChange={(e) => handleUpdateNote('content', e.target.value)}
-              className="no-scrollbar flex-1 resize-none bg-transparent text-sm leading-relaxed text-stone-200 outline-none placeholder-stone-600 md:text-base"
+              className="no-scrollbar flex-1 resize-none bg-transparent text-sm leading-relaxed tv-text outline-none placeholder-stone-600 md:text-base"
               placeholder="Begin met schrijven..."
             />
-            <div className="mt-4 flex flex-col gap-2 border-t border-white/10 pt-3 text-xs text-stone-500 sm:flex-row sm:items-center sm:justify-between">
+            <div className="mt-4 flex flex-col gap-2 border-t border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] pt-3 text-xs tv-muted sm:flex-row sm:items-center sm:justify-between">
               <span>Automatisch opgeslagen</span>
               <span className="flex items-center gap-1.5"><Save className="w-3.5 h-3.5" /> Opgeslagen</span>
             </div>
           </div>
         ) : (
-          <div className="relative z-10 flex flex-1 flex-col items-center justify-center p-6 text-center text-stone-600">
+          <div className="relative z-10 flex flex-1 flex-col items-center justify-center p-6 text-center tv-muted">
             <NotebookPen className="w-12 h-12 mb-4 opacity-50" />
             <p className="italic">Selecteer een notitie of maak een nieuwe aan om te beginnen met schrijven.</p>
           </div>

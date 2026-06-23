@@ -99,20 +99,20 @@ function HandoutModal({ isOpen, onClose, handout, role, players = [], currentPla
             <form id="handout-form" onSubmit={handleSave} className="flex flex-col gap-5">
               
               <div className="flex justify-center w-full">
-                <label className="relative group cursor-pointer w-full h-32 md:h-40 rounded-xl border-2 border-dashed border-white/20 bg-white/5 hover:bg-white/7 hover:border-[var(--tv-accent)]/50 flex items-center justify-center overflow-hidden transition-all shadow-inner">
+                <label className="relative group cursor-pointer w-full h-32 md:h-40 rounded-xl border-2 border-dashed border-white/20 tv-panel-inset hover:bg-white/7 hover:border-[var(--tv-accent)]/50 flex items-center justify-center overflow-hidden transition-all shadow-inner">
                   <input type="file" accept="image/*" className="hidden" onChange={handleImageChange} />
                   {formData.imageUrl ? (
                     <>
-                      <img src={formData.imageUrl} alt="Handout preview" className="w-full h-full object-contain p-2 bg-stone-950/80" />
+                      <img src={formData.imageUrl} alt="Handout preview" className="w-full h-full object-contain p-2 tv-input-surface" />
                       <div className="absolute left-2 top-2 rounded border border-cyan-700/60 bg-cyan-950/65 px-2 py-1 text-[9px] font-bold uppercase tracking-[0.16em] text-cyan-200">
                         Volledige upload
                       </div>
                       <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-stone-950/35">
-                        <ImagePlus className="w-8 h-8 text-stone-200 drop-shadow-md" />
+                        <ImagePlus className="w-8 h-8 tv-text drop-shadow-md" />
                       </div>
                     </>
                   ) : (
-                    <div className="flex flex-col items-center gap-2 text-stone-500 group-hover:text-[var(--tv-accent)] transition-colors">
+                    <div className="flex flex-col items-center gap-2 tv-muted group-hover:text-[var(--tv-accent)] transition-colors">
                       <ImagePlus className="w-6 h-6 md:w-8 md:h-8" />
                       <span className="text-[10px] md:text-xs font-bold uppercase tracking-widest">Eigen afbeelding uploaden</span>
                     </div>
@@ -121,7 +121,7 @@ function HandoutModal({ isOpen, onClose, handout, role, players = [], currentPla
               </div>
 
               {formData.imageUrl ? (
-                <p className="-mt-2 text-[11px] leading-5 text-stone-500">
+                <p className="-mt-2 text-[11px] leading-5 tv-muted">
                   De volledige afbeelding wordt geupload. In het overzicht kan een uitsnede worden gebruikt om de kaart netjes te tonen.
                 </p>
               ) : null}
@@ -131,7 +131,7 @@ function HandoutModal({ isOpen, onClose, handout, role, players = [], currentPla
                 const allImages = getAllPlaceholderImages();
                 return (
                   <div>
-                    <div className="text-[10px] font-bold text-stone-500 uppercase tracking-widest mb-2">Of kies een suggestie</div>
+                    <div className="text-[10px] font-bold tv-muted uppercase tracking-widest mb-2">Of kies een suggestie</div>
                     <div className="grid grid-cols-6 gap-1.5">
                       {suggestions.map((url) => (
                         <button
@@ -141,7 +141,7 @@ function HandoutModal({ isOpen, onClose, handout, role, players = [], currentPla
                           className={`aspect-square rounded-lg overflow-hidden border-2 transition-all ${
                             formData.imageUrl === url
                               ? 'border-[var(--tv-accent)] shadow-[0_0_8px_var(--tv-accent-shadow)]'
-                              : 'border-white/10 hover:border-[var(--tv-accent)]/50'
+                              : 'border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] hover:border-[var(--tv-accent)]/50'
                           }`}
                         >
                           <img src={url} alt="" className="w-full h-full object-cover scale-[1.25]" loading="lazy" />
@@ -150,7 +150,7 @@ function HandoutModal({ isOpen, onClose, handout, role, players = [], currentPla
                       <button
                         type="button"
                         onClick={() => setShowAllPlaceholders((v) => !v)}
-                        className={`aspect-square rounded-lg border-2 transition-all text-stone-300 font-fantasy text-lg ${showAllPlaceholders ? 'border-[var(--tv-accent)] bg-[color-mix(in_srgb,var(--tv-accent),transparent_85%)]' : 'border-white/10 hover:border-[var(--tv-accent)]/50 bg-white/5'}`}
+                        className={`aspect-square rounded-lg border-2 transition-all tv-text font-fantasy text-lg ${showAllPlaceholders ? 'border-[var(--tv-accent)] bg-[color-mix(in_srgb,var(--tv-accent),transparent_85%)]' : 'border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] hover:border-[var(--tv-accent)]/50 tv-panel-inset'}`}
                         title="Toon alle placeholders"
                       >
                         ...
@@ -158,14 +158,14 @@ function HandoutModal({ isOpen, onClose, handout, role, players = [], currentPla
                     </div>
 
                     {showAllPlaceholders && (
-                      <div className="mt-3 max-h-52 overflow-y-auto no-scrollbar rounded-lg border border-white/10 bg-white/5 p-2">
+                      <div className="mt-3 max-h-52 overflow-y-auto no-scrollbar rounded-lg border border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] tv-panel-inset p-2">
                         <div className="grid grid-cols-8 gap-1.5">
                           {allImages.map((url) => (
                             <button
                               key={`all-${url}`}
                               type="button"
                               onClick={() => handlePickPlaceholder(url)}
-                              className={`aspect-square rounded-md overflow-hidden border transition-all ${formData.imageUrl === url ? 'border-[var(--tv-accent)] shadow-[0_0_6px_var(--tv-accent-shadow-sm)]' : 'border-white/10 hover:border-[var(--tv-accent)]/50'}`}
+                              className={`aspect-square rounded-md overflow-hidden border transition-all ${formData.imageUrl === url ? 'border-[var(--tv-accent)] shadow-[0_0_6px_var(--tv-accent-shadow-sm)]' : 'border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] hover:border-[var(--tv-accent)]/50'}`}
                             >
                               <img src={url} alt="" className="w-full h-full object-cover scale-[1.25]" loading="lazy" />
                             </button>
@@ -179,7 +179,7 @@ function HandoutModal({ isOpen, onClose, handout, role, players = [], currentPla
 
               <div className="flex flex-col md:flex-row gap-4">
                 <div className="flex-1">
-                  <label className="block text-[10px] font-bold text-stone-500 uppercase tracking-widest mb-1.5">Titel</label>
+                  <label className="block text-[10px] font-bold tv-muted uppercase tracking-widest mb-1.5">Titel</label>
                   <input 
                     autoFocus
                     required
@@ -187,11 +187,11 @@ function HandoutModal({ isOpen, onClose, handout, role, players = [], currentPla
                     value={formData.title} 
                     onChange={e => setFormData({...formData, title: e.target.value})}
                     placeholder="Bijv. Geheime Brief van de Koning"
-                    className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-lg font-fantasy font-bold text-stone-100 placeholder-stone-500 focus:outline-none focus:border-[var(--tv-accent)]/70 focus:bg-white/7 transition-all duration-200"
+                    className="w-full tv-panel-inset border border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] rounded-lg px-4 py-3 text-lg font-fantasy font-bold tv-text placeholder-stone-500 focus:outline-none focus:border-[var(--tv-accent)]/70 focus:bg-white/7 transition-all duration-200"
                   />
                 </div>
                 <div className="w-full md:w-1/3">
-                  <label className="block text-[10px] font-bold text-stone-500 uppercase tracking-widest mb-1.5">Type</label>
+                  <label className="block text-[10px] font-bold tv-muted uppercase tracking-widest mb-1.5">Type</label>
                   <select 
                     value={formData.type} 
                     onChange={e => setFormData((prev) => ({
@@ -201,7 +201,7 @@ function HandoutModal({ isOpen, onClose, handout, role, players = [], currentPla
                       assignedToUid: e.target.value === 'npc' ? null : prev.assignedToUid,
                       assignedToNick: e.target.value === 'npc' ? null : prev.assignedToNick,
                     }))}
-                    className="w-full appearance-none rounded-lg border border-white/10 bg-white/5 px-4 py-3 text-sm font-fantasy tracking-wider text-stone-300 transition-colors focus:outline-none focus:border-[var(--tv-accent)]/60 focus:bg-white/7"
+                    className="w-full appearance-none rounded-lg border border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] tv-panel-inset px-4 py-3 text-sm font-fantasy tracking-wider tv-text transition-colors focus:outline-none focus:border-[var(--tv-accent)]/60 focus:bg-white/7"
                   >
                     <option value="clue">Clue / Document</option>
                     <option value="loot">Loot / Voorwerp</option>
@@ -216,47 +216,47 @@ function HandoutModal({ isOpen, onClose, handout, role, players = [], currentPla
                   <div className="mb-3 flex items-center justify-between gap-3">
                     <div>
                       <div className="text-[10px] font-bold uppercase tracking-widest text-rose-500">NPC Gevechtsprofiel</div>
-                      <p className="mt-1 text-xs leading-5 text-stone-500">Deze gegevens worden gebruikt wanneer je deze handout als NPC aan de initiative order toevoegt.</p>
+                      <p className="mt-1 text-xs leading-5 tv-muted">Deze gegevens worden gebruikt wanneer je deze handout als NPC aan de initiative order toevoegt.</p>
                     </div>
                   </div>
                   <div className="mb-3">
-                    <label className="block text-[10px] font-bold text-stone-500 uppercase tracking-widest mb-1.5">Label</label>
+                    <label className="block text-[10px] font-bold tv-muted uppercase tracking-widest mb-1.5">Label</label>
                     <input
                       type="text"
                       value={formData.npcSubtitle || ''}
                       onChange={e => setFormData({ ...formData, npcSubtitle: e.target.value })}
                       placeholder="Bijv. Aartsvijand"
-                      className="w-full rounded-lg border border-white/10 bg-white/5 px-4 py-2.5 text-sm font-story text-stone-200 placeholder-stone-500 transition-colors focus:outline-none focus:border-rose-500/60"
+                      className="w-full rounded-lg border border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] tv-panel-inset px-4 py-2.5 text-sm font-story tv-text placeholder-stone-500 transition-colors focus:outline-none focus:border-rose-500/60"
                     />
                   </div>
                   <div className="grid grid-cols-3 gap-3">
                     <div>
-                      <label className="block text-[10px] font-bold text-stone-500 uppercase tracking-widest mb-1.5">HP</label>
+                      <label className="block text-[10px] font-bold tv-muted uppercase tracking-widest mb-1.5">HP</label>
                       <input
                         type="number"
                         min="0"
                         value={formData.npcHp ?? 15}
                         onChange={e => setFormData({ ...formData, npcHp: e.target.value })}
-                        className="hide-arrows w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2.5 text-center text-sm text-stone-200 transition-colors focus:outline-none focus:border-rose-500/60"
+                        className="hide-arrows w-full rounded-lg border border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] tv-panel-inset px-3 py-2.5 text-center text-sm tv-text transition-colors focus:outline-none focus:border-rose-500/60"
                       />
                     </div>
                     <div>
-                      <label className="block text-[10px] font-bold text-stone-500 uppercase tracking-widest mb-1.5">AC</label>
+                      <label className="block text-[10px] font-bold tv-muted uppercase tracking-widest mb-1.5">AC</label>
                       <input
                         type="number"
                         min="0"
                         value={formData.npcAc ?? 12}
                         onChange={e => setFormData({ ...formData, npcAc: e.target.value })}
-                        className="hide-arrows w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2.5 text-center text-sm text-stone-200 transition-colors focus:outline-none focus:border-rose-500/60"
+                        className="hide-arrows w-full rounded-lg border border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] tv-panel-inset px-3 py-2.5 text-center text-sm tv-text transition-colors focus:outline-none focus:border-rose-500/60"
                       />
                     </div>
                     <div>
-                      <label className="block text-[10px] font-bold text-stone-500 uppercase tracking-widest mb-1.5">Init Mod</label>
+                      <label className="block text-[10px] font-bold tv-muted uppercase tracking-widest mb-1.5">Init Mod</label>
                       <input
                         type="number"
                         value={formData.npcInitMod ?? 2}
                         onChange={e => setFormData({ ...formData, npcInitMod: e.target.value })}
-                        className="hide-arrows w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2.5 text-center text-sm text-stone-200 transition-colors focus:outline-none focus:border-rose-500/60"
+                        className="hide-arrows w-full rounded-lg border border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] tv-panel-inset px-3 py-2.5 text-center text-sm tv-text transition-colors focus:outline-none focus:border-rose-500/60"
                       />
                     </div>
                   </div>
@@ -264,7 +264,7 @@ function HandoutModal({ isOpen, onClose, handout, role, players = [], currentPla
               )}
 
               <div>
-                <label className="block text-[10px] font-bold text-stone-500 uppercase tracking-widest mb-1.5 flex justify-between">
+                <label className="block text-[10px] font-bold tv-muted uppercase tracking-widest mb-1.5 flex justify-between">
                   <span>Publieke Inhoud</span>
                   <span className="text-stone-600 font-normal normal-case">Zichtbaar voor spelers</span>
                 </label>
@@ -274,7 +274,7 @@ function HandoutModal({ isOpen, onClose, handout, role, players = [], currentPla
                   value={formData.content} 
                   onChange={e => setFormData({...formData, content: e.target.value})}
                   placeholder="Wat zien of lezen de spelers als ze dit bekijken?"
-                  className="w-full resize-none rounded-lg border border-white/10 bg-white/5 px-4 py-3 text-sm font-story leading-relaxed text-stone-300 placeholder-stone-500 transition-colors focus:outline-none focus:border-[var(--tv-accent)]/60"
+                  className="w-full resize-none rounded-lg border border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] tv-panel-inset px-4 py-3 text-sm font-story leading-relaxed tv-text placeholder-stone-500 transition-colors focus:outline-none focus:border-[var(--tv-accent)]/60"
                 />
               </div>
 
@@ -306,76 +306,76 @@ function HandoutModal({ isOpen, onClose, handout, role, players = [], currentPla
                         assignedToNick: nextPlayer?.name || null,
                       }));
                     }}
-                    className="w-full bg-stone-950/50 border border-stone-800 rounded-lg px-4 py-2.5 text-sm font-story text-stone-300 focus:outline-none focus:border-cyan-700/50 transition-colors"
+                    className="w-full bg-stone-950/50 border border-[color-mix(in_srgb,var(--tv-border),transparent_28%)] rounded-lg px-4 py-2.5 text-sm font-story tv-text focus:outline-none focus:border-cyan-700/50 transition-colors"
                   >
                     <option value="">Iedereen in de party</option>
                     {players.map((player) => (
                       <option key={player.id} value={player.id}>{player.name}</option>
                     ))}
                   </select>
-                  <p className="mt-2 text-[11px] leading-5 text-stone-500">
+                  <p className="mt-2 text-[11px] leading-5 tv-muted">
                     {formData.assignedToUid ? `Alleen ${assignedPlayer?.name || 'de geselecteerde speler'} ziet deze handout in de lijst.` : 'Iedere speler met zichtbaarheid aan kan deze handout zien.'}
                   </p>
                 </div>
               ) : null}
 
               {String(formData.secret || '').trim() ? (
-                <div className="rounded-xl border border-amber-900/30 bg-stone-950/60 p-4">
+                <div className="rounded-xl border border-amber-900/30 tv-chip-surface p-4">
                   <label className="block text-[10px] font-bold text-amber-500 uppercase tracking-widest mb-2">Secret zichtbaar voor spelers</label>
                   <button
                     type="button"
                     onClick={() => setFormData((prev) => ({ ...prev, secretRevealed: !prev.secretRevealed }))}
-                    className={`w-full rounded-lg border px-3 py-2 text-sm font-fantasy tracking-[0.12em] transition-colors ${formData.secretRevealed ? 'border-cyan-700/70 bg-cyan-950/35 text-cyan-200 hover:border-cyan-500' : 'border-stone-700 bg-stone-950/70 text-stone-300 hover:border-cyan-700/70 hover:text-cyan-200'}`}
+                    className={`w-full rounded-lg border px-3 py-2 text-sm font-fantasy tracking-[0.12em] transition-colors ${formData.secretRevealed ? 'border-cyan-700/70 bg-cyan-950/35 text-cyan-200 hover:border-cyan-500' : 'border-[color-mix(in_srgb,var(--tv-border),transparent_20%)] tv-chip-surface tv-text hover:border-cyan-700/70 hover:text-cyan-200'}`}
                   >
                     {formData.secretRevealed ? 'Nu zichtbaar voor alle spelers' : 'Nu verborgen voor spelers'}
                   </button>
-                  <p className="mt-2 text-[11px] leading-5 text-stone-500">
+                  <p className="mt-2 text-[11px] leading-5 tv-muted">
                     Dit geldt voor iedereen: of alle spelers zien de Secret, of niemand.
                   </p>
                 </div>
               ) : null}
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-2">
-                <div className="flex items-center gap-3 bg-stone-950/30 border border-stone-800/50 p-3 rounded-lg">
+                <div className="flex items-center gap-3 bg-stone-950/30 border border-[color-mix(in_srgb,var(--tv-border),transparent_28%)]/50 p-3 rounded-lg">
                   <button 
                     type="button"
                     onClick={() => setFormData({...formData, isRevealed: !formData.isRevealed})}
-                    className={`p-2 rounded transition-colors shrink-0 ${formData.isRevealed ? 'bg-amber-900/40 text-amber-500' : 'bg-stone-900 text-stone-500 hover:text-stone-300'}`}
+                    className={`p-2 rounded transition-colors shrink-0 ${formData.isRevealed ? 'bg-amber-900/40 text-amber-500' : 'bg-stone-900 tv-muted hover:tv-text'}`}
                   >
                     {formData.isRevealed ? <Eye className="w-5 h-5" /> : <EyeOff className="w-5 h-5" />}
                   </button>
                   <div className="flex flex-col min-w-0">
-                    <span className="text-sm font-fantasy tracking-wider text-stone-200">Zichtbaarheid</span>
-                    <span className="text-[10px] text-stone-500 font-story truncate" title={formData.isRevealed ? 'Spelers kunnen dit nu in hun lijst zien.' : 'Verborgen in de schaduwen. Spelers zien dit (nog) niet.'}>
+                    <span className="text-sm font-fantasy tracking-wider tv-text">Zichtbaarheid</span>
+                    <span className="text-[10px] tv-muted font-story truncate" title={formData.isRevealed ? 'Spelers kunnen dit nu in hun lijst zien.' : 'Verborgen in de schaduwen. Spelers zien dit (nog) niet.'}>
                       {formData.isRevealed ? 'Spelers zien dit.' : 'Verborgen voor spelers.'}
                     </span>
                   </div>
                 </div>
 
                 {formData.type === 'loot' ? (
-                  <div className="flex items-center gap-3 bg-stone-950/30 border border-stone-800/50 p-3 rounded-lg">
+                  <div className="flex items-center gap-3 bg-stone-950/30 border border-[color-mix(in_srgb,var(--tv-border),transparent_28%)]/50 p-3 rounded-lg">
                     <button 
                       type="button"
                       onClick={() => setFormData({...formData, claimable: !formData.claimable})}
-                      className={`p-2 rounded transition-colors shrink-0 ${formData.claimable ? 'bg-amber-900/40 text-amber-500' : 'bg-stone-900 text-stone-500 hover:text-stone-300'}`}
+                      className={`p-2 rounded transition-colors shrink-0 ${formData.claimable ? 'bg-amber-900/40 text-amber-500' : 'bg-stone-900 tv-muted hover:tv-text'}`}
                     >
                       <Hand className="w-5 h-5" />
                     </button>
                     <div className="flex flex-col min-w-0">
-                      <span className="text-sm font-fantasy tracking-wider text-stone-200">Claimbaar</span>
-                      <span className="text-[10px] text-stone-500 font-story truncate" title={formData.claimable ? 'Spelers kunnen dit object claimen naar hun schatkamer.' : 'Dit object kan niet geclaimd worden.'}>
+                      <span className="text-sm font-fantasy tracking-wider tv-text">Claimbaar</span>
+                      <span className="text-[10px] tv-muted font-story truncate" title={formData.claimable ? 'Spelers kunnen dit object claimen naar hun schatkamer.' : 'Dit object kan niet geclaimd worden.'}>
                         {formData.claimable ? 'Kan geclaimd worden.' : 'Kan niet geclaimd worden.'}
                       </span>
                     </div>
                   </div>
                 ) : (
-                  <div className="flex items-center gap-3 bg-stone-950/30 border border-stone-800/50 p-3 rounded-lg opacity-80">
-                    <div className="p-2 rounded shrink-0 bg-stone-900 text-stone-500">
+                  <div className="flex items-center gap-3 bg-stone-950/30 border border-[color-mix(in_srgb,var(--tv-border),transparent_28%)]/50 p-3 rounded-lg opacity-80">
+                    <div className="p-2 rounded shrink-0 bg-stone-900 tv-muted">
                       <Hand className="w-5 h-5" />
                     </div>
                     <div className="flex flex-col min-w-0">
-                      <span className="text-sm font-fantasy tracking-wider text-stone-200">Claimbaar</span>
-                      <span className="text-[10px] text-stone-500 font-story truncate">
+                      <span className="text-sm font-fantasy tracking-wider tv-text">Claimbaar</span>
+                      <span className="text-[10px] tv-muted font-story truncate">
                         {formData.type === 'npc' ? 'NPC-handouts zijn altijd niet-claimable.' : 'Alleen loot-handouts kunnen geclaimd worden.'}
                       </span>
                     </div>
@@ -386,10 +386,10 @@ function HandoutModal({ isOpen, onClose, handout, role, players = [], currentPla
             </form>
           ) : (
             <div className="flex flex-col gap-6">
-              <div className="relative border-b border-stone-800/50 pb-6 text-center">
+              <div className="relative border-b border-[color-mix(in_srgb,var(--tv-border),transparent_28%)]/50 pb-6 text-center">
                 {isGM && handout ? (
                   <div className="absolute right-0 top-0">
-                    <button onClick={() => setIsEditing(true)} className="rounded-lg border border-white/10 bg-white/5 px-3 py-1.5 text-xs font-fantasy uppercase tracking-wider text-stone-300 transition-colors hover:bg-white/7 hover:text-stone-100">
+                    <button onClick={() => setIsEditing(true)} className="rounded-lg border border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] tv-panel-inset px-3 py-1.5 text-xs font-fantasy uppercase tracking-wider tv-text transition-colors hover:bg-white/7 hover:tv-text">
                       Bewerken
                     </button>
                   </div>
@@ -397,11 +397,11 @@ function HandoutModal({ isOpen, onClose, handout, role, players = [], currentPla
                 <div className="inline-block text-[10px] font-bold uppercase tracking-widest text-amber-600 bg-amber-950/50 border border-amber-900/30 px-3 py-1 rounded-full mb-4">
                   {formData.type}
                 </div>
-                <h2 className="text-3xl md:text-4xl font-fantasy font-bold text-stone-100 leading-tight">
+                <h2 className="text-3xl md:text-4xl font-fantasy font-bold tv-text leading-tight">
                   {formData.title}
                 </h2>
                 {formData.imageUrl && (
-                  <div className="w-full h-48 md:h-64 rounded-xl border border-stone-800 overflow-hidden shadow-lg mt-6 bg-stone-950 relative isolate">
+                  <div className="w-full h-48 md:h-64 rounded-xl border border-[color-mix(in_srgb,var(--tv-border),transparent_28%)] overflow-hidden shadow-lg mt-6 tv-input-surface relative isolate">
                     <img
                       src={formData.imageUrl}
                       alt=""
@@ -414,10 +414,10 @@ function HandoutModal({ isOpen, onClose, handout, role, players = [], currentPla
                 )}
               </div>
               
-              <div className="w-full max-w-[70ch] mx-auto text-left font-story text-stone-200/95 text-[15px] md:text-[17px] leading-[1.9] tracking-[0.01em]">
-                <div className="space-y-4 md:space-y-5 break-words border-t border-stone-800/70 pt-6 md:pt-7">
+              <div className="w-full max-w-[70ch] mx-auto text-left font-story tv-text/95 text-[15px] md:text-[17px] leading-[1.9] tracking-[0.01em]">
+                <div className="space-y-4 md:space-y-5 break-words border-t border-[color-mix(in_srgb,var(--tv-border),transparent_28%)]/70 pt-6 md:pt-7">
                   {(paragraphs.length ? paragraphs : [normalizeParagraph(formData.content || '')]).map((paragraph, index) => (
-                    <p key={`${index}-${paragraph.slice(0, 24)}`} className="text-stone-200/95">
+                    <p key={`${index}-${paragraph.slice(0, 24)}`} className="tv-text/95">
                       {paragraph}
                     </p>
                   ))}
@@ -427,8 +427,8 @@ function HandoutModal({ isOpen, onClose, handout, role, players = [], currentPla
               {formData.assignedToUid ? (
                 <div className="mx-auto w-full max-w-[70ch] rounded-xl border border-cyan-900/30 bg-cyan-950/10 p-4">
                   <div className="text-[10px] font-bold uppercase tracking-[0.18em] text-cyan-400">Toegewezen</div>
-                  <p className="mt-2 text-sm leading-6 text-stone-300">
-                    Deze handout is gericht aan <span className="font-fantasy tracking-[0.08em] text-stone-100">{formData.assignedToNick || 'een speler'}</span>.
+                  <p className="mt-2 text-sm leading-6 tv-text">
+                    Deze handout is gericht aan <span className="font-fantasy tracking-[0.08em] tv-text">{formData.assignedToNick || 'een speler'}</span>.
                   </p>
                 </div>
               ) : null}
@@ -437,24 +437,24 @@ function HandoutModal({ isOpen, onClose, handout, role, players = [], currentPla
                 <div className="mx-auto w-full max-w-[70ch] rounded-xl border border-rose-900/30 bg-rose-950/10 p-4">
                   <div className="mb-3 text-[10px] font-bold uppercase tracking-[0.18em] text-rose-500">NPC Gevechtsprofiel</div>
                   <div className="grid grid-cols-3 gap-3 text-center">
-                    <div className="rounded-lg border border-stone-800 bg-stone-950/60 px-3 py-2.5">
-                      <div className="text-[10px] uppercase tracking-[0.18em] text-stone-500">HP</div>
-                      <div className="mt-1 font-fantasy text-lg tracking-[0.14em] text-stone-100">{Number(formData.npcHp ?? 15) || 15}</div>
+                    <div className="rounded-lg border border-[color-mix(in_srgb,var(--tv-border),transparent_28%)] tv-chip-surface px-3 py-2.5">
+                      <div className="text-[10px] uppercase tracking-[0.18em] tv-muted">HP</div>
+                      <div className="mt-1 font-fantasy text-lg tracking-[0.14em] tv-text">{Number(formData.npcHp ?? 15) || 15}</div>
                     </div>
-                    <div className="rounded-lg border border-stone-800 bg-stone-950/60 px-3 py-2.5">
-                      <div className="text-[10px] uppercase tracking-[0.18em] text-stone-500">AC</div>
-                      <div className="mt-1 font-fantasy text-lg tracking-[0.14em] text-stone-100">{Number(formData.npcAc ?? 12) || 12}</div>
+                    <div className="rounded-lg border border-[color-mix(in_srgb,var(--tv-border),transparent_28%)] tv-chip-surface px-3 py-2.5">
+                      <div className="text-[10px] uppercase tracking-[0.18em] tv-muted">AC</div>
+                      <div className="mt-1 font-fantasy text-lg tracking-[0.14em] tv-text">{Number(formData.npcAc ?? 12) || 12}</div>
                     </div>
-                    <div className="rounded-lg border border-stone-800 bg-stone-950/60 px-3 py-2.5">
-                      <div className="text-[10px] uppercase tracking-[0.18em] text-stone-500">Init Mod</div>
-                      <div className="mt-1 font-fantasy text-lg tracking-[0.14em] text-stone-100">{(Number(formData.npcInitMod ?? 2) || 0) >= 0 ? `+${Number(formData.npcInitMod ?? 2) || 0}` : Number(formData.npcInitMod ?? 2) || 0}</div>
+                    <div className="rounded-lg border border-[color-mix(in_srgb,var(--tv-border),transparent_28%)] tv-chip-surface px-3 py-2.5">
+                      <div className="text-[10px] uppercase tracking-[0.18em] tv-muted">Init Mod</div>
+                      <div className="mt-1 font-fantasy text-lg tracking-[0.14em] tv-text">{(Number(formData.npcInitMod ?? 2) || 0) >= 0 ? `+${Number(formData.npcInitMod ?? 2) || 0}` : Number(formData.npcInitMod ?? 2) || 0}</div>
                     </div>
                   </div>
                   <button
                     type="button"
                     onClick={() => onAddToInitiative?.(formData)}
                     disabled={!canAddToInitiative}
-                    className={`mt-4 flex w-full items-center justify-center gap-2 rounded-lg border px-4 py-3 text-sm font-fantasy tracking-[0.14em] transition-colors ${canAddToInitiative ? 'border-rose-900/50 bg-gradient-to-r from-rose-800 to-rose-700 text-stone-100 hover:from-rose-700 hover:to-rose-600' : 'cursor-not-allowed border-stone-800 bg-stone-950/50 text-stone-500'}`}
+                    className={`mt-4 flex w-full items-center justify-center gap-2 rounded-lg border px-4 py-3 text-sm font-fantasy tracking-[0.14em] transition-colors ${canAddToInitiative ? 'border-rose-900/50 bg-gradient-to-r from-rose-800 to-rose-700 tv-text hover:from-rose-700 hover:to-rose-600' : 'cursor-not-allowed border-[color-mix(in_srgb,var(--tv-border),transparent_28%)] bg-stone-950/50 tv-muted'}`}
                   >
                     <UserPlus className="w-4 h-4" /> {canAddToInitiative ? 'Voeg toe aan slagorde' : 'Pauzeer gevecht om toe te voegen'}
                   </button>
@@ -462,7 +462,7 @@ function HandoutModal({ isOpen, onClose, handout, role, players = [], currentPla
               )}
 
               {isGM && formData.secret && (
-                <div className="mt-4 bg-stone-950/80 border border-amber-900/40 rounded-xl p-5 shadow-[inset_0_0_20px_rgba(0,0,0,0.5)] relative overflow-hidden">
+                <div className="mt-4 tv-input-surface border border-amber-900/40 rounded-xl p-5 shadow-[inset_0_0_20px_rgba(0,0,0,0.5)] relative overflow-hidden">
                   <div className="absolute top-0 left-0 w-1 h-full bg-amber-600" />
                   <h4 className="text-[10px] font-bold text-amber-600 uppercase tracking-widest mb-2 flex items-center gap-2">
                     <EyeOff className="w-3 h-3" /> Secret (alleen GM)
@@ -479,7 +479,7 @@ function HandoutModal({ isOpen, onClose, handout, role, players = [], currentPla
               )}
 
               {!isGM && formData.secret && playerCanSeeSecret ? (
-                <div className="mt-4 bg-stone-950/80 border border-cyan-900/40 rounded-xl p-5 shadow-[inset_0_0_20px_rgba(0,0,0,0.5)] relative overflow-hidden">
+                <div className="mt-4 tv-input-surface border border-cyan-900/40 rounded-xl p-5 shadow-[inset_0_0_20px_rgba(0,0,0,0.5)] relative overflow-hidden">
                   <div className="absolute top-0 left-0 w-1 h-full bg-cyan-500" />
                   <h4 className="text-[10px] font-bold text-cyan-300 uppercase tracking-widest mb-2 flex items-center gap-2">
                     <Eye className="w-3 h-3" /> Secret
@@ -503,7 +503,7 @@ function HandoutModal({ isOpen, onClose, handout, role, players = [], currentPla
             {handout ? (
               <button 
                 onClick={() => onDelete(handout.id)} 
-                className="text-stone-500 hover:text-rose-500 p-2 rounded hover:bg-rose-950/30 transition-colors"
+                className="tv-muted hover:text-rose-500 p-2 rounded hover:bg-rose-950/30 transition-colors"
                 title="Verwijder handout"
               >
                 <Trash2 className="w-5 h-5" />
@@ -517,7 +517,7 @@ function HandoutModal({ isOpen, onClose, handout, role, players = [], currentPla
                   if (!handout) onClose(); 
                   else setIsEditing(false); 
                 }} 
-                className="h-9 inline-flex items-center justify-center rounded-lg border border-stone-700 bg-stone-800 px-4 font-fantasy text-sm uppercase tracking-[0.16em] text-stone-300 transition-colors hover:bg-stone-700 hover:text-stone-200"
+                className="h-9 inline-flex items-center justify-center rounded-lg border border-[color-mix(in_srgb,var(--tv-border),transparent_20%)] bg-stone-800 px-4 font-fantasy text-sm uppercase tracking-[0.16em] tv-text transition-colors hover:bg-stone-700 hover:tv-text"
               >
                 Annuleren
               </button>
