@@ -26,4 +26,4 @@
 
 ## Active plan
 
-See `references/TOMEVAULT_VISUAL_WAVES.md` for the current wave roadmap.
+See `references/TOMEVAULT_MASTER_PLAN.md` for the current wave roadmap.
