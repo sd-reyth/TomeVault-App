@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { playUiSound } from '../lib/uiFeedback';
+import Button from './Button';
 import {
   ArrowDown,
   ArrowUp,
@@ -1258,21 +1259,12 @@ function RightSidebar({
           onClose={() => setEndCombatConfirmOpen(false)}
           actions={(
             <>
-              <button
-                type="button"
-                onClick={() => setEndCombatConfirmOpen(false)}
-                className="rounded-lg px-4 py-2 text-sm tv-text-sub transition-colors hover:tv-text"
-              >
-                Annuleer
-              </button>
-              <button
-                type="button"
-                onClick={handleEndCombatClick}
-                disabled={isActionBusy}
-                className="tv-satisfy-pop inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-fantasy tracking-[0.12em] tv-tone-enemy-button disabled:opacity-60"
-              >
+              <Button variant="ghost" onClick={() => setEndCombatConfirmOpen(false)}>
+                Annuleren
+              </Button>
+              <Button variant="danger" onClick={handleEndCombatClick} disabled={isActionBusy}>
                 <Skull className="h-4 w-4" /> Beëindig
-              </button>
+              </Button>
             </>
           )}
         >
@@ -1289,20 +1281,12 @@ function RightSidebar({
           onClose={() => setPendingMissingAction(null)}
           actions={(
             <>
-              <button
-                type="button"
-                onClick={() => setPendingMissingAction(null)}
-                className="rounded-lg px-4 py-2 text-sm tv-text-sub transition-colors hover:tv-text"
-              >
+              <Button variant="ghost" onClick={() => setPendingMissingAction(null)}>
                 Nog niet starten
-              </button>
-              <button
-                type="button"
-                onClick={handleConfirmMissingInitiative}
-                className="rounded-lg px-4 py-2 text-sm font-fantasy tracking-[0.12em] transition-colors tv-button-primary"
-              >
+              </Button>
+              <Button variant="primary" onClick={handleConfirmMissingInitiative}>
                 Rol ontbrekende
-              </button>
+              </Button>
             </>
           )}
         >
@@ -1325,37 +1309,21 @@ function RightSidebar({
           actions={(
             tieResolutionState.selectionMode === 'manual' ? (
               <>
-                <button
-                  type="button"
-                  onClick={() => setTieResolutionState({ ...tieResolutionState, selectionMode: 'choice' })}
-                  className="rounded-lg px-4 py-2 text-sm tv-text-sub transition-colors hover:tv-text"
-                >
+                <Button variant="ghost" onClick={() => setTieResolutionState({ ...tieResolutionState, selectionMode: 'choice' })}>
                   Terug
-                </button>
-                <button
-                  type="button"
-                  onClick={() => handleTieOrderResolved(tieResolutionState.manualOrder)}
-                  className="rounded-lg px-4 py-2 text-sm font-fantasy tracking-[0.12em] transition-colors tv-button-primary"
-                >
+                </Button>
+                <Button variant="primary" onClick={() => handleTieOrderResolved(tieResolutionState.manualOrder)}>
                   Volgorde vastzetten
-                </button>
+                </Button>
               </>
             ) : (
               <>
-                <button
-                  type="button"
-                  onClick={() => setTieResolutionState({ ...tieResolutionState, selectionMode: 'manual' })}
-                  className="rounded-lg border border-[color-mix(in_srgb,var(--tv-border),transparent_20%)] tv-input-surface px-4 py-2 text-sm tv-text transition-colors hover:border-[color-mix(in_srgb,var(--tv-accent),transparent_58%)] hover:tv-text"
-                >
+                <Button variant="secondary" onClick={() => setTieResolutionState({ ...tieResolutionState, selectionMode: 'manual' })}>
                   Ik kies zelf
-                </button>
-                <button
-                  type="button"
-                  onClick={() => handleTieOrderResolved(shuffleList(activeTieGroupMembers.map((member) => member.id)))}
-                  className="rounded-lg px-4 py-2 text-sm font-fantasy tracking-[0.12em] transition-colors tv-button-primary"
-                >
+                </Button>
+                <Button variant="primary" onClick={() => handleTieOrderResolved(shuffleList(activeTieGroupMembers.map((member) => member.id)))}>
                   TomeVault bepaalt
-                </button>
+                </Button>
               </>
             )
           )}
@@ -1410,21 +1378,12 @@ function RightSidebar({
           onClose={() => setKickTarget(null)}
           actions={(
             <>
-              <button
-                type="button"
-                onClick={() => setKickTarget(null)}
-                className="rounded-lg px-4 py-2 text-sm tv-text-sub transition-colors hover:tv-text"
-              >
-                Annuleer
-              </button>
-              <button
-                type="button"
-                onClick={handleConfirmKickPlayer}
-                disabled={isActionBusy}
-                className="rounded-lg px-4 py-2 text-sm font-fantasy tracking-[0.12em] transition-colors tv-button-primary disabled:opacity-60"
-              >
+              <Button variant="ghost" onClick={() => setKickTarget(null)}>
+                Annuleren
+              </Button>
+              <Button variant="danger" onClick={handleConfirmKickPlayer} disabled={isActionBusy}>
                 Ja, verwijder
-              </button>
+              </Button>
             </>
           )}
         >
@@ -1440,13 +1399,9 @@ function RightSidebar({
           description="Activeer of verwijder status effecten op dit personage."
           onClose={() => setConditionsTarget(null)}
           actions={(
-            <button
-              type="button"
-              onClick={handleSaveConditions}
-              className="rounded-lg px-4 py-2 text-sm font-fantasy tracking-[0.12em] transition-colors tv-button-primary"
-            >
+            <Button variant="primary" onClick={handleSaveConditions}>
               Opslaan
-            </button>
+            </Button>
           )}
         >
           <div className="grid grid-cols-2 gap-2">

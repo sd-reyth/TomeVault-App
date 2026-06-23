@@ -20,6 +20,7 @@ import { safeLocalStorageGet, safeLocalStorageSet } from '../lib/browserStorage'
 import { getJoinTagLookupVariants } from '../lib/sessionUtils';
 import landingBackgroundVideo from '../../Video/landingBG.mp4';
 import RuntimeBadge from './RuntimeBadge';
+import Button from './Button';
 import { APP_THEMES } from '../lib/appThemes';
 
 const LANDING_AMBIENCE_ENABLED_STORAGE_KEY = 'tomevault:landing:ambience-enabled';
@@ -967,7 +968,7 @@ export default function LandingScreen({
                 ) : null}
 
                 {(authError || localAuthError) ? (
-                  <div className="mt-4 rounded-2xl border border-rose-900/50 bg-rose-950/35 px-4 py-3 text-sm text-rose-200">
+                  <div className="mt-4 rounded-2xl tv-tone-enemy-surface px-4 py-3 text-sm">
                     {localAuthError || authError}
                   </div>
                 ) : null}
@@ -977,7 +978,7 @@ export default function LandingScreen({
                 <button
                   type="button"
                   onClick={() => onSignOut?.()}
-                  className="tv-entry-action border-rose-900/50 bg-rose-950/25 text-rose-200 hover:border-rose-700/60 hover:bg-rose-950/40 hover:text-rose-100"
+                  className="tv-entry-action tv-tone-enemy-button"
                 >
                   <LogOut className="mr-2 h-4 w-4" />
                   Log uit
@@ -1186,7 +1187,7 @@ export default function LandingScreen({
         <div className="fixed inset-0 z-50 flex items-center justify-center tv-backdrop p-4 backdrop-blur-md">
           <div className="w-full max-w-md overflow-hidden rounded-2xl border border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] tv-surface shadow-[0_28px_80px_rgba(0,0,0,0.45)]">
             <div className="tv-surface-faint flex items-center justify-between gap-3 border-b border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] px-4 py-4">
-              <div className="flex items-center gap-2 text-rose-300">
+              <div className="flex items-center gap-2 tv-tone-enemy-text">
                 <AlertTriangle className="w-5 h-5" />
                 <h3 className="font-fantasy tracking-wider tv-text">Sessie Permanent Wissen</h3>
               </div>
@@ -1209,29 +1210,20 @@ export default function LandingScreen({
                   value={deleteSessionNameInput}
                   onChange={(e) => setDeleteSessionNameInput(e.target.value)}
                   placeholder="Typ de sessienaam exact over"
-                  className="w-full rounded-xl border border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] tv-panel-inset px-3 py-2.5 text-sm tv-text placeholder:tv-muted transition-colors focus:outline-none focus:border-rose-500/60"
+                  className="w-full rounded-xl border border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] tv-panel-inset px-3 py-2.5 text-sm tv-text placeholder:tv-muted transition-colors focus:outline-none focus:border-[color-mix(in_srgb,var(--tv-tone-enemy),transparent_40%)]"
                 />
                 {deleteError && (
-                  <div className="rounded-lg border border-rose-900/50 bg-rose-950/30 px-3 py-2 text-xs text-rose-300">
+                  <div className="rounded-lg tv-tone-enemy-surface px-3 py-2 text-xs">
                     {deleteError}
                   </div>
                 )}
                 <div className="flex gap-2 pt-1">
-                  <button
-                    type="button"
-                    onClick={closeDeleteFlow}
-                    className="flex-1 rounded-lg border border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] py-2.5 text-xs font-fantasy tracking-wider tv-text transition-colors hover:tv-panel-inset"
-                  >
-                    Annuleer
-                  </button>
-                  <button
-                    type="button"
-                    onClick={handleDeleteNameConfirm}
-                    disabled={sessionBusy}
-                    className="flex-1 rounded-lg border border-rose-900/60 bg-rose-950/40 py-2.5 text-xs font-fantasy tracking-wider text-rose-200 transition-colors hover:bg-rose-900/50 disabled:opacity-50"
-                  >
+                  <Button variant="ghost" block onClick={closeDeleteFlow}>
+                    Annuleren
+                  </Button>
+                  <Button variant="danger" block onClick={handleDeleteNameConfirm} disabled={sessionBusy}>
                     Bevestigen
-                  </button>
+                  </Button>
                 </div>
               </div>
             ) : (
@@ -1239,25 +1231,16 @@ export default function LandingScreen({
                 <p className="text-sm tv-text font-story leading-relaxed">
                   U bent de GM van deze sessie en staat op het punt de volledige campagne definitief te verwijderen. Spelers kunnen deze wereld daarna niet meer betreden en dit kan niet ongedaan worden gemaakt.
                 </p>
-                <div className="rounded-xl border border-rose-900/40 bg-rose-950/20 px-4 py-3 text-sm text-rose-100 font-story leading-relaxed">
+                <div className="rounded-xl tv-tone-enemy-surface px-4 py-3 text-sm font-story leading-relaxed">
                   Weet u zeker dat u <strong>{deleteTarget.sessionName || 'Naamloze Sessie'}</strong> voorgoed wilt wissen?
                 </div>
                 <div className="flex gap-2 pt-1">
-                  <button
-                    type="button"
-                    onClick={() => setShowGmDeleteWarning(false)}
-                    className="flex-1 rounded-lg border border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] py-2.5 text-xs font-fantasy tracking-wider tv-text transition-colors hover:tv-panel-inset"
-                  >
+                  <Button variant="ghost" block onClick={() => setShowGmDeleteWarning(false)}>
                     Terug
-                  </button>
-                  <button
-                    type="button"
-                    onClick={handleFinalDeleteConfirm}
-                    disabled={sessionBusy}
-                    className="flex-1 rounded-lg border border-rose-900/60 bg-rose-950/40 py-2.5 text-xs font-fantasy tracking-wider text-rose-200 transition-colors hover:bg-rose-900/50 disabled:opacity-50"
-                  >
+                  </Button>
+                  <Button variant="danger" block onClick={handleFinalDeleteConfirm} disabled={sessionBusy}>
                     Campagne Wissen
-                  </button>
+                  </Button>
                 </div>
               </div>
             )}

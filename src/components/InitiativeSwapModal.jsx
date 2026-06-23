@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Check, AlertCircle, Zap } from 'lucide-react';
 import ModalFrame from './ModalFrame';
+import Button from './Button';
 import { resolveDisplayAvatar } from '../lib/placeholders';
 import { isIncapacitated } from '../lib/battleConditions';
 
@@ -113,21 +114,16 @@ function InitiativeSwapModal({
         </div>
 
         <div className="flex items-center justify-end gap-3 border-t border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] tv-panel-inset px-5 py-4">
-          <button
-            type="button"
-            onClick={onClose}
-            className="rounded-lg px-4 py-2 text-sm tv-text-sub transition-colors hover:tv-text"
-          >
-            Annuleer
-          </button>
-          <button
-            type="button"
+          <Button variant="ghost" onClick={onClose}>
+            Annuleren
+          </Button>
+          <Button
+            variant="primary"
             onClick={handleSwap}
             disabled={!selectedPartner || incapacitatedMessage}
-            className="inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-fantasy tracking-[0.12em] transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed active:scale-95 tv-button-primary"
           >
             <Zap className="h-3.5 w-3.5" /> Wissel
-          </button>
+          </Button>
         </div>
     </ModalFrame>
   );

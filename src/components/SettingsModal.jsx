@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { getPlanFeatureSummary } from '../lib/accessPlans';
 import { Crown, Download, LogOut, Save, Settings, SunMedium, SwatchBook, UserRound, Volume2 } from 'lucide-react';
 import ModalFrame from './ModalFrame';
+import Button from './Button';
 import { APP_THEMES } from '../lib/appThemes';
 
 function SettingsModal({
@@ -197,46 +198,46 @@ function SettingsModal({
         ) : null}
 
         <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-          <button
-            type="button"
+          <Button
+            variant="secondary"
+            block
             onClick={() => onExportArchive?.()}
             disabled={exportBusy}
-            className="tv-satisfy-pop flex h-10 w-full items-center justify-center gap-2 rounded-xl border text-sm font-medium uppercase tracking-[0.16em] transition-all duration-200 ease-out disabled:cursor-wait border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] tv-surface-raised tv-text tv-hover-surface"
           >
             <Download className="h-4 w-4" /> {exportBusy ? 'Laden...' : (role === 'gm' ? 'Archief' : 'Profiel')}
-          </button>
+          </Button>
 
-          <button
-            type="button"
+          <Button
+            variant="danger"
+            block
             onClick={() => { onLogout(); onClose(); }}
-            className="tv-satisfy-pop flex h-10 w-full items-center justify-center gap-2 rounded-xl border border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] tv-panel-inset tv-text transition-all duration-200 ease-out active:scale-[0.985] tv-hover-danger"
           >
             <LogOut className="h-4 w-4" /> Verlaat
-          </button>
+          </Button>
         </div>
 
         {canOpenOwnerPanel ? (
-          <button
-            type="button"
+          <Button
+            variant="secondary"
+            block
             onClick={() => {
               onClose();
               onOpenOwnerPanel?.();
             }}
-            className="tv-satisfy-pop flex h-10 w-full items-center justify-center gap-2 rounded-xl border border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] tv-panel-inset tv-text transition-all duration-200 ease-out active:scale-[0.985] tv-hover-surface"
           >
             <Crown className="h-4 w-4" /> Owner Panel
-          </button>
+          </Button>
         ) : null}
       </div>
 
       <div className="-mt-1 flex justify-stretch pt-1 sm:justify-end">
-        <button
-          type="button"
+        <Button
+          variant="primary"
           onClick={handleSave}
-          className="tv-satisfy-pop inline-flex h-10 w-full items-center justify-center gap-2 rounded-xl border px-4 text-sm font-medium uppercase tracking-[0.16em] shadow-sm transition-all duration-200 ease-out active:scale-[0.985] sm:w-auto tv-button-primary"
+          className="w-full sm:w-auto"
         >
           <Save className="h-4 w-4" /> Opslaan
-        </button>
+        </Button>
       </div>
     </ModalFrame>
   );

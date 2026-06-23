@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { UserPlus, ImagePlus } from 'lucide-react';
 import ModalFrame from './ModalFrame';
 import TvImage from './TvImage';
+import Button from './Button';
 
 export default function AddNpcModal({ isOpen, onClose, onSave }) {
   const [name, setName] = useState('');
@@ -113,19 +114,12 @@ export default function AddNpcModal({ isOpen, onClose, onSave }) {
           </div>
 
           <div className="mt-2 flex flex-col-reverse gap-3 sm:flex-row">
-            <button 
-              type="button"
-              onClick={onClose}
-              className="tv-button-secondary h-10 flex-1 rounded-lg"
-            >
-              Annuleer
-            </button>
-            <button 
-              type="submit"
-              className="tv-button-primary h-10 flex-1 rounded-lg"
-            >
+            <Button variant="ghost" block onClick={onClose}>
+              Annuleren
+            </Button>
+            <Button variant="primary" block type="submit">
               Toevoegen
-            </button>
+            </Button>
           </div>
         </form>
     </ModalFrame>

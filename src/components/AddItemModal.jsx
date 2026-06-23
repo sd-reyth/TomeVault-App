@@ -3,6 +3,7 @@ import { ImagePlus, Package } from 'lucide-react';
 import { ITEM_PLACEHOLDER_IMAGES } from '../lib/placeholders';
 import ModalFrame from './ModalFrame';
 import TvImage from './TvImage';
+import Button from './Button';
 
 function AddItemModal({ isOpen, onClose, onSave, role, party, currentPlayerId, itemToEdit }) {
   const [formData, setFormData] = useState({
@@ -165,19 +166,12 @@ function AddItemModal({ isOpen, onClose, onSave, role, party, currentPlayerId, i
           </div>
 
           <div className="flex flex-col-reverse gap-3 border-t border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] tv-panel-inset p-4 pt-4 backdrop-blur-sm shrink-0 sm:flex-row sm:p-6">
-            <button 
-              type="button"
-              onClick={onClose}
-              className="tv-button-secondary h-10 flex-1 inline-flex items-center justify-center rounded-lg font-fantasy uppercase tracking-[0.16em] text-sm transition-all duration-200 active:scale-95"
-            >
+            <Button variant="ghost" block onClick={onClose}>
               Annuleren
-            </button>
-            <button 
-              type="submit"
-              className="h-10 flex-1 inline-flex items-center justify-center rounded-lg font-fantasy uppercase tracking-[0.16em] text-sm active:scale-95 tv-button-primary"
-            >
+            </Button>
+            <Button variant="primary" block type="submit">
               {itemToEdit ? 'Opslaan' : 'Toevoegen'}
-            </button>
+            </Button>
           </div>
         </form>
     </ModalFrame>

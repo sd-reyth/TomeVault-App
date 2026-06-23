@@ -4,6 +4,7 @@ import { getHandoutIcon } from '../lib/handoutUtils';
 import { getAllPlaceholderImages, suggestHandoutImages } from '../lib/placeholders';
 import ModalFrame from './ModalFrame';
 import TvImage from './TvImage';
+import Button from './Button';
 
 function HandoutModal({ isOpen, onClose, handout, role, players = [], currentPlayerId, onSave, onDelete, onAddToInitiative, canAddToInitiative }) {
   const [isEditing, setIsEditing] = useState(false);
@@ -503,33 +504,36 @@ function HandoutModal({ isOpen, onClose, handout, role, players = [], currentPla
         {isGM && isEditing && (
           <div className="tv-modal-footer p-4 backdrop-blur-md flex justify-between items-center shrink-0 sm:px-5">
             {handout ? (
-              <button 
-                onClick={() => onDelete(handout.id)} 
-                className="tv-muted hover:text-rose-500 p-2 rounded hover:bg-rose-950/30 transition-colors"
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => onDelete(handout.id)}
+                className="tv-hover-danger px-2"
                 title="Verwijder handout"
+                aria-label="Verwijder handout"
               >
-                <Trash2 className="w-5 h-5" />
-              </button>
+                <Trash2 className="h-4 w-4" />
+              </Button>
             ) : (
               <div />
             )}
-            <div className="flex gap-3">
-              <button 
+            <div className="flex gap-2.5">
+              <Button
+                variant="ghost"
                 onClick={() => {
-                  if (!handout) onClose(); 
-                  else setIsEditing(false); 
-                }} 
-                className="h-9 inline-flex items-center justify-center rounded-lg border border-[color-mix(in_srgb,var(--tv-border),transparent_20%)] tv-chip-surface px-4 font-fantasy text-sm uppercase tracking-[0.16em] tv-text transition-colors hover:opacity-90 hover:tv-text"
+                  if (!handout) onClose();
+                  else setIsEditing(false);
+                }}
               >
                 Annuleren
-              </button>
-              <button 
+              </Button>
+              <Button
                 form="handout-form"
                 type="submit"
-                className="h-9 inline-flex items-center justify-center gap-2 rounded-lg px-4 font-fantasy text-sm uppercase tracking-[0.16em] tv-button-primary"
+                variant="primary"
               >
                 {handout ? 'Opslaan' : 'Nieuw'}
-              </button>
+              </Button>
             </div>
           </div>
         )}

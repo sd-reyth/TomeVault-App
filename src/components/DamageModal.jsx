@@ -36,7 +36,7 @@ export default function DamageModal({ isOpen, onClose, target, onSave }) {
       bodyClassName="gap-4"
     >
           <div className="text-center mb-2">
-            <div className={`text-5xl font-fantasy font-bold mt-1 ${target.hp < 10 ? 'text-rose-500' : 'tv-accent'}`}>
+            <div className={`text-5xl font-fantasy font-bold mt-1 ${target.hp < 10 ? 'tv-hp-low' : 'tv-accent'}`}>
               {target.hp}
             </div>
           </div>

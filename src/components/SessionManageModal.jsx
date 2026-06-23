@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Copy, Share2, Hash, Link, Save } from 'lucide-react';
 import { buildSessionInviteUrl, toLegacyHashJoinTag } from '../lib/sessionUtils';
 import ModalFrame from './ModalFrame';
+import Button from './Button';
 
 export default function SessionManageModal({
   isOpen,
@@ -130,25 +131,21 @@ export default function SessionManageModal({
           {/* Save */}
           <div className="-mt-1 grid grid-cols-1 gap-3 pt-1 sm:grid-cols-2">
             {sessionId ? (
-              <button
-                type="button"
+              <Button
+                variant="secondary"
+                block
                 onClick={() => {
                   onOpenShare?.();
                   onClose();
                 }}
-                className="tv-button-secondary inline-flex h-10 w-full items-center justify-center gap-2 rounded-xl text-sm uppercase tracking-[0.14em] transition-all duration-200 ease-out active:scale-[0.985]"
               >
                 <Share2 className="h-4 w-4" />
                 Deel sessie
-              </button>
+              </Button>
             ) : null}
-            <button
-              type="button"
-              onClick={handleSave}
-              className="tv-button-primary inline-flex h-10 w-full items-center justify-center gap-2 rounded-xl px-4 text-sm uppercase tracking-[0.16em] transition-all duration-200 ease-out active:scale-[0.985]"
-            >
+            <Button variant="primary" block onClick={handleSave}>
               <Save className="h-4 w-4" /> Opslaan
-            </button>
+            </Button>
           </div>
     </ModalFrame>
   );

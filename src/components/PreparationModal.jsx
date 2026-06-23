@@ -4,6 +4,7 @@ import { PROFILE_PROMPT_AVATARS, resolveDisplayAvatar } from '../lib/placeholder
 import { STAT_SUGGESTIONS } from '../data/mockData';
 import ModalFrame from './ModalFrame';
 import TvImage from './TvImage';
+import Button from './Button';
 
 function getInitialPreparationState(preparation) {
   return {
@@ -105,23 +106,23 @@ export default function PreparationModal({ isOpen, preparation, onClose, onSave,
 
           <div className="mb-0 flex w-full flex-col gap-2 sm:mb-2 sm:w-auto sm:flex-row sm:items-center">
             {preparation ? (
-              <button
-                type="button"
+              <Button
+                variant="danger"
                 onClick={() => onDelete?.(preparation.id)}
-                className="inline-flex h-9 w-full items-center justify-center gap-2 rounded-lg border border-rose-900/40 bg-rose-950/20 p-2 text-rose-300 transition-colors hover:bg-rose-900/30 sm:h-auto sm:w-auto"
+                className="w-full sm:w-auto"
                 title="Verwijder voorbereiding"
               >
                 <Trash2 className="h-4 w-4" />
-                <span className="text-[11px] font-fantasy uppercase tracking-[0.14em] sm:hidden">Verwijderen</span>
-              </button>
+                <span className="sm:hidden">Verwijderen</span>
+              </Button>
             ) : null}
-            <button
-              type="button"
+            <Button
+              variant="primary"
               onClick={handleSave}
-              className="inline-flex h-9 w-full items-center justify-center rounded-lg px-4 font-fantasy text-xs uppercase tracking-[0.16em] sm:w-auto tv-button-primary"
+              className="w-full sm:w-auto"
             >
               {preparation ? 'Opslaan' : 'Nieuw'}
-            </button>
+            </Button>
           </div>
             </div>
           </div>
