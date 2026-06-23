@@ -143,7 +143,7 @@ function CharacterProfileModal({ isOpen, onClose, character, role, currentPlayer
           </label>
           
           {canEdit && (
-            <button onClick={handleSave} className="mb-0 inline-flex h-9 w-full items-center justify-center rounded-lg border border-amber-700/60 bg-gradient-to-r from-amber-700 to-amber-600 px-4 text-xs font-fantasy uppercase tracking-[0.16em] text-stone-100 shadow-sm transition-all hover:from-amber-600 hover:to-amber-500 sm:mb-2 sm:w-auto">
+            <button onClick={handleSave} className="mb-0 inline-flex h-9 w-full items-center justify-center rounded-lg px-4 text-xs font-fantasy uppercase tracking-[0.16em] sm:mb-2 sm:w-auto tv-button-primary">
               Opslaan
             </button>
           )}

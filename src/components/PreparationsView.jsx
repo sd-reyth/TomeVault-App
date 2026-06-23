@@ -96,22 +96,22 @@ export default function PreparationsView({
 
   return (
     <section className="flex h-full flex-col gap-4 md:gap-5">
-      <header className="border-b border-white/10 pb-4 md:pb-6">
+      <header className="tv-panel-header pb-5 md:pb-6">
         <div className="flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
           <div className="max-w-2xl min-w-0">
             <h1 className="text-2xl font-semibold tracking-[0.12em] text-stone-100 md:text-3xl">Voorbereidingen</h1>
-            <p className="mt-1 text-xs text-stone-400 font-story italic md:mt-2 md:text-sm">
+            <p className="tv-panel-copy mt-1 text-xs md:mt-2 md:text-sm">
               Volledige karakterprofielen die je bewaart, verfijnt en later soepel aan een speler koppelt.
             </p>
           </div>
 
           <div className="flex w-full flex-col gap-2 sm:flex-row sm:items-center xl:w-auto">
-            <label className="flex min-w-0 flex-1 items-center gap-2 rounded-xl border border-white/10 bg-zinc-950/75 px-3 py-2.5 shadow-inner xl:min-w-[300px]">
+            <label className="tv-input-surface flex min-w-0 flex-1 items-center gap-2 rounded-xl px-3 py-2.5 shadow-inner xl:min-w-[300px]">
               <Search className="h-4 w-4 shrink-0 text-stone-500" />
               <input
                 type="search"
                 placeholder="Zoek een voorbereiding"
-                className="w-full bg-transparent text-sm text-stone-200 outline-none placeholder:text-stone-500"
+                className="w-full bg-transparent text-sm outline-none"
                 value={query}
                 onChange={(event) => setQuery(event.target.value)}
               />
@@ -119,7 +119,7 @@ export default function PreparationsView({
             <button
               type="button"
               onClick={onCreatePreparation}
-              className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-xl border border-amber-500/35 bg-gradient-to-r from-amber-700 to-amber-600 px-4 text-sm uppercase tracking-[0.16em] text-stone-100 shadow-sm transition-all duration-200 ease-out hover:from-amber-600 hover:to-amber-500 hover:shadow-lg hover:shadow-amber-700/35 active:scale-[0.985] sm:w-auto"
+              className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-xl px-4 text-sm uppercase tracking-[0.16em] active:scale-[0.985] sm:w-auto tv-button-primary"
             >
               <Plus className="h-4 w-4" />
               Nieuw
@@ -129,11 +129,11 @@ export default function PreparationsView({
       </header>
 
       <div className="grid items-start gap-4 xl:grid-cols-[minmax(0,1.35fr)_296px] xl:gap-4">
-        <div className="min-h-0 rounded-3xl border border-white/10 bg-zinc-950/72 p-4 shadow-[0_22px_60px_rgba(0,0,0,0.32)] backdrop-blur-md md:p-5">
+        <div className="tv-panel-shell min-h-0 p-4 md:p-5">
           <div className="flex flex-col gap-3 border-b border-white/10 pb-4 sm:flex-row sm:items-start sm:justify-between">
             <div className="min-w-0">
-              <h2 className="font-fantasy text-lg uppercase tracking-[0.14em] text-stone-100">Bibliotheek</h2>
-              <p className="mt-1 text-sm leading-6 text-stone-500">Profielen die klaarstaan om te verfijnen, bewaren of uit te delen.</p>
+              <h2 className="tv-panel-title">Bibliotheek</h2>
+              <p className="tv-panel-copy mt-1 text-sm leading-6">Profielen die klaarstaan om te verfijnen, bewaren of uit te delen.</p>
             </div>
             <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-stone-400">
               {filteredTemplates.length} in beeld
@@ -141,7 +141,7 @@ export default function PreparationsView({
           </div>
 
           {filteredTemplates.length === 0 ? (
-            <div className="flex min-h-[260px] flex-col items-center justify-center rounded-2xl border border-dashed border-stone-800 bg-stone-950/40 px-6 py-10 text-center">
+            <div className="tv-panel-block flex min-h-[260px] flex-col items-center justify-center border-dashed px-6 py-10 text-center">
               <div className="flex h-14 w-14 items-center justify-center rounded-2xl border border-amber-900/40 bg-amber-950/30 text-amber-400 shadow-inner">
                 <Crown className="h-6 w-6" />
               </div>
@@ -246,7 +246,7 @@ export default function PreparationsView({
           )}
         </div>
 
-        <aside className="rounded-3xl border border-white/10 bg-zinc-950/72 p-4 shadow-[0_22px_60px_rgba(0,0,0,0.3)] backdrop-blur-md md:p-5 xl:sticky xl:top-3">
+        <aside className="tv-panel-shell p-4 md:p-5 xl:sticky xl:top-3">
           <div className="flex items-center justify-between gap-3 text-stone-100">
             <div className="flex items-center gap-2">
               <ShieldCheck className="h-4 w-4 text-amber-400" />

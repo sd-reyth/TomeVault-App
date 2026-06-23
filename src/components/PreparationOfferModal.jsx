@@ -87,7 +87,7 @@ export default function PreparationOfferModal({ isOpen, preparation, onAccept, o
             <button
               type="button"
               onClick={onAccept}
-              className="h-9 inline-flex items-center justify-center rounded-lg border border-amber-700/60 bg-gradient-to-r from-amber-700 to-amber-600 px-5 font-fantasy text-sm uppercase tracking-[0.16em] text-stone-100 shadow-sm transition-all duration-200 hover:from-amber-600 hover:to-amber-500 active:scale-95 hover:shadow-lg hover:shadow-amber-700/40"
+              className="h-9 inline-flex items-center justify-center rounded-lg px-5 font-fantasy text-sm uppercase tracking-[0.16em] active:scale-95 tv-button-primary"
             >
               Neem deze rol aan
             </button>

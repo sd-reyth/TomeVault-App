@@ -236,7 +236,7 @@ export default function OwnerAdminPanel({ isOpen, onClose, uid, isOwner = false 
             type="button"
             onClick={handleGrantPlan}
             disabled={loading}
-            className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-lg border border-amber-700/60 bg-gradient-to-r from-amber-700 to-amber-600 font-fantasy text-sm uppercase tracking-[0.16em] text-stone-100 transition-all duration-200 hover:shadow-lg hover:shadow-amber-700/40 active:scale-95 disabled:opacity-50"
+            className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-lg font-fantasy text-sm uppercase tracking-[0.16em] transition-all duration-200 active:scale-95 disabled:opacity-50 tv-button-primary"
           >
             <Crown className="h-4 w-4" /> {loading ? 'Bezig...' : `${selectedPlan.label} toekennen`}
           </button>

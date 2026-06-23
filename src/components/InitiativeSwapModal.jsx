@@ -86,10 +86,10 @@ function InitiativeSwapModal({
                       disabled={partnerIncapacitated || yourIncapacitated}
                       className={`w-full flex items-center gap-3 rounded-lg border p-3 transition-all text-left ${
                         isSelected
-                          ? 'border-amber-400/60 bg-amber-950/40 ring-1 ring-amber-400/50'
+                          ? 'tv-item-selected'
                           : (partnerIncapacitated || yourIncapacitated)
                             ? 'border-white/10 bg-white/5 opacity-50 cursor-not-allowed'
-                            : 'border-white/10 bg-white/5 hover:border-amber-400/50 hover:bg-white/7'
+                            : 'border-white/10 bg-white/5 hover:border-white/25 hover:bg-white/7'
                       }`}
                     >
                       <div className="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-white/10 bg-white/5">
@@ -103,7 +103,7 @@ function InitiativeSwapModal({
                         <div className="truncate font-fantasy text-sm font-bold text-stone-100">{partner.name}</div>
                         <div className="text-xs text-stone-500">Initiative: {partner.init ?? '-'}</div>
                       </div>
-                      {isSelected && <Check className="h-4 w-4 text-amber-400 shrink-0" />}
+                      {isSelected && <Check className="h-4 w-4 tv-accent shrink-0" />}
                     </button>
                   );
                 })}
@@ -124,7 +124,7 @@ function InitiativeSwapModal({
             type="button"
             onClick={handleSwap}
             disabled={!selectedPartner || incapacitatedMessage}
-            className="inline-flex items-center gap-2 rounded-lg border border-amber-700/60 bg-amber-950/30 px-4 py-2 text-sm font-fantasy tracking-[0.12em] text-amber-300 transition-all duration-200 hover:border-amber-400/70 hover:bg-amber-900/40 disabled:opacity-50 disabled:cursor-not-allowed active:scale-95"
+            className="inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-fantasy tracking-[0.12em] transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed active:scale-95 tv-button-primary"
           >
             <Zap className="h-3.5 w-3.5" /> Wissel
           </button>

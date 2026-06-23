@@ -1,50 +1,28 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import QRCodeStyling from 'qr-code-styling';
 import { Copy, QrCode, Share2 } from 'lucide-react';
 import { buildSessionInviteUrl, toLegacyHashJoinTag, toSafeJoinTagForLink } from '../lib/sessionUtils';
 import ModalFrame from './ModalFrame';
 
-const THEME_COLORS = {
-  purple: { dot: '#a78bfa', corner: '#7c3aed', bg: '#0c0a0f' },
-  amber:  { dot: '#f59e0b', corner: '#b45309', bg: '#0c0a09' },
-  green:  { dot: '#4ade80', corner: '#15803d', bg: '#091209' },
+const QR_THEME_COLORS = {
+  'dawn-parchment': { dot: '#9c6f2e', corner: '#7c5420', bg: '#f8f1e3' },
+  'midnight-tome': { dot: '#9f7dff', corner: '#7c3aed', bg: '#171320' },
+  'ember-forge': { dot: '#ff9d42', corner: '#c66514', bg: '#25160f' },
+  'forest-scroll': { dot: '#6bc66b', corner: '#2f8f4d', bg: '#162019' },
+  'blood-moon': { dot: '#ff6b86', corner: '#c41e3a', bg: '#1d1015' },
 };
 
-const THEME_UI = {
-  purple: {
-    accent: 'purple',
-    code: 'text-violet-300',
-    card: 'border-violet-400/20 bg-violet-500/5',
-    subtle: 'text-violet-200/80',
-    primaryAction: 'border-violet-400/25 bg-gradient-to-r from-violet-700 to-violet-600 hover:from-violet-600 hover:to-violet-500 hover:shadow-violet-700/30',
-  },
-  amber: {
-    accent: 'amber',
-    code: 'text-amber-300',
-    card: 'border-amber-400/20 bg-amber-500/5',
-    subtle: 'text-amber-200/80',
-    primaryAction: 'border-amber-500/25 bg-gradient-to-r from-amber-700 to-amber-600 hover:from-amber-600 hover:to-amber-500 hover:shadow-amber-700/30',
-  },
-  green: {
-    accent: 'emerald',
-    code: 'text-emerald-300',
-    card: 'border-emerald-400/20 bg-emerald-500/5',
-    subtle: 'text-emerald-200/80',
-    primaryAction: 'border-emerald-500/25 bg-gradient-to-r from-emerald-700 to-emerald-600 hover:from-emerald-600 hover:to-emerald-500 hover:shadow-emerald-700/30',
-  },
-};
-
-function StyledQRCode({ value, theme }) {
+function StyledQRCode({ value, theme, size }) {
   const containerRef = useRef(null);
   const qrRef = useRef(null);
-  const colors = THEME_COLORS[theme] || THEME_COLORS.amber;
+  const colors = QR_THEME_COLORS[theme] || QR_THEME_COLORS['midnight-tome'];
 
   useEffect(() => {
     if (!value) return;
 
     const qr = new QRCodeStyling({
-      width: 220,
-      height: 220,
+      width: size,
+      height: size,
       type: 'svg',
       data: value,
       image: '/references/tomeVaultIcon-32.png',
@@ -65,8 +43,8 @@ function StyledQRCode({ value, theme }) {
       },
       imageOptions: {
         crossOrigin: 'anonymous',
-        margin: 6,
-        imageSize: 0.28,
+        margin: 8,
+        imageSize: 0.32,
       },
       qrOptions: {
         errorCorrectionLevel: 'H',
@@ -79,13 +57,13 @@ function StyledQRCode({ value, theme }) {
       containerRef.current.innerHTML = '';
       qr.append(containerRef.current);
     }
-  }, [value, theme, colors.dot, colors.corner, colors.bg]);
+  }, [value, size, colors.dot, colors.corner, colors.bg]);
 
   return (
     <div
       ref={containerRef}
-      className="overflow-hidden rounded-3xl border border-white/10 shadow-[0_18px_50px_rgba(0,0,0,0.34)]"
-      style={{ width: 220, height: 220 }}
+      className="overflow-hidden rounded-2xl border border-white/10 shadow-lg"
+      style={{ width: size, height: size, minWidth: size, minHeight: size }}
     />
   );
 }
@@ -93,12 +71,19 @@ function StyledQRCode({ value, theme }) {
 export default function ShareModal({ isOpen, onClose, sessionId, theme }) {
   const [copyFeedback, setCopyFeedback] = useState('');
 
-  const resolvedTheme = theme || 'amber';
-  const ui = THEME_UI[resolvedTheme] || THEME_UI.amber;
+  const resolvedTheme = theme || 'midnight-tome';
   const canonicalSessionCode = toLegacyHashJoinTag(sessionId);
   const scannerSafeCode = toSafeJoinTagForLink(sessionId);
   const joinUrl = buildSessionInviteUrl(sessionId);
   const waText = `Sluit je aan bij mijn epische avontuur op TomeVault! 🐉\n\nSessie Code: *${canonicalSessionCode}*\n\nSpeel direct mee: ${joinUrl}`;
+  
+  const qrSize = useMemo(() => {
+    if (typeof window === 'undefined') return 160;
+    const h = window.innerHeight;
+    if (h < 600) return 140;
+    if (h < 800) return 160;
+    return 176;
+  }, []);
 
   const handleCopy = async (value, kind) => {
     await navigator.clipboard.writeText(value);
@@ -110,54 +95,55 @@ export default function ShareModal({ isOpen, onClose, sessionId, theme }) {
     <ModalFrame
       isOpen={isOpen}
       onClose={onClose}
-      title="Nodig spelers uit"
+      title="Deel sessie"
       icon={QrCode}
-      subtitle="Laat je spelers deze QR-code scannen of deel direct de veilige join-link voor deze sessie."
-      accent={ui.accent}
-      bodyClassName="items-center gap-4"
+      subtitle="Scan of kopieer om spelers aan te sluiten."
+      maxWidthClassName="max-w-sm"
+      bodyClassName="gap-4"
     >
-          <div className={`w-full rounded-2xl border px-4 py-3 ${ui.card}`}>
-            <div className="text-[10px] uppercase tracking-[0.2em] text-stone-500">Sessiecode</div>
-            <div className={`mt-1 text-base tracking-[0.16em] ${ui.code}`}>{canonicalSessionCode}</div>
-            <div className="mt-2 text-xs leading-5 text-stone-500">QR-veilige variant: <span className={ui.subtle}>{scannerSafeCode}</span></div>
-          </div>
-          
-          <div className="flex w-full justify-center overflow-hidden rounded-[1.75rem] border border-white/10 bg-white/5 p-3">
-            <StyledQRCode value={joinUrl} theme={resolvedTheme} />
-          </div>
+      <div className="flex flex-col gap-4">
+        <div className="tv-panel-block flex justify-center overflow-hidden p-3">
+          <StyledQRCode value={joinUrl} theme={resolvedTheme} size={qrSize} />
+        </div>
 
-          <div className={`w-full rounded-2xl border px-4 py-3 ${ui.card}`}>
-            <div className="text-[10px] uppercase tracking-[0.2em] text-stone-500">Join-link</div>
-            <div className="mt-1 break-all text-xs leading-5 text-stone-300">{joinUrl}</div>
-          </div>
+        <div className="tv-panel-block px-3.5 py-3">
+          <div className="text-[9px] uppercase tracking-[0.2em] text-stone-500">Sessiecode</div>
+          <div className="tv-accent mt-1.5 font-mono text-sm tracking-widest">{canonicalSessionCode}</div>
+        </div>
 
-          <div className="grid w-full grid-cols-1 gap-3 sm:grid-cols-2">
-            <button 
-              onClick={() => handleCopy(canonicalSessionCode, 'code')}
-              className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/5 px-4 text-sm uppercase tracking-[0.16em] text-stone-200 transition-all duration-200 ease-out hover:bg-white/7 hover:text-stone-100 active:scale-[0.985]"
-            >
-              <Copy className="h-4 w-4" />
-              {copyFeedback === 'code' ? 'Code gekopieerd' : 'Kopieer code'}
-            </button>
+        <div className="tv-panel-block px-3.5 py-3">
+          <div className="text-[9px] uppercase tracking-[0.2em] text-stone-500">Join-link</div>
+          <div className="tv-text mt-1.5 break-all font-mono text-xs leading-relaxed">{joinUrl}</div>
+        </div>
+      </div>
 
-            <button 
-              onClick={() => handleCopy(joinUrl, 'link')}
-              className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/5 px-4 text-sm uppercase tracking-[0.16em] text-stone-200 transition-all duration-200 ease-out hover:bg-white/7 hover:text-stone-100 active:scale-[0.985]"
-            >
-              <Copy className="h-4 w-4" />
-              {copyFeedback === 'link' ? 'Link gekopieerd' : 'Kopieer link'}
-            </button>
+      <div className="grid w-full grid-cols-1 gap-2.5 sm:grid-cols-2">
+        <button
+          onClick={() => handleCopy(canonicalSessionCode, 'code')}
+          className="tv-button-secondary inline-flex h-9 w-full items-center justify-center gap-2 rounded-lg px-3 text-xs uppercase tracking-[0.14em] transition-all duration-200 ease-out active:scale-[0.985]"
+        >
+          <Copy className="h-3.5 w-3.5" />
+          {copyFeedback === 'code' ? 'Gekopieerd' : 'Code'}
+        </button>
 
-            <a 
-              href={`https://wa.me/?text=${encodeURIComponent(waText)}`} 
-              target="_blank" 
-              rel="noopener noreferrer"
-              className={`inline-flex h-10 w-full items-center justify-center gap-2 rounded-xl border px-4 text-sm uppercase tracking-[0.16em] text-white transition-all duration-200 ease-out hover:shadow-lg active:scale-[0.985] sm:col-span-2 ${ui.primaryAction}`}
-            >
-              <Share2 className="h-4 w-4" />
-              Delen
-            </a>
-          </div>
+        <button
+          onClick={() => handleCopy(joinUrl, 'link')}
+          className="tv-button-secondary inline-flex h-9 w-full items-center justify-center gap-2 rounded-lg px-3 text-xs uppercase tracking-[0.14em] transition-all duration-200 ease-out active:scale-[0.985]"
+        >
+          <Copy className="h-3.5 w-3.5" />
+          {copyFeedback === 'link' ? 'Gekopieerd' : 'Link'}
+        </button>
+
+        <a
+          href={`https://wa.me/?text=${encodeURIComponent(waText)}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="tv-button-primary inline-flex h-9 w-full items-center justify-center gap-2 rounded-lg px-3 text-xs uppercase tracking-[0.14em] transition-all duration-200 ease-out active:scale-[0.985] sm:col-span-2"
+        >
+          <Share2 className="h-3.5 w-3.5" />
+          WhatsApp Delen
+        </a>
+      </div>
     </ModalFrame>
   );
 }

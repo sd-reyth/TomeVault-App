@@ -57,7 +57,7 @@ export default function DiceRollerSheet({
       onClick={() => onClose?.()}
     >
       <div
-        className={`relative w-full max-w-md overflow-hidden rounded-[28px] border bg-zinc-950/96 shadow-[0_28px_90px_-30px_rgba(0,0,0,0.7)] backdrop-blur-md sm:rounded-[32px] ${chrome.surfaceBorder}`}
+        className={`relative flex w-full max-w-md max-h-[calc(100dvh-1.5rem)] flex-col overflow-hidden rounded-[28px] border bg-zinc-950/96 shadow-[0_28px_90px_-30px_rgba(0,0,0,0.7)] backdrop-blur-md sm:max-h-[calc(100dvh-2.5rem)] sm:rounded-[32px] ${chrome.surfaceBorder}`}
         style={{
           backgroundImage: atmosphere.surfaceGradient,
         }}
@@ -86,7 +86,7 @@ export default function DiceRollerSheet({
           </button>
         </div>
 
-        <div className="px-5 pb-5 pt-4">
+        <div className="flex-1 overflow-y-auto px-5 pb-5 pt-4">
           <DiceRoller embedded theme={theme} onRoll={onRoll} />
         </div>
       </div>

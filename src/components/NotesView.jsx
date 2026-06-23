@@ -84,12 +84,12 @@ function NotesView({
 
   return (
     <div className="flex h-full flex-col gap-4 md:gap-6 lg:flex-row">
-      <div className="h-52 w-full shrink-0 overflow-hidden rounded-2xl border border-white/10 bg-white/5 shadow-md backdrop-blur-sm sm:h-60 lg:h-full lg:w-1/3">
-        <div className="flex items-center justify-between gap-3 border-b border-white/10 bg-zinc-950/45 p-4">
-          <h3 className="font-medium tracking-[0.12em] text-stone-100">Kronieken</h3>
+      <div className="tv-panel-shell h-52 w-full shrink-0 overflow-hidden sm:h-60 lg:h-full lg:w-1/3">
+        <div className="tv-panel-header flex items-center justify-between gap-3 px-4 py-4 md:px-5">
+          <h3 className="tv-panel-title">Kronieken</h3>
           <button 
             onClick={handleCreateNote}
-            className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-amber-500/35 bg-gradient-to-r from-amber-700 to-amber-600 text-stone-100 shadow-sm transition-all duration-200 ease-out hover:from-amber-600 hover:to-amber-500 hover:shadow-lg hover:shadow-amber-700/35 active:scale-[0.985]"
+            className="tv-button-primary inline-flex h-10 w-10 items-center justify-center rounded-xl transition-all duration-200 ease-out active:scale-[0.985]"
             title="Nieuwe notitie"
           >
             <FilePlus2 className="h-4 w-4" />
@@ -131,11 +131,11 @@ function NotesView({
         </div>
       </div>
 
-      <div className="relative flex min-h-[360px] flex-1 flex-col overflow-hidden rounded-2xl border border-white/10 bg-white/5 shadow-md backdrop-blur-sm lg:min-h-0">
+      <div className="tv-panel-shell relative flex min-h-[360px] flex-1 flex-col overflow-hidden lg:min-h-0">
         <div className="absolute inset-0 opacity-[0.03] bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI4IiBoZWlnaHQ9IjgiPgo8cmVjdCB3aWR0aD0iOCIgaGVpZ2h0PSI4IiBmaWxsPSIjZmZmIiBmaWxsLW9wYWNpdHk9IjAuMSIvPgo8L3N2Zz4=')] pointer-events-none z-0" />
         
         {activeNote ? (
-          <div className="relative z-10 flex h-full flex-1 flex-col p-4 md:p-6">
+          <div className="relative z-10 flex h-full flex-1 flex-col p-5 md:p-6">
             <input
               type="text"
               value={activeNote.title}

@@ -172,14 +172,14 @@ export default function TopBar({ role, sessionId, sessionNumber, theme, combatSt
         </div>
       ) : null}
 
-      <div className="grid h-14 grid-cols-[minmax(0,1fr)_auto] items-center gap-2.5 px-2.5 sm:gap-3.5 sm:px-3 md:h-16 md:gap-4 md:px-5">
+      <div className="grid h-14 grid-cols-[minmax(0,1fr)_auto] items-center gap-3 px-3 sm:gap-4 sm:px-4 md:h-16 md:gap-5 md:px-5">
         <div className="flex min-w-0 items-center gap-2 sm:gap-2.5 md:gap-3.5">
           <img src="/references/tomeVaultLogo1.png" alt="TomeVault" className="h-6 w-6 shrink-0 object-contain sm:h-7 sm:w-7 md:h-8 md:w-8" />
           <span className="hidden font-fantasy text-lg font-bold tracking-widest text-stone-100 sm:block md:text-xl">
             TOME<span className="text-[color:var(--tv-accent)]">VAULT</span>
           </span>
 
-          <div className="ml-0.5 flex min-w-0 items-center gap-1 sm:gap-1.5 md:ml-3 md:gap-2">
+          <div className="ml-0.5 flex min-w-0 items-center gap-1.5 sm:gap-2 md:ml-3 md:gap-2.5">
             <div
               className="hidden h-9 items-center rounded-xl border border-white/10 bg-white/5 px-2.5 shadow-inner sm:flex md:px-3"
               title="Campagne sessienummer"
@@ -195,7 +195,7 @@ export default function TopBar({ role, sessionId, sessionNumber, theme, combatSt
                   setIsMobileActionsOpen(false);
                   setIsSessionMenuOpen((open) => !open);
                 }}
-                className={`flex h-full min-w-0 max-w-full items-center gap-1.5 rounded-xl border px-2 pr-1.5 transition-all duration-200 ease-out active:scale-[0.985] sm:gap-2 sm:pl-2.5 sm:pr-2 ${
+                className={`flex h-full min-w-0 max-w-full items-center gap-1.5 rounded-xl border px-2.5 pr-2 transition-all duration-200 ease-out active:scale-[0.985] sm:gap-2 sm:pl-3 sm:pr-2.5 ${
                   isSessionMenuOpen
                     ? 'border-white/10 bg-white/7 text-stone-100'
                     : 'border-white/10 bg-white/5 text-stone-300 hover:bg-white/7 hover:text-stone-100'
@@ -212,14 +212,14 @@ export default function TopBar({ role, sessionId, sessionNumber, theme, combatSt
               </button>
 
               {isSessionMenuOpen ? (
-                <div className="absolute left-0 top-[calc(100%+0.4rem)] z-50 w-44 rounded-2xl border border-[color:var(--tv-border)] bg-[var(--tv-bg-modal)] p-1.5 shadow-[0_18px_50px_rgba(0,0,0,0.32)] backdrop-blur-md">
+                <div className="absolute left-0 top-[calc(100%+0.45rem)] z-50 w-48 rounded-2xl border border-[color:var(--tv-border)] bg-[var(--tv-bg-modal)] p-2 shadow-[0_18px_50px_rgba(0,0,0,0.32)] backdrop-blur-md">
                   <button
                     type="button"
                     onClick={() => {
                       onOpenShare();
                       setIsSessionMenuOpen(false);
                     }}
-                    className="inline-flex h-9 w-full items-center gap-2 rounded-xl px-2.5 text-xs font-medium tracking-[0.08em] text-stone-300 transition-all duration-200 ease-out hover:bg-white/5 hover:text-stone-100 active:scale-[0.985]"
+                    className="tv-button-secondary inline-flex h-10 w-full items-center gap-2 rounded-xl px-3 text-xs font-medium tracking-[0.08em] transition-all duration-200 ease-out active:scale-[0.985]"
                   >
                     <Share2 className="h-3.5 w-3.5" /> Deel sessie
                   </button>
@@ -230,7 +230,7 @@ export default function TopBar({ role, sessionId, sessionNumber, theme, combatSt
                         onOpenSessionPanel?.();
                         setIsSessionMenuOpen(false);
                       }}
-                      className="inline-flex h-9 w-full items-center gap-2 rounded-xl px-2.5 text-xs font-medium tracking-[0.08em] text-stone-300 transition-all duration-200 ease-out hover:bg-white/5 hover:text-stone-100 active:scale-[0.985]"
+                      className="tv-button-secondary mt-1 inline-flex h-10 w-full items-center gap-2 rounded-xl px-3 text-xs font-medium tracking-[0.08em] transition-all duration-200 ease-out active:scale-[0.985]"
                     >
                       <Settings className="h-3.5 w-3.5" /> Sessiebeheer
                     </button>
@@ -242,7 +242,7 @@ export default function TopBar({ role, sessionId, sessionNumber, theme, combatSt
                       onLogout();
                       setIsSessionMenuOpen(false);
                     }}
-                    className="inline-flex h-9 w-full items-center gap-2 rounded-xl px-2.5 text-xs font-medium tracking-[0.08em] text-stone-400 transition-all duration-200 ease-out hover:bg-rose-500/10 hover:text-rose-200 active:scale-[0.985] md:hidden"
+                    className="inline-flex h-10 w-full items-center gap-2 rounded-xl px-3 text-xs font-medium tracking-[0.08em] text-stone-400 transition-all duration-200 ease-out hover:bg-rose-500/10 hover:text-rose-200 active:scale-[0.985] md:hidden"
                   >
                     <LogOut className="h-3.5 w-3.5" /> Verlaat sessie
                   </button>
@@ -254,12 +254,12 @@ export default function TopBar({ role, sessionId, sessionNumber, theme, combatSt
           </div>
         </div>
 
-        <div className="flex shrink-0 items-center justify-end gap-1.5 sm:gap-2 md:gap-2.5">
+        <div className="flex shrink-0 items-center justify-end gap-2 sm:gap-2.5 md:gap-3">
           <div ref={ambienceShellRef} className="relative">
             <button
               type="button"
               onClick={onToggleAmbiencePanel}
-              className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border px-0 shadow-inner transition-all duration-200 ease-out active:scale-[0.985] md:w-auto md:gap-2 md:px-3 ${ambience?.isPlaying ? 'border-white/10 bg-white/7 text-stone-100' : 'border-white/10 bg-white/5 text-stone-300 hover:bg-white/7 hover:text-stone-100'}`}
+              className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border px-0 shadow-inner transition-all duration-200 ease-out active:scale-[0.985] md:w-auto md:gap-2.5 md:px-3.5 ${ambience?.isPlaying ? 'border-white/10 bg-white/7 text-stone-100' : 'border-white/10 bg-white/5 text-stone-300 hover:bg-white/7 hover:text-stone-100'}`}
               title={isPlayer ? 'Open audio-instellingen' : (ambience?.isPlaying ? 'Open actieve sessiesfeer' : 'Open sferenpaneel')}
             >
               <span className="relative flex h-7 w-7 items-center justify-center rounded-lg bg-white/5">
@@ -339,7 +339,7 @@ export default function TopBar({ role, sessionId, sessionNumber, theme, combatSt
             ) : null}
           </button>
 
-          <div className="hidden items-center gap-1 border-l border-white/10 pl-2 md:flex md:gap-2 md:pl-2.5">
+          <div className="hidden items-center gap-1.5 border-l border-white/10 pl-2.5 md:flex md:gap-2.5 md:pl-3">
             <div className="hidden text-right lg:block">
               <div className="text-sm font-medium uppercase tracking-[0.14em] text-[color:var(--tv-text-primary)]">{role === 'gm' ? 'Game Master' : 'Avonturier'}</div>
               <div className="text-[10px] font-semibold uppercase tracking-[0.22em] text-[color:var(--tv-text-secondary)]">Aanwezig</div>
@@ -374,14 +374,14 @@ export default function TopBar({ role, sessionId, sessionNumber, theme, combatSt
             </button>
 
             {isMobileActionsOpen ? (
-              <div className="absolute right-0 top-[calc(100%+0.4rem)] z-50 w-48 rounded-2xl border border-[color:var(--tv-border)] bg-[var(--tv-bg-modal)] p-1.5 shadow-[0_18px_50px_rgba(0,0,0,0.32)] backdrop-blur-md">
+              <div className="absolute right-0 top-[calc(100%+0.45rem)] z-50 w-52 rounded-2xl border border-[color:var(--tv-border)] bg-[var(--tv-bg-modal)] p-2 shadow-[0_18px_50px_rgba(0,0,0,0.32)] backdrop-blur-md">
                 <button
                   type="button"
                   onClick={() => {
                     onOpenShare();
                     setIsMobileActionsOpen(false);
                   }}
-                  className="inline-flex h-9 w-full items-center gap-2 rounded-xl px-2.5 text-xs font-medium tracking-[0.08em] text-stone-300 transition-all duration-200 ease-out hover:bg-white/5 hover:text-stone-100 active:scale-[0.985]"
+                  className="tv-button-secondary inline-flex h-10 w-full items-center gap-2 rounded-xl px-3 text-xs font-medium tracking-[0.08em] transition-all duration-200 ease-out active:scale-[0.985]"
                 >
                   <Share2 className="h-3.5 w-3.5" /> Deel sessie
                 </button>
@@ -392,7 +392,7 @@ export default function TopBar({ role, sessionId, sessionNumber, theme, combatSt
                       onOpenSessionPanel?.();
                       setIsMobileActionsOpen(false);
                     }}
-                    className="inline-flex h-9 w-full items-center gap-2 rounded-xl px-2.5 text-xs font-medium tracking-[0.08em] text-stone-300 transition-all duration-200 ease-out hover:bg-white/5 hover:text-stone-100 active:scale-[0.985]"
+                    className="tv-button-secondary mt-1 inline-flex h-10 w-full items-center gap-2 rounded-xl px-3 text-xs font-medium tracking-[0.08em] transition-all duration-200 ease-out active:scale-[0.985]"
                   >
                     <Settings className="h-3.5 w-3.5" /> Sessiebeheer
                   </button>
@@ -404,7 +404,7 @@ export default function TopBar({ role, sessionId, sessionNumber, theme, combatSt
                       onOpenProfile?.();
                       setIsMobileActionsOpen(false);
                     }}
-                    className="inline-flex h-9 w-full items-center gap-2 rounded-xl px-2.5 text-xs font-medium tracking-[0.08em] text-stone-300 transition-all duration-200 ease-out hover:bg-white/5 hover:text-stone-100 active:scale-[0.985]"
+                    className="tv-button-secondary mt-1 inline-flex h-10 w-full items-center gap-2 rounded-xl px-3 text-xs font-medium tracking-[0.08em] transition-all duration-200 ease-out active:scale-[0.985]"
                   >
                     <User className="h-3.5 w-3.5" /> Mijn karakterblad
                   </button>
@@ -415,7 +415,7 @@ export default function TopBar({ role, sessionId, sessionNumber, theme, combatSt
                     onOpenSettings?.();
                     setIsMobileActionsOpen(false);
                   }}
-                  className="inline-flex h-8 w-full items-center gap-2 rounded-lg px-2.5 text-xs font-fantasy tracking-[0.08em] text-stone-300 transition-colors hover:bg-white/5 hover:text-[color:var(--tv-accent)]"
+                  className="tv-button-secondary mt-1 inline-flex h-10 w-full items-center gap-2 rounded-xl px-3 text-xs font-medium tracking-[0.08em] transition-colors"
                 >
                   <Settings className="h-3.5 w-3.5" /> Configuratie
                 </button>
@@ -426,7 +426,7 @@ export default function TopBar({ role, sessionId, sessionNumber, theme, combatSt
                     onLogout();
                     setIsMobileActionsOpen(false);
                   }}
-                  className="inline-flex h-9 w-full items-center gap-2 rounded-xl px-2.5 text-xs font-medium tracking-[0.08em] text-stone-400 transition-all duration-200 ease-out hover:bg-rose-500/10 hover:text-rose-200 active:scale-[0.985]"
+                  className="inline-flex h-10 w-full items-center gap-2 rounded-xl px-3 text-xs font-medium tracking-[0.08em] text-stone-400 transition-all duration-200 ease-out hover:bg-rose-500/10 hover:text-rose-200 active:scale-[0.985]"
                 >
                   <LogOut className="h-3.5 w-3.5" /> Verlaat sessie
                 </button>

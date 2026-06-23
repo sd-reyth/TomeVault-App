@@ -92,7 +92,7 @@ export default function AmbiencePanel({
               {/* Expanded info */}
               {isExpanded && (
                 <div className="relative border-t border-stone-800/60 px-4 py-3 bg-stone-950/60">
-                  <p className="text-xs text-stone-300 font-story mb-2">{track.subtitle}</p>
+                  <p className="mb-2 text-xs text-stone-300">{track.subtitle}</p>
                   <div className="flex flex-wrap gap-x-4 gap-y-1 text-[10px] text-stone-500 mb-3">
                     <span>{track.source.creator} · {track.source.platform}</span>
                     <span>{track.source.license}</span>
@@ -129,10 +129,9 @@ export default function AmbiencePanel({
           <Music2 className={`w-4 h-4 shrink-0 ${ambienceTone.activeText}`} />
           <div className="min-w-0 flex-1">
             <h1 className="font-fantasy font-bold text-stone-100 tracking-wide text-base md:text-lg leading-none truncate">Ambience aan tafel</h1>
-            <p className={`text-[10px] uppercase tracking-[0.16em] mt-1 text-stone-500`}>Sfeer voor de hele tafel</p>
             {currentTrack ? (
               <div className="mt-2 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-2.5 py-1 text-[10px] uppercase tracking-[0.14em]">
-                <span className="text-stone-500">Nu actief:</span>
+                <span className="text-stone-500">Actief</span>
                 <span className={ambienceTone.activeText}>{currentTrack.scene}</span>
               </div>
             ) : null}
@@ -154,27 +153,28 @@ export default function AmbiencePanel({
         <div className="mx-auto max-w-3xl space-y-6 px-4 py-8 md:px-8">
 
           {/* Now playing + play button */}
-          <div className={`rounded-3xl border p-5 shadow-[0_22px_60px_rgba(0,0,0,0.32)] backdrop-blur-md border-white/10 bg-zinc-950/72`}>
+          <div className="tv-panel-shell p-5">
             <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
               <div className="min-w-0">
                 <div className={`text-[10px] uppercase tracking-[0.22em] text-stone-500`}>Nu actief</div>
                 <div className="mt-2 font-fantasy text-xl tracking-[0.08em] text-stone-100">{currentTrack?.scene || 'Geen sfeer gekozen'}</div>
-                <div className={`mt-1 text-sm text-stone-400`}>{currentTrack?.subtitle || 'Kies een geverifieerde track om de tafel te kleuren.'}</div>
+                <div className={`mt-1 text-sm text-stone-400`}>{currentTrack?.subtitle || 'Kies een geverifieerde track.'}</div>
               </div>
               <button
                 type="button"
                 onClick={canControlSession ? onTogglePlayback : onUnlockAudio}
-                className={`h-11 inline-flex w-full items-center justify-center gap-2 rounded-xl border px-5 text-sm uppercase tracking-[0.16em] transition-all duration-200 ease-out active:scale-[0.985] sm:w-auto shrink-0 ${isPlaying ? ambienceTone.actionOn : 'border-white/10 bg-white/5 text-stone-200 hover:bg-white/8'}`}
+                className={`h-11 inline-flex w-11 items-center justify-center rounded-xl border transition-all duration-200 ease-out active:scale-[0.985] sm:w-11 shrink-0 ${isPlaying ? ambienceTone.actionOn : 'border-white/10 bg-white/5 text-stone-200 hover:bg-white/8'}`}
+                title={canControlSession ? (isPlaying ? 'Pauzeer sfeer' : 'Start sfeer') : 'Activeer audio'}
+                aria-label={canControlSession ? (isPlaying ? 'Pauzeer sfeer' : 'Start sfeer') : 'Activeer audio'}
               >
                 {isPlaying ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
-                <span>{canControlSession ? (isPlaying ? 'Pauzeer' : 'Start sfeer') : 'Activeer audio'}</span>
               </button>
             </div>
 
             {/* Volume sliders */}
             <div className={`mt-5 grid gap-3 ${canControlSession ? 'sm:grid-cols-2' : ''}`}>
               {canControlSession ? (
-                <label className={`rounded-2xl border px-4 py-3 border-white/10 bg-zinc-950/72`}>
+                <label className="tv-panel-block px-4 py-3">
                   <div className="flex items-center justify-between gap-3">
                     <div>
                       <div className={`text-[10px] uppercase tracking-[0.2em] text-stone-500`}>Sessievolume</div>
@@ -193,7 +193,7 @@ export default function AmbiencePanel({
                 </label>
               ) : null}
 
-              <label className={`rounded-xl border px-4 py-3 border-white/10 bg-zinc-950/72`}>
+              <label className="tv-panel-block px-4 py-3">
                 <div className="flex items-center justify-between gap-3">
                   <div>
                     <div className={`text-[10px] uppercase tracking-[0.2em] text-stone-500`}>Jouw mix</div>
@@ -217,7 +217,7 @@ export default function AmbiencePanel({
 
             {!canControlSession ? (
               <p className={`mt-3 text-xs text-stone-500`}>
-                De GM kiest de scene. Jij kunt hier altijd je eigen volume afstellen of audio opnieuw activeren als je browser autoplay blokkeert.
+                De GM kiest de scene. Jij regelt alleen je eigen volume.
               </p>
             ) : null}
           </div>
@@ -247,7 +247,7 @@ export default function AmbiencePanel({
 
           {/* Scene selector */}
           <section>
-            <div className="flex items-center justify-between mb-3">
+            <div className="mb-3 flex items-center justify-between">
               <div className={`text-[10px] uppercase tracking-[0.24em] text-stone-500`}>Geverifieerde scenes</div>
               <div className={`text-[10px] text-stone-600`}>{canControlSession ? 'GM kiest · tik op een rij' : 'Alleen bekijken'}</div>
             </div>

@@ -114,11 +114,11 @@ function HandoutsView({ role, handouts, currentPlayerId, onToggleVisibility, onT
     ];
 
   return (
-    <div className="h-full flex flex-col">
-      <div className="mb-6 flex flex-col gap-4 border-b border-white/10 pb-4 md:mb-8 sm:flex-row sm:items-end sm:justify-between sm:gap-3">
+    <div className="flex h-full flex-col gap-5 md:gap-6">
+      <div className="tv-panel-header flex flex-col gap-4 pb-5 md:pb-6 sm:flex-row sm:items-end sm:justify-between sm:gap-3">
         <div>
           <h2 className="text-2xl font-semibold tracking-[0.12em] text-stone-100 md:text-3xl">Oude Geschriften</h2>
-          <p className="mt-1 text-xs italic text-stone-400 md:mt-2 md:text-sm">Documenten, kaarten en magische voorwerpen ontdekt tijdens de reis.</p>
+          <p className="tv-panel-copy mt-1 text-xs md:mt-2 md:text-sm">Documenten, kaarten en magische voorwerpen ontdekt tijdens de reis.</p>
         </div>
         
         <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row sm:items-center sm:justify-end">
@@ -153,7 +153,7 @@ function HandoutsView({ role, handouts, currentPlayerId, onToggleVisibility, onT
 
               <button
                 onClick={onCreateHandout}
-                className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-xl border border-amber-500/35 bg-gradient-to-r from-amber-700 to-amber-600 px-4 text-sm uppercase tracking-[0.16em] text-stone-100 shadow-sm transition-all duration-200 ease-out hover:from-amber-600 hover:to-amber-500 hover:shadow-lg hover:shadow-amber-700/35 active:scale-[0.985] sm:w-auto"
+                className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-xl px-4 text-sm uppercase tracking-[0.16em] active:scale-[0.985] sm:w-auto tv-button-primary"
               >
                 <Plus className="h-4 w-4 shrink-0" /> <span className="truncate">Nieuw</span>
               </button>
@@ -162,7 +162,7 @@ function HandoutsView({ role, handouts, currentPlayerId, onToggleVisibility, onT
         </div>
       </div>
 
-      <div className="mb-4 rounded-2xl border border-white/10 bg-white/5 p-3 md:mb-6 md:p-4">
+      <div className="tv-panel-block p-4 md:p-5">
         <div className="flex flex-col gap-3 md:gap-4">
           <div className="grid grid-cols-1 gap-2 md:grid-cols-[minmax(0,1fr)_160px]">
             <label className="relative">
@@ -172,7 +172,7 @@ function HandoutsView({ role, handouts, currentPlayerId, onToggleVisibility, onT
                 value={searchQuery}
                 onChange={(event) => setSearchQuery(event.target.value)}
                 placeholder="Zoek op titel, inhoud, type of secret..."
-                className="h-10 w-full rounded-xl border border-white/20 bg-zinc-950/90 pl-9 pr-3 text-sm text-stone-200 outline-none transition-colors placeholder:text-stone-500 focus:border-amber-500/60 focus:bg-zinc-950"
+                className="tv-input-surface h-10 w-full rounded-xl pl-9 pr-3 text-sm outline-none transition-colors"
               />
             </label>
 
@@ -181,7 +181,7 @@ function HandoutsView({ role, handouts, currentPlayerId, onToggleVisibility, onT
               <select
                 value={sortBy}
                 onChange={(event) => setSortBy(event.target.value)}
-                className="h-10 w-full rounded-xl border border-white/20 bg-zinc-950/90 pl-9 pr-3 text-sm text-stone-200 outline-none transition-colors focus:border-amber-500/60 focus:bg-zinc-950"
+                className="tv-input-surface h-10 w-full rounded-xl pl-9 pr-3 text-sm outline-none transition-colors"
               >
                 <option value="newest">Nieuwste eerst</option>
                 <option value="oldest">Oudste eerst</option>
@@ -196,7 +196,7 @@ function HandoutsView({ role, handouts, currentPlayerId, onToggleVisibility, onT
             <select
               value={typeFilter}
               onChange={(event) => setTypeFilter(event.target.value)}
-              className="h-10 w-full rounded-xl border border-white/20 bg-zinc-950/90 px-3 text-sm text-stone-200 outline-none transition-colors focus:border-amber-500/60 focus:bg-zinc-950"
+              className="tv-input-surface h-10 w-full rounded-xl px-3 text-sm outline-none transition-colors"
             >
               <option value="all">Alle types</option>
               {typeOptions.map((type) => (
@@ -207,7 +207,7 @@ function HandoutsView({ role, handouts, currentPlayerId, onToggleVisibility, onT
             <select
               value={statusFilter}
               onChange={(event) => setStatusFilter(event.target.value)}
-              className="h-10 w-full rounded-xl border border-white/20 bg-zinc-950/90 px-3 text-sm text-stone-200 outline-none transition-colors focus:border-amber-500/60 focus:bg-zinc-950"
+              className="tv-input-surface h-10 w-full rounded-xl px-3 text-sm outline-none transition-colors"
             >
               {statusOptions.map((option) => (
                 <option key={option.value} value={option.value}>{option.label}</option>
@@ -386,7 +386,7 @@ function HandoutsView({ role, handouts, currentPlayerId, onToggleVisibility, onT
           </div>
         )})}
         {processedHandouts.length === 0 && (
-          <div className="col-span-full rounded-2xl border-2 border-dashed border-white/20 bg-zinc-950/65 py-16 text-center shadow-inner md:py-24">
+          <div className="tv-panel-block col-span-full border-2 border-dashed py-16 text-center shadow-inner md:py-24">
             <p className="empty-state-text text-base md:text-lg">Geen handouts gevonden voor je huidige zoek- en filterinstellingen.</p>
             <p className="mt-2 text-xs uppercase tracking-[0.16em] text-stone-500">Pas filters of zoekterm aan om resultaten te tonen</p>
           </div>

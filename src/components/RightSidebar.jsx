@@ -757,10 +757,10 @@ function RightSidebar({
                       onClick={handleStatusAction}
                       className={`h-10 rounded-lg border px-3 text-xs font-fantasy uppercase tracking-[0.16em] transition-colors ${
                         combatStatus === COMBAT_STATUS.ACTIVE
-                          ? 'border-amber-700/60 bg-amber-950/35 text-amber-200 hover:border-amber-500/70 hover:bg-amber-900/35'
+                          ? 'tv-button-accent-muted'
                           : combatStatus === COMBAT_STATUS.IDLE
-                            ? 'border-amber-700/60 bg-gradient-to-r from-amber-700 to-amber-600 text-stone-100 shadow-sm hover:from-amber-600 hover:to-amber-500'
-                            : 'border-stone-700 bg-stone-950 text-stone-200 hover:border-amber-700/60 hover:text-amber-300'
+                            ? 'tv-button-primary'
+                            : 'border-stone-700 bg-stone-950 text-stone-200 hover:border-white/20 hover:text-stone-100'
                       } ${isActionBusy ? 'cursor-wait opacity-70' : ''}`}
                     >
                       <span className="inline-flex items-center justify-center gap-1.5">

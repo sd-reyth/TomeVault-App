@@ -109,7 +109,7 @@ export default function QRJoinScreen({
                 type="button"
                 onClick={() => onSignInGoogle?.()}
                 disabled={isBusy}
-                className="h-11 w-full inline-flex items-center justify-center gap-2.5 rounded-xl border border-amber-700/60 bg-gradient-to-r from-amber-700 to-amber-600 font-fantasy text-sm uppercase tracking-[0.18em] text-stone-100 shadow-lg shadow-amber-900/30 transition-all hover:from-amber-600 hover:to-amber-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="h-11 w-full inline-flex items-center justify-center gap-2.5 rounded-xl font-fantasy text-sm uppercase tracking-[0.18em] transition-all disabled:opacity-50 disabled:cursor-not-allowed tv-button-primary"
               >
                 {isBusy ? (
                   <>
@@ -162,7 +162,7 @@ export default function QRJoinScreen({
                 type="button"
                 onClick={handleJoin}
                 disabled={isBusy}
-                className="h-11 w-full inline-flex items-center justify-center gap-2.5 rounded-xl border border-amber-700/60 bg-gradient-to-r from-amber-700 to-amber-600 font-fantasy text-sm uppercase tracking-[0.18em] text-stone-100 shadow-lg shadow-amber-900/30 transition-all hover:from-amber-600 hover:to-amber-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="h-11 w-full inline-flex items-center justify-center gap-2.5 rounded-xl font-fantasy text-sm uppercase tracking-[0.18em] transition-all disabled:opacity-50 disabled:cursor-not-allowed tv-button-primary"
               >
                 {isBusy ? (
                   <>

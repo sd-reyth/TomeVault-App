@@ -86,9 +86,9 @@ export default function Sidebar({ activeTab, setActiveTab, onOpenSettings, role 
   return (
     <aside
       style={{ '--sidebar-width': `${sidebarWidth}px` }}
-      className="app-shell-mobile-nav fixed bottom-0 left-0 z-30 flex h-16 w-full flex-row items-center justify-around border-t tv-nav-bg px-2 backdrop-blur-md md:relative md:h-full md:shrink-0 md:w-[var(--sidebar-width)] md:min-w-[var(--sidebar-width)] md:max-w-[var(--sidebar-width)] md:flex-col md:justify-start md:border-r md:border-t-0 md:px-0 md:py-4 md:pb-3 md:backdrop-blur-md md:flex md:flex-col md:overflow-hidden"
+      className="app-shell-mobile-nav fixed bottom-0 left-0 z-30 flex h-16 w-full flex-row items-center justify-around border-t tv-nav-bg px-2 backdrop-blur-md md:relative md:h-full md:shrink-0 md:w-[var(--sidebar-width)] md:min-w-[var(--sidebar-width)] md:max-w-[var(--sidebar-width)] md:flex-col md:justify-start md:border-r md:border-t-0 md:px-0 md:py-5 md:pb-4 md:backdrop-blur-md md:flex md:flex-col md:overflow-hidden"
     >
-      <nav ref={navRef} className={`flex w-full flex-row items-center justify-between gap-1 md:flex-col md:flex-1 md:min-h-0 md:overflow-y-auto md:pr-2 md:no-scrollbar md:pt-4 ${isCollapsed ? 'md:px-2' : 'md:px-3 md:gap-1.5'}`}>
+      <nav ref={navRef} className={`flex w-full flex-row items-center justify-between gap-1 md:flex-col md:flex-1 md:min-h-0 md:overflow-y-auto md:pr-2 md:no-scrollbar md:pt-4 ${isCollapsed ? 'md:px-2' : 'md:px-3.5 md:gap-2'}`}>
         {tabs.map((tab) => {
           const isActive = activeTab === tab.id;
           return (
@@ -97,7 +97,7 @@ export default function Sidebar({ activeTab, setActiveTab, onOpenSettings, role 
               onClick={() => setActiveTab(tab.id)}
               aria-label={tab.label}
               className={`
-                group relative flex min-h-[48px] min-w-0 flex-1 flex-col items-center justify-center rounded-xl border border-transparent p-2 text-sm font-medium tracking-normal transition-all duration-200 ease-out active:scale-[0.985] md:w-full md:flex-none ${isCollapsed ? 'md:min-h-[52px] md:px-2 md:py-2.5' : (isIconRail ? 'md:min-h-[46px] md:justify-center md:px-2 md:py-2' : 'md:min-h-[46px] md:flex-row md:justify-start md:gap-2.5 md:px-3 md:py-2')}
+                group relative flex min-h-[48px] min-w-0 flex-1 flex-col items-center justify-center rounded-xl border border-transparent p-2 text-sm font-medium tracking-normal transition-all duration-200 ease-out active:scale-[0.985] md:w-full md:flex-none ${isCollapsed ? 'md:min-h-[54px] md:px-2 md:py-3' : (isIconRail ? 'md:min-h-[48px] md:justify-center md:px-2.5 md:py-2.5' : 'md:min-h-[50px] md:flex-row md:justify-start md:gap-3 md:px-3.5 md:py-2.5')}
                 ${isActive ? 'tv-nav-item-active' : 'tv-nav-item'}
               `}
               title={tab.label}
@@ -119,7 +119,7 @@ export default function Sidebar({ activeTab, setActiveTab, onOpenSettings, role 
           onClick={onOpenSettings}
           aria-label="Configuratie"
           title="Configuratie"
-          className={`group relative flex min-h-[48px] min-w-0 flex-1 flex-col items-center justify-center rounded-xl border border-transparent p-2 text-sm font-medium tracking-normal transition-all duration-200 ease-out active:scale-[0.985] md:flex md:w-full md:flex-none ${isCollapsed ? 'md:min-h-[52px] md:px-2 md:py-2.5' : (isIconRail ? 'md:min-h-[46px] md:justify-center md:px-2 md:py-2' : 'md:min-h-[46px] md:flex-row md:justify-start md:gap-2.5 md:px-3 md:py-2')} tv-nav-item`}
+          className={`group relative flex min-h-[48px] min-w-0 flex-1 flex-col items-center justify-center rounded-xl border border-transparent p-2 text-sm font-medium tracking-normal transition-all duration-200 ease-out active:scale-[0.985] md:flex md:w-full md:flex-none ${isCollapsed ? 'md:min-h-[54px] md:px-2 md:py-3' : (isIconRail ? 'md:min-h-[48px] md:justify-center md:px-2.5 md:py-2.5' : 'md:min-h-[50px] md:flex-row md:justify-start md:gap-3 md:px-3.5 md:py-2.5')} tv-nav-item`}
         >
           <Settings className="h-5 w-5 shrink-0 tv-nav-icon transition-colors duration-200 md:h-[17px] md:w-[17px]" />
           <span className={`${isCollapsed || isIconRail ? 'hidden' : 'hidden md:block'} max-w-full truncate text-[14px] font-medium uppercase tracking-[0.12em]`}>Configuratie</span>

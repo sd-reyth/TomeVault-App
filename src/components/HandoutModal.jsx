@@ -524,7 +524,7 @@ function HandoutModal({ isOpen, onClose, handout, role, players = [], currentPla
               <button 
                 form="handout-form"
                 type="submit"
-                className="h-9 inline-flex items-center justify-center gap-2 rounded-lg border border-amber-700/60 bg-gradient-to-r from-amber-700 to-amber-600 px-4 font-fantasy text-sm uppercase tracking-[0.16em] text-stone-100 shadow-sm transition-colors hover:from-amber-600 hover:to-amber-500"
+                className="h-9 inline-flex items-center justify-center gap-2 rounded-lg px-4 font-fantasy text-sm uppercase tracking-[0.16em] tv-button-primary"
               >
                 {handout ? 'Opslaan' : 'Nieuw'}
               </button>

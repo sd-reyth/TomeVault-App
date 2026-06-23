@@ -173,7 +173,7 @@ function AddItemModal({ isOpen, onClose, onSave, role, party, currentPlayerId, i
             </button>
             <button 
               type="submit"
-              className="h-9 flex-1 inline-flex items-center justify-center border border-amber-700/60 bg-gradient-to-r from-amber-700 to-amber-600 hover:from-amber-600 hover:to-amber-500 text-stone-100 rounded-lg font-fantasy uppercase tracking-[0.16em] text-sm transition-all duration-200 shadow-sm active:scale-95 hover:shadow-lg hover:shadow-amber-700/40"
+              className="h-9 flex-1 inline-flex items-center justify-center rounded-lg font-fantasy uppercase tracking-[0.16em] text-sm active:scale-95 tv-button-primary"
             >
               {itemToEdit ? 'Opslaan' : 'Toevoegen'}
             </button>

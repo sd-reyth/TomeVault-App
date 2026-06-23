@@ -118,7 +118,7 @@ export default function PreparationModal({ isOpen, preparation, onClose, onSave,
             <button
               type="button"
               onClick={handleSave}
-              className="inline-flex h-9 w-full items-center justify-center rounded-lg border border-amber-700/60 bg-gradient-to-r from-amber-700 to-amber-600 px-4 font-fantasy text-xs uppercase tracking-[0.16em] text-stone-100 shadow-sm transition-all hover:from-amber-600 hover:to-amber-500 sm:w-auto"
+              className="inline-flex h-9 w-full items-center justify-center rounded-lg px-4 font-fantasy text-xs uppercase tracking-[0.16em] sm:w-auto tv-button-primary"
             >
               {preparation ? 'Opslaan' : 'Nieuw'}
             </button>
