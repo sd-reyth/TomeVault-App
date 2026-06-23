@@ -244,7 +244,7 @@ function HandoutsView({ role, handouts, currentPlayerId, onToggleVisibility, onT
                     <div className="absolute right-2 top-2 z-20 flex items-center gap-1.5 md:right-3 md:top-3">
                       <button
                         onClick={(event) => { event.stopPropagation(); toggleSecretVisibility(handout.id); }}
-                        className={`tv-icon-action rounded-lg p-2 shadow-md ${isSecretVisibleToPlayers(handout) ? 'border-cyan-500/45 text-cyan-300 hover:border-cyan-400' : ''}`}
+                        className={`tv-icon-action rounded-lg p-2 shadow-md ${isSecretVisibleToPlayers(handout) ? 'border-[color-mix(in_srgb,var(--tv-tone-ally),transparent_45%)] tv-tone-ally-text' : ''}`}
                         title={isSecretVisibleToPlayers(handout) ? 'Verberg Secret voor spelers' : 'Toon Secret aan alle spelers'}
                       >
                         <KeyRound className="h-4 w-4" />
@@ -262,7 +262,7 @@ function HandoutsView({ role, handouts, currentPlayerId, onToggleVisibility, onT
                   {role === 'player' && viewMode === 'grid' && isClaimableLoot(handout) ? (
                     <button
                       onClick={(event) => { event.stopPropagation(); onClaim(handout.id); }}
-                      className="tv-icon-action absolute right-2 top-2 z-20 rounded-lg border border-amber-500/25 p-2 text-amber-300 shadow-md md:right-3 md:top-3"
+                      className="tv-icon-action absolute right-2 top-2 z-20 rounded-lg border border-[color-mix(in_srgb,var(--tv-accent),transparent_60%)] p-2 tv-accent shadow-md md:right-3 md:top-3"
                       title="Claim dit object"
                     >
                       <Hand className="h-4 w-4" />
@@ -275,14 +275,14 @@ function HandoutsView({ role, handouts, currentPlayerId, onToggleVisibility, onT
                     <div className="absolute right-2 top-1/2 z-20 flex -translate-y-1/2 items-center gap-1.5 md:right-3">
                       <button
                         onClick={(event) => { event.stopPropagation(); toggleSecretVisibility(handout.id); }}
-                        className={`rounded-lg border tv-input-surface p-1.5 shadow-sm transition-colors md:p-2 ${isSecretVisibleToPlayers(handout) ? 'border-cyan-500/45 text-cyan-300 hover:border-cyan-400' : 'border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] tv-text-sub hover:border-cyan-500/35 hover:text-cyan-300'}`}
+                        className={`rounded-lg border tv-input-surface p-1.5 shadow-sm transition-colors md:p-2 ${isSecretVisibleToPlayers(handout) ? 'border-[color-mix(in_srgb,var(--tv-tone-ally),transparent_45%)] tv-tone-ally-text' : 'border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] tv-text-sub hover:border-[color-mix(in_srgb,var(--tv-tone-ally),transparent_45%)] hover:tv-tone-ally-text'}`}
                         title={isSecretVisibleToPlayers(handout) ? 'Verberg Secret voor spelers' : 'Toon Secret aan alle spelers'}
                       >
                         <KeyRound className="h-4 w-4" />
                       </button>
                       <button
                         onClick={(event) => { event.stopPropagation(); toggleVisibility(handout.id); }}
-                        className="rounded-lg border border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] tv-input-surface p-1.5 tv-text-sub shadow-sm transition-colors hover:border-amber-500/35 hover:text-amber-300 md:p-2"
+                        className="rounded-lg border border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] tv-input-surface p-1.5 tv-text-sub shadow-sm transition-colors hover:border-[color-mix(in_srgb,var(--tv-accent),transparent_45%)] hover:tv-accent md:p-2"
                         title={handout.isRevealed ? 'Verberg in de schaduwen' : 'Onthul aan de party'}
                       >
                         {handout.isRevealed ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
@@ -293,7 +293,7 @@ function HandoutsView({ role, handouts, currentPlayerId, onToggleVisibility, onT
                   {role === 'player' && viewMode === 'list' && isClaimableLoot(handout) ? (
                     <button
                       onClick={(event) => { event.stopPropagation(); onClaim(handout.id); }}
-                      className="absolute right-2 top-1/2 z-20 -translate-y-1/2 rounded-lg border border-amber-500/25 tv-input-surface p-1.5 text-amber-300 shadow-sm transition-colors hover:border-amber-400 hover:text-amber-200 md:right-3 md:p-2"
+                      className="absolute right-2 top-1/2 z-20 -translate-y-1/2 rounded-lg border border-[color-mix(in_srgb,var(--tv-accent),transparent_60%)] tv-input-surface p-1.5 tv-accent shadow-sm transition-colors hover:border-[color-mix(in_srgb,var(--tv-accent),transparent_40%)] md:right-3 md:p-2"
                       title="Claim dit object"
                     >
                       <Hand className="h-4 w-4" />
@@ -301,7 +301,7 @@ function HandoutsView({ role, handouts, currentPlayerId, onToggleVisibility, onT
                   ) : null}
 
                   <div className={`flex items-center gap-2 ${viewMode === 'grid' ? 'mb-2 pr-10 md:mb-3' : 'mb-1 pr-12'}`}>
-                    <span className={`shrink-0 rounded border border-amber-500/25 bg-amber-500/10 font-semibold uppercase tracking-widest text-amber-300 ${viewMode === 'list' ? 'px-2 py-1 text-[9px]' : 'px-1.5 py-0.5 text-[8px]'}`}>
+                    <span className={`shrink-0 rounded tv-chip-surface tv-accent font-semibold uppercase tracking-widest ${viewMode === 'list' ? 'px-2 py-1 text-[9px]' : 'px-1.5 py-0.5 text-[8px]'}`}>
                       {handout.type}
                     </span>
 
@@ -312,19 +312,19 @@ function HandoutsView({ role, handouts, currentPlayerId, onToggleVisibility, onT
                     ) : null}
 
                     {role === 'gm' && handout.claimedBy ? (
-                      <span className={`flex shrink-0 items-center gap-1 rounded border border-indigo-500/25 bg-indigo-500/10 font-semibold uppercase tracking-widest text-indigo-300 ${viewMode === 'grid' ? 'px-2 py-1 text-[9px]' : 'px-1.5 py-0.5 text-[8px]'}`}>
+                      <span className={`flex shrink-0 items-center gap-1 rounded tv-tone-ally-surface tv-tone-ally-text font-semibold uppercase tracking-widest ${viewMode === 'grid' ? 'px-2 py-1 text-[9px]' : 'px-1.5 py-0.5 text-[8px]'}`}>
                         <Hand className="h-2.5 w-2.5 md:h-3 md:w-3" /> Geclaimd
                       </span>
                     ) : null}
 
                     {role === 'gm' && handout.assignedToUid ? (
-                      <span className={`flex shrink-0 items-center gap-1 rounded border border-cyan-500/25 bg-cyan-500/10 font-semibold uppercase tracking-widest text-cyan-300 ${viewMode === 'grid' ? 'px-2 py-1 text-[9px]' : 'px-1.5 py-0.5 text-[8px]'}`}>
+                      <span className={`flex shrink-0 items-center gap-1 rounded tv-tone-ally-surface tv-tone-ally-text font-semibold uppercase tracking-widest ${viewMode === 'grid' ? 'px-2 py-1 text-[9px]' : 'px-1.5 py-0.5 text-[8px]'}`}>
                         <User className="h-2.5 w-2.5 md:h-3 md:w-3" /> Toegewezen
                       </span>
                     ) : null}
 
                     {role === 'player' && handout.assignedToUid === currentPlayerId ? (
-                      <span className={`flex shrink-0 items-center gap-1 rounded border border-cyan-500/25 bg-cyan-500/10 font-semibold uppercase tracking-widest text-cyan-300 ${viewMode === 'grid' ? 'px-2 py-1 text-[9px]' : 'px-1.5 py-0.5 text-[8px]'}`}>
+                      <span className={`flex shrink-0 items-center gap-1 rounded tv-tone-ally-surface tv-tone-ally-text font-semibold uppercase tracking-widest ${viewMode === 'grid' ? 'px-2 py-1 text-[9px]' : 'px-1.5 py-0.5 text-[8px]'}`}>
                         <User className="h-2.5 w-2.5 md:h-3 md:w-3" /> Voor jou
                       </span>
                     ) : null}
@@ -348,28 +348,28 @@ function HandoutsView({ role, handouts, currentPlayerId, onToggleVisibility, onT
 
                   {role === 'gm' && handout.type === 'npc' ? (
                     <div className={`flex flex-wrap gap-1.5 ${viewMode === 'grid' ? 'mb-3' : 'mb-1 pr-12'}`}>
-                      <span className="rounded border border-rose-500/25 bg-rose-500/10 px-2 py-1 text-[9px] font-semibold uppercase tracking-[0.16em] text-rose-300">
+                      <span className="rounded tv-tone-enemy-chip px-2 py-1 text-[9px] font-semibold uppercase tracking-[0.16em]">
                         HP {Number(handout.npcHp ?? 15) || 15}
                       </span>
                       <span className="rounded border border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] tv-input-surface px-2 py-1 text-[9px] font-semibold uppercase tracking-[0.16em] tv-text">
                         AC {Number(handout.npcAc ?? 12) || 12}
                       </span>
-                      <span className="rounded border border-amber-500/25 bg-amber-500/10 px-2 py-1 text-[9px] font-semibold uppercase tracking-[0.16em] text-amber-300">
+                      <span className="rounded tv-chip-surface tv-accent px-2 py-1 text-[9px] font-semibold uppercase tracking-[0.16em]">
                         Init {(Number(handout.npcInitMod ?? 2) || 0) >= 0 ? `+${Number(handout.npcInitMod ?? 2) || 0}` : (Number(handout.npcInitMod ?? 2) || 0)}
                       </span>
                     </div>
                   ) : null}
 
                   {role === 'gm' && handout.secret ? (
-                    <div className={`${viewMode === 'grid' ? 'mt-auto p-2.5 md:p-3' : 'mt-1 mr-20 flex items-center gap-2 px-2 py-1'} overflow-hidden rounded-r border-l-2 border-amber-500/45 bg-amber-500/10 text-amber-100/90 italic shadow-inner`}>
-                      <strong className={`block shrink-0 text-[9px] uppercase tracking-widest text-amber-300 ${viewMode === 'grid' ? 'mb-1' : ''}`}>Secret</strong>
+                    <div className={`tv-tone-secret-surface ${viewMode === 'grid' ? 'mt-auto p-2.5 md:p-3' : 'mt-1 mr-20 flex items-center gap-2 px-2 py-1'} overflow-hidden rounded italic shadow-inner`}>
+                      <strong className={`block shrink-0 text-[9px] uppercase tracking-widest tv-tone-secret-label ${viewMode === 'grid' ? 'mb-1' : ''}`}>Secret</strong>
                       <span className={`text-[10px] md:text-[11px] ${viewMode === 'list' ? 'truncate' : ''}`}>{handout.secret}</span>
                     </div>
                   ) : null}
 
                   {role === 'player' && handout.secret && isSecretVisibleToPlayers(handout) ? (
-                    <div className={`${viewMode === 'grid' ? 'mt-auto p-2.5 md:p-3' : 'mt-1 mr-12 flex items-center gap-2 px-2 py-1'} overflow-hidden rounded-r border-l-2 border-cyan-500/60 bg-cyan-500/10 text-cyan-100/90 shadow-inner`}>
-                      <strong className={`block shrink-0 text-[9px] uppercase tracking-widest text-cyan-300 ${viewMode === 'grid' ? 'mb-1' : ''}`}>Secret</strong>
+                    <div className={`tv-tone-ally-surface ${viewMode === 'grid' ? 'mt-auto p-2.5 md:p-3' : 'mt-1 mr-12 flex items-center gap-2 px-2 py-1'} overflow-hidden rounded shadow-inner`}>
+                      <strong className={`block shrink-0 text-[9px] uppercase tracking-widest tv-tone-ally-text ${viewMode === 'grid' ? 'mb-1' : ''}`}>Secret</strong>
                       <span className={`text-[10px] md:text-[11px] ${viewMode === 'list' ? 'truncate' : ''}`}>{handout.secret}</span>
                     </div>
                   ) : null}

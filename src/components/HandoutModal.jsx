@@ -106,7 +106,7 @@ function HandoutModal({ isOpen, onClose, handout, role, players = [], currentPla
                   {formData.imageUrl ? (
                     <>
                       <TvImage src={formData.imageUrl} alt="Handout preview" contain className="p-2 tv-input-surface" />
-                      <div className="absolute left-2 top-2 rounded border border-cyan-700/60 bg-cyan-950/65 px-2 py-1 text-[9px] font-bold uppercase tracking-[0.16em] text-cyan-200">
+                      <div className="absolute left-2 top-2 rounded tv-tone-ally-surface px-2 py-1 text-[9px] font-bold uppercase tracking-[0.16em] tv-tone-ally-text">
                         Volledige upload
                       </div>
                       <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity tv-panel-inset">
@@ -214,10 +214,10 @@ function HandoutModal({ isOpen, onClose, handout, role, players = [], currentPla
               </div>
 
               {formData.type === 'npc' && (
-                <div className="rounded-xl border border-rose-900/30 bg-rose-950/10 p-4">
+                <div className="rounded-xl tv-tone-enemy-surface p-4">
                   <div className="mb-3 flex items-center justify-between gap-3">
                     <div>
-                      <div className="text-[10px] font-bold uppercase tracking-widest text-rose-500">NPC Gevechtsprofiel</div>
+                      <div className="text-[10px] font-bold uppercase tracking-widest tv-tone-enemy-text">NPC Gevechtsprofiel</div>
                       <p className="mt-1 text-xs leading-5 tv-muted">Deze gegevens worden gebruikt wanneer je deze handout als NPC aan de initiative order toevoegt.</p>
                     </div>
                   </div>
@@ -228,7 +228,7 @@ function HandoutModal({ isOpen, onClose, handout, role, players = [], currentPla
                       value={formData.npcSubtitle || ''}
                       onChange={e => setFormData({ ...formData, npcSubtitle: e.target.value })}
                       placeholder="Bijv. Aartsvijand"
-                      className="w-full rounded-lg border border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] tv-panel-inset px-4 py-2.5 text-sm font-story tv-text placeholder:tv-muted transition-colors focus:outline-none focus:border-rose-500/60"
+                      className="w-full rounded-lg border border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] tv-panel-inset px-4 py-2.5 text-sm font-story tv-text placeholder:tv-muted transition-colors focus:outline-none focus:border-[color-mix(in_srgb,var(--tv-tone-enemy),transparent_40%)]"
                     />
                   </div>
                   <div className="grid grid-cols-3 gap-3">
@@ -239,7 +239,7 @@ function HandoutModal({ isOpen, onClose, handout, role, players = [], currentPla
                         min="0"
                         value={formData.npcHp ?? 15}
                         onChange={e => setFormData({ ...formData, npcHp: e.target.value })}
-                        className="hide-arrows w-full rounded-lg border border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] tv-panel-inset px-3 py-2.5 text-center text-sm tv-text transition-colors focus:outline-none focus:border-rose-500/60"
+                        className="hide-arrows w-full rounded-lg border border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] tv-panel-inset px-3 py-2.5 text-center text-sm tv-text transition-colors focus:outline-none focus:border-[color-mix(in_srgb,var(--tv-tone-enemy),transparent_40%)]"
                       />
                     </div>
                     <div>
@@ -249,7 +249,7 @@ function HandoutModal({ isOpen, onClose, handout, role, players = [], currentPla
                         min="0"
                         value={formData.npcAc ?? 12}
                         onChange={e => setFormData({ ...formData, npcAc: e.target.value })}
-                        className="hide-arrows w-full rounded-lg border border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] tv-panel-inset px-3 py-2.5 text-center text-sm tv-text transition-colors focus:outline-none focus:border-rose-500/60"
+                        className="hide-arrows w-full rounded-lg border border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] tv-panel-inset px-3 py-2.5 text-center text-sm tv-text transition-colors focus:outline-none focus:border-[color-mix(in_srgb,var(--tv-tone-enemy),transparent_40%)]"
                       />
                     </div>
                     <div>
@@ -258,7 +258,7 @@ function HandoutModal({ isOpen, onClose, handout, role, players = [], currentPla
                         type="number"
                         value={formData.npcInitMod ?? 2}
                         onChange={e => setFormData({ ...formData, npcInitMod: e.target.value })}
-                        className="hide-arrows w-full rounded-lg border border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] tv-panel-inset px-3 py-2.5 text-center text-sm tv-text transition-colors focus:outline-none focus:border-rose-500/60"
+                        className="hide-arrows w-full rounded-lg border border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] tv-panel-inset px-3 py-2.5 text-center text-sm tv-text transition-colors focus:outline-none focus:border-[color-mix(in_srgb,var(--tv-tone-enemy),transparent_40%)]"
                       />
                     </div>
                   </div>
@@ -281,7 +281,7 @@ function HandoutModal({ isOpen, onClose, handout, role, players = [], currentPla
               </div>
 
               <div>
-                <label className="block text-[10px] font-bold text-amber-700 uppercase tracking-widest mb-1.5 flex justify-between">
+                <label className="block text-[10px] font-bold tv-tone-secret-label uppercase tracking-widest mb-1.5 flex justify-between">
                   <span>Secret</span>
                   <span className="tv-muted font-normal normal-case">Alleen voor de GM</span>
                 </label>
@@ -290,13 +290,13 @@ function HandoutModal({ isOpen, onClose, handout, role, players = [], currentPla
                   value={formData.secret || ''} 
                   onChange={e => setFormData({...formData, secret: e.target.value})}
                   placeholder="Zijn er vallen? Bevat het valse informatie? Wat is de ware aard?"
-                  className="w-full resize-none rounded-lg border border-amber-900/35 bg-amber-950/18 px-4 py-3 text-sm font-story leading-relaxed text-amber-200/90 placeholder:tv-muted transition-colors focus:outline-none focus:border-amber-500/60"
+                  className="tv-secret-input w-full resize-none rounded-lg px-4 py-3 text-sm font-story leading-relaxed transition-colors"
                 />
               </div>
 
               {String(formData.type || '').toLowerCase() !== 'npc' ? (
-                <div className="rounded-xl border border-cyan-900/30 bg-cyan-950/10 p-4">
-                  <label className="block text-[10px] font-bold text-cyan-400 uppercase tracking-widest mb-1.5">Toewijzen aan speler</label>
+                <div className="rounded-xl tv-tone-ally-surface p-4">
+                  <label className="block text-[10px] font-bold tv-tone-ally-text uppercase tracking-widest mb-1.5">Toewijzen aan speler</label>
                   <select
                     value={formData.assignedToUid || ''}
                     onChange={(event) => {
@@ -308,7 +308,7 @@ function HandoutModal({ isOpen, onClose, handout, role, players = [], currentPla
                         assignedToNick: nextPlayer?.name || null,
                       }));
                     }}
-                    className="w-full tv-panel-inset border border-[color-mix(in_srgb,var(--tv-border),transparent_28%)] rounded-lg px-4 py-2.5 text-sm font-story tv-text focus:outline-none focus:border-cyan-700/50 transition-colors"
+                    className="w-full tv-panel-inset border border-[color-mix(in_srgb,var(--tv-border),transparent_28%)] rounded-lg px-4 py-2.5 text-sm font-story tv-text focus:outline-none focus:border-[color-mix(in_srgb,var(--tv-tone-ally),transparent_45%)] transition-colors"
                   >
                     <option value="">Iedereen in de party</option>
                     {players.map((player) => (
@@ -322,12 +322,12 @@ function HandoutModal({ isOpen, onClose, handout, role, players = [], currentPla
               ) : null}
 
               {String(formData.secret || '').trim() ? (
-                <div className="rounded-xl border border-amber-900/30 tv-chip-surface p-4">
-                  <label className="block text-[10px] font-bold text-amber-500 uppercase tracking-widest mb-2">Secret zichtbaar voor spelers</label>
+                <div className="rounded-xl tv-tone-secret-surface p-4">
+                  <label className="block text-[10px] font-bold tv-tone-secret-label uppercase tracking-widest mb-2">Secret zichtbaar voor spelers</label>
                   <button
                     type="button"
                     onClick={() => setFormData((prev) => ({ ...prev, secretRevealed: !prev.secretRevealed }))}
-                    className={`w-full rounded-lg border px-3 py-2 text-sm font-fantasy tracking-[0.12em] transition-colors ${formData.secretRevealed ? 'border-cyan-700/70 bg-cyan-950/35 text-cyan-200 hover:border-cyan-500' : 'border-[color-mix(in_srgb,var(--tv-border),transparent_20%)] tv-chip-surface tv-text hover:border-cyan-700/70 hover:text-cyan-200'}`}
+                    className={`w-full rounded-lg border px-3 py-2 text-sm font-fantasy tracking-[0.12em] transition-colors ${formData.secretRevealed ? 'tv-tone-ally-button' : 'border-[color-mix(in_srgb,var(--tv-border),transparent_20%)] tv-chip-surface tv-text tv-hover-surface'}`}
                   >
                     {formData.secretRevealed ? 'Nu zichtbaar voor alle spelers' : 'Nu verborgen voor spelers'}
                   </button>
@@ -342,7 +342,7 @@ function HandoutModal({ isOpen, onClose, handout, role, players = [], currentPla
                   <button 
                     type="button"
                     onClick={() => setFormData({...formData, isRevealed: !formData.isRevealed})}
-                    className={`p-2 rounded transition-colors shrink-0 ${formData.isRevealed ? 'bg-amber-900/40 text-amber-500' : 'tv-chip-surface tv-muted hover:tv-text'}`}
+                    className={`p-2 rounded transition-colors shrink-0 ${formData.isRevealed ? 'tv-toggle-active' : 'tv-chip-surface tv-muted hover:tv-text'}`}
                   >
                     {formData.isRevealed ? <Eye className="w-5 h-5" /> : <EyeOff className="w-5 h-5" />}
                   </button>
@@ -359,7 +359,7 @@ function HandoutModal({ isOpen, onClose, handout, role, players = [], currentPla
                     <button 
                       type="button"
                       onClick={() => setFormData({...formData, claimable: !formData.claimable})}
-                      className={`p-2 rounded transition-colors shrink-0 ${formData.claimable ? 'bg-amber-900/40 text-amber-500' : 'tv-chip-surface tv-muted hover:tv-text'}`}
+                      className={`p-2 rounded transition-colors shrink-0 ${formData.claimable ? 'tv-toggle-active' : 'tv-chip-surface tv-muted hover:tv-text'}`}
                     >
                       <Hand className="w-5 h-5" />
                     </button>
@@ -396,7 +396,7 @@ function HandoutModal({ isOpen, onClose, handout, role, players = [], currentPla
                     </button>
                   </div>
                 ) : null}
-                <div className="inline-block text-[10px] font-bold uppercase tracking-widest text-amber-600 bg-amber-950/50 border border-amber-900/30 px-3 py-1 rounded-full mb-4">
+                <div className="inline-block text-[10px] font-bold uppercase tracking-widest tv-tone-secret-surface px-3 py-1 rounded-full mb-4">
                   {formData.type}
                 </div>
                 <h2 className="text-3xl md:text-4xl font-fantasy font-bold tv-text leading-tight">
@@ -428,8 +428,8 @@ function HandoutModal({ isOpen, onClose, handout, role, players = [], currentPla
               </div>
 
               {formData.assignedToUid ? (
-                <div className="mx-auto w-full max-w-[70ch] rounded-xl border border-cyan-900/30 bg-cyan-950/10 p-4">
-                  <div className="text-[10px] font-bold uppercase tracking-[0.18em] text-cyan-400">Toegewezen</div>
+                <div className="mx-auto w-full max-w-[70ch] rounded-xl tv-tone-ally-surface p-4">
+                  <div className="text-[10px] font-bold uppercase tracking-[0.18em] tv-tone-ally-text">Toegewezen</div>
                   <p className="mt-2 text-sm leading-6 tv-text">
                     Deze handout is gericht aan <span className="font-fantasy tracking-[0.08em] tv-text">{formData.assignedToNick || 'een speler'}</span>.
                   </p>
@@ -437,8 +437,8 @@ function HandoutModal({ isOpen, onClose, handout, role, players = [], currentPla
               ) : null}
 
               {isGM && formData.type === 'npc' && (
-                <div className="mx-auto w-full max-w-[70ch] rounded-xl border border-rose-900/30 bg-rose-950/10 p-4">
-                  <div className="mb-3 text-[10px] font-bold uppercase tracking-[0.18em] text-rose-500">NPC Gevechtsprofiel</div>
+                <div className="mx-auto w-full max-w-[70ch] rounded-xl tv-tone-enemy-surface p-4">
+                  <div className="mb-3 text-[10px] font-bold uppercase tracking-[0.18em] tv-tone-enemy-text">NPC Gevechtsprofiel</div>
                   <div className="grid grid-cols-3 gap-3 text-center">
                     <div className="rounded-lg border border-[color-mix(in_srgb,var(--tv-border),transparent_28%)] tv-chip-surface px-3 py-2.5">
                       <div className="text-[10px] uppercase tracking-[0.18em] tv-muted">HP</div>
@@ -457,7 +457,7 @@ function HandoutModal({ isOpen, onClose, handout, role, players = [], currentPla
                     type="button"
                     onClick={() => onAddToInitiative?.(formData)}
                     disabled={!canAddToInitiative}
-                    className={`mt-4 flex w-full items-center justify-center gap-2 rounded-lg border px-4 py-3 text-sm font-fantasy tracking-[0.14em] transition-colors ${canAddToInitiative ? 'border-rose-900/50 bg-gradient-to-r from-rose-800 to-rose-700 tv-text hover:from-rose-700 hover:to-rose-600' : 'cursor-not-allowed border-[color-mix(in_srgb,var(--tv-border),transparent_28%)] tv-panel-inset tv-muted'}`}
+                    className={`mt-4 flex w-full items-center justify-center gap-2 rounded-lg border px-4 py-3 text-sm font-fantasy tracking-[0.14em] transition-colors ${canAddToInitiative ? 'tv-tone-enemy-button' : 'cursor-not-allowed border-[color-mix(in_srgb,var(--tv-border),transparent_28%)] tv-panel-inset tv-muted'}`}
                   >
                     <UserPlus className="w-4 h-4" /> {canAddToInitiative ? 'Voeg toe aan slagorde' : 'Pauzeer gevecht om toe te voegen'}
                   </button>
@@ -465,12 +465,11 @@ function HandoutModal({ isOpen, onClose, handout, role, players = [], currentPla
               )}
 
               {isGM && formData.secret && (
-                <div className="mt-4 tv-input-surface border border-amber-900/40 rounded-xl p-5 shadow-[inset_0_0_20px_rgba(0,0,0,0.5)] relative overflow-hidden">
-                  <div className="absolute top-0 left-0 w-1 h-full bg-amber-600" />
-                  <h4 className="text-[10px] font-bold text-amber-600 uppercase tracking-widest mb-2 flex items-center gap-2">
+                <div className="tv-secret-block mt-4 rounded-xl p-5 shadow-[inset_0_0_20px_rgba(0,0,0,0.3)]">
+                  <h4 className="text-[10px] font-bold tv-tone-secret-label uppercase tracking-widest mb-2 flex items-center gap-2">
                     <EyeOff className="w-3 h-3" /> Secret (alleen GM)
                   </h4>
-                  <p className="font-story italic text-amber-500/90 text-sm leading-relaxed whitespace-pre-line">
+                  <p className="font-story italic text-sm leading-relaxed whitespace-pre-line">
                     {String(formData.secret || '')
                       .replace(/\r/g, '')
                       .split(/\n{2,}/)
@@ -482,12 +481,11 @@ function HandoutModal({ isOpen, onClose, handout, role, players = [], currentPla
               )}
 
               {!isGM && formData.secret && playerCanSeeSecret ? (
-                <div className="mt-4 tv-input-surface border border-cyan-900/40 rounded-xl p-5 shadow-[inset_0_0_20px_rgba(0,0,0,0.5)] relative overflow-hidden">
-                  <div className="absolute top-0 left-0 w-1 h-full bg-cyan-500" />
-                  <h4 className="text-[10px] font-bold text-cyan-300 uppercase tracking-widest mb-2 flex items-center gap-2">
+                <div className="tv-tone-ally-surface mt-4 rounded-xl p-5 shadow-[inset_0_0_20px_rgba(0,0,0,0.3)] relative overflow-hidden">
+                  <h4 className="text-[10px] font-bold tv-tone-ally-text uppercase tracking-widest mb-2 flex items-center gap-2">
                     <Eye className="w-3 h-3" /> Secret
                   </h4>
-                  <p className="font-story text-cyan-100/90 text-sm leading-relaxed whitespace-pre-line">
+                  <p className="font-story tv-text text-sm leading-relaxed whitespace-pre-line">
                     {String(formData.secret || '')
                       .replace(/\r/g, '')
                       .split(/\n{2,}/)

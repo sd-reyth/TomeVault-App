@@ -1344,6 +1344,40 @@ body {
   color: color-mix(in srgb, var(--tv-tone-secret), #fff 35%);
 }
 
+/* Secret reading block (GM-only lore reveal) */
+.tv-secret-block {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--tv-tone-secret), transparent 55%);
+  background: color-mix(in srgb, var(--tv-tone-secret), transparent 90%);
+  color: color-mix(in srgb, var(--tv-tone-secret), #fff 50%);
+}
+.tv-secret-block::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 0.25rem;
+  height: 100%;
+  background: color-mix(in srgb, var(--tv-tone-secret), transparent 25%);
+}
+.tv-secret-input {
+  border: 1px solid color-mix(in srgb, var(--tv-tone-secret), transparent 60%);
+  background: color-mix(in srgb, var(--tv-tone-secret), transparent 92%);
+  color: color-mix(in srgb, var(--tv-tone-secret), #fff 45%);
+}
+.tv-secret-input::placeholder {
+  color: color-mix(in srgb, var(--tv-text-secondary), transparent 20%);
+}
+.tv-secret-input:focus {
+  outline: none;
+  border-color: color-mix(in srgb, var(--tv-tone-secret), transparent 35%);
+}
+.tv-toggle-active {
+  background: color-mix(in srgb, var(--tv-accent), transparent 82%);
+  color: var(--tv-accent);
+}
+
 .tv-update-banner {
   border: 1px solid color-mix(in srgb, var(--tv-status-warning), transparent 42%);
   background: color-mix(in srgb, var(--tv-status-warning), transparent 78%);
