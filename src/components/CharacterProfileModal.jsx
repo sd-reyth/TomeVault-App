@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Crown, X, ImagePlus, Fingerprint, Plus, NotebookPen, UserRound } from 'lucide-react';
+import { Crown, X, ImagePlus, Fingerprint, Plus, NotebookPen, UserRound, Save } from 'lucide-react';
 import {
   resolveDisplayAvatar,
   PROFILE_PROMPT_AVATARS,
@@ -112,16 +112,19 @@ function CharacterProfileModal({ isOpen, onClose, character, role, currentPlayer
     <ModalFrame
       isOpen={isOpen}
       onClose={onClose}
-      title="Karakterprofiel"
-      subtitle={character.isNpc ? 'NPC profiel en gevechtsgegevens' : 'Spelerprofiel, eigenschappen en lore'}
+      title={character.isNpc ? 'NPC' : 'Profiel'}
+      subtitle={formData.name || character.name}
       icon={UserRound}
       maxWidthClassName="max-w-md"
       bodyClassName="px-0 py-0 overflow-y-hidden sm:px-0 sm:py-0"
     >
-        <div className="flex flex-1 flex-col overflow-y-auto no-scrollbar px-4 pb-4 pt-4 sm:px-6 sm:pb-6" style={bannerAccent ? { background: `linear-gradient(120deg, ${bannerAccent}22, rgba(12,10,15,0.96) 40%)` } : undefined}>
-          <div className="mb-4 rounded-2xl border border-white/10 bg-zinc-950/72 p-4 shadow-inner">
+        <div
+          className="tv-profile-banner flex flex-1 flex-col overflow-y-auto no-scrollbar px-4 pb-4 pt-4 sm:px-6 sm:pb-6"
+          style={bannerAccent ? { background: `linear-gradient(120deg, ${bannerAccent}22, color-mix(in srgb, var(--tv-bg-canvas), transparent 4%) 40%)` } : undefined}
+        >
+          <div className="tv-panel-inset mb-4 rounded-2xl p-4 shadow-inner">
             <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-          <label className={`relative group flex h-24 w-24 items-center justify-center overflow-hidden rounded-xl border-2 md:h-32 md:w-32 ${character.isNpc ? 'border-rose-800/45 bg-rose-950/25' : 'border-white/15 bg-white/5'} transition-all shadow-xl ${canEdit ? 'cursor-pointer hover:border-[var(--tv-accent)]/55' : ''}`}>
+          <label className={`relative group flex h-24 w-24 items-center justify-center overflow-hidden rounded-xl border-2 md:h-32 md:w-32 ${character.isNpc ? 'border-rose-800/45 bg-rose-950/25' : 'border-[color-mix(in_srgb,var(--tv-border),transparent_35%)] tv-panel-inset'} transition-all shadow-xl ${canEdit ? 'cursor-pointer hover:border-[color-mix(in_srgb,var(--tv-accent),transparent_55%)]' : ''}`}>
             {canEdit && <input type="file" accept="image/*" className="hidden" onChange={handleImageChange} />}
             {(() => {
               const displayAvatar = resolveDisplayAvatar(formData.avatar, character.id);
@@ -130,11 +133,11 @@ function CharacterProfileModal({ isOpen, onClose, character, role, currentPlayer
                   <img
                     src={displayAvatar}
                     alt="Portret"
-                    className="w-full h-full object-cover object-center scale-[1.18]"
+                    className="h-full w-full scale-[1.18] object-cover object-center"
                   />
                   {canEdit && (
-                    <div className="absolute inset-0 flex items-center justify-center bg-zinc-950/62 opacity-0 transition-opacity group-hover:opacity-100">
-                      <ImagePlus className="w-6 h-6 text-stone-200" />
+                    <div className="absolute inset-0 flex items-center justify-center bg-[color-mix(in_srgb,var(--tv-bg-canvas),transparent_38%)] opacity-0 transition-opacity group-hover:opacity-100">
+                      <ImagePlus className="h-6 w-6 tv-text" />
                     </div>
                   )}
                 </>
@@ -143,14 +146,20 @@ function CharacterProfileModal({ isOpen, onClose, character, role, currentPlayer
           </label>
           
           {canEdit && (
-            <button onClick={handleSave} className="mb-0 inline-flex h-9 w-full items-center justify-center rounded-lg px-4 text-xs font-fantasy uppercase tracking-[0.16em] sm:mb-2 sm:w-auto tv-button-primary">
-              Opslaan
+            <button
+              onClick={handleSave}
+              aria-label="Opslaan"
+              title="Opslaan"
+              className="tv-button-primary mb-0 inline-flex h-9 w-full items-center justify-center gap-2 rounded-lg px-4 sm:mb-2 sm:w-auto"
+            >
+              <Save className="h-4 w-4" />
+              <span className="hidden text-xs font-fantasy uppercase tracking-[0.16em] sm:inline">Opslaan</span>
             </button>
           )}
             </div>
           </div>
 
-          <div className="space-y-5 flex-1 flex flex-col">
+          <div className="flex flex-1 flex-col space-y-5">
             <div>
               {canEdit ? (
                 <>
@@ -158,64 +167,64 @@ function CharacterProfileModal({ isOpen, onClose, character, role, currentPlayer
                     type="text" 
                     value={formData.name || ''} 
                     onChange={e => handleChange('name', e.target.value)}
-                    className="w-full bg-transparent border-b border-white/10 focus:border-[var(--tv-accent)]/70 text-2xl md:text-3xl font-fantasy font-bold text-stone-100 px-1 py-1 outline-none transition-colors"
-                    placeholder="Karakter Naam"
+                    className="tv-text w-full border-b border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] bg-transparent px-1 py-1 font-fantasy text-2xl font-bold outline-none transition-colors focus:border-[color-mix(in_srgb,var(--tv-accent),transparent_48%)] md:text-3xl"
+                    placeholder="Naam"
                   />
                   <input 
                     type="text" 
                     value={formData.subtitle || ''} 
                     onChange={e => handleChange('subtitle', e.target.value)}
-                    className="w-full bg-transparent border-b border-transparent hover:border-white/10 focus:border-white/20 text-sm font-story italic text-stone-400 px-1 py-1 mt-1 outline-none transition-colors"
-                    placeholder="Ras / Klasse (bijv. Elf Ranger)"
+                    className="tv-text-sub mt-1 w-full border-b border-transparent bg-transparent px-1 py-1 font-story text-sm italic outline-none transition-colors hover:border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] focus:border-[color-mix(in_srgb,var(--tv-border),transparent_28%)]"
+                    placeholder="Ras / klasse"
                   />
                 </>
               ) : (
                 <>
-                  <h2 className="text-2xl md:text-3xl font-fantasy font-bold text-stone-100 px-1">{formData.name}</h2>
-                  <p className="text-sm font-story italic text-stone-400 px-1 mt-1">{formData.subtitle}</p>
+                  <h2 className="tv-text px-1 font-fantasy text-2xl font-bold md:text-3xl">{formData.name}</h2>
+                  <p className="tv-text-sub mt-1 px-1 font-story text-sm italic">{formData.subtitle}</p>
                 </>
               )}
             </div>
 
             {canEdit && (
               <div>
-                <div className="text-[10px] font-bold text-stone-500 uppercase tracking-widest mb-2">Of kies een avatar</div>
-                <div className="flex gap-1.5 overflow-x-auto no-scrollbar pb-1">
+                <div className="tv-label mb-2">Avatar</div>
+                <div className="flex gap-1.5 overflow-x-auto pb-1 no-scrollbar">
                   {PROFILE_PROMPT_AVATARS.slice(0, 18).map((url) => (
                     <button
                       key={url}
                       type="button"
                       onClick={() => handlePickAvatar(url)}
-                      className={`shrink-0 w-10 h-10 rounded-lg overflow-hidden border-2 transition-all ${
+                      className={`h-10 w-10 shrink-0 overflow-hidden rounded-lg border-2 transition-all ${
                         formData.avatar === url
-                          ? 'border-[var(--tv-accent)] shadow-[0_0_6px_color-mix(in_srgb,var(--tv-accent),transparent_50%)]'
-                          : 'border-white/10 hover:border-[var(--tv-accent)]/60'
+                          ? 'border-[color-mix(in_srgb,var(--tv-accent),transparent_40%)] shadow-[0_0_6px_color-mix(in_srgb,var(--tv-accent),transparent_50%)]'
+                          : 'border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] hover:border-[color-mix(in_srgb,var(--tv-accent),transparent_58%)]'
                       }`}
                     >
-                      <img src={url} alt="" className="w-full h-full object-cover object-center scale-[1.2]" loading="lazy" />
+                      <img src={url} alt="" className="h-full w-full scale-[1.2] object-cover object-center" loading="lazy" />
                     </button>
                   ))}
                   <button
                     type="button"
                     onClick={() => setShowAllPromptAvatars((value) => !value)}
-                    className={`shrink-0 w-10 h-10 rounded-lg border-2 text-lg font-fantasy text-stone-300 transition-all ${showAllPromptAvatars ? 'border-[var(--tv-accent)] bg-[color-mix(in_srgb,var(--tv-accent),transparent_70%)]' : 'border-white/10 bg-white/5 hover:border-[var(--tv-accent)]/60 hover:bg-white/7'}`}
-                    title="Toon alle prompt avatars"
+                    aria-label="Meer avatars"
+                    className={`h-10 w-10 shrink-0 rounded-lg border-2 font-fantasy text-lg tv-text transition-all ${showAllPromptAvatars ? 'tv-button-accent-muted' : 'tv-chip-surface'}`}
                   >
-                    ...
+                    …
                   </button>
                 </div>
 
                 {showAllPromptAvatars && (
-                  <div className="mt-3 max-h-52 overflow-y-auto no-scrollbar rounded-lg border border-white/10 bg-white/5 p-2">
+                  <div className="tv-panel-inset mt-3 max-h-52 overflow-y-auto rounded-lg p-2 no-scrollbar">
                     <div className="grid grid-cols-5 gap-1.5 sm:grid-cols-6">
                       {PROFILE_PROMPT_AVATARS.map((url) => (
                         <button
                           key={`all-${url}`}
                           type="button"
                           onClick={() => handlePickAvatar(url)}
-                          className={`aspect-square rounded-md overflow-hidden border transition-all ${formData.avatar === url ? 'border-[var(--tv-accent)] shadow-[0_0_6px_color-mix(in_srgb,var(--tv-accent),transparent_50%)]' : 'border-white/10 hover:border-[var(--tv-accent)]/60'}`}
+                          className={`aspect-square overflow-hidden rounded-md border transition-all ${formData.avatar === url ? 'border-[color-mix(in_srgb,var(--tv-accent),transparent_40%)]' : 'border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] hover:border-[color-mix(in_srgb,var(--tv-accent),transparent_58%)]'}`}
                         >
-                          <img src={url} alt="" className="w-full h-full object-cover object-center scale-[1.2]" loading="lazy" />
+                          <img src={url} alt="" className="h-full w-full scale-[1.2] object-cover object-center" loading="lazy" />
                         </button>
                       ))}
                     </div>
@@ -225,34 +234,35 @@ function CharacterProfileModal({ isOpen, onClose, character, role, currentPlayer
             )}
 
             {canTransferGm && (
-              <div className="rounded-lg border border-[var(--tv-accent)]/40 bg-[color-mix(in_srgb,var(--tv-accent),transparent_80%)] p-3">
+              <div className="rounded-lg border border-[color-mix(in_srgb,var(--tv-accent),transparent_55%)] bg-[color-mix(in_srgb,var(--tv-accent),transparent_88%)] p-3">
                 {!confirmTransfer ? (
                   <button
                     type="button"
                     onClick={() => setConfirmTransfer(true)}
-                    className="w-full flex items-center justify-center gap-2 bg-[color-mix(in_srgb,var(--tv-accent),transparent_70%)] hover:bg-[color-mix(in_srgb,var(--tv-accent),transparent_60%)] border border-[var(--tv-accent)]/50 text-[var(--tv-accent)] py-2 rounded-lg text-xs font-fantasy tracking-wider transition-colors"
+                    className="tv-button-accent-muted flex w-full items-center justify-center gap-2 rounded-lg py-2 text-xs font-fantasy tracking-wider"
                   >
-                    <Crown className="w-4 h-4" /> Maak {formData.name || 'speler'} de nieuwe GM
+                    <Crown className="h-4 w-4" />
+                    <span className="truncate">GM → {formData.name || 'speler'}</span>
                   </button>
                 ) : (
                   <div className="space-y-2">
-                    <p className="text-[11px] text-[var(--tv-accent)]/90 font-story leading-relaxed">
-                      Weet je zeker dat je GM-rechten overdraagt? Deze keuze is blijvend voor deze sessie, maar de nieuwe GM kan jou later weer terugzetten.
+                    <p className="tv-meta text-[11px] leading-relaxed">
+                      GM-rechten overdraagt voor deze sessie?
                     </p>
                     <div className="flex flex-col gap-2 sm:flex-row">
                       <button
                         type="button"
                         onClick={() => setConfirmTransfer(false)}
-                        className="flex-1 py-2 rounded-lg border border-stone-700 text-stone-300 hover:bg-stone-800 text-xs font-fantasy tracking-wider"
+                        className="tv-button-secondary flex-1 rounded-lg py-2 text-xs font-fantasy tracking-wider"
                       >
-                        Annuleer
+                        Nee
                       </button>
                       <button
                         type="button"
                         onClick={() => onTransferGm?.(formData)}
-                        className="flex-1 py-2 rounded-lg border border-[var(--tv-accent)]/60 bg-[color-mix(in_srgb,var(--tv-accent),transparent_70%)] text-[var(--tv-accent)] hover:bg-[color-mix(in_srgb,var(--tv-accent),transparent_60%)] text-xs font-fantasy tracking-wider"
+                        className="tv-button-primary flex-1 rounded-lg py-2 text-xs font-fantasy tracking-wider"
                       >
-                        Bevestig overdracht
+                        Ja
                       </button>
                     </div>
                   </div>
@@ -260,75 +270,73 @@ function CharacterProfileModal({ isOpen, onClose, character, role, currentPlayer
               </div>
             )}
 
-            {/* Quick Stats Grid */}
-            <div className="grid grid-cols-3 gap-3 bg-white/5 p-3 rounded-xl border border-white/10 shadow-inner">
-              <div className="flex flex-col items-center justify-center p-2">
-                <span className="text-[10px] font-bold uppercase tracking-widest text-stone-500 mb-1">HP</span>
+            <div className="tv-stat-grid">
+              <div className="tv-stat-cell">
+                <span className="tv-label mb-1">HP</span>
                 <div className="flex items-baseline gap-1">
                   {canEdit ? (
-                    <input type="number" value={formData.hp || 0} onChange={e => handleChange('hp', e.target.value)} className="w-8 bg-transparent text-center font-bold text-lg text-[var(--tv-accent)] outline-none hide-arrows border-b border-white/10 focus:border-[var(--tv-accent)]/70" />
+                    <input type="number" value={formData.hp || 0} onChange={e => handleChange('hp', e.target.value)} className="tv-stat-input hide-arrows text-lg" />
                   ) : (
-                    <span className="font-bold text-lg text-[var(--tv-accent)]">{formData.hp}</span>
+                    <span className="text-lg font-bold tv-accent">{formData.hp}</span>
                   )}
-                  <span className="text-stone-600 text-xs">/</span>
+                  <span className="tv-muted text-xs">/</span>
                   {canEdit ? (
-                    <input type="number" value={formData.maxHp || 0} onChange={e => handleChange('maxHp', e.target.value)} className="w-8 bg-transparent text-center font-bold text-xs text-stone-500 outline-none hide-arrows border-b border-white/10 focus:border-[var(--tv-accent)]/70" />
+                    <input type="number" value={formData.maxHp || 0} onChange={e => handleChange('maxHp', e.target.value)} className="tv-stat-input hide-arrows text-xs tv-muted" />
                   ) : (
-                    <span className="font-bold text-xs text-stone-500">{formData.maxHp}</span>
+                    <span className="text-xs font-bold tv-muted">{formData.maxHp}</span>
                   )}
                 </div>
               </div>
-              <div className="flex flex-col items-center justify-center p-2 border-l border-r border-white/10">
-                <span className="text-[10px] font-bold uppercase tracking-widest text-stone-500 mb-1">AC</span>
+              <div className="tv-stat-cell tv-stat-cell--divider">
+                <span className="tv-label mb-1">AC</span>
                 {canEdit ? (
-                  <input type="number" value={formData.ac || 0} onChange={e => handleChange('ac', e.target.value)} className="w-10 bg-transparent text-center font-bold text-lg text-stone-200 outline-none hide-arrows border-b border-white/10 focus:border-[var(--tv-accent)]/70" />
+                  <input type="number" value={formData.ac || 0} onChange={e => handleChange('ac', e.target.value)} className="tv-stat-input hide-arrows text-lg tv-text" />
                 ) : (
-                  <span className="font-bold text-lg text-stone-200">{formData.ac}</span>
+                  <span className="text-lg font-bold tv-text">{formData.ac}</span>
                 )}
               </div>
-              <div className="flex flex-col items-center justify-center p-2">
-                <span className="text-[10px] font-bold uppercase tracking-widest text-stone-500 mb-1" title="Initiative Modifier">Init Mod</span>
+              <div className="tv-stat-cell">
+                <span className="tv-label mb-1" title="Initiative Modifier">Init</span>
                 {canEdit ? (
-                  <input type="number" value={formData.initMod || 0} onChange={e => handleChange('initMod', e.target.value)} className="w-10 bg-transparent text-center font-bold text-lg text-stone-200 outline-none hide-arrows border-b border-white/10 focus:border-[var(--tv-accent)]/70" />
+                  <input type="number" value={formData.initMod || 0} onChange={e => handleChange('initMod', e.target.value)} className="tv-stat-input hide-arrows text-lg tv-text" />
                 ) : (
-                  <span className="font-bold text-lg text-stone-200">{formData.initMod >= 0 ? `+${formData.initMod}` : formData.initMod}</span>
+                  <span className="text-lg font-bold tv-text">{formData.initMod >= 0 ? `+${formData.initMod}` : formData.initMod}</span>
                 )}
               </div>
             </div>
 
             {isGM ? (
-              <div className="rounded-lg border border-[var(--tv-accent)]/40 bg-[color-mix(in_srgb,var(--tv-accent),transparent_80%)] p-3 space-y-2">
-                <h4 className="text-[10px] font-bold text-[var(--tv-accent)]/80 uppercase tracking-widest">Alert Feat (2024)</h4>
-                <label className="flex items-center gap-3 cursor-pointer">
+              <div className="rounded-lg border border-[color-mix(in_srgb,var(--tv-accent),transparent_55%)] bg-[color-mix(in_srgb,var(--tv-accent),transparent_88%)] space-y-2 p-3">
+                <h4 className="tv-label tv-accent">Alert</h4>
+                <label className="flex cursor-pointer items-center gap-3">
                   <input
                     type="checkbox"
                     checked={formData.hasAlertFeat || false}
                     onChange={(event) => handleChange('hasAlertFeat', event.target.checked)}
-                    className="h-4 w-4 rounded border-stone-700 bg-stone-950"
+                    className="h-4 w-4 rounded border-[color-mix(in_srgb,var(--tv-border),transparent_28%)] tv-input-surface"
                   />
-                  <span className="text-[11px] font-bold text-stone-200">Heeft Alert Feat</span>
+                  <span className="text-[11px] font-bold tv-text">Alert Feat</span>
                 </label>
 
                 {formData.hasAlertFeat ? (
                   <div className="space-y-2 pl-7">
                     <div className="flex items-center gap-2">
-                      <span className="text-[10px] text-stone-400">Proficiency Bonus:</span>
+                      <span className="tv-label">PB</span>
                       <input
                         type="number"
                         value={formData.proficiencyBonus || 2}
                         onChange={(event) => handleChange('proficiencyBonus', parseInt(event.target.value, 10) || 2)}
-                        className="hide-arrows w-12 rounded border border-stone-700 bg-stone-950 px-2 py-1 text-[11px] font-bold text-[var(--tv-accent)] outline-none focus:border-[var(--tv-accent)]"
+                        className="tv-hp-input hide-arrows"
                       />
-                      <span className="text-[10px] text-stone-500">op initiative</span>
                     </div>
 
                     {canSwapInitiative ? (
                       <button
                         type="button"
                         onClick={() => onOpenInitiativeSwap?.(character)}
-                        className="rounded-lg border border-[var(--tv-accent)]/60 bg-[color-mix(in_srgb,var(--tv-accent),transparent_70%)] px-3 py-1.5 text-[11px] font-fantasy tracking-[0.12em] text-[var(--tv-accent)] transition-colors hover:border-[var(--tv-accent)]/70 hover:bg-[color-mix(in_srgb,var(--tv-accent),transparent_60%)]"
+                        className="tv-button-accent-muted rounded-lg px-3 py-1.5 text-[11px] font-fantasy tracking-[0.12em]"
                       >
-                        Initiative Swap
+                        Swap initiative
                       </button>
                     ) : null}
                   </div>
@@ -338,12 +346,12 @@ function CharacterProfileModal({ isOpen, onClose, character, role, currentPlayer
 
             {canEdit && (
               <div className="flex flex-col">
-                <h4 className="text-[10px] font-bold text-stone-500 uppercase tracking-widest mb-2 flex items-center gap-2" title="Alleen zichtbaar voor jou en de Game Master">
-                  <Fingerprint className="w-3 h-3" /> Verborgen Eigenschappen
+                <h4 className="tv-label mb-2 flex items-center gap-2" title="Alleen zichtbaar voor jou en de GM">
+                  <Fingerprint className="h-3 w-3" /> Stats
                 </h4>
                 <div className="flex flex-wrap gap-2">
                   {(formData.customStats || []).map(stat => (
-                    <div key={stat.id} className="flex items-center bg-white/5 border border-white/10 rounded-lg overflow-hidden shadow-inner focus-within:border-[var(--tv-accent)]/50 transition-colors">
+                    <div key={stat.id} className="tv-chip-surface flex items-center overflow-hidden rounded-lg shadow-inner transition-colors focus-within:border-[color-mix(in_srgb,var(--tv-accent),transparent_52%)]">
                       <input 
                         list="stat-options" 
                         value={stat.name}
@@ -351,22 +359,22 @@ function CharacterProfileModal({ isOpen, onClose, character, role, currentPlayer
                           const cleanAbbr = e.target.value.split(' - ')[0].trim().toUpperCase();
                           updateCustomStat(stat.id, 'name', cleanAbbr);
                         }}
-                        className="w-16 bg-transparent text-[10px] font-bold text-[var(--tv-accent)]/80 uppercase tracking-widest p-1.5 outline-none border-r border-white/10 text-center placeholder-stone-600"
-                        placeholder="NAAM"
+                        className="tv-accent w-16 border-r border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] bg-transparent p-1.5 text-center text-[10px] font-bold uppercase tracking-widest outline-none placeholder:tv-muted"
+                        placeholder="—"
                       />
                       <input 
                         type="number" 
                         value={stat.value} 
                         onChange={e => updateCustomStat(stat.id, 'value', e.target.value)}
-                        className="w-10 bg-transparent text-center text-sm font-bold text-stone-200 outline-none hide-arrows p-1"
+                        className="tv-text w-10 hide-arrows bg-transparent p-1 text-center text-sm font-bold outline-none"
                       />
-                      <button onClick={() => removeCustomStat(stat.id)} className="p-1.5 text-stone-500 hover:text-rose-400 transition-colors bg-rose-950/30 hover:bg-rose-900/40" title="Verwijder eigenschap">
-                        <X className="w-3 h-3" />
+                      <button onClick={() => removeCustomStat(stat.id)} className="bg-rose-950/30 p-1.5 tv-muted transition-colors hover:bg-rose-900/40 hover:text-rose-400" title="Verwijder" aria-label="Verwijder eigenschap">
+                        <X className="h-3 w-3" />
                       </button>
                     </div>
                   ))}
-                  <button onClick={addCustomStat} className="flex items-center justify-center w-8 h-8 rounded-lg border border-dashed border-white/10 text-stone-500 hover:text-[var(--tv-accent)] hover:border-[var(--tv-accent)]/50 transition-colors bg-white/5" title="Voeg eigenschap toe">
-                    <Plus className="w-4 h-4" />
+                  <button onClick={addCustomStat} className="tv-chip-surface flex h-8 w-8 items-center justify-center rounded-lg border border-dashed tv-muted transition-colors hover:tv-accent hover:border-[color-mix(in_srgb,var(--tv-accent),transparent_52%)]" title="Voeg eigenschap toe" aria-label="Voeg eigenschap toe">
+                    <Plus className="h-4 w-4" />
                   </button>
                 </div>
                 <datalist id="stat-options">
@@ -377,21 +385,20 @@ function CharacterProfileModal({ isOpen, onClose, character, role, currentPlayer
               </div>
             )}
 
-            {/* Lore / Bio Sectie */}
-            <div className="flex-1 flex flex-col min-h-[120px] mt-4">
-              <h4 className="text-[10px] font-bold text-stone-500 uppercase tracking-widest mb-2 flex items-center gap-2">
-                <NotebookPen className="w-3 h-3" /> Notities & Lore
+            <div className="mt-4 flex min-h-[120px] flex-1 flex-col">
+              <h4 className="tv-label mb-2 flex items-center gap-2">
+                <NotebookPen className="h-3 w-3" /> Lore
               </h4>
               {canEdit ? (
                 <textarea 
                   value={formData.bio || ''} 
                   onChange={e => handleChange('bio', e.target.value)}
-                  placeholder="Achtergrondverhaal, spreuken, wapens of tijdelijke effecten..."
-                  className="w-full flex-1 bg-stone-950/40 border border-stone-800 rounded-lg p-3 text-sm text-stone-300 font-story leading-relaxed focus:outline-none focus:border-[var(--tv-accent)]/50 transition-colors resize-none"
+                  placeholder="Achtergrond, spreuken, effecten…"
+                  className="tv-field min-h-[120px] flex-1 resize-none font-story leading-relaxed"
                 />
               ) : (
-                <div className="w-full flex-1 bg-stone-950/40 border border-stone-800 rounded-lg p-3 text-sm text-stone-300 font-story leading-relaxed overflow-y-auto">
-                  {formData.bio || <span className="italic text-stone-600">Geen lore vastgelegd...</span>}
+                <div className="tv-panel-inset min-h-[120px] flex-1 overflow-y-auto p-3 font-story text-sm leading-relaxed tv-text">
+                  {formData.bio || <span className="italic tv-muted">—</span>}
                 </div>
               )}
             </div>
