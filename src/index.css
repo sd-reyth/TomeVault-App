@@ -870,18 +870,39 @@ body {
   border: 1px solid color-mix(in srgb, var(--tv-border), transparent 20%);
   background: color-mix(in srgb, var(--tv-bg-surface), transparent 10%);
   color: var(--tv-text-secondary);
-  transition: color 0.15s, background 0.15s, border-color 0.15s;
+  cursor: pointer;
+  transition:
+    color 160ms ease,
+    background 160ms ease,
+    border-color 160ms ease,
+    box-shadow 160ms ease,
+    transform 160ms ease;
 }
 
-.tv-icon-btn:hover {
+.tv-icon-btn:hover:not(:disabled) {
   color: var(--tv-text-primary);
   background: color-mix(in srgb, var(--tv-accent), transparent 92%);
   border-color: color-mix(in srgb, var(--tv-accent), transparent 58%);
 }
 
-.tv-icon-btn--danger:hover {
-  color: #f87171;
-  border-color: color-mix(in srgb, #f87171 35%, transparent);
+.tv-icon-btn:active:not(:disabled) {
+  transform: scale(0.97);
+}
+
+.tv-icon-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+  filter: saturate(0.75);
+}
+
+.tv-icon-btn--danger-subtle {
+  color: var(--tv-text-secondary);
+}
+
+.tv-icon-btn--danger-subtle:hover:not(:disabled) {
+  color: color-mix(in srgb, var(--tv-status-danger), #fff 72%);
+  background: color-mix(in srgb, var(--tv-status-danger), transparent 86%);
+  border-color: color-mix(in srgb, var(--tv-status-danger), transparent 42%);
 }
 
 .tv-icon-btn--md {
@@ -905,6 +926,31 @@ body {
   background: color-mix(in srgb, var(--tv-accent), transparent 84%);
 }
 
+.tv-icon-btn--block {
+  width: 100%;
+  min-width: 0;
+  height: 2.75rem;
+  min-height: 2.75rem;
+  padding: 0 0.75rem;
+  gap: 0.5rem;
+}
+
+.tv-icon-btn--labeled {
+  flex-direction: row;
+}
+
+.tv-icon-btn__caption {
+  font-size: 0.625rem;
+  letter-spacing: 0.12em;
+  line-height: 1;
+}
+
+.tv-rail-toolbar {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.5rem;
+}
+
 /* Segmented control (combat mode, filters) */
 .tv-segmented {
   display: inline-flex;
@@ -923,15 +969,15 @@ body {
 
 .tv-segmented__option {
   flex: 1 1 0;
-  min-height: 2.5rem;
+  min-height: 2.75rem;
   padding: 0 0.875rem;
   border: none;
   border-radius: 999px;
   background: transparent;
   font-family: var(--font-ui);
-  font-size: 0.6875rem;
+  font-size: 0.75rem;
   font-weight: 600;
-  letter-spacing: 0.1em;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--tv-text-secondary);
   transition: background 160ms ease, color 160ms ease, box-shadow 160ms ease;
@@ -961,22 +1007,33 @@ body {
 }
 
 .tv-combat-card {
-  border: 1px solid color-mix(in srgb, var(--tv-border), transparent 35%);
+  border: 1px solid color-mix(in srgb, var(--tv-border), transparent 42%);
   border-radius: 1rem;
   background: linear-gradient(
-    135deg,
-    color-mix(in srgb, var(--tv-bg-surface), transparent 6%),
-    color-mix(in srgb, var(--tv-bg-canvas), transparent 4%)
+    165deg,
+    color-mix(in srgb, var(--tv-bg-surface), transparent 2%),
+    color-mix(in srgb, var(--tv-bg-canvas), transparent 8%)
   );
+  box-shadow: 0 10px 28px color-mix(in srgb, #000, transparent 88%);
 }
 
 .tv-combat-card--active {
-  border-color: color-mix(in srgb, var(--tv-accent), transparent 55%);
+  border-color: color-mix(in srgb, var(--tv-accent), transparent 48%);
   background: linear-gradient(
-    135deg,
-    color-mix(in srgb, var(--tv-accent), transparent 88%),
-    color-mix(in srgb, var(--tv-bg-canvas), transparent 4%)
+    165deg,
+    color-mix(in srgb, var(--tv-accent), transparent 90%),
+    color-mix(in srgb, var(--tv-bg-canvas), transparent 6%)
   );
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--tv-accent), transparent 72%),
+    0 12px 32px color-mix(in srgb, var(--tv-accent), transparent 90%);
+}
+
+.tv-rail-empty {
+  border: 1px dashed color-mix(in srgb, var(--tv-border), transparent 28%);
+  border-radius: 1rem;
+  background: color-mix(in srgb, var(--tv-bg-surface), transparent 8%);
+  box-shadow: inset 0 1px 0 color-mix(in srgb, var(--tv-border), transparent 75%);
 }
 
 .tv-combat-row {

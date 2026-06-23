@@ -1,11 +1,11 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { playUiSound } from '../lib/uiFeedback';
 import Button from './Button';
+import Text from '../ui/Text';
 import CombatGmHeader from '../features/combat/CombatGmHeader';
 import CombatPlayerHeader from '../features/combat/CombatPlayerHeader';
 import ParticipantRow from '../features/combat/ParticipantRow';
 import { CONDITION_ICON_MAP } from '../features/combat/conditionIconMap';
-import IconButton from '../ui/IconButton';
 import {
   ArrowDown,
   ArrowUp,
@@ -698,24 +698,26 @@ function RightSidebar({
         <div className="flex flex-1 flex-col overflow-hidden px-3.5 py-3.5 md:px-4 md:py-4">
           {showInfo ? (
             <div className="mb-3 rounded-xl border border-[color-mix(in_srgb,var(--tv-border),transparent_28%)] tv-chip-surface p-4">
-              <div className="text-[10px] font-bold uppercase tracking-[0.18em] tv-muted">Slagorde info</div>
+              <Text variant="label" tone="muted">Slagorde info</Text>
               <div className="mt-3 space-y-2">
                 {[
                   'Ruststand laat iedereen initiative voorbereiden voordat de GM start.',
                   'Gevecht actief vergrendelt initiative-invoer en houdt beurt en ronde bij.',
                   'Pauzeren geeft ruimte om NPC’s toe te voegen of te verwijderen zonder de ronde kwijt te raken.',
                 ].map((line) => (
-                  <p key={line} className="text-sm leading-6 tv-muted">{line}</p>
+                  <Text key={line} variant="meta" as="p" className="leading-6">{line}</Text>
                 ))}
               </div>
             </div>
           ) : null}
 
           {sortedParty.length === 0 && !showPlayerRollPanel ? (
-            <div className="flex min-h-[220px] flex-1 items-center justify-center rounded-xl border border-dashed border-[color-mix(in_srgb,var(--tv-border),transparent_28%)] tv-panel-inset px-6 text-center shadow-inner">
+            <div className="tv-rail-empty flex min-h-[220px] flex-1 items-center justify-center px-6 text-center">
               <div>
-                <div className="mb-2 text-[10px] font-bold uppercase tracking-[0.24em] tv-muted">Nog leeg</div>
-                <p className="font-story text-sm italic leading-relaxed tv-muted">Voeg spelers, NPC’s of handout-personages toe aan de lijst.</p>
+                <Text variant="label" tone="muted" className="mb-2 block tracking-[0.24em]">Nog leeg</Text>
+                <Text variant="story" tone="muted" className="leading-relaxed">
+                  Voeg spelers, NPC’s of handout-personages toe aan de lijst.
+                </Text>
               </div>
             </div>
           ) : (
@@ -765,36 +767,40 @@ function RightSidebar({
 
         {role === 'gm' ? (
           <div className="tv-input-footer border-t px-3.5 pt-3 pb-[calc(env(safe-area-inset-bottom,0px)+0.625rem)] md:px-4 md:pt-3.5 md:pb-3">
-            <div className={`grid gap-2 ${battleActive ? 'grid-cols-2' : 'grid-cols-2'}`}>
-              <IconButton
+            <div className="grid grid-cols-2 gap-2">
+              <Button
+                variant="secondary"
+                size="sm"
+                block
                 icon={Dice5}
-                label="Rol alle initiative"
-                variant="muted"
                 disabled={combatInProgress || isActionBusy}
                 onClick={handleRollAll}
-                className="!w-full"
-              />
-              <IconButton
+              >
+                Rol allen
+              </Button>
+              <Button
+                variant="secondary"
+                size="sm"
+                block
                 icon={UserPlus}
-                label="Voeg een losse NPC toe"
-                variant="muted"
                 disabled={!canManageRoster || isActionBusy}
                 onClick={onOpenNpcModal}
-                className="!w-full"
-              />
+              >
+                NPC
+              </Button>
             </div>
             {battleActive ? (
-              <button
-                type="button"
-                onClick={handleAdvanceTurn}
+              <Button
+                variant="primary"
+                block
+                icon={ChevronRight}
+                iconPosition="right"
+                className="mt-2"
                 disabled={isActionBusy}
-                aria-label="Volgende beurt"
-                title="Volgende beurt"
-                className="mt-2 inline-flex h-11 w-full items-center justify-center gap-2 rounded-xl px-3 transition-all duration-200 ease-out disabled:cursor-not-allowed disabled:opacity-60 tv-button-primary"
+                onClick={handleAdvanceTurn}
               >
-                <ChevronRight className="h-4 w-4" />
-                <span className="hidden sm:inline">Volgende beurt</span>
-              </button>
+                Volgende beurt
+              </Button>
             ) : null}
           </div>
         ) : null}
@@ -810,8 +816,8 @@ function RightSidebar({
               <Button variant="ghost" onClick={() => setEndCombatConfirmOpen(false)}>
                 Annuleren
               </Button>
-              <Button variant="danger" onClick={handleEndCombatClick} disabled={isActionBusy}>
-                <Skull className="h-4 w-4" /> Beëindig
+              <Button variant="danger" onClick={handleEndCombatClick} disabled={isActionBusy} icon={Skull}>
+                Beëindig
               </Button>
             </>
           )}

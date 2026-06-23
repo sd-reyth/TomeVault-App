@@ -2,6 +2,7 @@ import React from 'react';
 import { FlameKindling, Info, Pin, PinOff, Shield, Skull, Swords, X } from 'lucide-react';
 import { COMBAT_STATUS } from '../../lib/battleUtils';
 import Button from '../../ui/Button';
+import Icon from '../../ui/Icon';
 import IconButton from '../../ui/IconButton';
 import SegmentedControl from '../../ui/SegmentedControl';
 import Text from '../../ui/Text';
@@ -39,7 +40,7 @@ export default function CombatGmHeader({
 
   return (
     <div
-      className={`w-full rounded-2xl border px-4 py-4 text-left shadow-[0_0_18px_rgba(0,0,0,0.2)] transition-all tv-combat-card ${
+      className={`w-full rounded-2xl border px-4 py-4 text-left transition-all tv-combat-card ${
         combatStatus === COMBAT_STATUS.IDLE
           ? 'hover:border-[color-mix(in_srgb,var(--tv-border),transparent_20%)]'
           : (combatStatus === COMBAT_STATUS.PAUSED ? '' : 'tv-combat-card--active')
@@ -61,6 +62,7 @@ export default function CombatGmHeader({
             icon={X}
             label="Sluiten"
             variant="danger"
+            size="sm"
             onClick={onClose}
             className={isPinned ? 'hidden' : 'inline-flex lg:hidden'}
           />
@@ -69,7 +71,7 @@ export default function CombatGmHeader({
 
       <div className="grid gap-3 sm:grid-cols-[40px_minmax(0,1fr)] sm:items-center">
         <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border ${combatStatus === COMBAT_STATUS.ACTIVE ? 'tv-button-accent-muted' : 'tv-chip-surface tv-accent'}`}>
-          <StatusIcon className="h-5 w-5" />
+          <Icon as={StatusIcon} size="md" />
         </div>
 
         <div className="min-w-0 flex-1">
@@ -96,7 +98,7 @@ export default function CombatGmHeader({
             onClick={onStart}
             icon={Swords}
           >
-            Start
+            Start gevecht
           </Button>
         ) : (
           <SegmentedControl
@@ -112,22 +114,24 @@ export default function CombatGmHeader({
           />
         )}
 
-        <div className="grid grid-cols-2 gap-2">
+        <div className="tv-rail-toolbar">
           <IconButton
             icon={Info}
             label={showInfo ? 'Verberg uitleg' : 'Toon uitleg'}
+            caption="Uitleg"
             variant="muted"
+            block
             active={showInfo}
             onClick={onToggleInfo}
-            className="!w-full !min-w-0"
           />
           <IconButton
             icon={Skull}
             label="Beëindig gevecht"
-            variant="enemy"
+            caption="Stop"
+            variant="danger"
+            block
             disabled={!combatInProgress || isActionBusy}
             onClick={onRequestEndCombat}
-            className="!w-full !min-w-0"
           />
         </div>
       </div>

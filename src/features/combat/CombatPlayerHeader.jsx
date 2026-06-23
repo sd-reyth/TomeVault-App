@@ -1,6 +1,7 @@
 import React from 'react';
 import { Pin, PinOff, Shield, Swords, X } from 'lucide-react';
 import { COMBAT_STATUS } from '../../lib/battleUtils';
+import Icon from '../../ui/Icon';
 import IconButton from '../../ui/IconButton';
 import Text from '../../ui/Text';
 
@@ -22,7 +23,7 @@ export default function CombatPlayerHeader({
 
   return (
     <div
-      className={`w-full rounded-2xl border px-4 py-4 text-left shadow-[0_0_18px_rgba(0,0,0,0.2)] tv-combat-card ${
+      className={`w-full rounded-2xl border px-4 py-4 text-left transition-all tv-combat-card ${
         combatStatus === COMBAT_STATUS.IDLE
           ? ''
           : (combatStatus === COMBAT_STATUS.PAUSED ? '' : 'tv-combat-card--active')
@@ -52,7 +53,7 @@ export default function CombatPlayerHeader({
 
       <div className="grid gap-3 sm:grid-cols-[48px_minmax(0,1fr)] sm:items-start">
         <div className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border ${combatStatus === COMBAT_STATUS.ACTIVE ? 'tv-button-accent-muted' : 'tv-chip-surface tv-accent'} ${isMyTurn ? 'tv-breathe-glow' : ''}`}>
-          <StatusIcon className="h-5 w-5" />
+          <Icon as={StatusIcon} size="md" />
         </div>
 
         <div className="min-w-0 flex-1">
