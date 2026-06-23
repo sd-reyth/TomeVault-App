@@ -2,3 +2,9 @@ node_modules
 dist
 .firebase
 firebase-debug.log*
+
+# Te groot voor GitHub (>100 MB) — app gebruikt landingBG.mp4
+Video/landingBGhd2.mov
+
+# Oud archief, niet nodig in cloud-sync
+_archive/
