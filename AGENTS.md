@@ -1,43 +1,29 @@
-# TomeVault UI Governance
+# TomeVault — Agent Instructions
 
-These instructions apply to every future UI, UX, layout, styling, and presentation-layer task in this repository.
+## Priority
 
-## Required Sources Of Truth
+**Visual quality and UX come first.** The app should feel warm, cohesive, and premium (Pocket Bard–level vibe). Ship changes the user can *see* and *feel* in the browser.
 
-Before making any UI change, consult these files in this order:
+## What to preserve
 
-1. `AGENTS.md`
-2. `references/TOMEVAULT_HOUSESTYLE_PROTOCOL.md`
-3. `references/TOMEVAULT_UI_PROPAGATION_PROTOCOL.md`
-4. `references/TOMEVAULT_UI_AUDIT_CHECKLIST.md`
-5. `references/TOMEVAULT_UI_SURFACE_INVENTORY.md`
-6. `references/TOMEVAULT_UI_SPEC_V1.md`
+- Business logic, state shape, handlers, Firestore behavior, and feature semantics — unless the user explicitly asks for behavioral changes.
+- A working app after every commit (build green, no broken combat/session flows).
 
-## Non-Negotiable Working Rules
+## What is NOT required anymore
 
-1. Preserve business logic, state shape, handlers, persistence behavior, and feature semantics unless the user explicitly asks for behavioral changes.
-2. Treat house style as a system, not as per-screen polish.
-3. Do not add one-off colors, borders, shadows, spacing recipes, or button recipes inside feature components when a shared token or primitive can own that decision.
-4. If a visual change belongs at the token, primitive, shell, or layout-recipe level, fix it there first.
-5. If a shared primitive changes, audit and update all dependent screens in the same pass when feasible.
-6. On small screens, content priority always beats utility density. Secondary actions must collapse, move, or hide before primary content is compressed.
-7. Embedded components may not render their own hero-style headers when they are already inside a screen-level shell.
-8. Every screen must follow one approved screen recipe from `references/TOMEVAULT_HOUSESTYLE_PROTOCOL.md`.
-9. Every house-style change must be checked against `references/TOMEVAULT_UI_PROPAGATION_PROTOCOL.md` so the rest of the app stays aligned.
-10. Every audit or cleanup pass must account for hidden surfaces listed in `references/TOMEVAULT_UI_SURFACE_INVENTORY.md`, not just the currently visible screen.
-11. Do not declare a UI task complete until the touched slice is validated and any shared-style fallout is considered.
+- No governance doc consultation order.
+- No `check:ui` lint gate.
+- No mandatory “fix tokens before features” sequencing — use judgment; prefer shared primitives when they speed up consistency, but **do not block bold visual work** waiting for perfect architecture.
+- No audit checklists or surface inventories before shipping UI.
 
-## Mandatory Behavior For Future UI Work
+## How to work on UI
 
-1. Identify whether the requested change is a token issue, primitive issue, screen recipe issue, or feature-only issue.
-2. Prefer centralization over local patching.
-3. If no shared primitive exists yet, create or document one instead of repeating ad-hoc markup.
-4. When introducing a new UI pattern, update the governing docs in `references/` in the same task.
-5. When a user asks for consistency, uniformity, cleanup, polish, responsiveness, or house style, default to these governance files instead of improvising.
-6. When a user points out a single bad control or dialog, treat it as evidence of a missing protocol and update the shared rules accordingly.
+1. **Show, don’t theorize** — browser QA with screenshots after meaningful visual changes.
+2. **Be bold** — if the current component looks wrong, redesign it; incremental class tweaks are not enough when the user says it still feels old.
+3. **One surface at a time, but fully** — finish Slagorde before declaring it done; half-refactors waste time.
+4. **Ask for reference** when unsure — screenshot, app name, or “more like X, less like Y”.
+5. **Merge to the user’s working branch** when a slice is approved — don’t leave visual work stranded on a side branch.
 
-## Mandatory Functional UI Protocol
+## Active plan
 
-1. Buttons, icon actions, clickable text, cards, rows, toggles, destructive actions, and reveal actions all need explicit behavior and style rules.
-2. Long explanatory text should be minimized by default and moved behind structured reveal patterns where appropriate.
-3. Theme QA must include the lightest and highest-contrast theme state, currently including Dawn, because stray hardcoded dark-surface CSS is easiest to spot there.
+See `references/TOMEVAULT_VISUAL_WAVES.md` for the current wave roadmap.
