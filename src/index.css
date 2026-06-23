@@ -884,6 +884,75 @@ body {
   border-color: color-mix(in srgb, #f87171 35%, transparent);
 }
 
+.tv-icon-btn--md {
+  width: 2.75rem;
+  height: 2.75rem;
+  min-width: 2.75rem;
+  min-height: 2.75rem;
+}
+
+.tv-icon-btn--sm {
+  width: 2rem;
+  height: 2rem;
+  min-width: 2rem;
+  min-height: 2rem;
+  border-radius: 0.625rem;
+}
+
+.tv-icon-btn--active {
+  color: var(--tv-text-primary);
+  border-color: color-mix(in srgb, var(--tv-accent), transparent 42%);
+  background: color-mix(in srgb, var(--tv-accent), transparent 84%);
+}
+
+/* Segmented control (combat mode, filters) */
+.tv-segmented {
+  display: inline-flex;
+  align-items: stretch;
+  gap: 0.25rem;
+  padding: 0.25rem;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--tv-border), transparent 32%);
+  background: color-mix(in srgb, var(--tv-bg-surface), transparent 18%);
+}
+
+.tv-segmented--block {
+  display: flex;
+  width: 100%;
+}
+
+.tv-segmented__option {
+  flex: 1 1 0;
+  min-height: 2.5rem;
+  padding: 0 0.875rem;
+  border: none;
+  border-radius: 999px;
+  background: transparent;
+  font-family: var(--font-ui);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--tv-text-secondary);
+  transition: background 160ms ease, color 160ms ease, box-shadow 160ms ease;
+}
+
+.tv-segmented__option:hover:not(:disabled) {
+  color: var(--tv-text-primary);
+  background: color-mix(in srgb, var(--tv-accent), transparent 92%);
+}
+
+.tv-segmented__option--active {
+  color: var(--tv-text-primary);
+  background: color-mix(in srgb, var(--tv-accent), transparent 72%);
+  box-shadow: 0 6px 18px color-mix(in srgb, var(--tv-accent), transparent 78%);
+}
+
+.tv-segmented__option:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
 .tv-panel-inset {
   border: 1px solid color-mix(in srgb, var(--tv-border), transparent 28%);
   border-radius: 0.75rem;

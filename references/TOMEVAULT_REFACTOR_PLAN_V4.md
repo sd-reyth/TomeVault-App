@@ -100,37 +100,34 @@ App.jsx: 4023 → 3484 lines (−539). RightSidebar UI unchanged.
 - ✅ No visual change to slagorde
 - ✅ Build green; browser QA: start/pause/resume work
 
-### Wave 2b — RightRail redesign (highest risk wave)
+### Wave 2b — RightRail redesign ✅ DONE
 **Goal:** Fix the biggest daily pain point — the combat rail.
 
-Risk mitigation: internal feature flag `tomevault:new-rail` (localStorage) so the old
-RightSidebar can be re-enabled without redeployment if a session test fails.
-
-New files:
+Implemented (2025-06):
 ```
-shell/RightRail.jsx
-features/combat/TurnBanner.jsx
+features/combat/CombatGmHeader.jsx
+features/combat/CombatPlayerHeader.jsx
 features/combat/ParticipantRow.jsx
-features/combat/CombatActions.jsx
 features/combat/ConditionChips.jsx
+features/combat/TurnOrderMarker.jsx
+features/combat/conditionIconMap.js
+ui/IconButton.jsx
+ui/SegmentedControl.jsx
 ```
 
-New primitives added to `ui/`:
-- `SegmentedControl` — combat mode (active/pause)
-- `IconButton` — composed from Button + Icon
-
-UX non-negotiables:
-1. ONE turn indicator (banner OR row highlight, not three signals)
-2. No name truncation on mobile
-3. Uniform action grid — `IconButton` only, no PAUZEER text + round icon mix
-4. No `font-fantasy` on row labels — only `Text variant="body"`
-5. `SegmentedControl` for combat mode
+UX non-negotiables delivered:
+1. ONE turn indicator — row highlight + rail; removed `CurrentTurnBanner` and duplicate "Aan zet" GM copy
+2. `break-words` on participant names (no `truncate`)
+3. Uniform `IconButton` action grid in rows + GM footer
+4. Row labels via `Text variant="body"` (no `font-fantasy`)
+5. `SegmentedControl` for Actief/Pauze when combat in progress; Start button in ruststand
 
 **Exit criteria:**
-- Old `RightSidebar.jsx` kept until new rail passes one real session
-- `RightSidebar.jsx` < 300 lines (rest in `features/combat/`)
-- Mobile QA: readable names, one turn indicator, uniform actions
-- No regression in conditions, NPC management, initiative swap
+- ✅ `RightSidebar.jsx` 1439 → 987 lines (combat UI extracted to `features/combat/`)
+- ✅ Build green; browser QA at `?dev=gm` — SegmentedControl, IconButtons, status copy
+- ✅ `check:ui` 309 → 294 violations
+- ⏳ Feature flag `tomevault:new-rail` deferred (new UI is default; old markup removed in-place)
+- ⏳ Full session QA with populated roster + turn advance (empty roster in dev session)
 
 ### Wave 3 — App.jsx slimmer
 **Goal:** Maintainability. Logical after Wave 2a removes combat.

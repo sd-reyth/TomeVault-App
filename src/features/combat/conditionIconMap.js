@@ -1,0 +1,33 @@
+import {
+  AlertCircle,
+  ArrowDown,
+  Bed,
+  CircleOff,
+  Eye,
+  Ghost,
+  Hand,
+  Heart,
+  Link,
+  Mountain,
+  Skull,
+  Snowflake,
+  VolumeX,
+  Zap,
+} from 'lucide-react';
+
+export const CONDITION_ICON_MAP = {
+  eye: Eye,
+  heart: Heart,
+  'volume-x': VolumeX,
+  'alert-circle': AlertCircle,
+  hand: Hand,
+  'circle-off': CircleOff,
+  ghost: Ghost,
+  snowflake: Snowflake,
+  mountain: Mountain,
+  skull: Skull,
+  'arrow-down': ArrowDown,
+  link: Link,
+  zap: Zap,
+  bed: Bed,
+};

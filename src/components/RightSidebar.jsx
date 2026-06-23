@@ -1,47 +1,29 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { playUiSound } from '../lib/uiFeedback';
 import Button from './Button';
+import CombatGmHeader from '../features/combat/CombatGmHeader';
+import CombatPlayerHeader from '../features/combat/CombatPlayerHeader';
+import ParticipantRow from '../features/combat/ParticipantRow';
+import { CONDITION_ICON_MAP } from '../features/combat/conditionIconMap';
+import IconButton from '../ui/IconButton';
 import {
   ArrowDown,
   ArrowUp,
-  Bed,
-  ChevronRight,
-  CircleOff,
-  Dice5,
-  Eye,
-  FlameKindling,
-  Ghost,
-  Hand,
-  Heart,
-  Info,
-  Link,
-  Mountain,
-  Pause,
-  Pin,
-  PinOff,
-  Shield,
-  Skull,
-  Snowflake,
-  Swords,
-  Trash2,
-  UserPlus,
-  UserMinus,
-  VolumeX,
-  X,
-  Zap,
-  AlertCircle,
   Check,
+  ChevronRight,
+  Dice5,
+  Skull,
+  UserPlus,
+  X,
+  AlertCircle,
 } from 'lucide-react';
 import { safeLocalStorageGet, safeLocalStorageSet } from '../lib/browserStorage';
 import { resolveDisplayAvatar } from '../lib/placeholders';
 import TvImage from './TvImage';
-import EditableStat from './EditableStat';
 import {
   CONDITIONS,
   CONDITION_BADGE_COLORS,
-  CONDITION_TONE_HEX,
   getActiveConditions,
-  getCondition,
 } from '../lib/battleConditions';
 import {
   COMBAT_JOIN_REQUEST_STATUS,
@@ -62,23 +44,6 @@ const RIGHT_SIDEBAR_DEFAULT_WIDTH = 288;
 const RIGHT_SIDEBAR_MIN_WIDTH = 248;
 const RIGHT_SIDEBAR_MAX_WIDTH = 380;
 const RIGHT_SIDEBAR_STORAGE_KEY = 'tomevault.battleSidebarWidth';
-
-const CONDITION_ICON_MAP = {
-  eye: Eye,
-  heart: Heart,
-  'volume-x': VolumeX,
-  'alert-circle': AlertCircle,
-  hand: Hand,
-  'circle-off': CircleOff,
-  ghost: Ghost,
-  snowflake: Snowflake,
-  mountain: Mountain,
-  skull: Skull,
-  'arrow-down': ArrowDown,
-  link: Link,
-  zap: Zap,
-  bed: Bed,
-};
 
 function clampBattleSidebarWidth(width) {
   return Math.min(RIGHT_SIDEBAR_MAX_WIDTH, Math.max(RIGHT_SIDEBAR_MIN_WIDTH, width));
@@ -109,88 +74,6 @@ function getExistingTieOverrides(party = [], initiativeOrder = []) {
     }
   });
   return overrides;
-}
-
-function CombatTurnMarker({ isCurrentTurn, battleActive, combatPaused, orderIndex }) {
-  if (isCurrentTurn && battleActive) {
-    return (
-      <div className="tv-turn-marker tv-turn-marker--active" title="Nu aan zet" aria-label="Nu aan zet">
-        <Swords className="h-3.5 w-3.5" />
-      </div>
-    );
-  }
-
-  if (isCurrentTurn && combatPaused) {
-    return (
-      <div className="tv-turn-marker tv-turn-marker--paused" title="Aan zet (gepauzeerd)" aria-label="Aan zet, gevecht gepauzeerd">
-        <Pause className="h-3 w-3" />
-      </div>
-    );
-  }
-
-  return (
-    <div className="tv-turn-marker" title={`Initiativevolgorde ${orderIndex}`} aria-label={`Volgorde ${orderIndex}`}>
-      <span className="font-fantasy text-[10px] tracking-[0.12em]">{orderIndex}</span>
-    </div>
-  );
-}
-
-function CombatConditionStrip({ conditions, isGm, onEdit }) {
-  if (!conditions.length) return null;
-
-  const visible = conditions.slice(0, 4);
-  const overflow = conditions.length - visible.length;
-
-  return (
-    <div className="mt-1.5 flex flex-wrap items-center gap-1">
-      {visible.map((condition, index) => {
-        const meta = getCondition(condition.id);
-        const ConditionListIcon = CONDITION_ICON_MAP[meta?.icon] || AlertCircle;
-        const tone = CONDITION_TONE_HEX[meta?.color] || CONDITION_TONE_HEX.slate;
-
-        return (
-          <button
-            key={condition.id}
-            type="button"
-            onClick={(event) => {
-              event.stopPropagation();
-              if (isGm) onEdit?.();
-            }}
-            className={`tv-condition-chip ${isGm ? 'cursor-pointer hover:brightness-110' : 'cursor-default'}`}
-            style={{
-              '--tv-condition-tone': tone,
-              animationDelay: `${index * 0.14}s`,
-            }}
-            title={meta?.description ? `${meta.label} — ${meta.description}` : meta?.label}
-            aria-label={meta?.label || condition.id}
-          >
-            <ConditionListIcon className="h-3 w-3" />
-          </button>
-        );
-      })}
-      {overflow > 0 ? (
-        <span
-          className="tv-condition-chip tv-condition-chip--more"
-          style={{ '--tv-condition-tone': 'var(--tv-accent)' }}
-          title={conditions.map((c) => getCondition(c.id)?.label).filter(Boolean).join(', ')}
-        >
-          +{overflow}
-        </span>
-      ) : null}
-    </div>
-  );
-}
-
-function CurrentTurnBanner({ name, flash = false, paused = false }) {
-  if (!name) return null;
-
-  return (
-    <div className={`tv-turn-banner ${flash ? 'tv-turn-banner--flash' : ''}`} role="status" aria-live="polite">
-      <Swords className="h-3.5 w-3.5 tv-accent" />
-      <span className="truncate">{name}</span>
-      <span className="tv-turn-banner__tag">{paused ? 'Pauze' : 'Aan zet'}</span>
-    </div>
-  );
 }
 
 function OverlayDialog({ title, description, children, onClose, actions, showCloseButton = true }) {
@@ -260,7 +143,6 @@ function RightSidebar({
   const [endCombatConfirmOpen, setEndCombatConfirmOpen] = useState(false);
   const [conditionsTarget, setConditionsTarget] = useState(null);
   const [conditionsDraftIds, setConditionsDraftIds] = useState([]);
-  const [turnBannerFlash, setTurnBannerFlash] = useState(false);
   const dragStateRef = useRef({ startX: 0, startWidth: RIGHT_SIDEBAR_DEFAULT_WIDTH });
   const rosterScrollRef = useRef(null);
 
@@ -291,18 +173,16 @@ function RightSidebar({
   const currentTurnDisplayName = getVisibleCombatName(currentTurnMember);
   const combatPaused = combatStatus === COMBAT_STATUS.PAUSED;
 
-  useEffect(() => {
-    if (!combatInProgress || !currentTurnId) return undefined;
-    setTurnBannerFlash(true);
-    playUiSound('turn');
-    const timer = window.setTimeout(() => setTurnBannerFlash(false), 950);
-    return () => window.clearTimeout(timer);
-  }, [currentTurnId, combatInProgress, turnRound]);
   const showPlayerRollPanel = role === 'player'
     && combatStatus === COMBAT_STATUS.IDLE
     && myCharacter
     && currentPlayerInCombat
     && myCharacter.init === null;
+
+  useEffect(() => {
+    if (!combatInProgress || !currentTurnId) return undefined;
+    playUiSound('turn');
+  }, [currentTurnId, combatInProgress, turnRound]);
 
   const activeTieGroup = tieResolutionState?.tieGroups?.[tieResolutionState.currentIndex] || null;
   const activeTieGroupKey = activeTieGroup ? getTieGroupKey(activeTieGroup[0]) : null;
@@ -440,30 +320,29 @@ function RightSidebar({
     await finalizeCombatFlow({ mode, initiativeUpdates, partyWithUpdates, resolvedOrders: {} });
   };
 
-  const handleStatusAction = async () => {
+  const handleStartCombat = () => {
     if (!isGm || isActionBusy) return;
+    prepareCombatFlow('start');
+  };
+
+  const handlePauseCombat = async () => {
+    if (!isGm || isActionBusy || combatStatus !== COMBAT_STATUS.ACTIVE) return;
 
     setStatusError('');
-
-    if (combatStatus === COMBAT_STATUS.IDLE) {
-      await prepareCombatFlow('start');
-      return;
+    setIsActionBusy(true);
+    try {
+      await onPauseCombat?.();
+    } catch (error) {
+      console.error('Gevecht pauzeren fout:', error);
+      setStatusError('Gevecht pauzeren is mislukt.');
+    } finally {
+      setIsActionBusy(false);
     }
+  };
 
-    if (combatStatus === COMBAT_STATUS.ACTIVE) {
-      setIsActionBusy(true);
-      try {
-        await onPauseCombat?.();
-      } catch (error) {
-        console.error('Gevecht pauzeren fout:', error);
-        setStatusError('Gevecht pauzeren is mislukt.');
-      } finally {
-        setIsActionBusy(false);
-      }
-      return;
-    }
-
-    await prepareCombatFlow('resume');
+  const handleResumeCombat = () => {
+    if (!isGm || isActionBusy) return;
+    prepareCombatFlow('resume');
   };
 
   const handleConfirmMissingInitiative = async () => {
@@ -634,58 +513,18 @@ function RightSidebar({
     });
   };
 
-  const StatusIcon = combatStatus === COMBAT_STATUS.IDLE
-    ? FlameKindling
-    : (combatStatus === COMBAT_STATUS.PAUSED ? Shield : Swords);
-
   const statusTitle = role === 'player' && isMyTurn
     ? 'Jouw beurt'
     : (combatStatus === COMBAT_STATUS.IDLE
       ? 'Ruststand'
       : (combatStatus === COMBAT_STATUS.PAUSED ? 'Gepauzeerd' : 'Gevecht'));
 
-  const statusSubtitle = (() => {
-    if (role === 'player') {
-      if (combatStatus === COMBAT_STATUS.IDLE) {
-        return myCharacter?.init === null
-          ? 'Vul je initiative zodra de GM het gevecht voorbereidt.'
-          : 'Wacht op het volgende gevecht.';
-      }
-
-      if (combatStatus === COMBAT_STATUS.PAUSED) {
-        return 'De GM past de slagorde aan.';
-      }
-
-      if (isMyTurn) {
-        return `Ronde ${turnRound} · handel nu.`;
-      }
-
-      if (turnsUntilMine === null) {
-        return `Ronde ${turnRound} · volg de slagorde.`;
-      }
-
-      return turnsUntilMine === 1
-        ? 'Nog 1 beurt tot jij aan zet bent.'
-        : `Nog ${turnsUntilMine} beurten tot jij aan zet bent.`;
-    }
-
-    if (combatStatus === COMBAT_STATUS.IDLE) return 'Tik om gevecht te starten zodra iedereen klaar is.';
-    if (combatStatus === COMBAT_STATUS.PAUSED) return 'Tik om te hervatten of rond de slagorde af.';
-    return 'Tik om te pauzeren en de slagorde tijdelijk te vergrendelen.';
-  })();
-
-  const statusActionLabel = isGm
-    ? (combatStatus === COMBAT_STATUS.IDLE
-      ? 'Start'
-      : (combatStatus === COMBAT_STATUS.PAUSED ? 'Hervat' : 'Pauzeer'))
-    : null;
-
   const gmStatusLine = (() => {
     if (combatStatus === COMBAT_STATUS.IDLE) return 'Klaar om de slagorde actief te maken.';
     if (combatStatus === COMBAT_STATUS.PAUSED) {
-      return currentTurnDisplayName ? `Gepauzeerd bij ${currentTurnDisplayName}.` : 'Gepauzeerd voor beheer van de slagorde.';
+      return 'Pauze actief — pas de slagorde aan en hervat wanneer je klaar bent.';
     }
-    return currentTurnDisplayName ? `Aan zet: ${currentTurnDisplayName}.` : 'Gevecht actief.';
+    return 'Gevecht loopt — de huidige beurt is gemarkeerd in de lijst.';
   })();
 
   const playerStatusPrimaryLine = (() => {
@@ -761,184 +600,36 @@ function RightSidebar({
         <div className="tv-view-shell-header mt-14 border-b px-3.5 py-3 md:mt-0 md:px-4 md:py-3.5">
           <div className="relative">
             {isGm ? (
-              <div
-                className={`w-full rounded-2xl border px-4 py-4 text-left shadow-[0_0_18px_rgba(0,0,0,0.2)] transition-all tv-combat-card ${
-                  combatStatus === COMBAT_STATUS.IDLE
-                    ? 'hover:border-[color-mix(in_srgb,var(--tv-border),transparent_20%)]'
-                    : (combatStatus === COMBAT_STATUS.PAUSED
-                      ? ''
-                      : 'tv-combat-card--active')
-                } ${isActionBusy ? 'opacity-80' : ''}`}
-              >
-                <div className="mb-3 flex items-center justify-between gap-3 border-b border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] pb-3">
-                  <div className="tv-label tv-accent">Slagorde</div>
-                  <div className="flex items-center gap-1.5">
-                    <button
-                      type="button"
-                      onClick={() => setIsPinned?.(!isPinned)}
-                      className={`hidden h-8 w-8 items-center justify-center rounded-full border transition-colors md:inline-flex lg:hidden ${
-                        isPinned
-                          ? 'tv-button-accent-muted'
-                          : 'tv-icon-action'
-                      }`}
-                      title={isPinned ? 'Losgemaakt — sluit automatisch' : 'Vastzetten — blijft zichtbaar'}
-                    >
-                      {isPinned ? <Pin className="h-3.5 w-3.5" /> : <PinOff className="h-3.5 w-3.5" />}
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => onClose?.()}
-                      aria-label="Sluiten"
-                      className={`tv-icon-btn tv-icon-btn--danger ${isPinned ? 'hidden' : 'inline-flex lg:hidden'}`}
-                    >
-                      <X className="h-4 w-4" />
-                    </button>
-                  </div>
-                </div>
-
-                <div className="grid gap-3 sm:grid-cols-[40px_minmax(0,1fr)] sm:items-center">
-                  <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border ${combatStatus === COMBAT_STATUS.ACTIVE ? 'tv-button-accent-muted' : 'tv-chip-surface tv-accent'}`}>
-                    <StatusIcon className="h-5 w-5" />
-                  </div>
-
-                  <div className="min-w-0 flex-1">
-                    <div className="flex flex-wrap items-center gap-2">
-                      <span className="font-fantasy text-sm tracking-[0.18em] tv-text md:text-base">{statusTitle}</span>
-                      {combatInProgress ? (
-                        <span className="rounded-full border border-[color-mix(in_srgb,var(--tv-accent),transparent_55%)] bg-[color-mix(in_srgb,var(--tv-accent),transparent_84%)] px-2.5 py-1 text-[9px] font-bold uppercase tracking-[0.18em] tv-accent shadow-inner">
-                          Ronde {turnRound}
-                        </span>
-                      ) : null}
-                    </div>
-                    <p className="mt-1 text-xs leading-5 tv-text md:text-[13px] md:leading-6">{gmStatusLine}</p>
-                    {combatInProgress && currentTurnDisplayName ? (
-                      <div className="mt-3">
-                        <CurrentTurnBanner
-                          name={currentTurnDisplayName}
-                          flash={turnBannerFlash}
-                          paused={combatPaused}
-                        />
-                      </div>
-                    ) : null}
-                  </div>
-                </div>
-
-                <div className="mt-3.5 grid grid-cols-[minmax(0,1fr)_44px_44px] gap-2">
-                  {statusActionLabel ? (
-                    <button
-                      type="button"
-                      disabled={isActionBusy}
-                      onClick={handleStatusAction}
-                      aria-label={statusActionLabel}
-                      title={statusActionLabel}
-                      className={`tv-satisfy-pop inline-flex h-11 w-full items-center justify-center gap-2 rounded-xl px-3 text-[11px] font-semibold uppercase tracking-[0.16em] transition-all duration-200 ${
-                        combatStatus === COMBAT_STATUS.ACTIVE
-                          ? 'tv-button-accent-muted'
-                          : combatStatus === COMBAT_STATUS.IDLE
-                            ? 'tv-button-primary'
-                            : 'tv-button-secondary'
-                      } ${isActionBusy ? 'cursor-wait opacity-70' : ''}`}
-                    >
-                      {combatStatus === COMBAT_STATUS.ACTIVE ? <Shield className="h-4 w-4" /> : <Swords className="h-4 w-4" />}
-                      <span className="hidden sm:inline">{statusActionLabel}</span>
-                    </button>
-                  ) : <div className="h-11 w-full rounded-xl border border-dashed border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] tv-panel-inset opacity-60" />}
-
-                  <button
-                    type="button"
-                    onClick={() => setShowInfo((value) => !value)}
-                    className={`tv-action-square tv-icon-action rounded-xl ${showInfo ? 'tv-button-accent-muted' : ''}`}
-                    title={showInfo ? 'Verberg uitleg' : 'Toon uitleg'}
-                    aria-label={showInfo ? 'Verberg uitleg' : 'Toon uitleg'}
-                  >
-                    <Info className="h-4 w-4" />
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => setEndCombatConfirmOpen(true)}
-                    disabled={!combatInProgress || isActionBusy}
-                    aria-label="Beëindig gevecht direct"
-                    className={`tv-action-square w-full rounded-xl border transition-all duration-200 ${combatInProgress && !isActionBusy ? 'tv-tone-enemy-button hover:scale-[1.02] active:scale-[0.985]' : 'cursor-not-allowed tv-chip-surface tv-muted opacity-60'}`}
-                    title={combatInProgress ? 'Beëindig gevecht direct' : 'Nog geen gevecht om te beëindigen'}
-                  >
-                    <Skull className="h-4 w-4" />
-                  </button>
-                </div>
-              </div>
+              <CombatGmHeader
+                combatStatus={combatStatus}
+                combatInProgress={combatInProgress}
+                turnRound={turnRound}
+                isActionBusy={isActionBusy}
+                showInfo={showInfo}
+                onToggleInfo={() => setShowInfo((value) => !value)}
+                isPinned={isPinned}
+                onTogglePinned={() => setIsPinned?.(!isPinned)}
+                onClose={onClose}
+                onStart={handleStartCombat}
+                onPause={handlePauseCombat}
+                onResume={handleResumeCombat}
+                onRequestEndCombat={() => setEndCombatConfirmOpen(true)}
+                statusTitle={statusTitle}
+                statusSubtitle={gmStatusLine}
+              />
             ) : (
-              <div className={`w-full rounded-2xl border px-4 py-4 text-left shadow-[0_0_18px_rgba(0,0,0,0.2)] tv-combat-card ${
-                combatStatus === COMBAT_STATUS.IDLE
-                  ? ''
-                  : (combatStatus === COMBAT_STATUS.PAUSED
-                    ? ''
-                    : 'tv-combat-card--active')
-              } ${isMyTurn ? 'ring-1 ring-[var(--tv-accent)]/45 tv-breathe-glow' : ''}`}>
-                <div className="mb-3 flex items-center justify-between gap-3 border-b border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] pb-3">
-                  <div className="tv-label tv-accent">Slagorde</div>
-                  <div className="flex items-center gap-1.5">
-                    <button
-                      type="button"
-                      onClick={() => setIsPinned?.(!isPinned)}
-                      className={`hidden h-8 w-8 items-center justify-center rounded-full border transition-colors md:inline-flex lg:hidden ${
-                        isPinned
-                          ? 'tv-button-accent-muted'
-                          : 'tv-icon-action'
-                      }`}
-                      title={isPinned ? 'Losgemaakt — sluit automatisch' : 'Vastzetten — blijft zichtbaar'}
-                    >
-                      {isPinned ? <Pin className="h-3.5 w-3.5" /> : <PinOff className="h-3.5 w-3.5" />}
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => onClose?.()}
-                      aria-label="Sluiten"
-                      className={`tv-icon-btn tv-icon-btn--danger ${isPinned ? 'hidden' : 'inline-flex lg:hidden'}`}
-                    >
-                      <X className="h-4 w-4" />
-                    </button>
-                  </div>
-                </div>
-
-                <div className="grid gap-3 sm:grid-cols-[48px_minmax(0,1fr)_auto] sm:items-start">
-                  <div className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border ${combatStatus === COMBAT_STATUS.ACTIVE ? 'tv-button-accent-muted' : 'tv-chip-surface tv-accent'} ${isMyTurn ? 'tv-breathe-glow' : ''}`}>
-                    <StatusIcon className="h-5 w-5" />
-                  </div>
-
-                  <div className="min-w-0 flex-1">
-                    <div className="flex flex-wrap items-center gap-2">
-                      <span className="font-fantasy text-base tracking-[0.18em] tv-text md:text-lg">{statusTitle}</span>
-                      {combatInProgress ? (
-                        <span className="rounded-full border border-[color-mix(in_srgb,var(--tv-accent),transparent_55%)] bg-[color-mix(in_srgb,var(--tv-accent),transparent_84%)] px-2.5 py-1 text-[9px] font-bold uppercase tracking-[0.18em] tv-accent shadow-inner">
-                          Ronde {turnRound}
-                        </span>
-                      ) : null}
-                    </div>
-                    <p className="mt-2 text-sm leading-6 tv-text">{playerStatusPrimaryLine}</p>
-                    <p className="mt-1 text-xs leading-5 tv-text-sub md:text-[13px] md:leading-6">{playerStatusSecondaryLine}</p>
-                    {combatInProgress && currentTurnDisplayName ? (
-                      <div className="mt-3">
-                        <CurrentTurnBanner
-                          name={currentTurnDisplayName}
-                          flash={turnBannerFlash}
-                          paused={combatPaused}
-                        />
-                      </div>
-                    ) : null}
-                  </div>
-
-                  {combatInProgress && isMyTurn && battleActive ? (
-                    <div className="self-start sm:self-auto sm:justify-self-end">
-                      <CombatTurnMarker
-                        isCurrentTurn
-                        battleActive={battleActive}
-                        combatPaused={combatPaused}
-                        orderIndex={1}
-                      />
-                    </div>
-                  ) : null}
-                </div>
-              </div>
+              <CombatPlayerHeader
+                combatStatus={combatStatus}
+                combatInProgress={combatInProgress}
+                turnRound={turnRound}
+                isMyTurn={isMyTurn}
+                isPinned={isPinned}
+                onTogglePinned={() => setIsPinned?.(!isPinned)}
+                onClose={onClose}
+                statusTitle={statusTitle}
+                statusPrimaryLine={playerStatusPrimaryLine}
+                statusSecondaryLine={playerStatusSecondaryLine}
+              />
             )}
 
           </div>
@@ -1039,172 +730,33 @@ function RightSidebar({
               ? combatStatus !== COMBAT_STATUS.ACTIVE
               : (combatStatus === COMBAT_STATUS.IDLE && member.id === currentPlayerId);
             const activeConditions = getActiveConditions(member);
-            const hasConditions = activeConditions.length > 0;
-            const hasAlertFeat = member?.hasAlertFeat === true;
-
-            const cardClassName = `group relative grid cursor-pointer grid-cols-[44px_minmax(0,1fr)_40px] items-center gap-2.5 rounded-2xl border p-2.5 shadow-sm transition-all hover:shadow-md md:grid-cols-[44px_minmax(0,1fr)_auto_44px] md:gap-3 md:p-3 ${
-              member.isNpc
-                ? 'tv-combat-row--npc'
-                : 'border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] tv-view-card hover:border-[color-mix(in_srgb,var(--tv-accent),transparent_58%)]'
-            } ${isCurrentTurn && battleActive ? 'tv-combat-row--turn' : ''} ${isCurrentTurn && combatPaused ? 'tv-combat-row--turn-paused ring-1 ring-[color-mix(in_srgb,var(--tv-border),transparent_20%)]' : ''}`;
 
             return (
-              <div
+              <ParticipantRow
                 key={member.id}
-                onClick={() => onOpenProfile?.(member)}
-                className={cardClassName}
-              >
-                {isCurrentTurn && battleActive ? <div className="tv-combat-turn-rail" aria-hidden="true" /> : null}
-                {turnBannerFlash && isCurrentTurn ? <div className="tv-feedback-sparkle" aria-hidden="true" /> : null}
-
-                {/* Action Panel */}
-                <div className="col-start-3 row-span-2 flex h-full min-h-[60px] flex-col items-center justify-center gap-1.5 rounded-xl border border-[color-mix(in_srgb,var(--tv-border),transparent_48%)] tv-panel-inset px-1 py-1.5 shadow-inner backdrop-blur-sm md:col-start-4 md:opacity-70 md:transition-opacity md:duration-200 md:group-hover:opacity-100 md:group-focus-within:opacity-100">
-                  {isGm && !hasConditions ? (
-                    <button
-                      type="button"
-                      onClick={(event) => {
-                        event.stopPropagation();
-                        openConditionsEditor(member);
-                      }}
-                      className="tv-action-square-sm border border-[color-mix(in_srgb,var(--tv-border),transparent_20%)] tv-input-surface tv-muted shadow-md transition-all duration-200 hover:border-[color-mix(in_srgb,var(--tv-accent),transparent_58%)] hover:tv-chip-surface hover:tv-text hover:scale-110 active:scale-95"
-                      title="Voeg conditions toe"
-                    >
-                      <AlertCircle className="h-4 w-4" />
-                    </button>
-                  ) : null}
-
-                  {/* Delete NPC Button */}
-                  {isGm && member.isNpc ? (
-                    <button
-                      type="button"
-                      onClick={(event) => {
-                        event.stopPropagation();
-                        handleRemoveNpc(member.id);
-                      }}
-                      disabled={!canManageRoster}
-                      className={`tv-action-square-sm border shadow-md transition-all duration-200 hover:scale-110 active:scale-95 ${canManageRoster ? 'tv-tone-enemy-icon-btn' : 'cursor-not-allowed border-[color-mix(in_srgb,var(--tv-border),transparent_28%)] tv-chip-surface tv-muted'}`}
-                      title={canManageRoster ? 'Verwijder NPC' : 'Pauzeer gevecht om NPC\'s te beheren'}
-                    >
-                      <Trash2 className="h-3.5 w-3.5" />
-                    </button>
-                  ) : null}
-
-                  {/* Kick Player Button */}
-                  {isGm && !member.isNpc && member.id !== currentPlayerId ? (
-                    <button
-                      type="button"
-                      onClick={(event) => {
-                        event.stopPropagation();
-                        setKickTarget(member);
-                      }}
-                      disabled={isActionBusy}
-                      className={`tv-action-square-sm border shadow-md transition-all duration-200 hover:scale-110 active:scale-95 ${isActionBusy ? 'cursor-not-allowed border-[color-mix(in_srgb,var(--tv-border),transparent_28%)] tv-chip-surface tv-muted' : 'border-[color-mix(in_srgb,var(--tv-border),transparent_20%)] tv-input-surface tv-text-sub hover:opacity-90 hover:tv-text'}`}
-                      title="Verwijder speler uit dit gevecht"
-                    >
-                      <UserMinus className="h-3.5 w-3.5" />
-                    </button>
-                  ) : null}
-                </div>
-
-                <div className={`tv-image-frame flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-lg border font-fantasy text-lg font-bold shadow-inner transition-all md:h-11 md:w-11 ${
-                  member.isNpc ? 'tv-tone-enemy-chip' : 'border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] tv-chip-surface tv-accent'
-                } ${isCurrentTurn ? 'ring-1 ring-[var(--tv-accent)]/40' : ''}`}>
-                  <TvImage src={resolveDisplayAvatar(displayMemberAvatar, member.id)} alt={displayMemberName} className="opacity-90" />
-                </div>
-
-                <div className="min-w-0 self-start">
-                  <div className="flex min-w-0 items-start justify-between gap-2 md:mr-2 md:block">
-                    <div className="min-w-0 flex items-center gap-1.5">
-                      <span className={`truncate font-fantasy text-sm font-bold tracking-wider ${member.isNpc ? 'tv-tone-enemy-text' : 'tv-text'}`}>
-                        {displayMemberName}
-                      </span>
-                      {hasAlertFeat ? (
-                        <span className="shrink-0 rounded border border-[color-mix(in_srgb,var(--tv-accent),transparent_50%)] bg-[color-mix(in_srgb,var(--tv-accent),transparent_82%)] px-1.5 py-[1px] text-[9px] font-bold uppercase tracking-[0.12em] tv-accent">
-                          Alert
-                        </span>
-                      ) : null}
-                    </div>
-
-                    <div className="flex items-center gap-1 md:hidden">
-                      {combatInProgress ? (
-                        <CombatTurnMarker
-                          isCurrentTurn={isCurrentTurn}
-                          battleActive={battleActive}
-                          combatPaused={combatPaused}
-                          orderIndex={orderIndex}
-                        />
-                      ) : null}
-                      <span className={`inline-flex min-w-[38px] items-center justify-center rounded border tv-input-surface px-1.5 py-0.5 text-[10px] font-bold ${member.isNpc ? 'tv-tone-enemy-chip' : 'border-[color-mix(in_srgb,var(--tv-border),transparent_35%)] tv-accent'} ${isCurrentTurn ? 'tv-chip-surface shadow-inner' : ''}`}>
-                        <EditableStat
-                          value={member.init}
-                          onChange={(value) => onUpdateStat?.(member.id, 'init', value)}
-                          disabled={!initiativeEditable}
-                          title={initiativeEditable ? 'Bewerk initiative' : 'Initiative score'}
-                        />
-                      </span>
-                    </div>
-                  </div>
-
-                  <CombatConditionStrip
-                    conditions={activeConditions}
-                    isGm={isGm}
-                    onEdit={() => openConditionsEditor(member)}
-                  />
-
-                  <div className="mt-1 grid grid-cols-2 gap-1.5 font-sans text-[10px] md:gap-2 md:text-[11px]">
-                    <div
-                      className={`flex flex-1 items-center justify-between rounded border border-[color-mix(in_srgb,var(--tv-border),transparent_28%)]/50 tv-input-surface px-1.5 py-0.5 ${isGm ? 'cursor-pointer hover:border-[color-mix(in_srgb,var(--tv-accent),transparent_58%)]' : ''}`}
-                      onClick={(event) => {
-                        event.stopPropagation();
-                        if (isGm) onOpenDamageModal?.(member);
-                      }}
-                      title={isGm ? 'Klik om HP aan te passen' : 'Hit Points'}
-                    >
-                      <span className="font-bold tv-text-sub">HP</span>
-                      {hiddenNpcForPlayer ? (
-                        <span className="font-bold tv-muted">?</span>
-                      ) : (
-                        <span className={member.hp < 10 ? 'tv-hp-low' : 'font-bold tv-accent'}>{member.hp}</span>
-                      )}
-                    </div>
-                    <div
-                      className="flex flex-1 items-center justify-between rounded border border-[color-mix(in_srgb,var(--tv-border),transparent_28%)]/50 tv-input-surface px-1.5 py-0.5"
-                      onClick={(event) => event.stopPropagation()}
-                    >
-                      <span className="font-bold tv-text-sub">AC</span>
-                      {hiddenNpcForPlayer ? (
-                        <span className="font-bold tv-muted">?</span>
-                      ) : (
-                        <EditableStat
-                          className="font-bold tv-text"
-                          value={member.ac}
-                          onChange={(value) => onUpdateStat?.(member.id, 'ac', value)}
-                          disabled={!isGm}
-                        />
-                      )}
-                    </div>
-                  </div>
-                </div>
-
-                <div className="col-start-3 row-span-2 hidden min-w-[48px] flex-col items-end justify-center gap-1.5 self-stretch md:flex">
-                  {combatInProgress ? (
-                    <CombatTurnMarker
-                      isCurrentTurn={isCurrentTurn}
-                      battleActive={battleActive}
-                      combatPaused={combatPaused}
-                      orderIndex={orderIndex}
-                    />
-                  ) : null}
-                  <span className={`inline-flex min-w-[44px] items-center justify-center rounded border tv-input-surface px-2 py-0.5 text-xs font-bold ${member.isNpc ? 'tv-tone-enemy-chip' : 'border-[color-mix(in_srgb,var(--tv-border),transparent_35%)] tv-accent'} ${isCurrentTurn ? 'tv-chip-surface shadow-inner' : ''}`}>
-                    <EditableStat
-                      value={member.init}
-                      onChange={(value) => onUpdateStat?.(member.id, 'init', value)}
-                      disabled={!initiativeEditable}
-                      title={initiativeEditable ? 'Bewerk initiative' : 'Initiative score'}
-                    />
-                  </span>
-                </div>
-              </div>
+                member={member}
+                orderIndex={orderIndex}
+                isGm={isGm}
+                combatInProgress={combatInProgress}
+                battleActive={battleActive}
+                combatPaused={combatPaused}
+                isCurrentTurn={isCurrentTurn}
+                initiativeEditable={initiativeEditable}
+                hiddenNpcForPlayer={hiddenNpcForPlayer}
+                displayMemberName={displayMemberName}
+                displayMemberAvatar={displayMemberAvatar}
+                canManageRoster={canManageRoster}
+                isActionBusy={isActionBusy}
+                activeConditions={activeConditions}
+                hasAlertFeat={member?.hasAlertFeat === true}
+                currentPlayerId={currentPlayerId}
+                onOpenProfile={onOpenProfile}
+                onUpdateStat={onUpdateStat}
+                onOpenDamageModal={onOpenDamageModal}
+                onOpenConditions={openConditionsEditor}
+                onRemoveNpc={handleRemoveNpc}
+                onKickPlayer={setKickTarget}
+              />
             );
           })}
             </div>
@@ -1214,26 +766,22 @@ function RightSidebar({
         {role === 'gm' ? (
           <div className="tv-input-footer border-t px-3.5 pt-3 pb-[calc(env(safe-area-inset-bottom,0px)+0.625rem)] md:px-4 md:pt-3.5 md:pb-3">
             <div className={`grid gap-2 ${battleActive ? 'grid-cols-2' : 'grid-cols-2'}`}>
-              <button
-                type="button"
-                onClick={handleRollAll}
+              <IconButton
+                icon={Dice5}
+                label="Rol alle initiative"
+                variant="muted"
                 disabled={combatInProgress || isActionBusy}
-                title="Rol alle initiative"
-                aria-label="Rol alle initiative"
-                className={`tv-satisfy-pop tv-icon-btn h-11 w-full ${combatInProgress ? 'cursor-not-allowed opacity-50' : ''}`}
-              >
-                <Dice5 className="h-4 w-4" />
-              </button>
-              <button
-                type="button"
-                onClick={onOpenNpcModal}
+                onClick={handleRollAll}
+                className="!w-full"
+              />
+              <IconButton
+                icon={UserPlus}
+                label="Voeg een losse NPC toe"
+                variant="muted"
                 disabled={!canManageRoster || isActionBusy}
-                aria-label="Voeg een losse NPC toe"
-                className={`tv-icon-btn h-11 w-full ${!canManageRoster || isActionBusy ? 'cursor-not-allowed opacity-50' : ''}`}
-                title={canManageRoster ? 'Voeg een losse NPC toe' : 'Pauzeer gevecht om NPC’s te beheren'}
-              >
-                <UserPlus className="h-4 w-4" />
-              </button>
+                onClick={onOpenNpcModal}
+                className="!w-full"
+              />
             </div>
             {battleActive ? (
               <button
