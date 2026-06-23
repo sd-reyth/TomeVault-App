@@ -183,7 +183,7 @@ export default function AmbiencePanel({
                 <div className="flex items-center justify-between gap-3">
                   <div className="tv-label" title="Jouw volume">Mix</div>
                   <div className="flex items-center gap-2 font-fantasy text-sm tracking-[0.12em] tv-text">
-                    {listenerVolume === 0 ? <VolumeX className="h-4 w-4 text-rose-300" /> : <Volume2 className="h-4 w-4 tv-text-sub" />}
+                    {listenerVolume === 0 ? <VolumeX className="h-4 w-4 tv-tone-enemy-text" /> : <Volume2 className="h-4 w-4 tv-text-sub" />}
                     <span>{listenerVolume}%</span>
                   </div>
                 </div>
@@ -201,11 +201,11 @@ export default function AmbiencePanel({
           </div>
 
           {needsAudioUnlock ? (
-            <div className="rounded-xl border border-rose-700/40 bg-rose-950/35 px-4 py-3 text-sm text-rose-100">
+            <div className="rounded-xl tv-tone-enemy-surface px-4 py-3 text-sm">
               <button
                 type="button"
                 onClick={onUnlockAudio}
-                className="tv-icon-btn h-9 w-full gap-2 text-rose-50"
+                className="tv-icon-btn h-9 w-full gap-2"
                 aria-label="Audio inschakelen"
               >
                 <Music2 className="h-4 w-4" />
@@ -215,7 +215,7 @@ export default function AmbiencePanel({
           ) : null}
 
           {ambienceError ? (
-            <div className="rounded-xl border border-rose-900/50 bg-rose-950/30 px-4 py-3 text-sm text-rose-200">
+            <div className="rounded-xl tv-tone-enemy-surface px-4 py-3 text-sm">
               {ambienceError}
             </div>
           ) : null}

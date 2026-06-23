@@ -552,7 +552,7 @@ function ChatView({ chat, setChat, role, uid, playerName, preferredChatColor, th
                         </button>
                         <button
                           onClick={() => handleDelete(c)}
-                          className="flex w-full items-center gap-2.5 px-3 py-2 text-[11px] text-rose-300 transition-colors hover:bg-rose-500/10 hover:text-rose-200"
+                          className="flex w-full items-center gap-2.5 px-3 py-2 text-[11px] tv-tone-enemy-text transition-colors tv-hover-danger"
                         >
                           <Trash2 className="h-3.5 w-3.5 shrink-0" />
                           Verwijder
@@ -574,7 +574,7 @@ function ChatView({ chat, setChat, role, uid, playerName, preferredChatColor, th
         {replyingTo && !editingMsg && (
           <div className="flex items-start gap-2 px-3 pb-1 pt-2.5">
             <div className="flex-1 overflow-hidden rounded-lg border-l-2 border-[var(--tv-accent)] tv-panel-inset px-2.5 py-1.5 text-[11px] italic tv-text-sub">
-              <span className="mb-0.5 block text-[10px] font-medium not-italic text-indigo-300">{replyingTo.author}</span>
+              <span className="mb-0.5 block text-[10px] font-medium not-italic tv-tone-ally-text">{replyingTo.author}</span>
               <span className="line-clamp-1">{replyingTo.text}</span>
             </div>
             <button onClick={() => setReplyingTo(null)} className="mt-1 shrink-0 tv-muted transition-colors hover:tv-text-sub">
@@ -586,7 +586,7 @@ function ChatView({ chat, setChat, role, uid, playerName, preferredChatColor, th
         {/* Edit mode indicator */}
         {editingMsg && (
           <div className="flex items-start gap-2 px-3 pb-1 pt-2.5">
-            <div className="flex-1 overflow-hidden rounded-lg border-l-2 border-amber-500 tv-panel-inset px-2.5 py-1.5 text-[11px] tv-text-sub">
+            <div className="flex-1 overflow-hidden rounded-lg border-l-2 border-[color-mix(in_srgb,var(--tv-accent),transparent_30%)] tv-panel-inset px-2.5 py-1.5 text-[11px] tv-text-sub">
               <span className="mb-0.5 block text-[10px] font-semibold uppercase tracking-wider text-[var(--tv-accent)]">Bewerk modus</span>
               <span className="line-clamp-1 italic opacity-60">{editingMsg.text}</span>
             </div>

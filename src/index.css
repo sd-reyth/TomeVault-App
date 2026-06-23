@@ -2662,6 +2662,12 @@ header > div {
   color: var(--tv-text-primary);
 }
 
+.tv-alert-success {
+  border: 1px solid color-mix(in srgb, var(--tv-status-active), transparent 55%);
+  background: color-mix(in srgb, var(--tv-status-active), transparent 88%);
+  color: color-mix(in srgb, var(--tv-status-active), #fff 60%);
+}
+
 .tv-divider {
   height: 1px;
   background: color-mix(in srgb, var(--tv-border), transparent 42%);

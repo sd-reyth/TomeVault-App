@@ -51,16 +51,16 @@ function InitiativeSwapModal({
     >
         <div className="px-5 py-4">
           {incapacitatedMessage && (
-            <div className="mb-4 flex items-start gap-2 rounded-lg border border-rose-800/40 bg-rose-950/20 p-3">
-              <AlertCircle className="h-4 w-4 mt-0.5 text-rose-400 shrink-0" />
-              <p className="text-xs text-rose-300">{incapacitatedMessage}</p>
+            <div className="mb-4 flex items-start gap-2 rounded-lg tv-tone-enemy-surface p-3">
+              <AlertCircle className="h-4 w-4 mt-0.5 tv-tone-enemy-text shrink-0" />
+              <p className="text-xs">{incapacitatedMessage}</p>
             </div>
           )}
 
           {!isInitiativeInOrder && (
-            <div className="mb-4 flex items-start gap-2 rounded-lg border border-amber-800/40 bg-amber-950/20 p-3">
-              <AlertCircle className="h-4 w-4 mt-0.5 text-amber-400 shrink-0" />
-              <p className="text-xs text-amber-300">Je bent niet in de initiatielijst.</p>
+            <div className="mb-4 flex items-start gap-2 rounded-lg tv-tone-secret-surface p-3">
+              <AlertCircle className="h-4 w-4 mt-0.5 tv-tone-secret-label shrink-0" />
+              <p className="text-xs">Je bent niet in de initiatielijst.</p>
             </div>
           )}
 

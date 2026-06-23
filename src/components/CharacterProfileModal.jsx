@@ -125,7 +125,7 @@ function CharacterProfileModal({ isOpen, onClose, character, role, currentPlayer
         >
           <div className="tv-panel-inset mb-4 rounded-2xl p-4 shadow-inner">
             <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-          <label className={`relative group flex h-24 w-24 items-center justify-center overflow-hidden rounded-xl border-2 md:h-32 md:w-32 ${character.isNpc ? 'border-rose-800/45 bg-rose-950/25' : 'border-[color-mix(in_srgb,var(--tv-border),transparent_35%)] tv-panel-inset'} transition-all shadow-xl ${canEdit ? 'cursor-pointer hover:border-[color-mix(in_srgb,var(--tv-accent),transparent_55%)]' : ''}`}>
+          <label className={`relative group flex h-24 w-24 items-center justify-center overflow-hidden rounded-xl border-2 md:h-32 md:w-32 ${character.isNpc ? 'tv-tone-enemy-surface' : 'border-[color-mix(in_srgb,var(--tv-border),transparent_35%)] tv-panel-inset'} transition-all shadow-xl ${canEdit ? 'cursor-pointer hover:border-[color-mix(in_srgb,var(--tv-accent),transparent_55%)]' : ''}`}>
             {canEdit && <input type="file" accept="image/*" className="hidden" onChange={handleImageChange} />}
             {(() => {
               const displayAvatar = resolveDisplayAvatar(formData.avatar, character.id);
@@ -368,7 +368,7 @@ function CharacterProfileModal({ isOpen, onClose, character, role, currentPlayer
                         onChange={e => updateCustomStat(stat.id, 'value', e.target.value)}
                         className="tv-text w-10 hide-arrows bg-transparent p-1 text-center text-sm font-bold outline-none"
                       />
-                      <button onClick={() => removeCustomStat(stat.id)} className="bg-rose-950/30 p-1.5 tv-muted transition-colors hover:bg-rose-900/40 hover:text-rose-400" title="Verwijder" aria-label="Verwijder eigenschap">
+                      <button onClick={() => removeCustomStat(stat.id)} className="p-1.5 tv-muted transition-colors tv-hover-danger" title="Verwijder" aria-label="Verwijder eigenschap">
                         <X className="h-3 w-3" />
                       </button>
                     </div>

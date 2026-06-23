@@ -31,7 +31,7 @@ function ItemCard({ item, role, currentPlayerId, canManageInventory, onUpdateIte
                     <button
                       type="button"
                       onClick={() => onUpdateItemAmount?.(item.id, Math.max(1, Number(item.amount || 1) - 1))}
-                      className="h-4 w-4 rounded border border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] text-[10px] leading-none tv-text-sub transition-colors hover:border-rose-400/35 hover:text-rose-300 md:h-5 md:w-5 md:text-xs"
+                      className="h-4 w-4 rounded border border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] text-[10px] leading-none tv-text-sub transition-colors tv-hover-danger md:h-5 md:w-5 md:text-xs"
                       title="Verlaag aantal"
                     >
                       -
@@ -49,7 +49,7 @@ function ItemCard({ item, role, currentPlayerId, canManageInventory, onUpdateIte
                 <button
                   type="button"
                   onClick={() => onDeleteItem?.(item.id)}
-                  className="rounded p-0.5 tv-muted transition-colors hover:tv-panel-inset hover:text-rose-300 md:p-1"
+                  className="rounded p-0.5 tv-muted transition-colors tv-hover-danger md:p-1"
                   title="Verwijder item"
                 >
                   <Trash2 className="w-3 h-3 md:w-3.5 md:h-3.5" />
@@ -163,7 +163,7 @@ function InventoryView({ role, inventory, wallets, party, currentPlayerId, hando
           return (
             <div key={player.id} className="relative rounded-2xl border border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] tv-panel-inset p-4 shadow-md backdrop-blur-sm md:p-6">
               <div className="mb-5 flex items-center gap-3">
-                <div className="tv-image-frame flex h-8 w-8 items-center justify-center overflow-hidden rounded-lg border border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] tv-input-surface text-amber-300 shadow-inner">
+                <div className="tv-image-frame flex h-8 w-8 items-center justify-center overflow-hidden rounded-lg border border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] tv-input-surface tv-accent shadow-inner">
                   <TvImage src={resolveDisplayAvatar(player.avatar, player.id)} alt="Avatar" />
                 </div>
                 <h3 className="text-lg font-semibold tracking-[0.12em] text-[var(--tv-accent)] md:text-xl">{player.name}</h3>
@@ -264,7 +264,7 @@ function InventoryView({ role, inventory, wallets, party, currentPlayerId, hando
                             {(role === 'gm' || player.id === currentPlayerId) && (
                               <button
                                 onClick={(e) => { e.stopPropagation(); onUnclaim(handout.id); }}
-                                className="rounded p-1.5 tv-muted transition-colors hover:tv-panel-inset hover:text-rose-300"
+                                className="rounded p-1.5 tv-muted transition-colors tv-hover-danger"
                                 title="Leg terug"
                               >
                                 <Hand className="w-3.5 h-3.5" />

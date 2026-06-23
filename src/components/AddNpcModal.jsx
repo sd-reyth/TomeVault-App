@@ -50,7 +50,7 @@ export default function AddNpcModal({ isOpen, onClose, onSave }) {
         <form onSubmit={handleSave} className="flex flex-col gap-4">
           
           <div className="flex justify-center mb-1">
-            <label className="relative flex h-20 w-20 cursor-pointer items-center justify-center overflow-hidden rounded-xl border-2 border-dashed border-rose-700/40 tv-panel-inset shadow-inner transition-all hover:opacity-90 md:h-24 md:w-24 group">
+            <label className="relative flex h-20 w-20 cursor-pointer items-center justify-center overflow-hidden rounded-xl border-2 border-dashed border-[color-mix(in_srgb,var(--tv-tone-enemy),transparent_55%)] tv-panel-inset shadow-inner transition-all hover:opacity-90 md:h-24 md:w-24 group">
               <input type="file" accept="image/*" className="hidden" onChange={handleImageChange} />
               {avatarUrl ? (
                 <>
@@ -60,7 +60,7 @@ export default function AddNpcModal({ isOpen, onClose, onSave }) {
                   </div>
                 </>
               ) : (
-                <div className="flex flex-col items-center gap-1 tv-muted group-hover:text-rose-400 transition-colors">
+                <div className="flex flex-col items-center gap-1 tv-muted group-hover:tv-tone-enemy-text transition-colors">
                   <ImagePlus className="w-5 h-5 md:w-6 md:h-6" />
                 </div>
               )}

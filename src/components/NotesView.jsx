@@ -124,7 +124,7 @@ function NotesView({
                 </div>
                 <button 
                   onClick={(e) => { e.stopPropagation(); handleDeleteNote(note.id); }}
-                  className="rounded p-1 tv-muted opacity-100 transition-all tv-hover-surface hover:text-rose-300 lg:opacity-0 lg:group-hover:opacity-100"
+                  className="rounded p-1 tv-muted opacity-100 transition-all tv-hover-danger lg:opacity-0 lg:group-hover:opacity-100"
                   title="Verwijder"
                 >
                   <Trash2 className="w-3.5 h-3.5" />

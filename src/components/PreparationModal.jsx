@@ -242,7 +242,7 @@ export default function PreparationModal({ isOpen, preparation, onClose, onSave,
                     <button
                       type="button"
                       onClick={() => removeCustomStat(stat.id)}
-                      className="tv-panel-inset p-1.5 tv-muted transition-colors hover:opacity-90 hover:text-rose-400"
+                      className="tv-panel-inset p-1.5 tv-muted transition-colors tv-hover-danger"
                       title="Verwijder eigenschap"
                     >
                       <X className="h-3 w-3" />

@@ -199,7 +199,7 @@ export default function OwnerAdminPanel({ isOpen, onClose, uid, isOwner = false 
           ) : null}
 
           {message ? (
-            <div className={`rounded-2xl border p-3 text-sm font-semibold ${message.startsWith('✗') ? 'border-rose-700/40 bg-rose-950/30 text-rose-200' : 'border-emerald-700/40 bg-emerald-950/30 text-emerald-200'}`}>
+            <div className={`rounded-2xl p-3 text-sm font-semibold ${message.startsWith('✗') ? 'tv-tone-enemy-surface' : 'tv-alert-success'}`}>
               {message}
             </div>
           ) : null}
