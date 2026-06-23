@@ -3152,24 +3152,26 @@ header > div {
 /* Dawn parchment: landing video + ambience dock stay readable on light canvas */
 [data-theme="dawn-parchment"] .landing-video-backdrop {
   background:
-    radial-gradient(circle at center, rgba(248, 241, 227, 0.22), rgba(44, 34, 24, 0.32)),
+    radial-gradient(circle at center, color-mix(in srgb, var(--tv-bg-canvas), #fff 6%), var(--tv-bg-canvas)),
     var(--tv-bg-canvas);
 }
 
+/* On the light theme the dark fantasy video would read as a dark block behind
+   the hero. Fade it to a faint warm texture so the parchment canvas leads. */
 [data-theme="dawn-parchment"] .landing-video-element {
-  filter: brightness(0.72) saturate(0.92) contrast(0.98) sepia(0.12);
+  opacity: 0.14;
+  filter: brightness(1.25) saturate(0.85) contrast(0.92) sepia(0.3);
 }
 
 [data-theme="dawn-parchment"] .landing-video-darkener {
   background:
-    linear-gradient(180deg, rgba(248, 241, 227, 0.14) 0%, rgba(44, 34, 24, 0.16) 42%, rgba(44, 34, 24, 0.26) 100%),
-    linear-gradient(90deg, rgba(248, 241, 227, 0.1) 0%, transparent 20%, transparent 80%, rgba(248, 241, 227, 0.12) 100%);
+    linear-gradient(180deg, color-mix(in srgb, var(--tv-bg-canvas), transparent 30%) 0%, color-mix(in srgb, var(--tv-bg-canvas), transparent 55%) 60%, color-mix(in srgb, var(--tv-bg-canvas), transparent 28%) 100%);
 }
 
 [data-theme="dawn-parchment"] .landing-video-vignette {
   background:
-    radial-gradient(circle at 50% 18%, transparent 0%, rgba(44, 34, 24, 0.04) 44%, rgba(44, 34, 24, 0.22) 100%),
-    radial-gradient(circle at 22% 18%, rgba(156, 111, 46, 0.08), transparent 24%);
+    radial-gradient(circle at 50% 18%, transparent 0%, color-mix(in srgb, var(--tv-bg-canvas), transparent 70%) 50%, color-mix(in srgb, var(--tv-bg-canvas), transparent 40%) 100%),
+    radial-gradient(circle at 22% 18%, color-mix(in srgb, var(--tv-accent), transparent 88%), transparent 24%);
 }
 
 [data-theme="dawn-parchment"] .landing-ambience-dock {
