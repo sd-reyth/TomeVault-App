@@ -365,7 +365,7 @@ export default function TopBar({ role, sessionId, sessionNumber, theme, combatSt
                 setIsSessionMenuOpen(false);
                 setIsMobileActionsOpen((open) => !open);
               }}
-              className={`flex h-10 w-10 items-center justify-center rounded-xl border transition-all duration-200 ease-out active:scale-[0.985] ${isMobileActionsOpen ? 'border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] bg-white/7 tv-text' : 'border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] tv-panel-inset tv-text hover:bg-white/7 hover:tv-text'}`}
+              className={`flex h-10 w-10 items-center justify-center rounded-xl border transition-all duration-200 ease-out active:scale-[0.985] ${isMobileActionsOpen ? 'border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] tv-surface-raised tv-text' : 'border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] tv-panel-inset tv-text tv-hover-surface hover:tv-text'}`}
               title="Meer acties"
             >
               <MoreHorizontal className="h-5 w-5" />
@@ -417,7 +417,7 @@ export default function TopBar({ role, sessionId, sessionNumber, theme, combatSt
                 >
                   <Settings className="h-3.5 w-3.5" /> Configuratie
                 </button>
-                <div className="my-1 h-px bg-white/10" />
+                <div className="my-1 tv-divider" />
                 <button
                   type="button"
                   onClick={() => {

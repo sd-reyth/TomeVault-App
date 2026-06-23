@@ -88,7 +88,7 @@ function SettingsModal({
                 type="button"
                 onClick={() => handleThemeClick(themeOption.value)}
                 title={themeOption.label}
-                className={`group flex min-h-12 items-center justify-between gap-2.5 rounded-xl border px-3 py-2.5 text-left transition-all duration-200 ease-out hover:scale-[1.01] active:scale-[0.985] ${isActive ? 'tv-surface tv-magic-glow' : 'border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] tv-panel-inset hover:border-white/20'}`}
+                className={`group flex min-h-12 items-center justify-between gap-2.5 rounded-xl border px-3 py-2.5 text-left transition-all duration-200 ease-out hover:scale-[1.01] active:scale-[0.985] ${isActive ? 'tv-surface tv-magic-glow' : 'border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] tv-panel-inset hover:tv-border-emphasis'}`}
               >
                 <div className="flex items-center gap-2.5">
                   <span
@@ -151,7 +151,7 @@ function SettingsModal({
             type="button"
             onClick={() => onExportArchive?.()}
             disabled={exportBusy}
-            className="flex h-10 w-full items-center justify-center gap-2 rounded-xl border text-sm font-medium uppercase tracking-[0.16em] transition-all duration-200 ease-out active:scale-[0.985] disabled:cursor-wait border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] bg-white/7 tv-text"
+            className="flex h-10 w-full items-center justify-center gap-2 rounded-xl border text-sm font-medium uppercase tracking-[0.16em] transition-all duration-200 ease-out active:scale-[0.985] disabled:cursor-wait border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] tv-surface-raised tv-text"
           >
             <Download className="h-4 w-4" /> {exportBusy ? 'Laden...' : (role === 'gm' ? 'Archief' : 'Profiel')}
           </button>

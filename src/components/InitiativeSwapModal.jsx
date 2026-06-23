@@ -89,7 +89,7 @@ function InitiativeSwapModal({
                           ? 'tv-item-selected'
                           : (partnerIncapacitated || yourIncapacitated)
                             ? 'border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] tv-panel-inset opacity-50 cursor-not-allowed'
-                            : 'border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] tv-panel-inset hover:border-white/25 hover:bg-white/7'
+                            : 'border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] tv-panel-inset hover:tv-border-emphasis tv-hover-surface'
                       }`}
                     >
                       <div className="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] tv-panel-inset">

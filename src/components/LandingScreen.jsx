@@ -404,21 +404,9 @@ export default function LandingScreen({
   };
 
   const compactFeatureHighlights = [
-    {
-      icon: BookOpen,
-      label: 'Handouts',
-      accentClassName: 'text-amber-400',
-    },
-    {
-      icon: Wand2,
-      label: 'Realtime',
-      accentClassName: 'text-indigo-400',
-    },
-    {
-      icon: ShieldCheck,
-      label: 'Rollen',
-      accentClassName: 'text-amber-400',
-    },
+    { icon: BookOpen, label: 'Handouts' },
+    { icon: Wand2, label: 'Realtime' },
+    { icon: ShieldCheck, label: 'Rollen' },
   ];
 
   const landingFeatureCards = [
@@ -426,19 +414,16 @@ export default function LandingScreen({
       icon: BookOpen,
       title: 'Perkament zonder omweg',
       description: 'Deel lore, aanwijzingen en kaarten over tafel zonder het rollenspel te breken.',
-      iconClassName: 'text-amber-400 border-amber-800/45 bg-amber-950/18',
     },
     {
       icon: Wand2,
       title: 'Echte tijd, echte magie',
       description: 'Chat, notities en de status van de wereld blijven voor elke speler synchroon.',
-      iconClassName: 'text-indigo-400 border-indigo-800/45 bg-indigo-950/18',
     },
     {
       icon: ShieldCheck,
       title: 'Orde in de chaos',
       description: 'Spelleider en spelers delen dezelfde herberg, met eigen afgeschermde rollen.',
-      iconClassName: 'text-amber-400 border-amber-800/45 bg-amber-950/18',
     },
   ];
 
@@ -612,7 +597,7 @@ export default function LandingScreen({
           </p>
         </div>
         <div className="space-y-2 text-center md:text-left">
-          <div className="landing-kicker text-amber-400">Wie zijn wij</div>
+          <div className="landing-kicker tv-landing-kicker">Wie zijn wij</div>
           <p className="text-sm md:text-base tv-text font-story leading-relaxed">
             We bouwen TomeVault voor groepen die sfeer, focus en duidelijkheid belangrijker vinden dan drukke tooling.
           </p>
@@ -628,7 +613,7 @@ export default function LandingScreen({
           <h2 className="text-3xl font-fantasy tracking-[0.18em] tv-text md:text-4xl">
             Wat biedt de Waard?
           </h2>
-          <div className="mx-auto mt-5 h-px w-28 bg-gradient-to-r from-transparent via-amber-700/50 to-transparent" />
+          <div className="mx-auto mt-5 h-px w-28 tv-landing-divider" />
         </div>
 
         <div className="mt-8 grid gap-10 md:grid-cols-3 md:gap-6 lg:gap-10">
@@ -637,7 +622,7 @@ export default function LandingScreen({
 
             return (
               <article key={feature.title} className="mx-auto flex max-w-xs flex-col items-center gap-4 text-center">
-                <div className={`flex h-18 w-18 items-center justify-center rounded-[18px] border ${feature.iconClassName}`}>
+                <div className={`tv-entry-feature-icon h-18 w-18`}>
                   <Icon className="h-8 w-8" />
                 </div>
                 <div className="space-y-3">
@@ -882,7 +867,7 @@ export default function LandingScreen({
                     const Icon = feature.icon;
                     return (
                       <span key={feature.label} className="tv-entry-chip border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] tv-panel-inset tv-text">
-                        <Icon className={`h-3.5 w-3.5 ${feature.accentClassName}`} />
+                        <Icon className="h-3.5 w-3.5 tv-accent" />
                         {feature.label}
                       </span>
                     );
@@ -906,7 +891,7 @@ export default function LandingScreen({
                 </div>
 
                 {inviteCode || isJoinPath ? (
-                  <div className="mt-4 rounded-[20px] border border-indigo-900/35 bg-indigo-950/18 px-4 py-3 text-sm text-indigo-100 font-story leading-relaxed">
+                  <div className="mt-4 tv-alert-info rounded-[20px] px-4 py-3 text-sm font-story leading-relaxed">
                     Uitnodiging herkend{inviteCode ? ` voor ${inviteCode.toUpperCase()}` : ''}. Meld je aan en we houden deze code voor je vast.
                   </div>
                 ) : null}
@@ -1099,7 +1084,7 @@ export default function LandingScreen({
                       Start
                     </button>
                     {localGmError ? (
-                      <div className="rounded-2xl border border-rose-900/50 bg-rose-950/35 px-4 py-3 text-sm text-rose-200">
+                      <div className="tv-alert-danger rounded-2xl px-4 py-3 text-sm">
                         {localGmError}
                       </div>
                     ) : null}
@@ -1128,7 +1113,7 @@ export default function LandingScreen({
                       className="tv-field"
                     />
                     {canJoinWithoutPin ? (
-                      <div className="rounded-2xl border border-amber-900/50 bg-amber-950/30 px-4 py-3 text-sm text-amber-200 font-story">
+                      <div className="tv-alert-warning rounded-2xl px-4 py-3 text-sm font-story">
                         Bekende sessie gevonden. Je kunt direct zonder PIN verder.
                       </div>
                     ) : null}
@@ -1141,7 +1126,7 @@ export default function LandingScreen({
                       Join
                     </button>
                     {localPlayerError ? (
-                      <div className="rounded-2xl border border-rose-900/50 bg-rose-950/35 px-4 py-3 text-sm text-rose-200">
+                      <div className="tv-alert-danger rounded-2xl px-4 py-3 text-sm">
                         {localPlayerError}
                       </div>
                     ) : null}
@@ -1203,7 +1188,7 @@ export default function LandingScreen({
       {deleteTarget && (
         <div className="fixed inset-0 z-50 flex items-center justify-center tv-backdrop p-4 backdrop-blur-md">
           <div className="w-full max-w-md overflow-hidden rounded-2xl border border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] tv-surface shadow-[0_28px_80px_rgba(0,0,0,0.45)]">
-            <div className="flex items-center justify-between gap-3 border-b border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] px-4 py-4 bg-white/[0.03]">
+            <div className="tv-surface-faint flex items-center justify-between gap-3 border-b border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] px-4 py-4">
               <div className="flex items-center gap-2 text-rose-300">
                 <AlertTriangle className="w-5 h-5" />
                 <h3 className="font-fantasy tracking-wider tv-text">Sessie Permanent Wissen</h3>

@@ -113,7 +113,7 @@ function NotesView({
                 className={`group flex cursor-pointer items-start justify-between rounded-xl p-3 transition-all duration-200 ease-out
                   ${activeNoteId === note.id 
                     ? 'border border-[var(--tv-accent)]/25 bg-[color-mix(in_srgb,var(--tv-accent),transparent_88%)] shadow-inner' 
-                    : 'border border-transparent hover:bg-white/7'}
+                    : 'border border-transparent tv-hover-surface'}
                 `}
               >
                 <div className="min-w-0 flex-1 pr-2">
@@ -124,7 +124,7 @@ function NotesView({
                 </div>
                 <button 
                   onClick={(e) => { e.stopPropagation(); handleDeleteNote(note.id); }}
-                  className="rounded p-1 tv-muted opacity-100 transition-all hover:bg-white/7 hover:text-rose-300 lg:opacity-0 lg:group-hover:opacity-100"
+                  className="rounded p-1 tv-muted opacity-100 transition-all tv-hover-surface hover:text-rose-300 lg:opacity-0 lg:group-hover:opacity-100"
                   title="Verwijder"
                 >
                   <Trash2 className="w-3.5 h-3.5" />

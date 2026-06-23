@@ -9,7 +9,7 @@ function ItemCard({ item, role, currentPlayerId, canManageInventory, onUpdateIte
   const [imageFailed, setImageFailed] = useState(false);
 
   return (
-    <div className="flex items-start gap-3 rounded-xl border border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] tv-panel-inset p-3 shadow-sm transition-all duration-200 ease-out hover:bg-white/7 hover:border-[color-mix(in_srgb,var(--tv-border),transparent_28%)]">
+    <div className="flex items-start gap-3 rounded-xl border border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] tv-panel-inset p-3 shadow-sm transition-all duration-200 ease-out tv-hover-surface hover:border-[color-mix(in_srgb,var(--tv-border),transparent_28%)]">
       <div className="h-10 w-10 shrink-0 overflow-hidden rounded-lg border border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] tv-input-surface shadow-inner flex items-center justify-center">
         {item.imageUrl && !imageFailed ? (
           <img src={item.imageUrl} alt="" className="w-full h-full object-cover scale-[1.25]" onError={() => setImageFailed(true)} />
@@ -186,13 +186,13 @@ function InventoryView({ role, inventory, wallets, party, currentPlayerId, hando
                         value={searchByPlayer[player.id] || ''}
                         onChange={(e) => setSearchByPlayer((prev) => ({ ...prev, [player.id]: e.target.value }))}
                         placeholder="Zoek item..."
-                        className="h-10 w-full rounded-xl border border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] tv-panel-inset pl-7 pr-2 text-xs tv-text transition-colors focus:border-[var(--tv-accent)]/50 focus:bg-white/7 focus:outline-none sm:w-full"
+                        className="h-10 w-full rounded-xl border border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] tv-panel-inset pl-7 pr-2 text-xs tv-text transition-colors focus:border-[var(--tv-accent)]/50 tv-focus-surface focus:outline-none sm:w-full"
                       />
                     </div>
                     <select
                       value={filterByPlayer[player.id] || 'all'}
                       onChange={(e) => setFilterByPlayer((prev) => ({ ...prev, [player.id]: e.target.value }))}
-                      className="h-10 w-full rounded-xl border border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] tv-panel-inset px-2 text-xs tv-text transition-colors focus:border-[var(--tv-accent)]/50 focus:bg-white/7 focus:outline-none sm:w-auto sm:min-w-[140px]"
+                      className="h-10 w-full rounded-xl border border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] tv-panel-inset px-2 text-xs tv-text transition-colors focus:border-[var(--tv-accent)]/50 tv-focus-surface focus:outline-none sm:w-auto sm:min-w-[140px]"
                     >
                       {categoryOptions.map((opt) => (
                         <option key={opt.value} value={opt.value}>{opt.label}</option>
@@ -245,7 +245,7 @@ function InventoryView({ role, inventory, wallets, party, currentPlayerId, hando
                         return (
                           <div
                             key={handout.id}
-                            className="group flex cursor-pointer items-start gap-3 rounded-xl border border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] tv-panel-inset p-3 shadow-sm transition-all duration-200 ease-out hover:border-[var(--tv-accent)]/25 hover:bg-white/7"
+                            className="group flex cursor-pointer items-start gap-3 rounded-xl border border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] tv-panel-inset p-3 shadow-sm transition-all duration-200 ease-out hover:border-[var(--tv-accent)]/25 tv-hover-surface"
                             onClick={() => onOpenHandout(handout)}
                           >
                             <div className="relative flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] tv-input-surface shadow-inner">

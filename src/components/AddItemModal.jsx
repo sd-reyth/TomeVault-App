@@ -60,7 +60,7 @@ function AddItemModal({ isOpen, onClose, onSave, role, party, currentPlayerId, i
                 <select 
                   value={formData.ownerId} 
                   onChange={e => setFormData({...formData, ownerId: e.target.value})}
-                  className="h-10 w-full appearance-none rounded-xl border border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] tv-panel-inset px-3 text-sm tv-text transition-all duration-200 focus:outline-none focus:border-[var(--tv-accent)]/55 focus:bg-white/7"
+                  className="tv-select"
                 >
                   {playerOptions.map(p => (
                     <option key={p.id} value={p.id}>{p.name}</option>
@@ -91,7 +91,7 @@ function AddItemModal({ isOpen, onClose, onSave, role, party, currentPlayerId, i
                   min="1"
                   value={formData.amount}
                   onChange={e => setFormData({...formData, amount: parseInt(e.target.value) || 1})}
-                  className="h-10 w-full rounded-xl border border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] tv-panel-inset px-3 text-sm tv-text transition-all duration-200 focus:outline-none focus:border-[var(--tv-accent)]/55 focus:bg-white/7 hide-arrows"
+                  className="tv-field hide-arrows"
                 />
               </div>
 
@@ -100,7 +100,7 @@ function AddItemModal({ isOpen, onClose, onSave, role, party, currentPlayerId, i
                 <select
                   value={formData.category || 'overig'}
                   onChange={e => setFormData({ ...formData, category: e.target.value })}
-                  className="h-10 w-full appearance-none rounded-xl border border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] tv-panel-inset px-3 text-sm tv-text transition-all duration-200 focus:outline-none focus:border-[var(--tv-accent)]/55 focus:bg-white/7"
+                  className="tv-select"
                 >
                   <option value="overig">Overig</option>
                   <option value="wapen">Wapen</option>
@@ -115,7 +115,7 @@ function AddItemModal({ isOpen, onClose, onSave, role, party, currentPlayerId, i
 
             <div>
               <label className="mb-1.5 block text-[10px] font-bold uppercase tracking-widest tv-text-sub">Afbeelding</label>
-              <label className="relative flex h-24 w-full cursor-pointer items-center justify-center overflow-hidden rounded-xl border border-dashed border-white/20 tv-panel-inset shadow-inner transition-all hover:border-[var(--tv-accent)]/50 hover:bg-white/7 group">
+              <label className="group relative flex h-24 w-full cursor-pointer items-center justify-center overflow-hidden rounded-xl border border-dashed tv-border-emphasis tv-panel-inset shadow-inner transition-all hover:border-[color-mix(in_srgb,var(--tv-accent),transparent_42%)] tv-hover-surface">
                 <input type="file" accept="image/*" className="hidden" onChange={handleImageChange} />
                 {formData.imageUrl ? (
                   <>
@@ -167,7 +167,7 @@ function AddItemModal({ isOpen, onClose, onSave, role, party, currentPlayerId, i
             <button 
               type="button"
               onClick={onClose}
-              className="h-10 flex-1 inline-flex items-center justify-center tv-panel-inset hover:bg-white/7 border border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] tv-text rounded-lg font-fantasy uppercase tracking-[0.16em] text-sm transition-all duration-200 active:scale-95"
+              className="tv-button-secondary h-10 flex-1 inline-flex items-center justify-center rounded-lg font-fantasy uppercase tracking-[0.16em] text-sm transition-all duration-200 active:scale-95"
             >
               Annuleren
             </button>

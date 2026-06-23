@@ -2199,6 +2199,75 @@ header > div {
   background: color-mix(in srgb, var(--tv-text-primary), transparent 93%);
 }
 
+.tv-surface-raised {
+  background: color-mix(in srgb, var(--tv-text-primary), transparent 93%);
+}
+
+.tv-surface-faint {
+  background: color-mix(in srgb, var(--tv-text-primary), transparent 97%);
+}
+
+.tv-focus-surface:focus {
+  background: color-mix(in srgb, var(--tv-text-primary), transparent 93%);
+  outline: none;
+}
+
+.tv-border-emphasis {
+  border-color: color-mix(in srgb, var(--tv-border), transparent 12%) !important;
+}
+
+.tv-border-faint {
+  border-color: color-mix(in srgb, var(--tv-border), transparent 72%) !important;
+}
+
+.tv-chip-selected {
+  border-color: color-mix(in srgb, var(--tv-border), transparent 12%);
+  background: color-mix(in srgb, var(--tv-text-primary), transparent 93%);
+  transform: scale(1.05);
+  box-shadow: 0 10px 24px color-mix(in srgb, var(--tv-bg-canvas), transparent 70%);
+}
+
+.tv-entry-feature-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 1.125rem;
+  border: 1px solid color-mix(in srgb, var(--tv-accent), transparent 62%);
+  background: color-mix(in srgb, var(--tv-accent), transparent 90%);
+  color: var(--tv-accent);
+}
+
+.tv-landing-kicker {
+  color: var(--tv-accent);
+}
+
+.tv-landing-divider {
+  background: linear-gradient(
+    to right,
+    transparent,
+    color-mix(in srgb, var(--tv-accent), transparent 50%),
+    transparent
+  );
+}
+
+.tv-alert-danger {
+  border: 1px solid color-mix(in srgb, var(--tv-status-danger), transparent 55%);
+  background: color-mix(in srgb, var(--tv-status-danger), transparent 88%);
+  color: color-mix(in srgb, var(--tv-status-danger), #fff 72%);
+}
+
+.tv-alert-warning {
+  border: 1px solid color-mix(in srgb, var(--tv-status-warning), transparent 55%);
+  background: color-mix(in srgb, var(--tv-status-warning), transparent 88%);
+  color: color-mix(in srgb, var(--tv-status-warning), #fff 72%);
+}
+
+.tv-alert-info {
+  border: 1px solid color-mix(in srgb, var(--tv-accent), transparent 55%);
+  background: color-mix(in srgb, var(--tv-accent), transparent 90%);
+  color: var(--tv-text-primary);
+}
+
 .tv-divider {
   height: 1px;
   background: color-mix(in srgb, var(--tv-border), transparent 42%);

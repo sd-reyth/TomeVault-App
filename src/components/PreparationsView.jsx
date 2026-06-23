@@ -162,7 +162,7 @@ export default function PreparationsView({
                 return (
                   <article
                     key={preparation.id}
-                    className="grid gap-4 rounded-2xl border border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] tv-panel-inset p-4 shadow-[0_18px_46px_rgba(0,0,0,0.24)] transition-all duration-200 ease-out hover:bg-white/7 hover:border-[color-mix(in_srgb,var(--tv-border),transparent_28%)] md:grid-cols-[72px_minmax(0,1fr)]"
+                    className="grid gap-4 rounded-2xl border border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] tv-panel-inset p-4 shadow-[0_18px_46px_rgba(0,0,0,0.24)] transition-all duration-200 ease-out tv-hover-surface hover:border-[color-mix(in_srgb,var(--tv-border),transparent_28%)] md:grid-cols-[72px_minmax(0,1fr)]"
                   >
                     <div className="flex justify-center md:justify-start">
                       <div className="h-[72px] w-[72px] overflow-hidden rounded-2xl border border-[color-mix(in_srgb,var(--tv-border),transparent_28%)] tv-chip-surface shadow-inner">
@@ -254,7 +254,7 @@ export default function PreparationsView({
             <button
               type="button"
               onClick={() => setShowInfo((value) => !value)}
-              className={`inline-flex h-9 w-9 items-center justify-center rounded-full border transition-all duration-200 ease-out ${showInfo ? 'border-[var(--tv-accent)]/30 bg-[color-mix(in_srgb,var(--tv-accent),transparent_86%)] tv-accent' : 'border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] tv-panel-inset tv-text-sub hover:bg-white/8 hover:text-[var(--tv-accent)]'}`}
+              className={`inline-flex h-9 w-9 items-center justify-center rounded-full border transition-all duration-200 ease-out ${showInfo ? 'border-[var(--tv-accent)]/30 bg-[color-mix(in_srgb,var(--tv-accent),transparent_86%)] tv-accent' : 'border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] tv-panel-inset tv-text-sub tv-hover-surface hover:text-[var(--tv-accent)]'}`}
               title={showInfo ? 'Verberg extra uitleg' : 'Toon extra uitleg'}
             >
               <Info className="h-4 w-4" />

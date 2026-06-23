@@ -2,20 +2,13 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import QRCodeStyling from 'qr-code-styling';
 import { Copy, QrCode, Share2 } from 'lucide-react';
 import { buildSessionInviteUrl, toLegacyHashJoinTag, toSafeJoinTagForLink } from '../lib/sessionUtils';
+import { getThemeQrColors } from '../lib/appThemes';
 import ModalFrame from './ModalFrame';
-
-const QR_THEME_COLORS = {
-  'dawn-parchment': { dot: '#9c6f2e', corner: '#7c5420', bg: '#f8f1e3' },
-  'midnight-tome': { dot: '#9f7dff', corner: '#7c3aed', bg: '#171320' },
-  'ember-forge': { dot: '#ff9d42', corner: '#c66514', bg: '#25160f' },
-  'forest-scroll': { dot: '#6bc66b', corner: '#2f8f4d', bg: '#162019' },
-  'blood-moon': { dot: '#ff6b86', corner: '#c41e3a', bg: '#1d1015' },
-};
 
 function StyledQRCode({ value, theme, size }) {
   const containerRef = useRef(null);
   const qrRef = useRef(null);
-  const colors = QR_THEME_COLORS[theme] || QR_THEME_COLORS['midnight-tome'];
+  const colors = getThemeQrColors(theme);
 
   useEffect(() => {
     if (!value) return;

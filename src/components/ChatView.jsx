@@ -330,7 +330,7 @@ function ChatView({ chat, setChat, role, uid, playerName, preferredChatColor, th
         </h2>
         <button
           onClick={() => setShowColorPicker(true)}
-          className="inline-flex w-full items-center justify-between gap-1.5 rounded-xl border border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] tv-panel-inset px-2.5 py-2 tv-text transition-all duration-200 ease-out hover:bg-white/7 hover:tv-text active:scale-[0.985] sm:w-auto sm:justify-start"
+          className="inline-flex w-full items-center justify-between gap-1.5 rounded-xl border border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] tv-panel-inset px-2.5 py-2 tv-text transition-all duration-200 ease-out tv-hover-surface hover:tv-text active:scale-[0.985] sm:w-auto sm:justify-start"
           title="Kies je chatkleur"
         >
           {chatColor
@@ -372,10 +372,10 @@ function ChatView({ chat, setChat, role, uid, playerName, preferredChatColor, th
                     disabled={occupied}
                     className={`relative flex flex-col items-center gap-1 rounded-2xl border p-2 transition-all duration-200 ease-out ${
                       isActive
-                        ? 'border-white/20 bg-white/7 scale-105 shadow-lg'
+                        ? 'tv-chip-selected shadow-lg'
                         : occupied
-                        ? 'cursor-not-allowed border-white/5 opacity-25'
-                        : 'cursor-pointer border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] hover:border-white/20 hover:tv-panel-inset'
+                        ? 'cursor-not-allowed tv-border-faint opacity-25'
+                        : 'cursor-pointer border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] hover:tv-border-emphasis tv-hover-surface'
                     }`}
                   >
                     <span
@@ -384,8 +384,8 @@ function ChatView({ chat, setChat, role, uid, playerName, preferredChatColor, th
                     />
                     <span className="w-full truncate text-center text-[8px] font-medium uppercase leading-none tv-text-sub">{c.name}</span>
                     {isActive && (
-                      <span className="absolute right-1 top-1 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-white shadow">
-                        <Check className="w-2 h-2 tv-text" strokeWidth={3} style={{ color: 'var(--tv-bg-canvas)' }} />
+                      <span className="absolute right-1 top-1 flex h-3.5 w-3.5 items-center justify-center rounded-full tv-surface-raised shadow">
+                        <Check className="w-2 h-2" strokeWidth={3} style={{ color: 'var(--tv-bg-canvas)' }} />
                       </span>
                     )}
                   </button>
@@ -624,7 +624,7 @@ function ChatView({ chat, setChat, role, uid, playerName, preferredChatColor, th
               disabled={isSending}
               title={editingMsg ? 'Bewerking opslaan' : 'Bericht versturen'}
               aria-label={editingMsg ? 'Bewerking opslaan' : 'Bericht versturen'}
-              className={`inline-flex h-10 items-center justify-center gap-2 rounded-xl border border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] bg-white/7 px-3.5 text-sm font-medium uppercase tracking-[0.16em] tv-text transition-all duration-200 ease-out hover:bg-white/10 hover:text-white disabled:opacity-50 active:scale-[0.985] md:px-4 ${editingMsg ? 'flex-1 sm:flex-none' : 'shrink-0'}`}
+              className={`inline-flex h-10 items-center justify-center gap-2 rounded-xl border border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] tv-surface-raised px-3.5 text-sm font-medium uppercase tracking-[0.16em] tv-text transition-all duration-200 ease-out tv-hover-surface hover:tv-text disabled:opacity-50 active:scale-[0.985] md:px-4 ${editingMsg ? 'flex-1 sm:flex-none' : 'shrink-0'}`}
             >
               {editingMsg ? <Check className="w-4 h-4" /> : <SendHorizontal className="w-4 h-4" />}
             </button>

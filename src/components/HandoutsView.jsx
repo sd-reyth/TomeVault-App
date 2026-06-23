@@ -121,14 +121,14 @@ function HandoutsView({ role, handouts, currentPlayerId, onToggleVisibility, onT
           <div className="tv-view-toolbar flex w-full items-center justify-center rounded-xl p-1 sm:w-auto sm:justify-start">
             <button
               onClick={() => setViewMode('list')}
-              className={`inline-flex h-9 w-9 items-center justify-center rounded-lg border transition-all duration-200 ease-out ${viewMode === 'list' ? 'border-[var(--tv-accent)]/30 bg-[color-mix(in_srgb,var(--tv-accent),transparent_85%)] text-[var(--tv-accent)] shadow-sm' : 'border-transparent tv-muted hover:border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] hover:bg-white/7 hover:tv-text'}`}
+              className={`inline-flex h-9 w-9 items-center justify-center rounded-lg border transition-all duration-200 ease-out ${viewMode === 'list' ? 'border-[var(--tv-accent)]/30 bg-[color-mix(in_srgb,var(--tv-accent),transparent_85%)] text-[var(--tv-accent)] shadow-sm' : 'border-transparent tv-muted hover:border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] tv-hover-surface hover:tv-text'}`}
               title="Lijst weergave"
             >
               <List className="h-4 w-4" />
             </button>
             <button
               onClick={() => setViewMode('grid')}
-              className={`inline-flex h-9 w-9 items-center justify-center rounded-lg border transition-all duration-200 ease-out ${viewMode === 'grid' ? 'border-[var(--tv-accent)]/30 bg-[color-mix(in_srgb,var(--tv-accent),transparent_85%)] text-[var(--tv-accent)] shadow-sm' : 'border-transparent tv-muted hover:border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] hover:bg-white/7 hover:tv-text'}`}
+              className={`inline-flex h-9 w-9 items-center justify-center rounded-lg border transition-all duration-200 ease-out ${viewMode === 'grid' ? 'border-[var(--tv-accent)]/30 bg-[color-mix(in_srgb,var(--tv-accent),transparent_85%)] text-[var(--tv-accent)] shadow-sm' : 'border-transparent tv-muted hover:border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] tv-hover-surface hover:tv-text'}`}
               title="Blok weergave"
             >
               <LayoutGrid className="h-4 w-4" />
@@ -140,7 +140,7 @@ function HandoutsView({ role, handouts, currentPlayerId, onToggleVisibility, onT
               <button
                 onClick={toggleClaimedVisibility}
                 disabled={claimedCount === 0}
-                className={`inline-flex h-10 w-full items-center justify-center gap-2 rounded-xl border px-3 text-[10px] uppercase tracking-[0.14em] shadow-sm transition-all duration-200 ease-out sm:w-auto ${claimedCount > 0 ? 'border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] tv-panel-inset tv-text hover:border-[var(--tv-accent)]/25 hover:bg-white/7 hover:text-[var(--tv-accent)] active:scale-[0.985]' : 'cursor-not-allowed border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] tv-panel-inset tv-muted'}`}
+                className={`inline-flex h-10 w-full items-center justify-center gap-2 rounded-xl border px-3 text-[10px] uppercase tracking-[0.14em] shadow-sm transition-all duration-200 ease-out sm:w-auto ${claimedCount > 0 ? 'border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] tv-panel-inset tv-text hover:border-[var(--tv-accent)]/25 tv-hover-surface hover:text-[var(--tv-accent)] active:scale-[0.985]' : 'cursor-not-allowed border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] tv-panel-inset tv-muted'}`}
                 title={allClaimedHidden ? 'Maak geclaimde handouts zichtbaar' : 'Verberg geclaimde handouts'}
               >
                 {allClaimedHidden ? <Eye className="h-3.5 w-3.5 shrink-0" /> : <EyeOff className="h-3.5 w-3.5 shrink-0" />}
