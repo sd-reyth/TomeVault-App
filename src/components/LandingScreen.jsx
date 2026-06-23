@@ -20,26 +20,19 @@ import { safeLocalStorageGet, safeLocalStorageSet } from '../lib/browserStorage'
 import { getJoinTagLookupVariants } from '../lib/sessionUtils';
 import landingBackgroundVideo from '../../Video/landingBG.mp4';
 import RuntimeBadge from './RuntimeBadge';
+import { APP_THEMES } from '../lib/appThemes';
 
 const LANDING_AMBIENCE_ENABLED_STORAGE_KEY = 'tomevault:landing:ambience-enabled';
 const LANDING_AMBIENCE_VOLUME_STORAGE_KEY = 'tomevault:landing:ambience-volume';
 const DEFAULT_LANDING_AMBIENCE_VOLUME = 12;
 const TOMEVAULT_LOGO_SRC = '/references/tomeVaultLogo1.png';
 
-const ENTRY_THEMES = [
-  { value: 'ember-forge', swatch: '#ff9d42', label: 'Ember' },
-  { value: 'dawn-parchment', swatch: '#9c6f2e', label: 'Dawn' },
-  { value: 'midnight-tome', swatch: '#9f7dff', label: 'Night' },
-  { value: 'forest-scroll', swatch: '#6bc66b', label: 'Forest' },
-  { value: 'blood-moon', swatch: '#c41e3a', label: 'Blood' },
-];
-
 function LandingThemePicker({ theme, onThemeChange }) {
   if (!onThemeChange) return null;
 
   return (
     <div className="tv-theme-picker" role="group" aria-label="Kies thema">
-      {ENTRY_THEMES.map((entry) => (
+      {APP_THEMES.map((entry) => (
         <button
           key={entry.value}
           type="button"

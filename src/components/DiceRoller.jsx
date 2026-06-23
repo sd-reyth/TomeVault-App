@@ -195,7 +195,7 @@ export default function DiceRoller({ onRoll, theme, embedded = false }) {
 
       <button
         type="button"
-        className={`mt-4 block w-full rounded-2xl px-6 text-stone-100 font-fantasy uppercase tracking-[0.16em] shadow transition-all duration-200 hover:brightness-110 disabled:opacity-40 ${embedded ? 'py-2.5 text-lg sm:py-3 sm:text-xl' : 'py-3 text-xl'}`}
+        className={`mt-4 block w-full rounded-2xl px-6 tv-text font-fantasy uppercase tracking-[0.16em] shadow transition-all duration-200 hover:brightness-110 active:scale-[0.98] disabled:opacity-40 ${embedded ? 'py-2.5 text-lg sm:py-3 sm:text-xl' : 'py-3 text-xl'}`}
         style={rollActionAccent}
         onClick={handleRoll}
         disabled={dice.every((d) => d.count === 0) || totalDiceSelected > MAX_DICE_PER_ROLL}

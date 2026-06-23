@@ -7,6 +7,19 @@ const rootElement = document.getElementById('root')
 const root = createRoot(rootElement)
 const TOMEVAULT_STORAGE_PREFIXES = ['tv_', 'tomevault:', '__tv']
 
+function bootstrapTheme() {
+  if (typeof window === 'undefined') return
+
+  try {
+    const savedTheme = window.localStorage.getItem('tomevault-theme') || 'midnight-tome'
+    document.documentElement.setAttribute('data-theme', savedTheme)
+  } catch (_) {
+    document.documentElement.setAttribute('data-theme', 'midnight-tome')
+  }
+}
+
+bootstrapTheme()
+
 function clearTomeVaultBrowserState() {
   if (typeof window === 'undefined') return
 
@@ -74,20 +87,20 @@ class AppRuntimeErrorBoundary extends Component {
       : String(runtimeError || 'Onbekende runtimefout')
 
     return (
-      <div className="flex min-h-screen items-center justify-center bg-stone-950 px-4 py-10 text-stone-100">
-        <div className="w-full max-w-lg rounded-3xl border border-rose-500/30 bg-stone-900/95 p-6 shadow-2xl shadow-rose-950/30 sm:p-8">
-          <div className="mb-4 inline-flex items-center rounded-full border border-rose-500/30 bg-rose-500/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.22em] text-rose-200">
+      <div className="tv-runtime-error-page">
+        <div className="tv-runtime-error-card sm:p-8">
+          <div className="tv-runtime-error-chip">
             Runtimefout
           </div>
-          <h1 className="font-fantasy text-3xl tracking-wide text-stone-50">TomeVault is onverwacht gestopt</h1>
-          <p className="mt-3 text-sm leading-6 text-stone-300">
+          <h1 className="mt-4 font-fantasy text-3xl tracking-wide tv-text">TomeVault is onverwacht gestopt</h1>
+          <p className="mt-3 text-sm leading-6 tv-text-sub">
             Er ging iets mis tijdens gebruik van de app. Je kunt veilig herladen of alleen TomeVault-browserstatus wissen en opnieuw starten.
           </p>
           <div className="mt-6 flex flex-col gap-3 sm:flex-row">
             <button
               type="button"
               onClick={() => window.location.reload()}
-              className="inline-flex min-h-[46px] items-center justify-center rounded-2xl bg-amber-500 px-4 py-3 text-sm font-semibold text-stone-950 transition hover:bg-amber-400"
+              className="tv-button-primary inline-flex min-h-[46px] items-center justify-center rounded-2xl px-4 py-3 text-sm font-semibold"
             >
               Opnieuw laden
             </button>
@@ -97,14 +110,14 @@ class AppRuntimeErrorBoundary extends Component {
                 clearTomeVaultBrowserState()
                 window.location.reload()
               }}
-              className="inline-flex min-h-[46px] items-center justify-center rounded-2xl border border-stone-700 bg-stone-950 px-4 py-3 text-sm font-semibold text-stone-200 transition hover:border-stone-500 hover:bg-stone-900"
+              className="tv-button-secondary inline-flex min-h-[46px] items-center justify-center rounded-2xl px-4 py-3 text-sm font-semibold"
             >
               Browserstatus wissen en herladen
             </button>
           </div>
-          <div className="mt-6 rounded-2xl border border-stone-800 bg-stone-950/80 p-4">
-            <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-stone-500">Foutmelding</div>
-            <pre className="mt-2 whitespace-pre-wrap break-words font-mono text-xs leading-5 text-rose-200">{errorMessage}</pre>
+          <div className="tv-runtime-error-panel">
+            <div className="text-[11px] font-semibold uppercase tracking-[0.18em] tv-muted">Foutmelding</div>
+            <pre className="tv-runtime-error-message">{errorMessage}</pre>
           </div>
         </div>
       </div>

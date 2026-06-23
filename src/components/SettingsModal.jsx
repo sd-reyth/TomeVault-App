@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Crown, Download, LogOut, Save, Settings, SunMedium, SwatchBook, UserRound } from 'lucide-react';
 import ModalFrame from './ModalFrame';
+import { APP_THEMES } from '../lib/appThemes';
 
 function SettingsModal({
   isOpen,
@@ -28,13 +29,7 @@ function SettingsModal({
     setDraftBrightness(brightness !== undefined ? brightness : 2);
   }, [isOpen, playerName, theme, brightness]);
 
-  const themes = [
-    { value: 'dawn-parchment', label: 'Dawn Parchment', shortLabel: 'Dawn', swatch: '#9c6f2e', premium: false },
-    { value: 'midnight-tome', label: 'Midnight Tome', shortLabel: 'Midnight', swatch: '#9f7dff', premium: false },
-    { value: 'ember-forge', label: 'Ember Forge', shortLabel: 'Ember', swatch: '#ff9d42', premium: false },
-    { value: 'forest-scroll', label: 'Forest Scroll', shortLabel: 'Forest', swatch: '#6bc66b', premium: false },
-    { value: 'blood-moon', label: 'Blood Moon', shortLabel: 'Blood', swatch: '#c41e3a', premium: true },
-  ];
+  const themes = APP_THEMES;
 
   const handleSave = async () => {
     await onSaveSettings?.({

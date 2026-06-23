@@ -189,7 +189,7 @@ function WalletSection({
           {coins.map((coin, index) => (
             <div
               key={coin.key}
-              className="group relative overflow-hidden rounded-2xl border border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] bg-zinc-950/45 p-4 shadow-[0_10px_30px_rgba(0,0,0,0.32)] transition-all duration-300 hover:-translate-y-0.5 hover:border-[color:var(--tv-accent)]/45 hover:shadow-[0_16px_34px_rgba(0,0,0,0.42)]"
+              className="group relative overflow-hidden rounded-2xl border border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] tv-panel-inset p-4 shadow-[0_10px_30px_rgba(0,0,0,0.32)] transition-all duration-300 hover:-translate-y-0.5 hover:border-[color:var(--tv-accent)]/45 hover:shadow-[0_16px_34px_rgba(0,0,0,0.42)]"
             >
               <div
                 className={`pointer-events-none absolute -top-5 left-1/2 h-24 w-24 -translate-x-1/2 ${coin.glowColor} rounded-full blur-3xl transition-opacity duration-300 group-hover:opacity-90`}
@@ -199,7 +199,7 @@ function WalletSection({
               <div className="relative z-10 flex flex-col items-center">
                 <div
                   aria-label={coin.label}
-                  className="mb-3 flex h-12 w-12 items-center justify-center rounded-full border border-white/20 bg-zinc-950/90 text-xl font-semibold shadow-[0_8px_24px_rgba(0,0,0,0.45)] transition-transform duration-300 group-hover:scale-105"
+                  className="mb-3 flex h-12 w-12 items-center justify-center rounded-full border border-[color-mix(in_srgb,var(--tv-border),transparent_28%)] tv-input-surface text-xl font-semibold shadow-[0_8px_24px_rgba(0,0,0,0.45)] transition-transform duration-300 group-hover:scale-105"
                   style={{ animation: `walletFloat 4.6s ease-in-out ${index * 0.24}s infinite`, color: coin.iconColor }}
                 >
                   <span className="leading-none" aria-hidden="true">{coin.icon}</span>
@@ -213,7 +213,7 @@ function WalletSection({
                   <button
                     type="button"
                     onClick={() => handleAdjust(coin.key, -1)}
-                    className="h-8 w-8 rounded-md border border-white/12 bg-black/30 text-sm leading-none text-white/40 transition-colors hover:border-white/30 hover:text-[var(--tv-accent)] md:h-7 md:w-7"
+                    className="tv-wallet-stepper-btn h-8 w-8 rounded-md text-sm leading-none md:h-7 md:w-7"
                     aria-label={`${coin.label} verminderen`}
                   >
                     -
@@ -226,14 +226,14 @@ function WalletSection({
                       onChange={handleInputChange}
                       onBlur={() => handleInputSubmit(coin.key)}
                       onKeyDown={(e) => e.key === 'Enter' && handleInputSubmit(coin.key)}
-                      className="hide-arrows w-14 bg-transparent text-center font-fantasy text-2xl font-bold text-white drop-shadow-md focus:outline-none md:text-3xl"
+                      className="hide-arrows w-14 bg-transparent text-center font-fantasy text-2xl font-bold tv-text drop-shadow-md focus:outline-none md:text-3xl"
                       autoFocus
                     />
                   ) : (
                     <button
                       type="button"
                       onClick={() => beginEditCoin(coin.key)}
-                      className="min-w-[2.4ch] cursor-text text-center font-fantasy text-2xl font-bold text-white drop-shadow-md md:text-3xl"
+                      className="min-w-[2.4ch] cursor-text text-center font-fantasy text-2xl font-bold tv-text drop-shadow-md md:text-3xl"
                       aria-label={`${coin.label} aanpassen`}
                     >
                       {safeWallet[coin.key]}
@@ -243,7 +243,7 @@ function WalletSection({
                   <button
                     type="button"
                     onClick={() => handleAdjust(coin.key, 1)}
-                    className="h-8 w-8 rounded-md border border-white/12 bg-black/30 text-sm leading-none text-white/40 transition-colors hover:border-white/30 hover:text-[var(--tv-accent)] md:h-7 md:w-7"
+                    className="tv-wallet-stepper-btn h-8 w-8 rounded-md text-sm leading-none md:h-7 md:w-7"
                     aria-label={`${coin.label} verhogen`}
                   >
                     +
@@ -255,7 +255,7 @@ function WalletSection({
         </div>
 
         {!hideSummaryCard ? (
-        <div className="rounded-2xl border border-white/12 bg-black/35 p-4 shadow-[0_14px_32px_rgba(0,0,0,0.26)] backdrop-blur-sm md:p-5">
+        <div className="tv-wallet-summary-card rounded-2xl p-4 backdrop-blur-sm md:p-5">
           <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
             <div>
               <div className="text-[11px] uppercase tracking-[0.2em] tv-text-sub">Totale waarde</div>
@@ -269,7 +269,7 @@ function WalletSection({
               <button
                 type="button"
                 onClick={onPrimaryAction}
-                className="inline-flex h-11 items-center justify-center rounded-xl border border-amber-400/35 bg-[linear-gradient(120deg,rgba(146,64,14,0.92),rgba(217,119,6,0.86))] px-5 text-sm font-semibold uppercase tracking-[0.12em] text-amber-50 transition-all duration-200 hover:brightness-110 active:scale-[0.985]"
+                className="inline-flex h-11 items-center justify-center rounded-xl tv-button-primary px-5 text-sm font-semibold uppercase tracking-[0.12em]"
               >
                 + {primaryActionLabel}
               </button>
@@ -277,7 +277,7 @@ function WalletSection({
           </div>
 
           {isEmptyWallet && (
-            <div className="mt-4 rounded-xl border border-dashed border-white/15 tv-panel-inset px-4 py-3 text-sm tv-text/90">
+            <div className="mt-4 rounded-xl border border-dashed border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] tv-panel-inset px-4 py-3 text-sm tv-text-sub">
               {isGm
                 ? 'De kas is nog leeg. Voeg een buit-item toe of zet de eerste munten klaar voor het gezelschap.'
                 : 'Deze buidel is nog leeg. Voeg een item toe of ontvang buit van de groep.'}

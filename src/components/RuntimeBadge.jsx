@@ -4,15 +4,12 @@ export default function RuntimeBadge({ runtimeBadge, compact = false, className 
   if (!runtimeBadge) return null;
 
   const toneClasses = compact
-    ? 'border-stone-700/70 bg-stone-950/70 text-stone-200 shadow-inner'
+    ? 'tv-runtime-badge tv-runtime-badge--compact'
     : (runtimeBadge.warning
-      ? 'border-amber-800/60 bg-amber-950/80 text-amber-100'
-      : 'border-sky-900/50 bg-sky-950/75 text-sky-100');
-  const metaClasses = compact
-    ? 'text-stone-500'
-    : (runtimeBadge.warning ? 'text-amber-300/80' : 'text-sky-300/80');
+      ? 'tv-runtime-badge tv-runtime-badge--warning'
+      : 'tv-runtime-badge tv-runtime-badge--info');
   const roleChipClasses = compact
-    ? 'rounded-full border border-amber-800/35 bg-amber-950/35 px-2 py-0.5 text-[9px] font-bold uppercase tracking-[0.18em] text-amber-300'
+    ? 'rounded-full border border-[color-mix(in_srgb,var(--tv-status-warning),transparent_55%)] bg-[color-mix(in_srgb,var(--tv-status-warning),transparent_88%)] px-2 py-0.5 text-[9px] font-bold uppercase tracking-[0.18em] text-[color-mix(in_srgb,var(--tv-status-warning),#fff_72%)]'
     : 'rounded-full border border-current/15 bg-black/10 px-2 py-0.5 text-[9px] font-bold uppercase tracking-[0.18em]';
 
   return (
@@ -25,14 +22,14 @@ export default function RuntimeBadge({ runtimeBadge, compact = false, className 
         <span className={roleChipClasses}>
           {runtimeBadge.roleLabel}
         </span>
-        <span className={`text-[9px] uppercase tracking-[0.16em] ${metaClasses}`}>{runtimeBadge.hostLabel}</span>
+        <span className="tv-runtime-badge__meta text-[9px] uppercase tracking-[0.16em]">{runtimeBadge.hostLabel}</span>
       </div>
 
       {compact ? null : (
         <>
-          <div className={`mt-1 text-[9px] uppercase tracking-[0.18em] ${metaClasses}`}>{runtimeBadge.sourceLabel}</div>
+          <div className="tv-runtime-badge__meta mt-1 text-[9px] uppercase tracking-[0.18em]">{runtimeBadge.sourceLabel}</div>
           {runtimeBadge.warning ? (
-            <p className="mt-1 max-w-[240px] text-[10px] leading-4 text-stone-300">{runtimeBadge.warning}</p>
+            <p className="mt-1 max-w-[240px] text-[10px] leading-4 tv-text-sub">{runtimeBadge.warning}</p>
           ) : null}
         </>
       )}

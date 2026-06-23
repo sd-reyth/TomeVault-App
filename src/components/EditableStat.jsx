@@ -14,7 +14,7 @@ function EditableStat({ value, onChange, disabled, className, title }) {
         autoFocus 
         type="number" 
         onClick={(e) => e.stopPropagation()}
-        className={`w-8 md:w-10 bg-stone-900 border border-[var(--tv-accent)] rounded px-1 text-center outline-none text-stone-200 hide-arrows transition-all duration-200 focus:border-[var(--tv-accent)]/70 focus:shadow-[0_0_0_2px_color-mix(in_srgb,var(--tv-accent),transparent_72%)] ${className}`} 
+        className={`tv-hp-input hide-arrows w-8 md:w-10 ${className}`} 
         value={val} 
         onChange={e => setVal(e.target.value)} 
         onBlur={() => { onChange(val === '' ? null : parseInt(val, 10)); setIsEditing(false); }}
@@ -24,7 +24,7 @@ function EditableStat({ value, onChange, disabled, className, title }) {
   }
   return (
     <span 
-      className={`cursor-pointer hover:text-[var(--tv-accent)] hover:bg-[color-mix(in_srgb,var(--tv-accent),transparent_92%)] rounded px-1 -mx-1 transition-all duration-200 ${className}`} 
+      className={`cursor-pointer rounded px-1 -mx-1 transition-all duration-200 hover:tv-accent hover:bg-[color-mix(in_srgb,var(--tv-accent),transparent_92%)] ${className}`} 
       onClick={(e) => { e.stopPropagation(); setIsEditing(true); }}
       title={title || "Klik om te bewerken"}
     >

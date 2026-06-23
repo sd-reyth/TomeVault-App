@@ -40,7 +40,7 @@ export default function AmbiencePanel({
               key={track.id}
               className={`tv-ambience-track relative overflow-hidden transition-all ${isActive ? 'tv-ambience-track--active' : ''}`}
             >
-              <div className={`absolute inset-0 bg-gradient-to-r ${track.accentClassName} pointer-events-none`} />
+              <div className={`absolute inset-0 pointer-events-none tv-ambience-accent-${track.accentTone || 'warm'}`} />
 
               <div className="relative flex h-11 items-center">
                 <button

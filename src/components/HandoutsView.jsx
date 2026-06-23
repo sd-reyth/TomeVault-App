@@ -274,14 +274,14 @@ function HandoutsView({ role, handouts, currentPlayerId, onToggleVisibility, onT
                     <div className="absolute right-2 top-1/2 z-20 flex -translate-y-1/2 items-center gap-1.5 md:right-3">
                       <button
                         onClick={(event) => { event.stopPropagation(); toggleSecretVisibility(handout.id); }}
-                        className={`rounded-lg border bg-zinc-950/92 p-1.5 shadow-sm transition-colors md:p-2 ${isSecretVisibleToPlayers(handout) ? 'border-cyan-500/45 text-cyan-300 hover:border-cyan-400' : 'border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] tv-text-sub hover:border-cyan-500/35 hover:text-cyan-300'}`}
+                        className={`rounded-lg border tv-input-surface p-1.5 shadow-sm transition-colors md:p-2 ${isSecretVisibleToPlayers(handout) ? 'border-cyan-500/45 text-cyan-300 hover:border-cyan-400' : 'border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] tv-text-sub hover:border-cyan-500/35 hover:text-cyan-300'}`}
                         title={isSecretVisibleToPlayers(handout) ? 'Verberg Secret voor spelers' : 'Toon Secret aan alle spelers'}
                       >
                         <KeyRound className="h-4 w-4" />
                       </button>
                       <button
                         onClick={(event) => { event.stopPropagation(); toggleVisibility(handout.id); }}
-                        className="rounded-lg border border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] bg-zinc-950/92 p-1.5 tv-text-sub shadow-sm transition-colors hover:border-amber-500/35 hover:text-amber-300 md:p-2"
+                        className="rounded-lg border border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] tv-input-surface p-1.5 tv-text-sub shadow-sm transition-colors hover:border-amber-500/35 hover:text-amber-300 md:p-2"
                         title={handout.isRevealed ? 'Verberg in de schaduwen' : 'Onthul aan de party'}
                       >
                         {handout.isRevealed ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
@@ -292,7 +292,7 @@ function HandoutsView({ role, handouts, currentPlayerId, onToggleVisibility, onT
                   {role === 'player' && viewMode === 'list' && isClaimableLoot(handout) ? (
                     <button
                       onClick={(event) => { event.stopPropagation(); onClaim(handout.id); }}
-                      className="absolute right-2 top-1/2 z-20 -translate-y-1/2 rounded-lg border border-amber-500/25 bg-zinc-950/92 p-1.5 text-amber-300 shadow-sm transition-colors hover:border-amber-400 hover:text-amber-200 md:right-3 md:p-2"
+                      className="absolute right-2 top-1/2 z-20 -translate-y-1/2 rounded-lg border border-amber-500/25 tv-input-surface p-1.5 text-amber-300 shadow-sm transition-colors hover:border-amber-400 hover:text-amber-200 md:right-3 md:p-2"
                       title="Claim dit object"
                     >
                       <Hand className="h-4 w-4" />
@@ -305,7 +305,7 @@ function HandoutsView({ role, handouts, currentPlayerId, onToggleVisibility, onT
                     </span>
 
                     {role === 'gm' && !handout.isRevealed ? (
-                      <span className={`flex shrink-0 items-center gap-1 rounded border border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] bg-zinc-950 font-semibold uppercase tracking-widest tv-text-sub ${viewMode === 'grid' ? 'px-2 py-1 text-[9px]' : 'px-1.5 py-0.5 text-[8px]'}`}>
+                      <span className={`flex shrink-0 items-center gap-1 rounded border border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] tv-input-surface font-semibold uppercase tracking-widest tv-text-sub ${viewMode === 'grid' ? 'px-2 py-1 text-[9px]' : 'px-1.5 py-0.5 text-[8px]'}`}>
                         <EyeOff className="h-2.5 w-2.5 md:h-3 md:w-3" /> Verborgen
                       </span>
                     ) : null}
@@ -350,7 +350,7 @@ function HandoutsView({ role, handouts, currentPlayerId, onToggleVisibility, onT
                       <span className="rounded border border-rose-500/25 bg-rose-500/10 px-2 py-1 text-[9px] font-semibold uppercase tracking-[0.16em] text-rose-300">
                         HP {Number(handout.npcHp ?? 15) || 15}
                       </span>
-                      <span className="rounded border border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] bg-zinc-950/80 px-2 py-1 text-[9px] font-semibold uppercase tracking-[0.16em] tv-text">
+                      <span className="rounded border border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] tv-input-surface px-2 py-1 text-[9px] font-semibold uppercase tracking-[0.16em] tv-text">
                         AC {Number(handout.npcAc ?? 12) || 12}
                       </span>
                       <span className="rounded border border-amber-500/25 bg-amber-500/10 px-2 py-1 text-[9px] font-semibold uppercase tracking-[0.16em] text-amber-300">

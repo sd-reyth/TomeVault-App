@@ -9,8 +9,8 @@ function ItemCard({ item, role, currentPlayerId, canManageInventory, onUpdateIte
   const [imageFailed, setImageFailed] = useState(false);
 
   return (
-    <div className="flex items-start gap-3 rounded-xl border border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] tv-panel-inset p-3 shadow-sm transition-all duration-200 ease-out hover:bg-white/7 hover:border-white/20">
-      <div className="h-10 w-10 shrink-0 overflow-hidden rounded-lg border border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] bg-zinc-950/90 shadow-inner flex items-center justify-center">
+    <div className="flex items-start gap-3 rounded-xl border border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] tv-panel-inset p-3 shadow-sm transition-all duration-200 ease-out hover:bg-white/7 hover:border-[color-mix(in_srgb,var(--tv-border),transparent_28%)]">
+      <div className="h-10 w-10 shrink-0 overflow-hidden rounded-lg border border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] tv-input-surface shadow-inner flex items-center justify-center">
         {item.imageUrl && !imageFailed ? (
           <img src={item.imageUrl} alt="" className="w-full h-full object-cover scale-[1.25]" onError={() => setImageFailed(true)} />
         ) : (
@@ -24,7 +24,7 @@ function ItemCard({ item, role, currentPlayerId, canManageInventory, onUpdateIte
           <div className="flex items-center gap-1.5 md:gap-2 shrink-0">
             <span className="rounded border border-[var(--tv-accent)]/25 bg-[color-mix(in_srgb,var(--tv-accent),transparent_90%)] px-1.5 py-0.5 text-[10px] font-semibold text-[var(--tv-accent)] shadow-sm">x{item.amount}</span>
             {(role === 'gm' || item.ownerId === currentPlayerId) && (
-              <div className="flex items-center gap-1 rounded border border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] bg-zinc-950/80 px-1 py-0.5">
+              <div className="flex items-center gap-1 rounded border border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] tv-input-surface px-1 py-0.5">
                 {role === 'gm' && (
                   <>
                     <button
@@ -162,7 +162,7 @@ function InventoryView({ role, inventory, wallets, party, currentPlayerId, hando
           return (
             <div key={player.id} className="relative rounded-2xl border border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] tv-panel-inset p-4 shadow-md backdrop-blur-sm md:p-6">
               <div className="mb-5 flex items-center gap-3">
-                <div className="flex h-8 w-8 items-center justify-center overflow-hidden rounded-lg border border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] bg-zinc-950 text-amber-300 shadow-inner">
+                <div className="flex h-8 w-8 items-center justify-center overflow-hidden rounded-lg border border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] tv-input-surface text-amber-300 shadow-inner">
                   <img src={resolveDisplayAvatar(player.avatar, player.id)} alt="Avatar" className="w-full h-full object-cover" />
                 </div>
                 <h3 className="text-lg font-semibold tracking-[0.12em] text-[var(--tv-accent)] md:text-xl">{player.name}</h3>
@@ -207,7 +207,7 @@ function InventoryView({ role, inventory, wallets, party, currentPlayerId, hando
                   </div>
                 )}
 
-                <div className="mb-4 rounded-xl border border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] bg-zinc-950/45 p-3">
+                <div className="mb-4 rounded-xl border border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] tv-panel-inset p-3">
                   <div className="mb-2 flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
                     <span className="text-[10px] font-semibold uppercase tracking-widest tv-muted">Items</span>
                     <span className="text-[10px] tv-muted">{filteredItems.length} items</span>
@@ -248,7 +248,7 @@ function InventoryView({ role, inventory, wallets, party, currentPlayerId, hando
                             className="group flex cursor-pointer items-start gap-3 rounded-xl border border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] tv-panel-inset p-3 shadow-sm transition-all duration-200 ease-out hover:border-[var(--tv-accent)]/25 hover:bg-white/7"
                             onClick={() => onOpenHandout(handout)}
                           >
-                            <div className="relative flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] bg-zinc-950 shadow-inner">
+                            <div className="relative flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] tv-input-surface shadow-inner">
                               {handout.imageUrl ? (
                                 <img src={handout.imageUrl} alt="" className="w-full h-full object-cover scale-[1.25]" />
                               ) : (

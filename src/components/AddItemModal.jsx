@@ -78,7 +78,7 @@ function AddItemModal({ isOpen, onClose, onSave, role, party, currentPlayerId, i
                 value={formData.name}
                 onChange={e => setFormData({...formData, name: e.target.value})}
                 placeholder="Bijv. Magisch Touw"
-                className="h-10 w-full rounded-xl border border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] tv-panel-inset px-3 text-sm tv-text placeholder-stone-500 transition-all duration-200 focus:outline-none focus:border-[var(--tv-accent)]/55 focus:bg-white/7"
+                className="tv-field"
               />
             </div>
 
@@ -158,7 +158,7 @@ function AddItemModal({ isOpen, onClose, onSave, role, party, currentPlayerId, i
                 value={formData.desc}
                 onChange={e => setFormData({...formData, desc: e.target.value})}
                 placeholder="Wat doet het of hoe ziet het eruit?"
-                className="w-full resize-none rounded-xl border border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] tv-panel-inset px-3 py-2.5 text-sm font-story tv-text placeholder-stone-500 transition-all duration-200 focus:outline-none focus:border-[var(--tv-accent)]/55 focus:bg-white/7"
+                className="tv-field resize-none font-story"
               />
             </div>
           </div>

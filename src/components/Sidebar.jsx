@@ -138,7 +138,7 @@ export default function Sidebar({ activeTab, setActiveTab, onOpenSettings, role 
         onDoubleClick={() => setSidebarWidth(SIDEBAR_DEFAULT_WIDTH)}
         className="absolute right-0 top-0 hidden h-full w-3 -translate-x-1/2 cursor-col-resize md:block"
       >
-        <span className={`absolute left-1/2 top-1/2 h-16 w-[3px] -translate-x-1/2 -translate-y-1/2 rounded-full transition-colors duration-200 ${isDragging ? 'tv-nav-indicator' : 'bg-white/10 hover:bg-white/20'}`} />
+        <span className={`absolute left-1/2 top-1/2 h-16 w-[3px] -translate-x-1/2 -translate-y-1/2 rounded-full transition-colors duration-200 ${isDragging ? 'tv-drag-handle tv-drag-handle--active' : 'tv-drag-handle hover:tv-drag-handle--active'}`} />
       </button>
     </aside>
   );

@@ -136,62 +136,63 @@ export default function OwnerAdminPanel({ isOpen, onClose, uid, isOwner = false 
     <ModalFrame
       isOpen={isOpen}
       onClose={onClose}
-      title="Owner Panel"
+      title="Owner"
       icon={Settings}
       maxWidthClassName="max-w-2xl"
       bodyClassName="gap-5 sm:gap-6"
     >
-      <div className="rounded-2xl border border-[var(--tv-accent)]/40 bg-[color-mix(in_srgb,var(--tv-accent),transparent_80%)] p-4 text-sm text-[var(--tv-accent)]/90">
-        Dit is de snelle owner-flow voor handmatige upgrades. Free plannen blijven impliciet: zonder entitlement krijgt een gebruiker automatisch GM Free of Player Free, afhankelijk van de context waarin hij de app gebruikt.
+      <div className="rounded-2xl border border-[color-mix(in_srgb,var(--tv-accent),transparent_55%)] bg-[color-mix(in_srgb,var(--tv-accent),transparent_88%)] p-4 text-sm tv-accent">
+        Handmatige plan-toekenning. Zonder entitlement krijgt een gebruiker automatisch het gratis plan.
       </div>
 
       <div className="grid gap-4 lg:grid-cols-[1.2fr_0.8fr]">
         <div className="space-y-4">
           <div>
-            <label className="mb-2 block text-[10px] font-bold uppercase tracking-widest text-stone-500">Gebruiker zoeken op e-mail</label>
+            <label className="tv-label mb-2 block">E-mail</label>
             <div className="flex gap-2">
               <input
                 type="email"
                 value={searchEmail}
                 onChange={(event) => setSearchEmail(event.target.value)}
                 placeholder="tester@example.com"
-                className="h-10 flex-1 rounded-lg border border-white/10 bg-white/5 px-3 text-sm text-stone-200 placeholder:text-stone-500 focus:border-[var(--tv-accent)]/70 focus:outline-none focus:bg-white/7 transition-all duration-200"
+                className="tv-field h-10 flex-1"
               />
               <button
                 type="button"
                 onClick={handleLookupUser}
                 disabled={loading}
-                className="inline-flex h-10 shrink-0 items-center justify-center gap-2 rounded-lg border border-white/10 bg-white/5 px-4 font-fantasy text-xs uppercase tracking-[0.16em] text-stone-300 transition-all duration-200 hover:border-[var(--tv-accent)]/50 hover:bg-white/7 hover:text-[var(--tv-accent)]/80 active:scale-95 disabled:opacity-50"
+                className="tv-button-secondary inline-flex h-10 shrink-0 items-center justify-center gap-2 rounded-lg px-4"
               >
-                <Search className="h-4 w-4" /> Zoek
+                <Search className="h-4 w-4" />
+                <span className="hidden sm:inline text-xs font-fantasy uppercase tracking-[0.16em]">Zoek</span>
               </button>
             </div>
           </div>
 
           {resolvedUser ? (
-            <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+            <div className="tv-panel-inset rounded-2xl p-4">
               <div className="flex items-start justify-between gap-3">
                 <div>
-                  <p className="font-fantasy text-sm uppercase tracking-[0.16em] text-stone-100">{resolvedUser.displayName || 'Naamloos account'}</p>
-                  <p className="mt-1 text-sm text-stone-400">{resolvedUser.email || searchEmail}</p>
-                  <p className="mt-2 text-xs uppercase tracking-[0.16em] text-stone-500">UID: {resolvedUser.id}</p>
+                  <p className="font-fantasy text-sm uppercase tracking-[0.16em] tv-text">{resolvedUser.displayName || 'Naamloos'}</p>
+                  <p className="tv-text-sub mt-1 text-sm">{resolvedUser.email || searchEmail}</p>
+                  <p className="tv-muted mt-2 text-xs uppercase tracking-[0.16em]">UID: {resolvedUser.id}</p>
                   {resolvedUser.lastKnownRole ? (
-                    <p className="mt-2 text-xs uppercase tracking-[0.16em] text-[var(--tv-accent)]">Laatste bekende rol: {resolvedUser.lastKnownRole}</p>
+                    <p className="tv-accent mt-2 text-xs uppercase tracking-[0.16em]">Rol: {resolvedUser.lastKnownRole}</p>
                   ) : null}
                 </div>
-                <div className="rounded-full border border-[var(--tv-accent)]/40 bg-[color-mix(in_srgb,var(--tv-accent),transparent_70%)] px-3 py-1 text-[10px] font-bold uppercase tracking-[0.18em] text-[var(--tv-accent)]/90">
-                  Gevonden
+                <div className="tv-chip-surface tv-accent rounded-full px-3 py-1 text-[10px] font-bold uppercase tracking-[0.18em]">
+                  OK
                 </div>
               </div>
 
               <div className="mt-4 grid gap-3 sm:grid-cols-2">
-                <div className="rounded-xl border border-white/10 bg-white/5 p-3">
-                  <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-stone-500">GM plan</p>
-                  <p className="mt-2 text-sm font-semibold text-stone-100">{resolvedGmPlan.label}</p>
+                <div className="tv-panel-inset rounded-xl p-3">
+                  <p className="tv-label">GM</p>
+                  <p className="mt-2 text-sm font-semibold tv-text">{resolvedGmPlan.label}</p>
                 </div>
-                <div className="rounded-xl border border-white/10 bg-white/5 p-3">
-                  <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-stone-500">Player plan</p>
-                  <p className="mt-2 text-sm font-semibold text-stone-100">{resolvedPlayerPlan.label}</p>
+                <div className="tv-panel-inset rounded-xl p-3">
+                  <p className="tv-label">Player</p>
+                  <p className="mt-2 text-sm font-semibold tv-text">{resolvedPlayerPlan.label}</p>
                 </div>
               </div>
             </div>
@@ -204,13 +205,13 @@ export default function OwnerAdminPanel({ isOpen, onClose, uid, isOwner = false 
           ) : null}
         </div>
 
-        <div className="space-y-4 rounded-2xl border border-stone-800 bg-stone-950/40 p-4">
+        <div className="tv-panel-inset space-y-4 rounded-2xl p-4">
           <div>
-            <label className="mb-2 block text-[10px] font-bold uppercase tracking-widest text-stone-500">Plan</label>
+            <label className="tv-label mb-2 block">Plan</label>
             <select
               value={selectedPlanId}
               onChange={(event) => setSelectedPlanId(event.target.value)}
-              className="h-10 w-full rounded-lg border border-stone-700 bg-stone-950/80 px-3 text-sm text-stone-200 focus:border-[var(--tv-accent)]/50 focus:outline-none"
+              className="tv-select"
             >
               {OWNER_GRANTABLE_PLAN_IDS.map((planId) => {
                 const plan = getPlanDefinition(planId, 'gm');
@@ -220,11 +221,11 @@ export default function OwnerAdminPanel({ isOpen, onClose, uid, isOwner = false 
           </div>
 
           <div>
-            <label className="mb-2 block text-[10px] font-bold uppercase tracking-widest text-stone-500">Duur</label>
+            <label className="tv-label mb-2 block">Duur</label>
             <select
               value={selectedDurationKey}
               onChange={(event) => setSelectedDurationKey(event.target.value)}
-              className="h-10 w-full rounded-lg border border-stone-700 bg-stone-950/80 px-3 text-sm text-stone-200 focus:border-[var(--tv-accent)]/50 focus:outline-none"
+              className="tv-select"
             >
               {durationOptions.map(([key, option]) => (
                 <option key={key} value={key}>{option.label}</option>
@@ -236,22 +237,22 @@ export default function OwnerAdminPanel({ isOpen, onClose, uid, isOwner = false 
             type="button"
             onClick={handleGrantPlan}
             disabled={loading}
-            className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-lg font-fantasy text-sm uppercase tracking-[0.16em] transition-all duration-200 active:scale-95 disabled:opacity-50 tv-button-primary"
+            className="tv-button-primary inline-flex h-10 w-full items-center justify-center gap-2 rounded-lg font-fantasy text-sm uppercase tracking-[0.16em] disabled:opacity-50"
           >
-            <Crown className="h-4 w-4" /> {loading ? 'Bezig...' : `${selectedPlan.label} toekennen`}
+            <Crown className="h-4 w-4" /> {loading ? '…' : selectedPlan.label}
           </button>
 
           <button
             type="button"
             onClick={handleResetToFree}
             disabled={loading}
-            className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-lg border border-stone-700 bg-stone-900 font-fantasy text-sm uppercase tracking-[0.16em] text-stone-200 transition-all duration-200 hover:border-stone-600 hover:text-stone-100 active:scale-95 disabled:opacity-50"
+            className="tv-button-secondary inline-flex h-10 w-full items-center justify-center gap-2 rounded-lg font-fantasy text-sm uppercase tracking-[0.16em] disabled:opacity-50"
           >
-            <RotateCcw className="h-4 w-4" /> Terug naar gratis
+            <RotateCcw className="h-4 w-4" /> Gratis
           </button>
 
-          <div className="rounded-xl border border-stone-800 bg-stone-900/60 p-3 text-xs leading-relaxed text-stone-400">
-            Stripe, redeem codes en usage analytics horen in fase 2. Deze panel is bewust gebouwd voor directe owner grants zonder publieke Cloud Functions.
+          <div className="tv-meta rounded-xl p-3 text-xs leading-relaxed">
+            Stripe en redeem codes volgen in fase 2.
           </div>
         </div>
       </div>

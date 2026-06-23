@@ -162,10 +162,10 @@ export default function PreparationsView({
                 return (
                   <article
                     key={preparation.id}
-                    className="grid gap-4 rounded-2xl border border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] tv-panel-inset p-4 shadow-[0_18px_46px_rgba(0,0,0,0.24)] transition-all duration-200 ease-out hover:bg-white/7 hover:border-white/20 md:grid-cols-[72px_minmax(0,1fr)]"
+                    className="grid gap-4 rounded-2xl border border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] tv-panel-inset p-4 shadow-[0_18px_46px_rgba(0,0,0,0.24)] transition-all duration-200 ease-out hover:bg-white/7 hover:border-[color-mix(in_srgb,var(--tv-border),transparent_28%)] md:grid-cols-[72px_minmax(0,1fr)]"
                   >
                     <div className="flex justify-center md:justify-start">
-                      <div className="h-[72px] w-[72px] overflow-hidden rounded-2xl border border-[color-mix(in_srgb,var(--tv-border),transparent_28%)] bg-stone-900 shadow-inner">
+                      <div className="h-[72px] w-[72px] overflow-hidden rounded-2xl border border-[color-mix(in_srgb,var(--tv-border),transparent_28%)] tv-chip-surface shadow-inner">
                         <img
                           src={resolveDisplayAvatar(preparation.imageUrl, preparation.id)}
                           alt={preparation.name || 'Voorbereid personage'}
@@ -196,7 +196,7 @@ export default function PreparationsView({
                         {statPills.map((pill) => (
                           <span
                             key={`${preparation.id}-${pill}`}
-                            className="rounded-full border border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] bg-zinc-950/80 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.16em] tv-text"
+                            className="rounded-full border border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] tv-input-surface px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.16em] tv-text"
                           >
                             {pill}
                           </span>
@@ -281,7 +281,7 @@ export default function PreparationsView({
                 {['Inventaris blijft', 'Wallet blijft', 'Notities blijven'].map((pill) => (
                   <span
                     key={pill}
-                    className="rounded-full border border-[color-mix(in_srgb,var(--tv-border),transparent_28%)] bg-stone-900/70 px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.16em] tv-text-sub"
+                    className="rounded-full border border-[color-mix(in_srgb,var(--tv-border),transparent_28%)] tv-chip-surface px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.16em] tv-text-sub"
                   >
                     {pill}
                   </span>
@@ -340,7 +340,7 @@ export default function PreparationsView({
                       <button
                         type="button"
                         onClick={() => handleRestore(backup)}
-                        className="mt-3 w-full rounded-xl border border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] bg-zinc-950/80 px-3 py-2 text-xs tracking-[0.14em] tv-text transition-all duration-200 ease-out hover:bg-zinc-950 hover:border-amber-500/30 hover:text-amber-300"
+                        className="mt-3 w-full rounded-xl border border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] tv-input-surface px-3 py-2 text-xs tracking-[0.14em] tv-text transition-all duration-200 ease-out hover:tv-input-surface hover:border-amber-500/30 hover:text-amber-300"
                       >
                         Zet terug
                       </button>

@@ -157,7 +157,7 @@ function NotesView({
             <textarea
               value={activeNote.content}
               onChange={(e) => handleUpdateNote('content', e.target.value)}
-              className="no-scrollbar flex-1 resize-none bg-transparent text-sm leading-relaxed tv-text outline-none placeholder-stone-600 md:text-base"
+              className="no-scrollbar tv-field-plain flex-1 resize-none bg-transparent text-sm leading-relaxed tv-text outline-none md:text-base"
               placeholder="Begin met schrijven..."
             />
             <div className="mt-4 flex flex-col gap-2 border-t border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] pt-3 text-xs tv-muted sm:flex-row sm:items-center sm:justify-between">

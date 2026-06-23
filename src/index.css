@@ -677,6 +677,24 @@ body {
   color: color-mix(in srgb, var(--tv-text-secondary), transparent 12%);
 }
 
+.tv-select {
+  width: 100%;
+  min-height: 2.5rem;
+  padding: 0.625rem 0.75rem;
+  border-radius: 0.75rem;
+  border: 1px solid color-mix(in srgb, var(--tv-border), transparent 24%);
+  background: color-mix(in srgb, var(--tv-bg-modal), #000 8%);
+  color: var(--tv-text-primary);
+  font-size: 0.875rem;
+  outline: none;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.tv-select:focus {
+  border-color: color-mix(in srgb, var(--tv-accent), transparent 48%);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--tv-accent), transparent 72%);
+}
+
 .tv-title-page {
   font-family: var(--font-fantasy);
   font-size: 1.25rem;
@@ -2174,4 +2192,173 @@ header > div {
   padding: 0.75rem 1.25rem;
   border-top: 1px solid color-mix(in srgb, var(--tv-border), transparent 42%);
   background: color-mix(in srgb, var(--tv-bg-modal), #000 16%);
+}
+
+/* Theme-safe interactive surfaces (replaces ad-hoc bg-white/7, border-white/10) */
+.tv-hover-surface:hover {
+  background: color-mix(in srgb, var(--tv-text-primary), transparent 93%);
+}
+
+.tv-divider {
+  height: 1px;
+  background: color-mix(in srgb, var(--tv-border), transparent 42%);
+}
+
+.tv-drag-handle {
+  background: color-mix(in srgb, var(--tv-border), transparent 58%);
+}
+
+.tv-drag-handle:hover,
+.tv-drag-handle--active {
+  background: color-mix(in srgb, var(--tv-text-primary), transparent 40%);
+}
+
+.tv-field-plain::placeholder {
+  color: color-mix(in srgb, var(--tv-text-secondary), transparent 12%);
+}
+
+.tv-status-dot--inactive {
+  background: var(--tv-status-inactive);
+}
+
+.tv-count-pill {
+  border: 1px solid color-mix(in srgb, var(--tv-bg-canvas), #000 18%);
+  background: color-mix(in srgb, var(--tv-text-primary), #fff 88%);
+  color: color-mix(in srgb, var(--tv-bg-canvas), #000 12%);
+}
+
+.tv-wallet-stepper-btn {
+  border: 1px solid color-mix(in srgb, var(--tv-border), transparent 28%);
+  background: color-mix(in srgb, var(--tv-bg-modal), #000 12%);
+  color: color-mix(in srgb, var(--tv-text-secondary), transparent 8%);
+  transition: border-color 0.15s ease, color 0.15s ease;
+}
+
+.tv-wallet-stepper-btn:hover {
+  border-color: color-mix(in srgb, var(--tv-accent), transparent 48%);
+  color: var(--tv-accent);
+}
+
+.tv-wallet-summary-card {
+  border: 1px solid color-mix(in srgb, var(--tv-border), transparent 28%);
+  background: color-mix(in srgb, var(--tv-bg-modal), #000 10%);
+  box-shadow: 0 14px 32px color-mix(in srgb, var(--tv-bg-canvas), transparent 74%);
+}
+
+.tv-runtime-badge {
+  border: 1px solid color-mix(in srgb, var(--tv-border), transparent 24%);
+  background: color-mix(in srgb, var(--tv-bg-modal), #000 8%);
+  color: var(--tv-text-primary);
+  backdrop-filter: blur(8px);
+}
+
+.tv-runtime-badge--compact {
+  border-color: color-mix(in srgb, var(--tv-border), transparent 18%);
+  background: color-mix(in srgb, var(--tv-bg-rail), transparent 8%);
+  color: var(--tv-text-primary);
+  box-shadow: inset 0 1px 0 color-mix(in srgb, var(--tv-text-primary), transparent 94%);
+}
+
+.tv-runtime-badge--warning {
+  border-color: color-mix(in srgb, var(--tv-status-warning), transparent 42%);
+  background: color-mix(in srgb, var(--tv-status-warning), transparent 88%);
+  color: color-mix(in srgb, var(--tv-status-warning), #fff 72%);
+}
+
+.tv-runtime-badge--info {
+  border-color: color-mix(in srgb, var(--tv-type-lore), transparent 52%);
+  background: color-mix(in srgb, var(--tv-type-lore), transparent 90%);
+  color: color-mix(in srgb, var(--tv-type-lore), #fff 78%);
+}
+
+.tv-runtime-badge__meta {
+  color: color-mix(in srgb, var(--tv-text-secondary), transparent 4%);
+}
+
+.tv-runtime-badge--warning .tv-runtime-badge__meta {
+  color: color-mix(in srgb, var(--tv-status-warning), #fff 55%);
+}
+
+.tv-runtime-badge--info .tv-runtime-badge__meta {
+  color: color-mix(in srgb, var(--tv-type-lore), #fff 55%);
+}
+
+.tv-runtime-error-page {
+  display: flex;
+  min-height: 100vh;
+  align-items: center;
+  justify-content: center;
+  padding: 2.5rem 1rem;
+  background: var(--tv-bg-canvas);
+  color: var(--tv-text-primary);
+}
+
+.tv-runtime-error-card {
+  width: 100%;
+  max-width: 32rem;
+  border-radius: 1.5rem;
+  border: 1px solid color-mix(in srgb, var(--tv-status-danger), transparent 58%);
+  background: color-mix(in srgb, var(--tv-bg-modal), transparent 4%);
+  padding: 1.5rem;
+  box-shadow: 0 24px 48px color-mix(in srgb, var(--tv-status-danger), transparent 88%);
+}
+
+.tv-runtime-error-chip {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--tv-status-danger), transparent 58%);
+  background: color-mix(in srgb, var(--tv-status-danger), transparent 90%);
+  padding: 0.25rem 0.75rem;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--tv-status-danger), #fff 72%);
+}
+
+.tv-runtime-error-panel {
+  margin-top: 1.5rem;
+  border-radius: 1rem;
+  border: 1px solid color-mix(in srgb, var(--tv-border), transparent 24%);
+  background: color-mix(in srgb, var(--tv-bg-canvas), #000 8%);
+  padding: 1rem;
+}
+
+.tv-runtime-error-message {
+  margin-top: 0.5rem;
+  white-space: pre-wrap;
+  word-break: break-word;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 0.75rem;
+  line-height: 1.25rem;
+  color: color-mix(in srgb, var(--tv-status-danger), #fff 68%);
+}
+
+.tv-ambience-accent-warm,
+.tv-ambience-accent-forest {
+  background: linear-gradient(
+    to right,
+    color-mix(in srgb, var(--tv-status-warning), transparent 70%),
+    color-mix(in srgb, var(--tv-accent), transparent 90%),
+    transparent
+  );
+}
+
+.tv-ambience-accent-dungeon {
+  background: linear-gradient(
+    to right,
+    color-mix(in srgb, var(--tv-text-secondary), transparent 70%),
+    color-mix(in srgb, var(--tv-border), transparent 88%),
+    transparent
+  );
+}
+
+.tv-ambience-accent-ocean {
+  background: linear-gradient(
+    to right,
+    color-mix(in srgb, var(--tv-type-lore), transparent 70%),
+    color-mix(in srgb, var(--tv-type-lore), transparent 90%),
+    transparent
+  );
 }

@@ -233,7 +233,7 @@ export default function TopBar({ role, sessionId, sessionNumber, theme, combatSt
                       <Settings className="h-3.5 w-3.5" /> Sessiebeheer
                     </button>
                   ) : null}
-                  <div className="my-1 h-px bg-white/10" />
+                  <div className="my-1 tv-divider" />
                   <button
                     type="button"
                     onClick={() => {
@@ -262,7 +262,7 @@ export default function TopBar({ role, sessionId, sessionNumber, theme, combatSt
             >
               <span className="relative flex h-7 w-7 items-center justify-center rounded-lg tv-panel-inset">
                 <span
-                  className={`absolute right-1.5 top-1.5 h-1.5 w-1.5 rounded-full ${ambience?.isPlaying ? 'bg-[color:var(--tv-accent)]' : 'bg-stone-500'}`}
+                  className={`absolute right-1.5 top-1.5 h-1.5 w-1.5 rounded-full ${ambience?.isPlaying ? 'bg-[color:var(--tv-accent)]' : 'tv-status-dot--inactive'}`}
                   style={ambience?.isPlaying ? { boxShadow: 'var(--tv-glow)' } : undefined}
                 />
                 {ambience?.isPlaying ? <Pause className="h-3.5 w-3.5" /> : <Music className="h-3.5 w-3.5" />}
@@ -332,7 +332,7 @@ export default function TopBar({ role, sessionId, sessionNumber, theme, combatSt
                   }}
                 />
                 <span className="absolute inset-[2px] rounded-full tv-input-surface" />
-                <span className={`relative z-10 block h-1.5 w-1.5 rounded-full ${isMyTurn ? 'bg-[color:var(--tv-text-primary)] animate-pulse' : 'bg-stone-300'}`} />
+                <span className={`relative z-10 block h-1.5 w-1.5 rounded-full ${isMyTurn ? 'bg-[color:var(--tv-text-primary)] animate-pulse' : 'tv-status-dot--inactive'}`} />
               </span>
             ) : null}
           </button>

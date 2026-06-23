@@ -5,7 +5,7 @@ const VERIFIED_AMBIENCE_TRACKS = [
     title: 'Tavern - Music and Ambience',
     subtitle: 'Warme snaarinstrumenten, glasgerinkel en rustig geroezemoes.',
     filePath: '/audio/Tavern - Music and Ambience.mp3',
-    accentClassName: 'from-amber-600/30 via-amber-400/10 to-stone-950',
+    accentTone: 'warm',
     source: {
       creator: 'Vlad Bakutov',
       platform: 'Pixabay',
@@ -20,7 +20,7 @@ const VERIFIED_AMBIENCE_TRACKS = [
     title: 'Forest - Ambience',
     subtitle: 'Voorjaarswind, vogels en een open veldrand in de verte.',
     filePath: '/audio/Forest - Ambience.mp3',
-    accentClassName: 'from-amber-600/30 via-amber-400/10 to-stone-950',
+    accentTone: 'forest',
     source: {
       creator: 'klankbeeld',
       platform: 'Freesound',
@@ -35,7 +35,7 @@ const VERIFIED_AMBIENCE_TRACKS = [
     title: 'Dungeon - Ambience',
     subtitle: 'Diepe galm, vochtige stenen en ondergrondse spanning.',
     filePath: '/audio/Dungeon - Ambience.mp3',
-    accentClassName: 'from-slate-500/30 via-slate-300/10 to-stone-950',
+    accentTone: 'dungeon',
     source: {
       creator: 'phlair',
       platform: 'Freesound',
@@ -50,7 +50,7 @@ const VERIFIED_AMBIENCE_TRACKS = [
     title: 'Ocean - Ambience',
     subtitle: 'Constante branding voor kades, kliffen en zeereizen.',
     filePath: '/audio/Ocean - Ambience.mp3',
-    accentClassName: 'from-sky-500/30 via-cyan-300/10 to-stone-950',
+    accentTone: 'ocean',
     source: {
       creator: 'Profispiesser',
       platform: 'Freesound',

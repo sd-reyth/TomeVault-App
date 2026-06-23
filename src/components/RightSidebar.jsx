@@ -117,7 +117,7 @@ function StatusTurnIndicator({ turnsUntil, ratio, isCurrentTurn, theme = 'dark' 
       className={`relative flex h-11 w-11 shrink-0 items-center justify-center rounded-full border ${
         isCurrentTurn
               ? 'border-[var(--tv-accent)]/60 shadow-[0_0_14px_color-mix(in_srgb,var(--tv-accent),transparent_50%)]'
-          : 'border-white/20'
+          : 'border-[color-mix(in_srgb,var(--tv-border),transparent_28%)]'
       }`}
       title={isCurrentTurn ? 'Jouw beurt' : `Nog ${turnsUntil ?? '-'} beurt(en)`}
     >
@@ -146,7 +146,7 @@ function TurnClockBadge({ turnsUntil, ratio, isCurrentTurn, theme = 'dark' }) {
       className={`relative flex h-7 w-7 shrink-0 items-center justify-center rounded-full border ${
         isCurrentTurn
           ? 'border-[var(--tv-accent)]/55 shadow-[0_0_8px_color-mix(in_srgb,var(--tv-accent),transparent_55%)] tv-pulse-ring'
-          : 'border-white/20'
+          : 'border-[color-mix(in_srgb,var(--tv-border),transparent_28%)]'
       }`}
       title={isCurrentTurn ? 'Nu aan zet' : `Nog ${turnsUntil ?? '-'} beurt(en)`}
     >
@@ -709,7 +709,7 @@ function RightSidebar({
           lg:relative lg:left-auto lg:right-0 lg:top-0 lg:h-full lg:translate-x-0 lg:z-0 lg:flex lg:border-l lg:border-t-0 lg:w-[var(--battle-sidebar-width)] lg:min-w-[var(--battle-sidebar-width)] lg:max-w-[var(--battle-sidebar-width)] lg:shadow-none lg:shadow-[0_22px_60px_rgba(0,0,0,0.34)]
         `}
       >
-        <div className="absolute top-0 left-0 hidden h-full w-1 bg-gradient-to-b from-white/8 via-zinc-900 to-white/8 md:block" />
+        <div className="absolute top-0 left-0 hidden h-full w-1 bg-gradient-to-b from-white/8 color-mix(in srgb, var(--tv-border), transparent 40%) to-white/8 md:block" />
         <button
           type="button"
           aria-label="Sleep om slagordebreedte aan te passen"
@@ -717,7 +717,7 @@ function RightSidebar({
           onDoubleClick={() => setSidebarWidth(RIGHT_SIDEBAR_DEFAULT_WIDTH)}
           className="absolute left-0 top-0 hidden h-full w-3 translate-x-1/2 cursor-col-resize md:block"
         >
-          <span className={`absolute left-1/2 top-1/2 h-16 w-[3px] -translate-x-1/2 -translate-y-1/2 rounded-full transition-colors ${isDragging ? 'bg-white/60 shadow-[0_0_12px_rgba(255,255,255,0.25)]' : 'bg-white/10 hover:bg-white/25'}`} />
+          <span className={`absolute left-1/2 top-1/2 h-16 w-[3px] -translate-x-1/2 -translate-y-1/2 rounded-full transition-colors ${isDragging ? 'tv-drag-handle tv-drag-handle--active shadow-[0_0_12px_color-mix(in_srgb,var(--tv-text-primary),transparent_75%)]' : 'tv-drag-handle hover:tv-drag-handle--active'}`} />
         </button>
 
         <div className="tv-view-shell-header mt-14 border-b px-3.5 py-3 md:mt-0 md:px-4 md:py-3.5">
@@ -999,7 +999,7 @@ function RightSidebar({
               member.isNpc
                 ? 'border-rose-900/30 bg-rose-950/20 hover:border-rose-500/50'
                 : 'border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] tv-view-card hover:border-[color-mix(in_srgb,var(--tv-accent),transparent_58%)]'
-            } ${hasConditions ? `tv-condition-pulse ${CONDITION_COLORS[conditionColor] || ''}` : ''} ${isCurrentTurn ? (battleActive ? 'ring-1 ring-[var(--tv-accent)]/60 bg-[color-mix(in_srgb,var(--tv-accent),transparent_92%)] shadow-[0_0_12px_color-mix(in_srgb,var(--tv-accent),transparent_60%)]' : 'ring-1 ring-stone-600') : ''}`;
+            } ${hasConditions ? `tv-condition-pulse ${CONDITION_COLORS[conditionColor] || ''}` : ''} ${isCurrentTurn ? (battleActive ? 'ring-1 ring-[var(--tv-accent)]/60 bg-[color-mix(in_srgb,var(--tv-accent),transparent_92%)] shadow-[0_0_12px_color-mix(in_srgb,var(--tv-accent),transparent_60%)]' : 'ring-1 ring-[color-mix(in_srgb,var(--tv-border),transparent_30%)]') : ''}`;
 
             return (
               <div
@@ -1008,7 +1008,7 @@ function RightSidebar({
                 className={cardClassName}
               >
                 {isCurrentTurn ? (
-                  <div className={`absolute -left-[1px] top-0 bottom-0 w-[3px] rounded-l-lg ${battleActive ? 'tv-breathe-glow' : 'bg-stone-500'}`} style={battleActive ? {background: 'var(--tv-accent)'} : {}} />
+                  <div className={`absolute -left-[1px] top-0 bottom-0 w-[3px] rounded-l-lg ${battleActive ? 'tv-breathe-glow' : 'bg-[color-mix(in_srgb,var(--tv-border),transparent_20%)]'}`} style={battleActive ? {background: 'var(--tv-accent)'} : {}} />
                 ) : null}
 
                 {/* Action Panel */}
@@ -1026,7 +1026,7 @@ function RightSidebar({
                     >
                       <ConditionIcon className="h-3.5 w-3.5" />
                       {extraConditionsCount > 0 ? (
-                        <span className="absolute -right-1 -top-1 inline-flex h-3.5 min-w-3.5 items-center justify-center rounded-full border border-stone-950 bg-stone-100 px-1 text-[8px] font-bold leading-none text-stone-900 md:-right-2 md:-top-2 md:h-4 md:min-w-4 md:text-[9px]">
+                        <span className="absolute -right-1 -top-1 inline-flex h-3.5 min-w-3.5 items-center justify-center rounded-full tv-count-pill px-1 text-[8px] font-bold leading-none md:-right-2 md:-top-2 md:h-4 md:min-w-4 md:text-[9px]">
                           +{extraConditionsCount}
                         </span>
                       ) : null}
