@@ -104,10 +104,13 @@ function InventoryView({ role, inventory, wallets, party, currentPlayerId, hando
           <div className="relative overflow-visible py-2 md:py-3">
             <WalletSection
               title="Gezamenlijke Kas (GM)"
+              description="Hier bewaren jullie samen de buit van de groep. Verdeel slim en houd de balans in het oog."
               wallet={wallets.party}
               isGm={true}
               editable={true}
               onAdjust={(coinKey, delta) => onAdjustWallet?.('party', coinKey, delta)}
+              onPrimaryAction={onOpenAddItem}
+              primaryActionLabel="Nieuw item"
             />
           </div>
         )}

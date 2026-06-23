@@ -1,6 +1,15 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 
-function WalletSection({ title, wallet, isGm, editable = false, onAdjust }) {
+function WalletSection({
+  title,
+  wallet,
+  isGm,
+  editable = false,
+  onAdjust,
+  description,
+  onPrimaryAction,
+  primaryActionLabel = 'Nieuw item',
+}) {
   const [editingCoin, setEditingCoin] = useState(null);
   const [inputValue, setInputValue] = useState('');
 
@@ -15,29 +24,59 @@ function WalletSection({ title, wallet, isGm, editable = false, onAdjust }) {
   const coins = [
     {
       key: 'platinum',
-      label: 'PLATINUM',
-      icon: 'P',
-      glowColor: 'bg-sky-300/20',
+      label: 'Platinum',
+      icon: 'Pt',
+      iconColor: '#bae6fd',
+      glowColor: 'bg-sky-300/18',
     },
     {
       key: 'gold',
-      label: 'GOLD',
-      icon: 'G',
-      glowColor: 'bg-amber-400/20',
+      label: 'Gold',
+      icon: 'Au',
+      iconColor: '#fcd34d',
+      glowColor: 'bg-amber-400/18',
     },
     {
       key: 'silver',
-      label: 'SILVER',
-      icon: 'S',
-      glowColor: 'bg-slate-200/18',
+      label: 'Silver',
+      icon: 'Ag',
+      iconColor: '#e2e8f0',
+      glowColor: 'bg-slate-200/16',
     },
     {
       key: 'bronze',
-      label: 'COPPER',
-      icon: 'C',
-      glowColor: 'bg-orange-400/20',
+      label: 'Copper',
+      icon: 'Cu',
+      iconColor: '#fdba74',
+      glowColor: 'bg-orange-400/18',
     },
   ];
+
+  const safeWallet = useMemo(
+    () =>
+      coinOrder.reduce((acc, key) => {
+        acc[key] = Math.max(0, Number(wallet?.[key] || 0));
+        return acc;
+      }, {}),
+    [wallet]
+  );
+
+  const totalBronze =
+    safeWallet.platinum * unitFactor.platinum +
+    safeWallet.gold * unitFactor.gold +
+    safeWallet.silver * unitFactor.silver +
+    safeWallet.bronze;
+
+  const totalGoldEquivalent = totalBronze / unitFactor.gold;
+  const isEmptyWallet = totalBronze === 0;
+
+  const formatGoldEquivalent = (value) => {
+    if (value === 0) return '0';
+    return Number(value.toFixed(2)).toLocaleString('nl-NL', {
+      minimumFractionDigits: value < 1 ? 2 : 0,
+      maximumFractionDigits: 2,
+    });
+  };
 
   const normalizeWallet = (nextWallet) => {
     const safe = coinOrder.reduce((acc, key) => {
@@ -45,13 +84,13 @@ function WalletSection({ title, wallet, isGm, editable = false, onAdjust }) {
       return acc;
     }, {});
 
-    const totalBronze =
+    const nextTotalBronze =
       safe.platinum * unitFactor.platinum +
       safe.gold * unitFactor.gold +
       safe.silver * unitFactor.silver +
       safe.bronze;
 
-    let remainder = Math.max(0, Math.floor(totalBronze));
+    let remainder = Math.max(0, Math.floor(nextTotalBronze));
 
     const normalized = {
       platinum: Math.floor(remainder / unitFactor.platinum),
@@ -92,7 +131,7 @@ function WalletSection({ title, wallet, isGm, editable = false, onAdjust }) {
     }
 
     const value = parseInt(inputValue, 10);
-    if (!isNaN(value)) {
+    if (!Number.isNaN(value)) {
       const draftWallet = {
         ...wallet,
         [coinKey]: Math.max(0, value),
@@ -123,77 +162,126 @@ function WalletSection({ title, wallet, isGm, editable = false, onAdjust }) {
   };
 
   return (
-    <div className="relative isolate px-2 py-8 md:px-4 md:py-10">
+    <div className="relative isolate px-2 py-4 md:px-4 md:py-6">
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute inset-x-0 top-1/2 h-64 -translate-y-1/2 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-black/40 via-emerald-950/12 to-transparent blur-2xl"
+        className="pointer-events-none absolute inset-x-0 top-1/2 h-72 -translate-y-1/2 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-black/50 via-fuchsia-950/16 to-transparent blur-2xl"
       />
-      {title && (
-        <h2 className="relative z-10 mb-6 text-center text-3xl font-fantasy text-stone-100/95 md:text-5xl">
-          {title}
-        </h2>
-      )}
-      <div className="relative z-10 mx-auto flex w-full max-w-5xl items-start justify-center gap-6 sm:gap-10 md:gap-14">
-        {coins.map((coin, index) => (
-          <div key={coin.key} className="group relative flex min-w-[74px] flex-col items-center">
-            <div
-              className={`pointer-events-none absolute -top-5 h-24 w-24 ${coin.glowColor} rounded-full blur-3xl sm:h-28 sm:w-28 md:h-32 md:w-32`}
-              aria-hidden="true"
-            />
-            <div
-              aria-label={coin.label}
-              className="relative z-10 flex h-14 w-14 items-center justify-center rounded-full border border-white/20 bg-zinc-950/90 text-2xl shadow-[0_10px_24px_rgba(0,0,0,0.45)] transition-transform duration-300 group-hover:-translate-y-1 sm:h-16 sm:w-16 sm:text-[1.75rem] md:h-20 md:w-20 md:text-[2.15rem]"
-              style={{ animation: `walletFloat 4.6s ease-in-out ${index * 0.24}s infinite` }}
-            >
-              <span className="leading-none" aria-hidden="true">{coin.icon}</span>
-            </div>
 
-            <div className="mt-5 flex items-center gap-1 sm:gap-2">
-              <button
-                type="button"
-                onClick={() => handleAdjust(coin.key, -1)}
-                className="cursor-pointer text-2xl leading-none text-white/30 transition-colors hover:text-[var(--theme-accent)] sm:text-3xl"
-                aria-label={`${coin.label} verminderen`}
-              >
-                ⟨
-              </button>
-
-              {editingCoin === coin.key ? (
-                <input
-                  type="number"
-                  value={inputValue}
-                  onChange={handleInputChange}
-                  onBlur={() => handleInputSubmit(coin.key)}
-                  onKeyDown={(e) => e.key === 'Enter' && handleInputSubmit(coin.key)}
-                  className="w-16 bg-transparent text-center font-fantasy text-3xl font-bold text-white drop-shadow-md focus:outline-none sm:w-20 sm:text-4xl md:text-5xl"
-                  autoFocus
-                />
-              ) : (
-                <button
-                  type="button"
-                  onClick={() => beginEditCoin(coin.key)}
-                  className="min-w-[2.4ch] cursor-text text-center font-fantasy text-3xl font-bold text-white drop-shadow-md sm:text-4xl md:text-5xl"
-                  aria-label={`${coin.label} aanpassen`}
-                >
-                  {wallet?.[coin.key] ?? 0}
-                </button>
-              )}
-
-              <button
-                type="button"
-                onClick={() => handleAdjust(coin.key, 1)}
-                className="cursor-pointer text-2xl leading-none text-white/30 transition-colors hover:text-[var(--theme-accent)] sm:text-3xl"
-                aria-label={`${coin.label} verhogen`}
-              >
-                ⟩
-              </button>
-            </div>
-
-            <div className="mt-2 text-[9px] uppercase tracking-[0.3em] text-white/40 sm:text-[10px]">
-              {coin.label}
-            </div>
+      <div className="relative z-10 mx-auto w-full max-w-5xl">
+        {(title || description) && (
+          <div className="mb-6 text-center md:mb-8">
+            {title && (
+              <h2 className="text-3xl font-fantasy font-semibold text-stone-100/95 md:text-4xl">
+                {title}
+              </h2>
+            )}
+            {description && (
+              <p className="mx-auto mt-2 max-w-2xl text-sm text-stone-300/80 md:text-base">
+                {description}
+              </p>
+            )}
           </div>
-        ))}
+        )}
+
+        <div className="mb-6 grid grid-cols-2 gap-3 md:mb-8 md:grid-cols-4 md:gap-4">
+          {coins.map((coin, index) => (
+            <div
+              key={coin.key}
+              className="group relative overflow-hidden rounded-2xl border border-white/10 bg-zinc-950/45 p-4 shadow-[0_10px_30px_rgba(0,0,0,0.32)] transition-all duration-300 hover:-translate-y-0.5 hover:border-[color:var(--tv-accent)]/45 hover:shadow-[0_16px_34px_rgba(0,0,0,0.42)]"
+            >
+              <div
+                className={`pointer-events-none absolute -top-5 left-1/2 h-24 w-24 -translate-x-1/2 ${coin.glowColor} rounded-full blur-3xl transition-opacity duration-300 group-hover:opacity-90`}
+                aria-hidden="true"
+              />
+
+              <div className="relative z-10 flex flex-col items-center">
+                <div
+                  aria-label={coin.label}
+                  className="mb-3 flex h-12 w-12 items-center justify-center rounded-full border border-white/20 bg-zinc-950/90 text-xl font-semibold shadow-[0_8px_24px_rgba(0,0,0,0.45)] transition-transform duration-300 group-hover:scale-105"
+                  style={{ animation: `walletFloat 4.6s ease-in-out ${index * 0.24}s infinite`, color: coin.iconColor }}
+                >
+                  <span className="leading-none" aria-hidden="true">{coin.icon}</span>
+                </div>
+
+                <div className="mb-1 text-[11px] uppercase tracking-[0.2em] text-stone-400/90">
+                  {coin.label}
+                </div>
+
+                <div className="mb-2 flex items-center gap-1.5">
+                  <button
+                    type="button"
+                    onClick={() => handleAdjust(coin.key, -1)}
+                    className="h-7 w-7 rounded-md border border-white/12 bg-black/30 text-sm leading-none text-white/40 transition-colors hover:border-white/30 hover:text-[var(--tv-accent)]"
+                    aria-label={`${coin.label} verminderen`}
+                  >
+                    -
+                  </button>
+
+                  {editingCoin === coin.key ? (
+                    <input
+                      type="number"
+                      value={inputValue}
+                      onChange={handleInputChange}
+                      onBlur={() => handleInputSubmit(coin.key)}
+                      onKeyDown={(e) => e.key === 'Enter' && handleInputSubmit(coin.key)}
+                      className="hide-arrows w-14 bg-transparent text-center font-fantasy text-3xl font-bold text-white drop-shadow-md focus:outline-none"
+                      autoFocus
+                    />
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => beginEditCoin(coin.key)}
+                      className="min-w-[2.4ch] cursor-text text-center font-fantasy text-3xl font-bold text-white drop-shadow-md"
+                      aria-label={`${coin.label} aanpassen`}
+                    >
+                      {safeWallet[coin.key]}
+                    </button>
+                  )}
+
+                  <button
+                    type="button"
+                    onClick={() => handleAdjust(coin.key, 1)}
+                    className="h-7 w-7 rounded-md border border-white/12 bg-black/30 text-sm leading-none text-white/40 transition-colors hover:border-white/30 hover:text-[var(--tv-accent)]"
+                    aria-label={`${coin.label} verhogen`}
+                  >
+                    +
+                  </button>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <div className="rounded-2xl border border-white/12 bg-black/35 p-4 shadow-[0_14px_32px_rgba(0,0,0,0.26)] backdrop-blur-sm md:p-5">
+          <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+            <div>
+              <div className="text-[11px] uppercase tracking-[0.2em] text-stone-400">Totale waarde</div>
+              <div className="mt-1 text-2xl font-semibold tabular-nums text-stone-100 md:text-3xl">
+                {formatGoldEquivalent(totalGoldEquivalent)} goud
+              </div>
+              <p className="mt-1 text-xs text-stone-400/80">Automatisch bijgewerkt bij mutaties.</p>
+            </div>
+
+            {onPrimaryAction && (
+              <button
+                type="button"
+                onClick={onPrimaryAction}
+                className="inline-flex h-11 items-center justify-center rounded-xl border border-amber-400/35 bg-[linear-gradient(120deg,rgba(146,64,14,0.92),rgba(217,119,6,0.86))] px-5 text-sm font-semibold uppercase tracking-[0.12em] text-amber-50 transition-all duration-200 hover:brightness-110 active:scale-[0.985]"
+              >
+                + {primaryActionLabel}
+              </button>
+            )}
+          </div>
+
+          {isEmptyWallet && (
+            <div className="mt-4 rounded-xl border border-dashed border-white/15 bg-white/5 px-4 py-3 text-sm text-stone-300/90">
+              {isGm
+                ? 'De kas is nog leeg. Voeg een buit-item toe of zet de eerste munten klaar voor het gezelschap.'
+                : 'Deze buidel is nog leeg. Voeg een item toe of ontvang buit van de groep.'}
+            </div>
+          )}
+        </div>
       </div>
 
       <style>
