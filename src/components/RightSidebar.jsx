@@ -1217,7 +1217,7 @@ function RightSidebar({
                 disabled={combatInProgress || isActionBusy}
                 title="Rol alle initiative"
                 aria-label="Rol alle initiative"
-                className={`tv-icon-btn h-11 w-full ${combatInProgress ? 'cursor-not-allowed opacity-50' : ''}`}
+                className={`tv-satisfy-pop tv-icon-btn h-11 w-full ${combatInProgress ? 'cursor-not-allowed opacity-50' : ''}`}
               >
                 <Dice5 className="h-4 w-4" />
               </button>
