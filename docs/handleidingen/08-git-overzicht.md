@@ -133,3 +133,55 @@ Oude commit-berichten hernoemen = **geschiedenis herschrijven**. Dat:
 
 **Branches zijn wel hernoemd.** Voor commits staat de vertaling in de tabel hierboven.
 Vanaf nu kunnen we nieuwe commits wél met duidelijke Nederlandse namen maken.
+
+---
+
+## Werken op een andere laptop (Cursor)
+
+Je bent **niet gebonden aan één laptop**. De code hoort op **GitHub** te staan; elke laptop haalt die op via Cursor.
+
+### Eenmalig op deze laptop (nu)
+
+1. Zorg dat GitHub de branch `actieve-werkversie` heeft:
+   ```powershell
+   cd "C:\Users\mholt\Documents\TomeVault App"
+   git push -u origin actieve-werkversie
+   ```
+2. Als Windows om inloggen vraagt: log in op GitHub (browser of Git Credential Manager).
+
+### Op de andere laptop (eerste keer)
+
+1. Installeer [Cursor](https://cursor.com) en [Git](https://git-scm.com).
+2. Clone het project:
+   ```powershell
+   git clone https://github.com/sd-reyth/TomeVault-App.git
+   cd TomeVault-App
+   git checkout actieve-werkversie
+   npm install
+   npm run dev
+   ```
+3. Open de map in Cursor: **File → Open Folder**.
+
+### Elke keer als je wisselt van laptop
+
+| Actie | Commando |
+|-------|----------|
+| **Voor je weggaat** — werk opslaan in de cloud | `git add .` → `git commit -m "beschrijving"` → `git push` |
+| **Op andere laptop** — nieuwste code ophalen | `git pull` |
+| **Live site bijwerken** (optioneel) | `npm run build` → `npm run deploy:hosting` |
+
+### Wat loopt waar?
+
+| Plaats | Wat staat er? | Voor wie? |
+|--------|---------------|-----------|
+| Jouw laptop | Werkkopie + Cursor | Jij, tijdens ontwikkelen |
+| **GitHub** (`actieve-werkversie`) | Broncode, versiegeschiedenis | Jij, op alle laptops |
+| **Firebase** (`tomevaultapp.web.app`) | Live website voor spelers | Jouw spelers / testers |
+
+GitHub = code sync tussen laptops. Firebase = wat gebruikers online zien.
+
+### Let op: twee versies op GitHub
+
+- **`actieve-werkversie`** — jouw echte app (`App.jsx`) ← gebruik deze
+- **`main`** — oudere Grok/TypeScript-lijn (`App.tsx`) — negeren tenzij je bewust terugschakelt
+
