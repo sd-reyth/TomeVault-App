@@ -1,4 +1,5 @@
 import React, { useMemo, useState } from 'react';
+import { playUiSound } from '../lib/uiFeedback';
 import {
   mdiDiceD4,
   mdiDiceD6,
@@ -113,6 +114,8 @@ export default function DiceRoller({ onRoll, theme, embedded = false }) {
       }));
 
     if (!rolls.length) return;
+
+    playUiSound('dice');
 
     const total = rolls
       .flatMap((entry) => entry.rolls)

@@ -160,7 +160,7 @@ export default function TopBar({ role, sessionId, sessionNumber, theme, combatSt
       {turnAlert && role === 'player' ? (
         <div className="pointer-events-none absolute left-1/2 top-[calc(100%+0.4rem)] z-40 w-[calc(100%-1rem)] max-w-sm -translate-x-1/2">
           <div
-            className={`flex items-center justify-center gap-2 rounded-full border px-3 py-2 shadow-[0_12px_30px_rgba(0,0,0,0.28)] ${turnAlert.variant === 'now' ? 'border-amber-500/35 bg-amber-950/90 text-amber-100' : (turnAlert.variant === 'start' ? 'border-indigo-500/35 bg-indigo-950/90 text-indigo-100' : 'border-cyan-500/30 bg-cyan-950/88 text-cyan-100')}`}
+            className={`tv-turn-alert ${turnAlert.variant === 'now' ? 'tv-turn-alert--now' : (turnAlert.variant === 'start' ? 'tv-turn-alert--start' : 'tv-turn-alert--wait')}`}
             role="status"
             aria-live="polite"
             aria-label={turnAlert.label}
@@ -240,7 +240,7 @@ export default function TopBar({ role, sessionId, sessionNumber, theme, combatSt
                       onLogout();
                       setIsSessionMenuOpen(false);
                     }}
-                    className="inline-flex h-10 w-full items-center gap-2 rounded-xl px-3 text-xs font-medium tracking-[0.08em] tv-text-sub transition-all duration-200 ease-out hover:bg-rose-500/10 hover:text-rose-200 active:scale-[0.985] md:hidden"
+                    className="inline-flex h-10 w-full items-center gap-2 rounded-xl px-3 text-xs font-medium tracking-[0.08em] tv-text-sub transition-all duration-200 ease-out tv-hover-danger active:scale-[0.985] md:hidden"
                   >
                     <LogOut className="h-3.5 w-3.5" /> Verlaat sessie
                   </button>
@@ -351,7 +351,7 @@ export default function TopBar({ role, sessionId, sessionNumber, theme, combatSt
 
             <button
               onClick={onLogout}
-              className="flex h-10 w-10 items-center justify-center rounded-xl tv-text-sub transition-all duration-200 ease-out hover:bg-rose-500/10 hover:text-rose-200 active:scale-[0.985]"
+              className="flex h-10 w-10 items-center justify-center rounded-xl tv-text-sub transition-all duration-200 ease-out tv-hover-danger active:scale-[0.985]"
               title="Verlaat Sessie"
             >
               <LogOut className="h-5 w-5" />
@@ -424,7 +424,7 @@ export default function TopBar({ role, sessionId, sessionNumber, theme, combatSt
                     onLogout();
                     setIsMobileActionsOpen(false);
                   }}
-                  className="inline-flex h-10 w-full items-center gap-2 rounded-xl px-3 text-xs font-medium tracking-[0.08em] tv-text-sub transition-all duration-200 ease-out hover:bg-rose-500/10 hover:text-rose-200 active:scale-[0.985]"
+                  className="inline-flex h-10 w-full items-center gap-2 rounded-xl px-3 text-xs font-medium tracking-[0.08em] tv-text-sub transition-all duration-200 ease-out tv-hover-danger active:scale-[0.985]"
                 >
                   <LogOut className="h-3.5 w-3.5" /> Verlaat sessie
                 </button>

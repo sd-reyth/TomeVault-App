@@ -48,6 +48,7 @@ import {
   formatLastEditedLabel,
 } from './lib/sessionUtils';
 import { safeLocalStorageGet, safeLocalStorageSet } from './lib/browserStorage';
+import { bindGlobalUiSounds, isUiSoundsEnabled, primeUiAudio, setUiSoundsEnabled } from './lib/uiFeedback';
 import { getLocalDevBootstrapConfig, getRuntimeBadgeState } from './lib/runtimeContext';
 import {
   COMBAT_JOIN_REQUEST_STATUS,
@@ -452,6 +453,12 @@ export default function TomeVaultApp() {
     const saved = safeLocalStorageGet('tv_brightness');
     return Number(saved) || 2; // Default to 2 (Normaal)
   });
+  const [uiSounds, setUiSounds] = useState(() => isUiSoundsEnabled());
+
+  useEffect(() => {
+    primeUiAudio();
+    return bindGlobalUiSounds(document);
+  }, []);
 
   // Map brightness steps (0-4) to actual CSS filter values
   const brightnessFilterValues = [0.62, 0.80, 1.0, 1.18, 1.36];
@@ -3207,10 +3214,14 @@ export default function TomeVaultApp() {
     }
   };
 
-  const handleSaveSettings = async ({ nextPlayerName, nextTheme, nextBrightness, nextSessionNumber }) => {
+  const handleSaveSettings = async ({ nextPlayerName, nextTheme, nextBrightness, nextSessionNumber, nextUiSounds }) => {
     if (typeof nextPlayerName === 'string') setPlayerName(nextPlayerName);
     if (typeof nextTheme === 'string') applyTheme(nextTheme);
     if (Number.isFinite(nextBrightness)) handleBrightnessChange(nextBrightness);
+    if (typeof nextUiSounds === 'boolean') {
+      setUiSounds(nextUiSounds);
+      setUiSoundsEnabled(nextUiSounds);
+    }
     if (role === 'gm' && Number.isFinite(Number(nextSessionNumber))) {
       await handleUpdateCampaignSessionNumber(nextSessionNumber);
     }
@@ -3647,13 +3658,13 @@ export default function TomeVaultApp() {
   return (
     <div className="tv-app tv-app-shell relative flex h-screen w-full flex-col overflow-hidden font-sans tv-text" data-theme={theme} data-brightness-step={brightness}>
       {appUpdateNotice ? (
-        <div className="absolute inset-x-4 top-3 z-50 mx-auto max-w-3xl rounded-xl border border-amber-700/60 bg-amber-950/90 px-4 py-3 text-amber-100 shadow-lg shadow-amber-950/40 backdrop-blur">
+        <div className="absolute inset-x-4 top-3 z-50 mx-auto max-w-3xl rounded-xl px-4 py-3 tv-update-banner">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <p className="text-sm font-medium">{appUpdateNotice}</p>
             <button
               type="button"
               onClick={() => window.location.reload()}
-              className="rounded-lg border border-amber-500/50 bg-amber-500/20 px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.16em] text-amber-100 transition hover:bg-amber-500/30"
+              className="tv-satisfy-pop rounded-lg px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.16em] tv-update-banner__action"
             >
               Nu verversen
             </button>
@@ -3974,6 +3985,7 @@ export default function TomeVaultApp() {
           exportBusy={isArchiveExporting}
           theme={theme}
           brightness={brightness}
+          uiSounds={uiSounds}
           currentPlanLabel={currentAccessPlan.label}
           currentAccessPlan={currentAccessPlan}
           canOpenOwnerPanel={isOwner}

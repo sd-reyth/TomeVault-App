@@ -25,21 +25,21 @@ function getStatusMeta(preparation, party) {
   if (preparation.assignmentStatus === 'pending') {
     return {
       label: `Wacht op ${assignedName}`,
-      className: 'border-amber-900/50 bg-amber-950/40 text-amber-300',
+      className: 'tv-tone-secret-surface',
     };
   }
 
   if (preparation.assignmentStatus === 'accepted') {
     return {
       label: 'In gebruik',
-      className: 'border-amber-900/50 bg-amber-950/30 text-amber-300',
+      className: 'tv-tone-secret-surface',
     };
   }
 
   if (preparation.assignmentStatus === 'rejected') {
     return {
       label: 'Afgeslagen',
-      className: 'border-rose-900/40 bg-rose-950/20 text-rose-300',
+      className: 'tv-tone-enemy-surface',
     };
   }
 
@@ -313,7 +313,7 @@ export default function PreparationsView({
                 <button
                   type="button"
                   onClick={() => setShowBackups((value) => !value)}
-                  className="rounded-md border border-[color-mix(in_srgb,var(--tv-border),transparent_20%)] tv-chip-surface px-2.5 py-1 text-[10px] uppercase tracking-[0.16em] tv-text transition-colors hover:border-amber-700/50 hover:text-amber-300 xl:hidden"
+                  className="rounded-md border border-[color-mix(in_srgb,var(--tv-border),transparent_20%)] tv-chip-surface px-2.5 py-1 text-[10px] uppercase tracking-[0.16em] tv-text transition-colors hover:tv-border-emphasis hover:tv-tone-secret-text xl:hidden"
                 >
                   {showBackups ? 'Verberg' : 'Toon'}
                 </button>
@@ -333,14 +333,14 @@ export default function PreparationsView({
                       <div className="mt-2 text-sm font-medium tv-text">{backup.playerName || 'Onbekende speler'}</div>
                       <div className="mt-1 text-xs uppercase tracking-[0.16em] tv-muted">via {backup.templateName || 'Naamloze voorbereiding'}</div>
                       {backup.restoredAtMs ? (
-                        <p className="mt-3 text-[11px] uppercase tracking-[0.16em] text-amber-400">
+                        <p className="mt-3 text-[11px] uppercase tracking-[0.16em] tv-tone-secret-label">
                           Hersteld {formatPreparationTime(backup.restoredAtMs)}
                         </p>
                       ) : null}
                       <button
                         type="button"
                         onClick={() => handleRestore(backup)}
-                        className="mt-3 w-full rounded-xl border border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] tv-input-surface px-3 py-2 text-xs tracking-[0.14em] tv-text transition-all duration-200 ease-out hover:tv-input-surface hover:border-amber-500/30 hover:text-amber-300"
+                        className="mt-3 w-full rounded-xl border border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] tv-input-surface px-3 py-2 text-xs tracking-[0.14em] tv-text transition-all duration-200 ease-out hover:tv-input-surface hover:tv-border-emphasis hover:tv-tone-secret-text"
                       >
                         Zet terug
                       </button>

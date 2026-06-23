@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { playUiSound } from '../lib/uiFeedback';
 import {
   ArrowDown,
   ArrowUp,
@@ -292,6 +293,7 @@ function RightSidebar({
   useEffect(() => {
     if (!combatInProgress || !currentTurnId) return undefined;
     setTurnBannerFlash(true);
+    playUiSound('turn');
     const timer = window.setTimeout(() => setTurnBannerFlash(false), 950);
     return () => window.clearTimeout(timer);
   }, [currentTurnId, combatInProgress, turnRound]);
@@ -856,7 +858,7 @@ function RightSidebar({
                     onClick={() => setEndCombatConfirmOpen(true)}
                     disabled={!combatInProgress || isActionBusy}
                     aria-label="Beëindig gevecht direct"
-                    className={`tv-action-square w-full rounded-xl border transition-all duration-200 ${combatInProgress && !isActionBusy ? 'border-rose-700/70 bg-rose-950/40 text-rose-300 hover:border-rose-500/80 hover:bg-rose-900/40 hover:text-rose-100 hover:scale-[1.02] active:scale-[0.985]' : 'cursor-not-allowed tv-chip-surface tv-muted opacity-60'}`}
+                    className={`tv-action-square w-full rounded-xl border transition-all duration-200 ${combatInProgress && !isActionBusy ? 'tv-tone-enemy-button hover:scale-[1.02] active:scale-[0.985]' : 'cursor-not-allowed tv-chip-surface tv-muted opacity-60'}`}
                     title={combatInProgress ? 'Beëindig gevecht direct' : 'Nog geen gevecht om te beëindigen'}
                   >
                     <Skull className="h-4 w-4" />
@@ -965,8 +967,8 @@ function RightSidebar({
           ) : null}
 
           {showCombatJoinPanel ? (
-            <div className="mt-3 tv-panel-inset border-indigo-900/40 px-3 py-3">
-              <div className="mb-2 text-[10px] font-bold uppercase tracking-[0.18em] text-indigo-400">Niet in gevecht</div>
+            <div className="mt-3 tv-tone-ally-surface px-3 py-3">
+              <div className="mb-2 text-[10px] font-bold uppercase tracking-[0.18em] tv-tone-ally-text">Niet in gevecht</div>
               <p className="mb-3 text-xs leading-5 tv-text-sub">
                 Je staat nu buiten de initiativelijst. Dien een verzoek in om weer mee te doen.
               </p>
@@ -974,7 +976,7 @@ function RightSidebar({
                 type="button"
                 onClick={handleRequestJoinCombat}
                 disabled={!canRequestCombatJoin || isActionBusy}
-                className={`flex w-full items-center justify-center rounded-lg border px-3 py-2 text-xs font-fantasy uppercase tracking-[0.16em] transition-colors ${playerJoinRequestPending ? 'border-[color-mix(in_srgb,var(--tv-border),transparent_28%)] tv-panel-inset tv-muted' : (canRequestCombatJoin ? 'border-indigo-700/50 bg-indigo-950/30 text-indigo-200 hover:border-indigo-500/60 hover:bg-indigo-900/35' : 'border-[color-mix(in_srgb,var(--tv-border),transparent_28%)] tv-panel-inset tv-muted')}`}
+                className={`flex w-full items-center justify-center rounded-lg border px-3 py-2 text-xs font-fantasy uppercase tracking-[0.16em] transition-colors ${playerJoinRequestPending ? 'border-[color-mix(in_srgb,var(--tv-border),transparent_28%)] tv-panel-inset tv-muted' : (canRequestCombatJoin ? 'tv-tone-ally-button' : 'border-[color-mix(in_srgb,var(--tv-border),transparent_28%)] tv-panel-inset tv-muted')}`}
               >
                 {playerJoinRequestPending ? 'In behandeling' : 'Meedoen'}
               </button>
@@ -995,7 +997,7 @@ function RightSidebar({
           ) : null}
 
           {statusError ? (
-            <div className="mt-3 rounded-xl border border-rose-900/50 bg-rose-950/20 px-3 py-2 text-xs leading-5 text-rose-300">
+            <div className="mt-3 rounded-xl tv-tone-enemy-surface px-3 py-2 text-xs leading-5">
               {statusError}
             </div>
           ) : null}
@@ -1041,7 +1043,7 @@ function RightSidebar({
 
             const cardClassName = `group relative grid cursor-pointer grid-cols-[44px_minmax(0,1fr)_40px] items-center gap-2.5 rounded-2xl border p-2.5 shadow-sm transition-all hover:shadow-md md:grid-cols-[44px_minmax(0,1fr)_auto_44px] md:gap-3 md:p-3 ${
               member.isNpc
-                ? 'border-rose-900/30 bg-rose-950/20 hover:border-rose-500/50'
+                ? 'tv-combat-row--npc'
                 : 'border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] tv-view-card hover:border-[color-mix(in_srgb,var(--tv-accent),transparent_58%)]'
             } ${isCurrentTurn && battleActive ? 'tv-combat-row--turn' : ''} ${isCurrentTurn && combatPaused ? 'tv-combat-row--turn-paused ring-1 ring-[color-mix(in_srgb,var(--tv-border),transparent_20%)]' : ''}`;
 
@@ -1079,7 +1081,7 @@ function RightSidebar({
                         handleRemoveNpc(member.id);
                       }}
                       disabled={!canManageRoster}
-                      className={`tv-action-square-sm border shadow-md transition-all duration-200 hover:scale-110 active:scale-95 ${canManageRoster ? 'border-rose-900 bg-rose-950 text-rose-500 hover:bg-rose-900 hover:text-rose-200' : 'cursor-not-allowed border-[color-mix(in_srgb,var(--tv-border),transparent_28%)] tv-chip-surface tv-muted'}`}
+                      className={`tv-action-square-sm border shadow-md transition-all duration-200 hover:scale-110 active:scale-95 ${canManageRoster ? 'tv-tone-enemy-icon-btn' : 'cursor-not-allowed border-[color-mix(in_srgb,var(--tv-border),transparent_28%)] tv-chip-surface tv-muted'}`}
                       title={canManageRoster ? 'Verwijder NPC' : 'Pauzeer gevecht om NPC\'s te beheren'}
                     >
                       <Trash2 className="h-3.5 w-3.5" />
@@ -1104,7 +1106,7 @@ function RightSidebar({
                 </div>
 
                 <div className={`tv-image-frame flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-lg border font-fantasy text-lg font-bold shadow-inner transition-all md:h-11 md:w-11 ${
-                  member.isNpc ? 'border-rose-900/50 bg-rose-950/40 text-rose-400' : 'border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] tv-chip-surface tv-accent'
+                  member.isNpc ? 'tv-tone-enemy-chip' : 'border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] tv-chip-surface tv-accent'
                 } ${isCurrentTurn ? 'ring-1 ring-[var(--tv-accent)]/40' : ''}`}>
                   <TvImage src={resolveDisplayAvatar(displayMemberAvatar, member.id)} alt={displayMemberName} className="opacity-90" />
                 </div>
@@ -1112,7 +1114,7 @@ function RightSidebar({
                 <div className="min-w-0 self-start">
                   <div className="flex min-w-0 items-start justify-between gap-2 md:mr-2 md:block">
                     <div className="min-w-0 flex items-center gap-1.5">
-                      <span className={`truncate font-fantasy text-sm font-bold tracking-wider ${member.isNpc ? 'text-rose-400' : 'tv-text'}`}>
+                      <span className={`truncate font-fantasy text-sm font-bold tracking-wider ${member.isNpc ? 'tv-tone-enemy-text' : 'tv-text'}`}>
                         {displayMemberName}
                       </span>
                       {hasAlertFeat ? (
@@ -1131,7 +1133,7 @@ function RightSidebar({
                           orderIndex={orderIndex}
                         />
                       ) : null}
-                      <span className={`inline-flex min-w-[38px] items-center justify-center rounded border tv-input-surface px-1.5 py-0.5 text-[10px] font-bold ${member.isNpc ? 'border-rose-900/50 text-rose-500' : 'border-[color-mix(in_srgb,var(--tv-border),transparent_35%)] tv-accent'} ${isCurrentTurn ? 'tv-chip-surface shadow-inner' : ''}`}>
+                      <span className={`inline-flex min-w-[38px] items-center justify-center rounded border tv-input-surface px-1.5 py-0.5 text-[10px] font-bold ${member.isNpc ? 'tv-tone-enemy-chip' : 'border-[color-mix(in_srgb,var(--tv-border),transparent_35%)] tv-accent'} ${isCurrentTurn ? 'tv-chip-surface shadow-inner' : ''}`}>
                         <EditableStat
                           value={member.init}
                           onChange={(value) => onUpdateStat?.(member.id, 'init', value)}
@@ -1161,7 +1163,7 @@ function RightSidebar({
                       {hiddenNpcForPlayer ? (
                         <span className="font-bold tv-muted">?</span>
                       ) : (
-                        <span className={member.hp < 10 ? 'font-bold text-rose-500' : 'font-bold tv-accent'}>{member.hp}</span>
+                        <span className={member.hp < 10 ? 'tv-hp-low' : 'font-bold tv-accent'}>{member.hp}</span>
                       )}
                     </div>
                     <div
@@ -1192,7 +1194,7 @@ function RightSidebar({
                       orderIndex={orderIndex}
                     />
                   ) : null}
-                  <span className={`inline-flex min-w-[44px] items-center justify-center rounded border tv-input-surface px-2 py-0.5 text-xs font-bold ${member.isNpc ? 'border-rose-900/50 text-rose-500' : 'border-[color-mix(in_srgb,var(--tv-border),transparent_35%)] tv-accent'} ${isCurrentTurn ? 'tv-chip-surface shadow-inner' : ''}`}>
+                  <span className={`inline-flex min-w-[44px] items-center justify-center rounded border tv-input-surface px-2 py-0.5 text-xs font-bold ${member.isNpc ? 'tv-tone-enemy-chip' : 'border-[color-mix(in_srgb,var(--tv-border),transparent_35%)] tv-accent'} ${isCurrentTurn ? 'tv-chip-surface shadow-inner' : ''}`}>
                     <EditableStat
                       value={member.init}
                       onChange={(value) => onUpdateStat?.(member.id, 'init', value)}
@@ -1267,14 +1269,14 @@ function RightSidebar({
                 type="button"
                 onClick={handleEndCombatClick}
                 disabled={isActionBusy}
-                className="inline-flex items-center gap-2 rounded-lg border border-rose-700/70 bg-rose-950/40 px-4 py-2 text-sm font-fantasy tracking-[0.12em] text-rose-200 transition-colors hover:border-rose-500/80 hover:bg-rose-900/40 disabled:opacity-60"
+                className="tv-satisfy-pop inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-fantasy tracking-[0.12em] tv-tone-enemy-button disabled:opacity-60"
               >
                 <Skull className="h-4 w-4" /> Beëindig
               </button>
             </>
           )}
         >
-          <div className="rounded-xl border border-rose-900/40 bg-rose-950/20 px-3 py-3 text-sm leading-6 text-rose-200">
+          <div className="rounded-xl tv-tone-enemy-surface px-3 py-3 text-sm leading-6">
             Gebruik dit alleen wanneer je het gevecht volledig wilt afbreken. Pauzeren kan nog steeds via de hoofdactieknop.
           </div>
         </OverlayDialog>

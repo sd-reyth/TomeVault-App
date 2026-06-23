@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { getPlanFeatureSummary } from '../lib/accessPlans';
-import { Crown, Download, LogOut, Save, Settings, SunMedium, SwatchBook, UserRound } from 'lucide-react';
+import { Crown, Download, LogOut, Save, Settings, SunMedium, SwatchBook, UserRound, Volume2 } from 'lucide-react';
 import ModalFrame from './ModalFrame';
 import { APP_THEMES } from '../lib/appThemes';
 
@@ -14,6 +14,7 @@ function SettingsModal({
   exportBusy = false,
   theme,
   brightness,
+  uiSounds = true,
   onSaveSettings,
   currentPlanLabel = '',
   currentAccessPlan = null,
@@ -23,6 +24,7 @@ function SettingsModal({
   const [draftName, setDraftName] = useState(playerName || '');
   const [draftTheme, setDraftTheme] = useState(theme || 'midnight-tome');
   const [draftBrightness, setDraftBrightness] = useState(brightness !== undefined ? brightness : 2);
+  const [draftUiSounds, setDraftUiSounds] = useState(uiSounds !== false);
   const planFeatures = getPlanFeatureSummary(currentAccessPlan);
 
   useEffect(() => {
@@ -30,7 +32,8 @@ function SettingsModal({
     setDraftName(playerName || '');
     setDraftTheme(theme || 'midnight-tome');
     setDraftBrightness(brightness !== undefined ? brightness : 2);
-  }, [isOpen, playerName, theme, brightness]);
+    setDraftUiSounds(uiSounds !== false);
+  }, [isOpen, playerName, theme, brightness, uiSounds]);
 
   const themes = APP_THEMES;
 
@@ -39,6 +42,7 @@ function SettingsModal({
       nextPlayerName: draftName,
       nextTheme: draftTheme,
       nextBrightness: Number(draftBrightness),
+      nextUiSounds: draftUiSounds,
     });
     onClose();
   };
@@ -49,6 +53,7 @@ function SettingsModal({
       nextPlayerName: draftName,
       nextTheme: themeValue,
       nextBrightness: draftBrightness,
+      nextUiSounds: draftUiSounds,
     });
   };
 
@@ -58,6 +63,7 @@ function SettingsModal({
       nextPlayerName: draftName,
       nextTheme: draftTheme,
       nextBrightness,
+      nextUiSounds: draftUiSounds,
     });
   };
 
@@ -135,6 +141,37 @@ function SettingsModal({
         />
       </div>
 
+      <div>
+        <div className="mb-3 flex items-center justify-between gap-3">
+          <label className="flex items-center gap-2 text-[10px] font-semibold uppercase tracking-[0.18em] tv-text-sub">
+            <Volume2 className="h-3.5 w-3.5" /> Interfacegeluiden
+          </label>
+          <button
+            type="button"
+            role="switch"
+            aria-checked={draftUiSounds}
+            onClick={() => {
+              const next = !draftUiSounds;
+              setDraftUiSounds(next);
+              onSaveSettings?.({
+                nextPlayerName: draftName,
+                nextTheme: draftTheme,
+                nextBrightness: draftBrightness,
+                nextUiSounds: next,
+              });
+            }}
+            className={`relative h-7 w-12 rounded-full border transition-colors duration-200 ${draftUiSounds ? 'border-[color-mix(in_srgb,var(--tv-accent),transparent_35%)] bg-[color-mix(in_srgb,var(--tv-accent),transparent_72%)]' : 'border-[color-mix(in_srgb,var(--tv-border),transparent_28%)] tv-panel-inset'}`}
+          >
+            <span
+              className={`absolute top-0.5 h-5 w-5 rounded-full border border-[color-mix(in_srgb,var(--tv-border),transparent_28%)] bg-[color-mix(in_srgb,var(--tv-text-primary),#fff_82%)] shadow-sm transition-transform duration-200 ${draftUiSounds ? 'translate-x-5' : 'translate-x-0.5'}`}
+            />
+          </button>
+        </div>
+        <p className="text-[11px] leading-relaxed tv-muted">
+          Subtiele klik- en beurtgeluiden. Standaard aan — zet uit als je stil wilt spelen.
+        </p>
+      </div>
+
       <div className="flex flex-col gap-3 border-t border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] pt-4">
         <label className="block text-[10px] font-semibold uppercase tracking-[0.18em] tv-text-sub">Plan & sessie</label>
         {currentPlanLabel ? (
@@ -172,7 +209,7 @@ function SettingsModal({
           <button
             type="button"
             onClick={() => { onLogout(); onClose(); }}
-            className="tv-satisfy-pop flex h-10 w-full items-center justify-center gap-2 rounded-xl border border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] tv-panel-inset text-rose-200 transition-all duration-200 ease-out active:scale-[0.985] tv-hover-surface"
+            className="tv-satisfy-pop flex h-10 w-full items-center justify-center gap-2 rounded-xl border border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] tv-panel-inset tv-text transition-all duration-200 ease-out active:scale-[0.985] tv-hover-danger"
           >
             <LogOut className="h-4 w-4" /> Verlaat
           </button>

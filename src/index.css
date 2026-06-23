@@ -1061,6 +1061,164 @@ body {
   --tv-badge-bg-success: color-mix(in srgb, var(--tv-status-active), transparent 90%);
   --tv-badge-bg-danger: color-mix(in srgb, var(--tv-status-danger), transparent 90%);
   --tv-badge-bg-warning: color-mix(in srgb, var(--tv-status-warning), transparent 90%);
+
+  /* Semantic combat / role tones (replaces hardcoded rose/indigo/amber) */
+  --tv-tone-enemy: #e11d48;
+  --tv-tone-ally: #6366f1;
+  --tv-tone-turn-now: var(--tv-status-warning);
+  --tv-tone-turn-start: #6366f1;
+  --tv-tone-turn-wait: #06b6d4;
+  --tv-tone-secret: var(--tv-status-warning);
+}
+
+[data-theme="dawn-parchment"] {
+  --tv-tone-enemy: #be123c;
+  --tv-tone-ally: #5b4a9e;
+  --tv-tone-turn-start: #5b4a9e;
+  --tv-tone-turn-wait: #0e7490;
+}
+
+.tv-tone-enemy-surface {
+  border: 1px solid color-mix(in srgb, var(--tv-tone-enemy), transparent 50%);
+  background: color-mix(in srgb, var(--tv-tone-enemy), transparent 90%);
+  color: color-mix(in srgb, var(--tv-tone-enemy), #fff 70%);
+}
+
+.tv-tone-enemy-text {
+  color: var(--tv-tone-enemy);
+}
+
+.tv-tone-enemy-chip {
+  border: 1px solid color-mix(in srgb, var(--tv-tone-enemy), transparent 50%);
+  background: color-mix(in srgb, var(--tv-tone-enemy), transparent 88%);
+  color: color-mix(in srgb, var(--tv-tone-enemy), #fff 55%);
+}
+
+.tv-tone-enemy-button {
+  border: 1px solid color-mix(in srgb, var(--tv-tone-enemy), transparent 35%);
+  background: color-mix(in srgb, var(--tv-tone-enemy), transparent 88%);
+  color: color-mix(in srgb, var(--tv-tone-enemy), #fff 72%);
+  transition: border-color 0.2s ease, background-color 0.2s ease, color 0.2s ease, transform 0.2s ease;
+}
+
+.tv-tone-enemy-button:hover:not(:disabled) {
+  border-color: color-mix(in srgb, var(--tv-tone-enemy), transparent 22%);
+  background: color-mix(in srgb, var(--tv-tone-enemy), transparent 78%);
+  color: color-mix(in srgb, var(--tv-tone-enemy), #fff 85%);
+}
+
+.tv-tone-enemy-icon-btn {
+  border: 1px solid color-mix(in srgb, var(--tv-tone-enemy), transparent 35%);
+  background: color-mix(in srgb, var(--tv-tone-enemy), transparent 92%);
+  color: var(--tv-tone-enemy);
+  transition: background-color 0.2s ease, color 0.2s ease, transform 0.2s ease;
+}
+
+.tv-tone-enemy-icon-btn:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--tv-tone-enemy), transparent 82%);
+  color: color-mix(in srgb, var(--tv-tone-enemy), #fff 65%);
+}
+
+.tv-tone-ally-surface {
+  border: 1px solid color-mix(in srgb, var(--tv-tone-ally), transparent 55%);
+  background: color-mix(in srgb, var(--tv-tone-ally), transparent 92%);
+}
+
+.tv-tone-ally-text {
+  color: color-mix(in srgb, var(--tv-tone-ally), #fff 55%);
+}
+
+.tv-tone-ally-button {
+  border: 1px solid color-mix(in srgb, var(--tv-tone-ally), transparent 45%);
+  background: color-mix(in srgb, var(--tv-tone-ally), transparent 90%);
+  color: color-mix(in srgb, var(--tv-tone-ally), #fff 72%);
+  transition: border-color 0.2s ease, background-color 0.2s ease;
+}
+
+.tv-tone-ally-button:hover:not(:disabled) {
+  border-color: color-mix(in srgb, var(--tv-tone-ally), transparent 28%);
+  background: color-mix(in srgb, var(--tv-tone-ally), transparent 82%);
+}
+
+.tv-turn-alert {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  border-radius: 999px;
+  border: 1px solid;
+  padding: 0.5rem 0.75rem;
+  box-shadow: 0 12px 30px color-mix(in srgb, var(--tv-bg-canvas), transparent 72%);
+}
+
+.tv-turn-alert--now {
+  border-color: color-mix(in srgb, var(--tv-tone-turn-now), transparent 65%);
+  background: color-mix(in srgb, var(--tv-tone-turn-now), transparent 82%);
+  color: color-mix(in srgb, var(--tv-tone-turn-now), #fff 78%);
+}
+
+.tv-turn-alert--start {
+  border-color: color-mix(in srgb, var(--tv-tone-turn-start), transparent 65%);
+  background: color-mix(in srgb, var(--tv-tone-turn-start), transparent 82%);
+  color: color-mix(in srgb, var(--tv-tone-turn-start), #fff 78%);
+}
+
+.tv-turn-alert--wait {
+  border-color: color-mix(in srgb, var(--tv-tone-turn-wait), transparent 65%);
+  background: color-mix(in srgb, var(--tv-tone-turn-wait), transparent 82%);
+  color: color-mix(in srgb, var(--tv-tone-turn-wait), #fff 78%);
+}
+
+.tv-hp-low {
+  color: var(--tv-status-danger);
+  font-weight: 700;
+}
+
+.tv-hover-danger:hover {
+  background: color-mix(in srgb, var(--tv-status-danger), transparent 92%) !important;
+  color: color-mix(in srgb, var(--tv-status-danger), #fff 65%) !important;
+}
+
+.tv-combat-row--npc {
+  border-color: color-mix(in srgb, var(--tv-tone-enemy), transparent 55%) !important;
+  background: color-mix(in srgb, var(--tv-tone-enemy), transparent 94%) !important;
+}
+
+.tv-combat-row--npc:hover {
+  border-color: color-mix(in srgb, var(--tv-tone-enemy), transparent 38%) !important;
+}
+
+.tv-tone-secret-surface {
+  border: 1px solid color-mix(in srgb, var(--tv-tone-secret), transparent 50%);
+  background: color-mix(in srgb, var(--tv-tone-secret), transparent 92%);
+  color: color-mix(in srgb, var(--tv-tone-secret), #fff 68%);
+}
+
+.tv-tone-secret-text {
+  color: color-mix(in srgb, var(--tv-tone-secret), #fff 45%);
+}
+
+.tv-tone-secret-label {
+  color: color-mix(in srgb, var(--tv-tone-secret), #fff 35%);
+}
+
+.tv-update-banner {
+  border: 1px solid color-mix(in srgb, var(--tv-status-warning), transparent 42%);
+  background: color-mix(in srgb, var(--tv-status-warning), transparent 78%);
+  color: color-mix(in srgb, var(--tv-status-warning), #fff 78%);
+  box-shadow: 0 16px 32px color-mix(in srgb, var(--tv-status-warning), transparent 88%);
+  backdrop-filter: blur(12px);
+}
+
+.tv-update-banner__action {
+  border: 1px solid color-mix(in srgb, var(--tv-status-warning), transparent 42%);
+  background: color-mix(in srgb, var(--tv-status-warning), transparent 88%);
+  color: color-mix(in srgb, var(--tv-status-warning), #fff 78%);
+  transition: background-color 0.2s ease;
+}
+
+.tv-update-banner__action:hover {
+  background: color-mix(in srgb, var(--tv-status-warning), transparent 82%);
 }
 
 /* Status badge utilities */
@@ -2807,4 +2965,64 @@ header > div {
 @keyframes tv-feedback-sparkle {
   0% { opacity: 0.85; }
   100% { opacity: 0; }
+}
+
+/* Dawn parchment: landing video + ambience dock stay readable on light canvas */
+[data-theme="dawn-parchment"] .landing-video-backdrop {
+  background:
+    radial-gradient(circle at center, rgba(248, 241, 227, 0.22), rgba(44, 34, 24, 0.32)),
+    var(--tv-bg-canvas);
+}
+
+[data-theme="dawn-parchment"] .landing-video-element {
+  filter: brightness(0.72) saturate(0.92) contrast(0.98) sepia(0.12);
+}
+
+[data-theme="dawn-parchment"] .landing-video-darkener {
+  background:
+    linear-gradient(180deg, rgba(248, 241, 227, 0.14) 0%, rgba(44, 34, 24, 0.16) 42%, rgba(44, 34, 24, 0.26) 100%),
+    linear-gradient(90deg, rgba(248, 241, 227, 0.1) 0%, transparent 20%, transparent 80%, rgba(248, 241, 227, 0.12) 100%);
+}
+
+[data-theme="dawn-parchment"] .landing-video-vignette {
+  background:
+    radial-gradient(circle at 50% 18%, transparent 0%, rgba(44, 34, 24, 0.04) 44%, rgba(44, 34, 24, 0.22) 100%),
+    radial-gradient(circle at 22% 18%, rgba(156, 111, 46, 0.08), transparent 24%);
+}
+
+[data-theme="dawn-parchment"] .landing-ambience-dock {
+  border-color: color-mix(in srgb, var(--tv-border), transparent 18%);
+  background: color-mix(in srgb, var(--tv-bg-surface), transparent 10%);
+  box-shadow: 0 16px 32px color-mix(in srgb, var(--tv-bg-canvas), transparent 72%);
+}
+
+[data-theme="dawn-parchment"] .landing-ambience-button {
+  border-color: color-mix(in srgb, var(--tv-border), transparent 12%);
+  color: var(--tv-text-primary);
+  background: color-mix(in srgb, var(--tv-bg-modal), transparent 6%);
+}
+
+[data-theme="dawn-parchment"] .landing-ambience-button:hover {
+  color: var(--tv-text-primary);
+  border-color: color-mix(in srgb, var(--tv-accent), transparent 42%);
+}
+
+[data-theme="dawn-parchment"] .landing-ambience-button-active {
+  color: var(--tv-text-primary);
+  border-color: color-mix(in srgb, var(--tv-accent), transparent 32%);
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--tv-accent), transparent 72%),
+    color-mix(in srgb, var(--tv-accent), transparent 58%)
+  );
+  box-shadow: 0 12px 28px color-mix(in srgb, var(--tv-accent), transparent 82%);
+}
+
+/* Global image zoom fallback when TvImage is not used */
+.tv-image-frame > img:not(.tv-image-contain) {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transform: scale(var(--tv-image-zoom, 1.22));
+  transform-origin: center center;
 }
