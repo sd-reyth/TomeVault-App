@@ -35,7 +35,7 @@
   --tv-glow: 0 0 12px rgb(156 111 46);
   /* Darker variants so status/type badges stay legible on the light parchment. */
   --tv-type-secret: #b91c1c;
-  --tv-type-map: #b45309;
+  --tv-type-map: #92400e;
   --tv-type-lore: #1d4ed8;
   --tv-status-active: #047857;
   --tv-status-archived: #6b6357;
