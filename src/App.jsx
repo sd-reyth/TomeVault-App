@@ -3092,9 +3092,21 @@ export default function TomeVaultApp() {
     }
   };
 
-  const handleAddNpcSave = async (npcData) => {
+  const handleAddNpcSave = async (npcData, pendingAvatarFile) => {
     const tempId = 'n' + Date.now();
-    setParty([...party, { ...npcData, id: tempId, isNpc: true, init: null, bio: npcData.bio || '' }]);
+    let avatarUrl = npcData.avatar || null;
+
+    if (pendingAvatarFile && uid) {
+      try {
+        const ext = pendingAvatarFile.name.split('.').pop();
+        const storagePath = `users/${uid}/npcs/${Date.now()}.${ext}`;
+        avatarUrl = await uploadImageToStorage(pendingAvatarFile, storagePath);
+      } catch (err) {
+        console.error('NPC portret uploaden mislukt:', err);
+      }
+    }
+
+    setParty([...party, { ...npcData, id: tempId, isNpc: true, init: null, bio: npcData.bio || '', avatar: avatarUrl }]);
     setIsNpcModalOpen(false);
     if (sessionDocId) {
       try {
@@ -3110,7 +3122,7 @@ export default function TomeVaultApp() {
           combatParticipation: COMBAT_PARTICIPATION_STATUS.ACTIVE,
           combatJoinRequestStatus: COMBAT_JOIN_REQUEST_STATUS.NONE,
           isRevealed: true,
-          avatarUrl: npcData.avatar || null,
+          avatarUrl,
           bio: npcData.bio || '',
           createdAt: serverTimestamp(),
           updatedAt: serverTimestamp(),
@@ -3963,6 +3975,7 @@ export default function TomeVaultApp() {
           theme={theme}
           brightness={brightness}
           currentPlanLabel={currentAccessPlan.label}
+          currentAccessPlan={currentAccessPlan}
           canOpenOwnerPanel={isOwner}
           onOpenOwnerPanel={() => setIsOwnerPanelOpen(true)}
           onSaveSettings={handleSaveSettings}

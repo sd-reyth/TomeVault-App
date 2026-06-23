@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { getPlanFeatureSummary } from '../lib/accessPlans';
 import { Crown, Download, LogOut, Save, Settings, SunMedium, SwatchBook, UserRound } from 'lucide-react';
 import ModalFrame from './ModalFrame';
 import { APP_THEMES } from '../lib/appThemes';
@@ -15,12 +16,14 @@ function SettingsModal({
   brightness,
   onSaveSettings,
   currentPlanLabel = '',
+  currentAccessPlan = null,
   canOpenOwnerPanel = false,
   onOpenOwnerPanel,
 }) {
   const [draftName, setDraftName] = useState(playerName || '');
   const [draftTheme, setDraftTheme] = useState(theme || 'midnight-tome');
   const [draftBrightness, setDraftBrightness] = useState(brightness !== undefined ? brightness : 2);
+  const planFeatures = getPlanFeatureSummary(currentAccessPlan);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -73,7 +76,7 @@ function SettingsModal({
           value={draftName}
           onChange={(event) => setDraftName(event.target.value)}
           placeholder="Je naam aan tafel"
-          className="h-10 w-full rounded-xl border px-3 text-sm transition-colors focus:outline-none tv-surface tv-text"
+          className="tv-field"
         />
       </div>
 
@@ -92,7 +95,7 @@ function SettingsModal({
               >
                 <div className="flex items-center gap-2.5">
                   <span
-                    className="h-3.5 w-3.5 flex-shrink-0 rounded-full ring-1 ring-white/20"
+                    className="h-3.5 w-3.5 flex-shrink-0 rounded-full tv-border-emphasis ring-1"
                     style={{ background: themeOption.swatch, boxShadow: isActive ? `0 0 6px ${themeOption.swatch}88` : undefined }}
                   />
                   <span className={`text-xs font-semibold tracking-[0.07em] transition-colors ${isActive ? 'tv-text' : 'tv-text group-hover:tv-text'}`}>
@@ -101,10 +104,7 @@ function SettingsModal({
                 </div>
                 <div className="flex items-center gap-1.5">
                   {themeOption.premium ? (
-                    <span style={{ border: '1px solid rgba(196,30,58,0.55)', background: 'rgba(196,30,58,0.18)', color: '#f5a0a8' }}
-                      className="inline-flex items-center rounded-full px-1.5 py-0.5 text-[8px] font-bold uppercase tracking-[0.16em]">
-                      Premium
-                    </span>
+                    <span className="tv-plan-badge">Premium</span>
                   ) : null}
                   {isActive ? (
                     <span className="h-1.5 w-1.5 flex-shrink-0 rounded-full" style={{ background: themeOption.swatch }} />
@@ -136,13 +136,26 @@ function SettingsModal({
       </div>
 
       <div className="flex flex-col gap-3 border-t border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] pt-4">
-        <label className="block text-[10px] font-semibold uppercase tracking-[0.18em] tv-text-sub">Sessie Acties</label>
+        <label className="block text-[10px] font-semibold uppercase tracking-[0.18em] tv-text-sub">Plan & sessie</label>
         {currentPlanLabel ? (
-          <div className="rounded-2xl border px-3 py-3 tv-surface tv-text">
+          <div className="tv-plan-summary space-y-3">
             <div className="flex items-center justify-between gap-3 text-xs uppercase tracking-[0.16em]">
               <span className="font-semibold tv-text-sub">Huidig plan</span>
               <span className="font-medium tv-accent">{currentPlanLabel}</span>
             </div>
+            {planFeatures.length > 0 ? (
+              <ul className="space-y-1.5 text-xs tv-text-sub">
+                {planFeatures.map((feature) => (
+                  <li key={feature} className="flex items-start gap-2">
+                    <span className="mt-1 h-1 w-1 shrink-0 rounded-full tv-accent" style={{ background: 'var(--tv-accent)' }} />
+                    <span>{feature}</span>
+                  </li>
+                ))}
+              </ul>
+            ) : null}
+            <p className="text-[11px] leading-relaxed tv-muted">
+              Upgraden en limieten worden later geactiveerd. Je huidige plan is alvast zichtbaar voor de toekomst.
+            </p>
           </div>
         ) : null}
 
@@ -151,7 +164,7 @@ function SettingsModal({
             type="button"
             onClick={() => onExportArchive?.()}
             disabled={exportBusy}
-            className="flex h-10 w-full items-center justify-center gap-2 rounded-xl border text-sm font-medium uppercase tracking-[0.16em] transition-all duration-200 ease-out active:scale-[0.985] disabled:cursor-wait border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] tv-surface-raised tv-text"
+            className="tv-satisfy-pop flex h-10 w-full items-center justify-center gap-2 rounded-xl border text-sm font-medium uppercase tracking-[0.16em] transition-all duration-200 ease-out disabled:cursor-wait border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] tv-surface-raised tv-text tv-hover-surface"
           >
             <Download className="h-4 w-4" /> {exportBusy ? 'Laden...' : (role === 'gm' ? 'Archief' : 'Profiel')}
           </button>
@@ -159,7 +172,7 @@ function SettingsModal({
           <button
             type="button"
             onClick={() => { onLogout(); onClose(); }}
-            className="flex h-10 w-full items-center justify-center gap-2 rounded-xl border border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] tv-panel-inset text-rose-200 transition-all duration-200 ease-out active:scale-[0.985]"
+            className="tv-satisfy-pop flex h-10 w-full items-center justify-center gap-2 rounded-xl border border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] tv-panel-inset text-rose-200 transition-all duration-200 ease-out active:scale-[0.985] tv-hover-surface"
           >
             <LogOut className="h-4 w-4" /> Verlaat
           </button>
@@ -172,7 +185,7 @@ function SettingsModal({
               onClose();
               onOpenOwnerPanel?.();
             }}
-            className="flex h-10 w-full items-center justify-center gap-2 rounded-xl border border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] tv-panel-inset tv-text transition-all duration-200 ease-out active:scale-[0.985]"
+            className="tv-satisfy-pop flex h-10 w-full items-center justify-center gap-2 rounded-xl border border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] tv-panel-inset tv-text transition-all duration-200 ease-out active:scale-[0.985] tv-hover-surface"
           >
             <Crown className="h-4 w-4" /> Owner Panel
           </button>
@@ -183,7 +196,7 @@ function SettingsModal({
         <button
           type="button"
           onClick={handleSave}
-          className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-xl border px-4 text-sm font-medium uppercase tracking-[0.16em] shadow-sm transition-all duration-200 ease-out active:scale-[0.985] sm:w-auto tv-button-primary"
+          className="tv-satisfy-pop inline-flex h-10 w-full items-center justify-center gap-2 rounded-xl border px-4 text-sm font-medium uppercase tracking-[0.16em] shadow-sm transition-all duration-200 ease-out active:scale-[0.985] sm:w-auto tv-button-primary"
         >
           <Save className="h-4 w-4" /> Opslaan
         </button>

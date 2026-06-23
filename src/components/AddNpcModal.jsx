@@ -8,6 +8,7 @@ export default function AddNpcModal({ isOpen, onClose, onSave }) {
   const [ac, setAc] = useState(12);
   const [initMod, setInitMod] = useState(2);
   const [avatarUrl, setAvatarUrl] = useState(null);
+  const [avatarFile, setAvatarFile] = useState(null);
 
   useEffect(() => {
     if (isOpen) {
@@ -16,6 +17,7 @@ export default function AddNpcModal({ isOpen, onClose, onSave }) {
       setAc(12);
       setInitMod(2);
       setAvatarUrl(null);
+      setAvatarFile(null);
     }
   }, [isOpen]);
 
@@ -24,7 +26,7 @@ export default function AddNpcModal({ isOpen, onClose, onSave }) {
   const handleSave = (e) => {
     e.preventDefault();
     if (!name.trim()) return;
-    onSave({ name, subtitle: 'Vijand', hp: Number(hp), maxHp: Number(hp), ac: Number(ac), initMod: Number(initMod), avatar: avatarUrl });
+    onSave({ name, subtitle: 'Vijand', hp: Number(hp), maxHp: Number(hp), ac: Number(ac), initMod: Number(initMod), avatar: avatarUrl }, avatarFile);
   };
 
   const handleImageChange = (e) => {
@@ -32,6 +34,7 @@ export default function AddNpcModal({ isOpen, onClose, onSave }) {
     if (file) {
       const url = URL.createObjectURL(file);
       setAvatarUrl(url);
+      setAvatarFile(file);
     }
   };
 

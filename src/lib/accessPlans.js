@@ -124,3 +124,33 @@ export function resolveActivePlan({ role = 'player', entitlement = null } = {}) 
 
   return getPlanDefinition(getDefaultPlanIdForRole(role), role);
 }
+
+export function getPlanFeatureSummary(plan) {
+  if (!plan) return [];
+
+  if (plan.audience === 'gm') {
+    const items = [];
+    if (plan.limits.activeCampaigns == null) items.push('Meerdere actieve campagnes');
+    else items.push(`${plan.limits.activeCampaigns} actieve campagne`);
+
+    if (plan.limits.npcsPerSession == null) items.push('Onbeperkt NPC\'s per sessie');
+    else items.push(`Max ${plan.limits.npcsPerSession} NPC's per sessie`);
+
+    if (plan.limits.preparationTemplates == null) items.push('Onbeperkte voorbereidingen');
+    else items.push(`Max ${plan.limits.preparationTemplates} voorbereidingssjablonen`);
+
+    if (plan.features.exportArchive) items.push('Sessie-archief exporteren');
+    if (plan.features.customThemes) items.push('Premium thema\'s');
+    if (plan.features.advancedPreparation) items.push('Geavanceerde voorbereiding');
+    return items;
+  }
+
+  const items = ['Chat, notities, handouts & inventaris'];
+  if (plan.features.personalExport) items.push('Persoonlijk profiel exporteren');
+  if (plan.features.crossCampaignVault) items.push('Karakterkluis over campagnes');
+  if (plan.features.customPlayerThemes) items.push('Eigen spelerthema\'s');
+  if (plan.limits.privateMediaStorageMb > 0) {
+    items.push(`${plan.limits.privateMediaStorageMb} MB privé-media`);
+  }
+  return items;
+}

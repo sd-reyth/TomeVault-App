@@ -105,7 +105,7 @@ function BackfillButton({ onBackfillMemberships }) {
     >
       {loading ? (
         <>
-          <svg className="h-3.5 w-3.5 animate-spin text-amber-400" viewBox="0 0 24 24" fill="none">
+          <svg className="h-3.5 w-3.5 animate-spin tv-accent" viewBox="0 0 24 24" fill="none">
             <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
             <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z" />
           </svg>
@@ -524,17 +524,14 @@ export default function LandingScreen({
               const roleLabel = session.role === 'dm' ? 'GM' : 'Speler';
               const defaultAsRole = session.role === 'dm' ? 'gm' : 'player';
               const isHidden = session.status === 'hidden';
-              const roleAccent = session.role === 'dm'
-                ? 'border-amber-900/50 bg-amber-950/30 text-amber-200'
-                : 'border-indigo-900/50 bg-indigo-950/30 text-indigo-200';
-              const primaryButtonAccent = session.role === 'dm'
-                ? 'border-amber-700/50 bg-amber-900/30 text-amber-100 hover:bg-amber-800/40 hover:border-amber-600/70'
-                : 'border-indigo-700/50 bg-indigo-900/30 text-indigo-100 hover:bg-indigo-800/40 hover:border-indigo-500/70';
+              const roleChipClass = session.role === 'dm' ? 'tv-role-chip--gm' : 'tv-role-chip--player';
+              const sessionCardClass = session.role === 'dm' ? 'tv-session-card--gm' : 'tv-session-card--player';
+              const sessionActionClass = session.role === 'dm' ? 'tv-session-action--gm' : 'tv-session-action--player';
 
               return (
                 <article
                   key={session.sessionId}
-                  className={`tv-session-card ${session.role === 'dm' ? 'border-amber-900/35 bg-[linear-gradient(180deg,rgba(120,53,15,0.16),rgba(12,10,9,0.82))] hover:border-amber-700/45' : 'border-indigo-900/35 bg-[linear-gradient(180deg,rgba(49,46,129,0.16),rgba(12,10,9,0.82))] hover:border-indigo-600/45'} ${isHidden ? 'opacity-70' : ''}`}
+                  className={`tv-session-card ${sessionCardClass} ${isHidden ? 'opacity-70' : ''}`}
                 >
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0">
@@ -545,7 +542,7 @@ export default function LandingScreen({
                         <span>{session.updatedAtLabel}</span>
                       </div>
                     </div>
-                    <span className={`tv-entry-chip ${roleAccent}`}>{roleLabel}</span>
+                    <span className={`tv-entry-chip ${roleChipClass}`}>{roleLabel}</span>
                   </div>
 
                   <div className="mt-4 flex flex-wrap gap-2">
@@ -553,7 +550,7 @@ export default function LandingScreen({
                       type="button"
                       onClick={() => onResumeRecentSession?.(session, defaultAsRole)}
                       disabled={sessionBusy}
-                      className={`inline-flex min-h-11 flex-1 items-center justify-center gap-2 rounded-2xl border px-4 py-3 text-sm font-fantasy tracking-[0.16em] transition-all disabled:opacity-50 ${primaryButtonAccent}`}
+                      className={`tv-satisfy-pop inline-flex min-h-11 flex-1 items-center justify-center gap-2 rounded-2xl border px-4 py-3 text-sm font-fantasy tracking-[0.16em] transition-all disabled:opacity-50 ${sessionActionClass}`}
                     >
                       <DoorOpen className="h-4 w-4" />
                       Hervat
@@ -563,7 +560,7 @@ export default function LandingScreen({
                       type="button"
                       onClick={() => (isHidden ? onRestoreRecentSession?.(session.sessionId) : onHideRecentSession?.(session.sessionId))}
                       disabled={sessionBusy}
-                      className={`tv-entry-action border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] tv-panel-inset ${isHidden ? 'text-amber-200 hover:border-[color-mix(in_srgb,var(--tv-accent),transparent_58%)] hover:text-amber-100' : 'tv-text hover:border-[color-mix(in_srgb,var(--tv-accent),transparent_58%)] hover:tv-text'}`}
+                      className={`tv-entry-action border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] ${isHidden ? 'tv-alert-warning' : 'tv-panel-inset tv-text hover:border-[color-mix(in_srgb,var(--tv-accent),transparent_58%)] hover:tv-text'}`}
                       title={isHidden ? 'Zet terug in recente lijst' : 'Verberg uit deze lijst'}
                     >
                       {isHidden ? 'Herstel' : 'Verberg'}
@@ -572,7 +569,7 @@ export default function LandingScreen({
                       type="button"
                       onClick={() => handleOpenDeleteFlow(session)}
                       disabled={sessionBusy}
-                      className="flex h-11 w-11 items-center justify-center rounded-2xl border border-rose-900/50 bg-rose-950/30 text-rose-200 transition-colors hover:bg-rose-900/45 hover:text-rose-100 disabled:opacity-50"
+                      className="tv-alert-danger flex h-11 w-11 items-center justify-center rounded-2xl transition-colors hover:brightness-110 disabled:opacity-50"
                       title="Verlaat en wis deze sessie permanent"
                     >
                       <Trash2 className="h-4 w-4" />
@@ -591,7 +588,7 @@ export default function LandingScreen({
     <section className="landing-copy-rail mx-auto w-full max-w-5xl">
       <div className="grid gap-8 md:grid-cols-2 md:gap-10">
         <div className="space-y-2 text-center md:text-left">
-          <div className="landing-kicker text-amber-500">Wat is TomeVault</div>
+          <div className="landing-kicker tv-landing-kicker">Wat is TomeVault</div>
           <p className="text-sm md:text-base tv-text font-story leading-relaxed">
             Een rustige digitale tafel waar handouts, chat, notities en sessies samenkomen zonder dashboard-chaos.
           </p>
@@ -643,12 +640,12 @@ export default function LandingScreen({
 
   const landingShowcaseSection = !uid ? (
     <section className="mx-auto w-full max-w-6xl pt-5 md:pt-7">
-      <div className="flex items-center justify-center gap-3 text-amber-800/75">
-        <span className="h-px w-20 bg-gradient-to-r from-transparent via-amber-700/40 to-transparent md:w-24" />
+      <div className="flex items-center justify-center gap-3 tv-muted">
+        <span className="h-px w-20 tv-landing-divider md:w-24" />
         <span className="h-2 w-2 rotate-45 border border-current" />
         <span className="h-2 w-2 rotate-45 border border-current opacity-80" />
         <span className="h-2 w-2 rotate-45 border border-current" />
-        <span className="h-px w-20 bg-gradient-to-r from-transparent via-amber-700/40 to-transparent md:w-24" />
+        <span className="h-px w-20 tv-landing-divider md:w-24" />
       </div>
 
       <div className="mt-8 text-center">
@@ -661,37 +658,37 @@ export default function LandingScreen({
       </div>
 
       <div className="mt-8 landing-panel rounded-[32px] p-3 md:p-5 lg:p-6">
-        <div className="overflow-hidden rounded-[28px] border border-amber-900/30 bg-[rgba(18,11,8,0.82)] shadow-[0_24px_60px_rgba(0,0,0,0.24)]">
-          <div className="flex items-center gap-3 border-b border-amber-900/20 px-4 py-4 md:px-5">
+        <div className="tv-landing-showcase-frame">
+          <div className="tv-landing-showcase-toolbar">
             <div className="flex items-center gap-2">
-              <span className="h-2.5 w-2.5 rounded-full bg-amber-900/60" />
-              <span className="h-2.5 w-2.5 rounded-full bg-amber-800/45" />
-              <span className="h-2.5 w-2.5 rounded-full bg-amber-700/35" />
+              <span className="tv-landing-showcase-dot" />
+              <span className="tv-landing-showcase-dot opacity-80" />
+              <span className="tv-landing-showcase-dot opacity-60" />
             </div>
             <div className="flex items-center gap-2 text-[11px] uppercase tracking-[0.26em] tv-muted md:text-xs">
-              <BookOpen className="h-3.5 w-3.5 text-amber-400" />
+              <BookOpen className="h-3.5 w-3.5 tv-accent" />
               Kelder van de Goblin Koning
             </div>
           </div>
 
           <div className="grid min-h-[28rem] lg:grid-cols-[18rem_minmax(0,1fr)]">
-            <div className="flex flex-col justify-between border-b border-amber-900/20 bg-[rgba(24,14,10,0.74)] lg:border-b-0 lg:border-r lg:border-amber-900/20">
+            <div className="tv-landing-showcase-sidebar flex flex-col justify-between">
               <div className="space-y-4 px-4 py-5 md:px-5 md:py-6">
-                <div className="max-w-[14rem] rounded-[14px] border border-amber-900/30 bg-[rgba(40,21,11,0.7)] px-4 py-3 text-left font-story text-sm leading-relaxed tv-text">
+                <div className="tv-landing-showcase-bubble">
                   Jullie horen een zwaar gerommel uit de diepte...
                 </div>
 
                 <div>
-                  <div className="text-[10px] uppercase tracking-[0.24em] text-indigo-400">Reyth</div>
-                  <div className="mt-2 max-w-[14rem] rounded-[14px] border border-indigo-900/35 bg-indigo-950/22 px-4 py-4 text-left font-story text-sm leading-relaxed tv-text">
+                  <div className="text-[10px] uppercase tracking-[0.24em] tv-accent">Reyth</div>
+                  <div className="tv-landing-showcase-bubble tv-landing-showcase-bubble--player mt-2">
                     Ik trek mijn zwaard en ga voor de deur staan.
                   </div>
                 </div>
 
                 <div>
-                  <div className="text-[10px] uppercase tracking-[0.24em] text-amber-400">Jij</div>
-                  <div className="mt-2 flex max-w-[14rem] items-center gap-4 rounded-[14px] border border-amber-900/30 bg-[rgba(23,18,12,0.82)] px-3 py-3">
-                    <div className="flex h-12 w-12 items-center justify-center rounded-xl border border-amber-900/40 tv-input-surface text-3xl font-semibold text-amber-400">
+                  <div className="text-[10px] uppercase tracking-[0.24em] tv-accent">Jij</div>
+                  <div className="tv-landing-showcase-bubble tv-landing-showcase-bubble--accent mt-2 flex max-w-[14rem] items-center gap-4 px-3 py-3">
+                    <div className="flex h-12 w-12 items-center justify-center rounded-xl tv-input-surface text-3xl font-semibold tv-accent">
                       16
                     </div>
                     <div className="font-story text-sm italic tv-text-sub">Werpt een steen...</div>
@@ -703,13 +700,13 @@ export default function LandingScreen({
                 </div>
               </div>
 
-              <div className="grid grid-cols-[1fr_auto] gap-0 border-t border-amber-900/20 tv-panel-inset p-3">
-                <div className="flex min-h-11 items-center rounded-l-[14px] border border-r-0 border-amber-900/25 px-4 font-story text-sm tv-muted">
+              <div className="grid grid-cols-[1fr_auto] gap-0 border-t border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] tv-panel-inset p-3">
+                <div className="flex min-h-11 items-center rounded-l-[14px] border border-r-0 border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] px-4 font-story text-sm tv-muted">
                   Schrijf met de veer...
                 </div>
                 <button
                   type="button"
-                  className="flex min-h-11 items-center justify-center rounded-r-[14px] border border-amber-900/25 bg-amber-950/22 px-4 tv-text transition-colors hover:bg-amber-900/28 hover:tv-text"
+                  className="tv-satisfy-pop flex min-h-11 items-center justify-center rounded-r-[14px] border border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] tv-surface-raised px-4 tv-text transition-colors tv-hover-surface"
                   aria-label="Voorbeeldactie versturen"
                 >
                   <ArrowRight className="h-4 w-4" />
@@ -717,12 +714,12 @@ export default function LandingScreen({
               </div>
             </div>
 
-            <div className="landing-grid flex items-center justify-center bg-[radial-gradient(circle_at_top,rgba(120,53,15,0.12),transparent_42%),rgba(10,7,6,0.92)] px-4 py-6 md:px-6 lg:px-8">
-              <div className="w-full max-w-[27rem] rounded-[28px] border border-amber-900/25 bg-[rgba(34,18,10,0.76)] p-5 md:p-6">
-                <div className="landing-preview-fragment flex min-h-[14rem] items-center justify-center rounded-[24px] border border-amber-900/18 bg-[rgba(20,10,5,0.72)] p-6 md:min-h-[15rem]">
+            <div className="tv-landing-showcase-stage landing-grid flex items-center justify-center px-4 py-6 md:px-6 lg:px-8">
+              <div className="tv-landing-showcase-card">
+                <div className="tv-landing-showcase-fragment landing-preview-fragment md:min-h-[15rem]">
                   <div className="flex flex-col items-center gap-4 text-center">
-                    <div className="flex h-16 w-16 items-center justify-center rounded-full border border-amber-900/30 bg-amber-950/18">
-                      <Eye className="h-9 w-9 text-amber-500" />
+                    <div className="tv-showcase-glow flex h-16 w-16 items-center justify-center rounded-full border border-[color-mix(in_srgb,var(--tv-accent),transparent_55%)] tv-entry-feature-icon">
+                      <Eye className="h-9 w-9 tv-accent" />
                     </div>
                     <div className="text-sm font-fantasy uppercase tracking-[0.26em] tv-text md:text-base">
                       Open de verzegelde rol
@@ -762,13 +759,13 @@ export default function LandingScreen({
       ) : null}
 
       {appUpdateNotice ? (
-        <div className="absolute left-4 right-4 top-4 z-20 mx-auto max-w-4xl rounded-xl border border-amber-700/60 bg-amber-950/90 px-4 py-3 text-amber-100 shadow-lg shadow-amber-950/40 backdrop-blur">
+        <div className="tv-alert-warning absolute left-4 right-4 top-4 z-20 mx-auto max-w-4xl rounded-xl px-4 py-3 shadow-lg backdrop-blur">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <p className="text-sm font-medium">{appUpdateNotice}</p>
             <button
               type="button"
               onClick={() => onReloadApp?.()}
-              className="rounded-lg border border-amber-500/50 bg-amber-500/20 px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.16em] text-amber-100 transition hover:bg-amber-500/30"
+              className="tv-satisfy-pop rounded-lg border border-[color-mix(in_srgb,var(--tv-status-warning),transparent_42%)] tv-surface-raised px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.16em] transition tv-hover-surface"
             >
               Nu verversen
             </button>
@@ -813,7 +810,7 @@ export default function LandingScreen({
                 {!uid ? (
                   <>
                     <div className="flex justify-center">
-                      <div className="landing-logo-shell h-24 w-24 md:h-28 md:w-28 lg:h-32 lg:w-32">
+                      <div className="landing-logo-shell tv-logo-breathe h-24 w-24 md:h-28 md:w-28 lg:h-32 lg:w-32">
                         <img src={TOMEVAULT_LOGO_SRC} alt="TomeVault logo" className="landing-logo" />
                       </div>
                     </div>
@@ -1015,13 +1012,13 @@ export default function LandingScreen({
         ) : null}
 
         {sessionError ? (
-          <div className="mx-auto w-full max-w-5xl rounded-2xl border border-rose-900/50 bg-rose-950/35 px-4 py-3 text-sm text-rose-200">
+          <div className="mx-auto w-full max-w-5xl tv-alert-danger rounded-2xl px-4 py-3 text-sm">
             {sessionError}
           </div>
         ) : null}
 
         {sessionInfo ? (
-          <div className="mx-auto w-full max-w-5xl rounded-2xl border border-amber-900/50 bg-amber-950/35 px-4 py-3 text-sm text-amber-200">
+          <div className="mx-auto w-full max-w-5xl tv-alert-warning rounded-2xl px-4 py-3 text-sm">
             {sessionInfo}
           </div>
         ) : null}
@@ -1142,7 +1139,7 @@ export default function LandingScreen({
             <button
               type="button"
               onClick={() => setShowContactForm((value) => !value)}
-              className="tv-entry-action border-amber-900/50 bg-amber-950/20 text-amber-200 hover:border-amber-700/60 hover:text-amber-100"
+              className="tv-entry-action border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] tv-panel-inset tv-text hover:border-[color-mix(in_srgb,var(--tv-accent),transparent_58%)] hover:tv-text"
             >
               <Mail className="mr-2 h-4 w-4" />
               {showContactForm ? 'Verberg feedback' : 'Feedback'}
