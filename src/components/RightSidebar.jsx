@@ -14,6 +14,7 @@ import {
   Info,
   Link,
   Mountain,
+  Pause,
   Pin,
   PinOff,
   Shield,
@@ -31,11 +32,12 @@ import {
 } from 'lucide-react';
 import { safeLocalStorageGet, safeLocalStorageSet } from '../lib/browserStorage';
 import { resolveDisplayAvatar } from '../lib/placeholders';
+import TvImage from './TvImage';
 import EditableStat from './EditableStat';
 import {
   CONDITIONS,
-  CONDITION_COLORS,
   CONDITION_BADGE_COLORS,
+  CONDITION_TONE_HEX,
   getActiveConditions,
   getCondition,
 } from '../lib/battleConditions';
@@ -46,7 +48,6 @@ import {
   filterCombatParticipants,
   getInitiativeTieGroups,
   getTieGroupKey,
-  getTurnApproachRatio,
   getTurnsUntilMember,
   hasPendingCombatJoinRequest,
   isCombatParticipant,
@@ -108,58 +109,84 @@ function getExistingTieOverrides(party = [], initiativeOrder = []) {
   return overrides;
 }
 
-function StatusTurnIndicator({ turnsUntil, ratio, isCurrentTurn, theme = 'dark' }) {
-  const safeRatio = Math.max(0, Math.min(1, Number(ratio) || 0));
-  const angle = `${Math.round(safeRatio * 360)}deg`;
+function CombatTurnMarker({ isCurrentTurn, battleActive, combatPaused, orderIndex }) {
+  if (isCurrentTurn && battleActive) {
+    return (
+      <div className="tv-turn-marker tv-turn-marker--active" title="Nu aan zet" aria-label="Nu aan zet">
+        <Swords className="h-3.5 w-3.5" />
+      </div>
+    );
+  }
+
+  if (isCurrentTurn && combatPaused) {
+    return (
+      <div className="tv-turn-marker tv-turn-marker--paused" title="Aan zet (gepauzeerd)" aria-label="Aan zet, gevecht gepauzeerd">
+        <Pause className="h-3 w-3" />
+      </div>
+    );
+  }
 
   return (
-    <div
-      className={`relative flex h-11 w-11 shrink-0 items-center justify-center rounded-full border ${
-        isCurrentTurn
-              ? 'border-[var(--tv-accent)]/60 shadow-[0_0_14px_color-mix(in_srgb,var(--tv-accent),transparent_50%)]'
-          : 'border-[color-mix(in_srgb,var(--tv-border),transparent_28%)]'
-      }`}
-      title={isCurrentTurn ? 'Jouw beurt' : `Nog ${turnsUntil ?? '-'} beurt(en)`}
-    >
-      <div
-        className="absolute inset-0 rounded-full"
-        style={{
-          background: `conic-gradient(var(--tv-accent) 0deg ${angle}, rgba(255,255,255,0.08) ${angle} 360deg)`,
-        }}
-      />
-      <div className="tv-surface absolute inset-[3px] rounded-full border" />
-      <div className="relative z-10 flex flex-col items-center justify-center leading-none">
-        <span className={`font-fantasy text-[10px] tracking-[0.18em] ${isCurrentTurn ? 'tv-accent' : 'tv-text-sub'}`}>
-          {isCurrentTurn ? 'NU' : (turnsUntil ?? '-')}
-        </span>
-      </div>
+    <div className="tv-turn-marker" title={`Initiativevolgorde ${orderIndex}`} aria-label={`Volgorde ${orderIndex}`}>
+      <span className="font-fantasy text-[10px] tracking-[0.12em]">{orderIndex}</span>
     </div>
   );
 }
 
-function TurnClockBadge({ turnsUntil, ratio, isCurrentTurn, theme = 'dark' }) {
-  const safeRatio = Math.max(0, Math.min(1, Number(ratio) || 0));
-  const angle = `${Math.round(safeRatio * 360)}deg`;
+function CombatConditionStrip({ conditions, isGm, onEdit }) {
+  if (!conditions.length) return null;
+
+  const visible = conditions.slice(0, 4);
+  const overflow = conditions.length - visible.length;
 
   return (
-    <div
-      className={`relative flex h-7 w-7 shrink-0 items-center justify-center rounded-full border ${
-        isCurrentTurn
-          ? 'border-[var(--tv-accent)]/55 shadow-[0_0_8px_color-mix(in_srgb,var(--tv-accent),transparent_55%)] tv-pulse-ring'
-          : 'border-[color-mix(in_srgb,var(--tv-border),transparent_28%)]'
-      }`}
-      title={isCurrentTurn ? 'Nu aan zet' : `Nog ${turnsUntil ?? '-'} beurt(en)`}
-    >
-      <div
-        className="absolute inset-0 rounded-full"
-        style={{
-          background: `conic-gradient(var(--tv-accent) 0deg ${angle}, rgba(255,255,255,0.08) ${angle} 360deg)`,
-        }}
-      />
-      <div className="tv-surface absolute inset-[2px] rounded-full" />
-      <span className={`relative z-10 text-[9px] font-fantasy tracking-[0.14em] ${isCurrentTurn ? 'tv-accent' : 'tv-text-sub'}`}>
-        {isCurrentTurn ? 'NU' : (turnsUntil ?? '-')}
-      </span>
+    <div className="mt-1.5 flex flex-wrap items-center gap-1">
+      {visible.map((condition, index) => {
+        const meta = getCondition(condition.id);
+        const ConditionListIcon = CONDITION_ICON_MAP[meta?.icon] || AlertCircle;
+        const tone = CONDITION_TONE_HEX[meta?.color] || CONDITION_TONE_HEX.slate;
+
+        return (
+          <button
+            key={condition.id}
+            type="button"
+            onClick={(event) => {
+              event.stopPropagation();
+              if (isGm) onEdit?.();
+            }}
+            className={`tv-condition-chip ${isGm ? 'cursor-pointer hover:brightness-110' : 'cursor-default'}`}
+            style={{
+              '--tv-condition-tone': tone,
+              animationDelay: `${index * 0.14}s`,
+            }}
+            title={meta?.description ? `${meta.label} — ${meta.description}` : meta?.label}
+            aria-label={meta?.label || condition.id}
+          >
+            <ConditionListIcon className="h-3 w-3" />
+          </button>
+        );
+      })}
+      {overflow > 0 ? (
+        <span
+          className="tv-condition-chip tv-condition-chip--more"
+          style={{ '--tv-condition-tone': 'var(--tv-accent)' }}
+          title={conditions.map((c) => getCondition(c.id)?.label).filter(Boolean).join(', ')}
+        >
+          +{overflow}
+        </span>
+      ) : null}
+    </div>
+  );
+}
+
+function CurrentTurnBanner({ name, flash = false, paused = false }) {
+  if (!name) return null;
+
+  return (
+    <div className={`tv-turn-banner ${flash ? 'tv-turn-banner--flash' : ''}`} role="status" aria-live="polite">
+      <Swords className="h-3.5 w-3.5 tv-accent" />
+      <span className="truncate">{name}</span>
+      <span className="tv-turn-banner__tag">{paused ? 'Pauze' : 'Aan zet'}</span>
     </div>
   );
 }
@@ -231,6 +258,7 @@ function RightSidebar({
   const [endCombatConfirmOpen, setEndCombatConfirmOpen] = useState(false);
   const [conditionsTarget, setConditionsTarget] = useState(null);
   const [conditionsDraftIds, setConditionsDraftIds] = useState([]);
+  const [turnBannerFlash, setTurnBannerFlash] = useState(false);
   const dragStateRef = useRef({ startX: 0, startWidth: RIGHT_SIDEBAR_DEFAULT_WIDTH });
   const rosterScrollRef = useRef(null);
 
@@ -251,7 +279,6 @@ function RightSidebar({
   const showCombatJoinPanel = role === 'player' && myCharacter && !currentPlayerInCombat;
   const canRequestCombatJoin = showCombatJoinPanel && !playerJoinRequestPending;
   const turnsUntilMine = getTurnsUntilMember(sortedParty, initiativeOrder, currentTurnId, currentPlayerId);
-  const turnApproachRatio = getTurnApproachRatio(sortedParty, initiativeOrder, currentTurnId, currentPlayerId);
   const isMyTurn = battleActive && currentTurnId === currentPlayerId;
   const currentTurnMember = sortedParty.find((member) => member.id === currentTurnId) || null;
   const getVisibleCombatName = (member) => {
@@ -260,6 +287,14 @@ function RightSidebar({
     return member.name;
   };
   const currentTurnDisplayName = getVisibleCombatName(currentTurnMember);
+  const combatPaused = combatStatus === COMBAT_STATUS.PAUSED;
+
+  useEffect(() => {
+    if (!combatInProgress || !currentTurnId) return undefined;
+    setTurnBannerFlash(true);
+    const timer = window.setTimeout(() => setTurnBannerFlash(false), 950);
+    return () => window.clearTimeout(timer);
+  }, [currentTurnId, combatInProgress, turnRound]);
   const showPlayerRollPanel = role === 'player'
     && combatStatus === COMBAT_STATUS.IDLE
     && myCharacter
@@ -773,6 +808,15 @@ function RightSidebar({
                       ) : null}
                     </div>
                     <p className="mt-1 text-xs leading-5 tv-text md:text-[13px] md:leading-6">{gmStatusLine}</p>
+                    {combatInProgress && currentTurnDisplayName ? (
+                      <div className="mt-3">
+                        <CurrentTurnBanner
+                          name={currentTurnDisplayName}
+                          flash={turnBannerFlash}
+                          paused={combatPaused}
+                        />
+                      </div>
+                    ) : null}
                   </div>
                 </div>
 
@@ -784,7 +828,7 @@ function RightSidebar({
                       onClick={handleStatusAction}
                       aria-label={statusActionLabel}
                       title={statusActionLabel}
-                      className={`inline-flex h-11 w-full items-center justify-center gap-2 rounded-xl px-3 text-[11px] font-semibold uppercase tracking-[0.16em] transition-all duration-200 ${
+                      className={`tv-satisfy-pop inline-flex h-11 w-full items-center justify-center gap-2 rounded-xl px-3 text-[11px] font-semibold uppercase tracking-[0.16em] transition-all duration-200 ${
                         combatStatus === COMBAT_STATUS.ACTIVE
                           ? 'tv-button-accent-muted'
                           : combatStatus === COMBAT_STATUS.IDLE
@@ -869,14 +913,24 @@ function RightSidebar({
                     </div>
                     <p className="mt-2 text-sm leading-6 tv-text">{playerStatusPrimaryLine}</p>
                     <p className="mt-1 text-xs leading-5 tv-text-sub md:text-[13px] md:leading-6">{playerStatusSecondaryLine}</p>
+                    {combatInProgress && currentTurnDisplayName ? (
+                      <div className="mt-3">
+                        <CurrentTurnBanner
+                          name={currentTurnDisplayName}
+                          flash={turnBannerFlash}
+                          paused={combatPaused}
+                        />
+                      </div>
+                    ) : null}
                   </div>
 
-                  {combatInProgress ? (
+                  {combatInProgress && isMyTurn && battleActive ? (
                     <div className="self-start sm:self-auto sm:justify-self-end">
-                      <StatusTurnIndicator
-                        turnsUntil={turnsUntilMine}
-                        ratio={turnApproachRatio}
-                        isCurrentTurn={isMyTurn}
+                      <CombatTurnMarker
+                        isCurrentTurn
+                        battleActive={battleActive}
+                        combatPaused={combatPaused}
+                        orderIndex={1}
                       />
                     </div>
                   ) : null}
@@ -972,34 +1026,24 @@ function RightSidebar({
             </div>
           ) : (
             <div ref={rosterScrollRef} className="min-h-0 flex-1 space-y-3 overflow-y-auto pr-1 no-scrollbar">
-          {sortedParty.map((member) => {
+          {sortedParty.map((member, memberIndex) => {
             const isCurrentTurn = combatInProgress && member.id === currentTurnId;
+            const orderIndex = memberIndex + 1;
             const hiddenNpcForPlayer = !isGm && member.isNpc && member.isRevealed === false;
             const displayMemberName = hiddenNpcForPlayer ? 'Onbekende vijand' : member.name;
             const displayMemberAvatar = hiddenNpcForPlayer ? null : member.avatar;
-            const turnsUntilMember = combatInProgress
-              ? getTurnsUntilMember(sortedParty, initiativeOrder, currentTurnId, member.id)
-              : null;
-            const turnRatioMember = combatInProgress
-              ? getTurnApproachRatio(sortedParty, initiativeOrder, currentTurnId, member.id)
-              : 0;
             const initiativeEditable = isGm
               ? combatStatus !== COMBAT_STATUS.ACTIVE
               : (combatStatus === COMBAT_STATUS.IDLE && member.id === currentPlayerId);
             const activeConditions = getActiveConditions(member);
             const hasConditions = activeConditions.length > 0;
-            const extraConditionsCount = Math.max(0, activeConditions.length - 1);
-            const firstCondition = activeConditions[0] || null;
-            const firstConditionMeta = firstCondition ? getCondition(firstCondition.id) : null;
-            const conditionColor = firstConditionMeta?.color || 'slate';
-            const ConditionIcon = CONDITION_ICON_MAP[firstConditionMeta?.icon] || AlertCircle;
             const hasAlertFeat = member?.hasAlertFeat === true;
 
             const cardClassName = `group relative grid cursor-pointer grid-cols-[44px_minmax(0,1fr)_40px] items-center gap-2.5 rounded-2xl border p-2.5 shadow-sm transition-all hover:shadow-md md:grid-cols-[44px_minmax(0,1fr)_auto_44px] md:gap-3 md:p-3 ${
               member.isNpc
                 ? 'border-rose-900/30 bg-rose-950/20 hover:border-rose-500/50'
                 : 'border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] tv-view-card hover:border-[color-mix(in_srgb,var(--tv-accent),transparent_58%)]'
-            } ${hasConditions ? `tv-condition-pulse ${CONDITION_COLORS[conditionColor] || ''}` : ''} ${isCurrentTurn ? (battleActive ? 'ring-1 ring-[var(--tv-accent)]/60 bg-[color-mix(in_srgb,var(--tv-accent),transparent_92%)] shadow-[0_0_12px_color-mix(in_srgb,var(--tv-accent),transparent_60%)]' : 'ring-1 ring-[color-mix(in_srgb,var(--tv-border),transparent_30%)]') : ''}`;
+            } ${isCurrentTurn && battleActive ? 'tv-combat-row--turn' : ''} ${isCurrentTurn && combatPaused ? 'tv-combat-row--turn-paused ring-1 ring-[color-mix(in_srgb,var(--tv-border),transparent_20%)]' : ''}`;
 
             return (
               <div
@@ -1007,31 +1051,12 @@ function RightSidebar({
                 onClick={() => onOpenProfile?.(member)}
                 className={cardClassName}
               >
-                {isCurrentTurn ? (
-                  <div className={`absolute -left-[1px] top-0 bottom-0 w-[3px] rounded-l-lg ${battleActive ? 'tv-breathe-glow' : 'bg-[color-mix(in_srgb,var(--tv-border),transparent_20%)]'}`} style={battleActive ? {background: 'var(--tv-accent)'} : {}} />
-                ) : null}
+                {isCurrentTurn && battleActive ? <div className="tv-combat-turn-rail" aria-hidden="true" /> : null}
+                {turnBannerFlash && isCurrentTurn ? <div className="tv-feedback-sparkle" aria-hidden="true" /> : null}
 
                 {/* Action Panel */}
                 <div className="col-start-3 row-span-2 flex h-full min-h-[60px] flex-col items-center justify-center gap-1.5 rounded-xl border border-[color-mix(in_srgb,var(--tv-border),transparent_48%)] tv-panel-inset px-1 py-1.5 shadow-inner backdrop-blur-sm md:col-start-4 md:opacity-70 md:transition-opacity md:duration-200 md:group-hover:opacity-100 md:group-focus-within:opacity-100">
-                  {/* Conditions Button */}
-                  {hasConditions ? (
-                    <button
-                      type="button"
-                      onClick={(event) => {
-                        event.stopPropagation();
-                        if (isGm) openConditionsEditor(member);
-                      }}
-                      className={`tv-action-square-sm relative border shadow-md transition-all duration-200 hover:scale-110 active:scale-95 ${CONDITION_BADGE_COLORS[conditionColor] || CONDITION_BADGE_COLORS.slate} ${isGm ? 'cursor-pointer' : 'cursor-default'}`}
-                      title={activeConditions.map((c) => getCondition(c.id)?.label).filter(Boolean).join(', ')}
-                    >
-                      <ConditionIcon className="h-3.5 w-3.5" />
-                      {extraConditionsCount > 0 ? (
-                        <span className="absolute -right-1 -top-1 inline-flex h-3.5 min-w-3.5 items-center justify-center rounded-full tv-count-pill px-1 text-[8px] font-bold leading-none md:-right-2 md:-top-2 md:h-4 md:min-w-4 md:text-[9px]">
-                          +{extraConditionsCount}
-                        </span>
-                      ) : null}
-                    </button>
-                  ) : (isGm ? (
+                  {isGm && !hasConditions ? (
                     <button
                       type="button"
                       onClick={(event) => {
@@ -1043,7 +1068,7 @@ function RightSidebar({
                     >
                       <AlertCircle className="h-4 w-4" />
                     </button>
-                  ) : null)}
+                  ) : null}
 
                   {/* Delete NPC Button */}
                   {isGm && member.isNpc ? (
@@ -1078,10 +1103,10 @@ function RightSidebar({
                   ) : null}
                 </div>
 
-                <div className={`flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-lg border font-fantasy text-lg font-bold shadow-inner transition-all md:h-11 md:w-11 ${
+                <div className={`tv-image-frame flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-lg border font-fantasy text-lg font-bold shadow-inner transition-all md:h-11 md:w-11 ${
                   member.isNpc ? 'border-rose-900/50 bg-rose-950/40 text-rose-400' : 'border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] tv-chip-surface tv-accent'
                 } ${isCurrentTurn ? 'ring-1 ring-[var(--tv-accent)]/40' : ''}`}>
-                  <img src={resolveDisplayAvatar(displayMemberAvatar, member.id)} alt={displayMemberName} className="h-full w-full object-cover opacity-80" />
+                  <TvImage src={resolveDisplayAvatar(displayMemberAvatar, member.id)} alt={displayMemberName} className="opacity-90" />
                 </div>
 
                 <div className="min-w-0 self-start">
@@ -1099,10 +1124,11 @@ function RightSidebar({
 
                     <div className="flex items-center gap-1 md:hidden">
                       {combatInProgress ? (
-                        <TurnClockBadge
-                          turnsUntil={turnsUntilMember}
-                          ratio={turnRatioMember}
+                        <CombatTurnMarker
                           isCurrentTurn={isCurrentTurn}
+                          battleActive={battleActive}
+                          combatPaused={combatPaused}
+                          orderIndex={orderIndex}
                         />
                       ) : null}
                       <span className={`inline-flex min-w-[38px] items-center justify-center rounded border tv-input-surface px-1.5 py-0.5 text-[10px] font-bold ${member.isNpc ? 'border-rose-900/50 text-rose-500' : 'border-[color-mix(in_srgb,var(--tv-border),transparent_35%)] tv-accent'} ${isCurrentTurn ? 'tv-chip-surface shadow-inner' : ''}`}>
@@ -1115,6 +1141,12 @@ function RightSidebar({
                       </span>
                     </div>
                   </div>
+
+                  <CombatConditionStrip
+                    conditions={activeConditions}
+                    isGm={isGm}
+                    onEdit={() => openConditionsEditor(member)}
+                  />
 
                   <div className="mt-1 grid grid-cols-2 gap-1.5 font-sans text-[10px] md:gap-2 md:text-[11px]">
                     <div
@@ -1153,10 +1185,11 @@ function RightSidebar({
 
                 <div className="col-start-3 row-span-2 hidden min-w-[48px] flex-col items-end justify-center gap-1.5 self-stretch md:flex">
                   {combatInProgress ? (
-                    <TurnClockBadge
-                      turnsUntil={turnsUntilMember}
-                      ratio={turnRatioMember}
+                    <CombatTurnMarker
                       isCurrentTurn={isCurrentTurn}
+                      battleActive={battleActive}
+                      combatPaused={combatPaused}
+                      orderIndex={orderIndex}
                     />
                   ) : null}
                   <span className={`inline-flex min-w-[44px] items-center justify-center rounded border tv-input-surface px-2 py-0.5 text-xs font-bold ${member.isNpc ? 'border-rose-900/50 text-rose-500' : 'border-[color-mix(in_srgb,var(--tv-border),transparent_35%)] tv-accent'} ${isCurrentTurn ? 'tv-chip-surface shadow-inner' : ''}`}>
@@ -1335,8 +1368,8 @@ function RightSidebar({
               : activeTieGroupMembers
             ).map((member, index, list) => (
               <div key={member.id} className="flex items-center gap-3 rounded-xl border border-[color-mix(in_srgb,var(--tv-border),transparent_28%)] tv-panel-inset px-3 py-2.5">
-                <div className="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-[color-mix(in_srgb,var(--tv-border),transparent_28%)] tv-chip-surface">
-                  <img src={resolveDisplayAvatar(member.avatar, member.id)} alt={member.name} className="h-full w-full object-cover opacity-80" />
+                <div className="tv-image-frame flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-[color-mix(in_srgb,var(--tv-border),transparent_28%)] tv-chip-surface">
+                  <TvImage src={resolveDisplayAvatar(member.avatar, member.id)} alt={member.name} className="opacity-90" />
                 </div>
                 <div className="min-w-0 flex-1">
                   <div className="truncate font-fantasy text-sm tracking-[0.14em] tv-text">{member.name}</div>

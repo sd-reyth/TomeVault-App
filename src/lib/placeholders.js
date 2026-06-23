@@ -64,6 +64,16 @@ export const PROFILE_PLACEHOLDERS = [
   ...LEGACY_PROFILE_PICKABLE_PLACEHOLDERS,
 ];
 
+export const PLACEHOLDER_IMAGE_ZOOM = 1.34;
+export const DEFAULT_IMAGE_ZOOM = 1.22;
+
+export function getImageCoverZoom(url) {
+  const normalized = normalizeAvatarUrl(url) || String(url || '').trim();
+  if (!normalized) return DEFAULT_IMAGE_ZOOM;
+  if (normalized.includes('/placeholders/')) return PLACEHOLDER_IMAGE_ZOOM;
+  return DEFAULT_IMAGE_ZOOM;
+}
+
 export function isLockedProfilePlaceholder(url) {
   return PROFILE_RANDOM_PLACEHOLDERS.includes(url);
 }

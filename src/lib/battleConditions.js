@@ -50,6 +50,23 @@ export const CONDITION_BADGE_COLORS = {
   yellow: 'bg-yellow-950/50 text-yellow-400 border-yellow-700/50',
 };
 
+/** Hex tones for token-based condition chips in combat rail */
+export const CONDITION_TONE_HEX = {
+  amber: '#f59e0b',
+  pink: '#ec4899',
+  slate: '#94a3b8',
+  orange: '#f97316',
+  cyan: '#22d3ee',
+  red: '#f43f5e',
+  purple: '#a855f7',
+  blue: '#3b82f6',
+  gray: '#9ca3af',
+  emerald: '#10b981',
+  rose: '#fb7185',
+  indigo: '#818cf8',
+  yellow: '#eab308',
+};
+
 export function getCondition(conditionId) {
   return CONDITIONS.find(c => c.id === conditionId);
 }

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Crown, Info, Plus, Search, ShieldCheck, Pencil, Hand, Trash } from 'lucide-react';
 import { resolveDisplayAvatar } from '../lib/placeholders';
+import TvImage from './TvImage';
 
 function formatPreparationTime(ms) {
   if (!ms) return 'Zojuist';
@@ -165,11 +166,10 @@ export default function PreparationsView({
                     className="grid gap-4 rounded-2xl border border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] tv-panel-inset p-4 shadow-[0_18px_46px_rgba(0,0,0,0.24)] transition-all duration-200 ease-out tv-hover-surface hover:border-[color-mix(in_srgb,var(--tv-border),transparent_28%)] md:grid-cols-[72px_minmax(0,1fr)]"
                   >
                     <div className="flex justify-center md:justify-start">
-                      <div className="h-[72px] w-[72px] overflow-hidden rounded-2xl border border-[color-mix(in_srgb,var(--tv-border),transparent_28%)] tv-chip-surface shadow-inner">
-                        <img
+                      <div className="tv-image-frame h-[72px] w-[72px] overflow-hidden rounded-2xl border border-[color-mix(in_srgb,var(--tv-border),transparent_28%)] tv-chip-surface shadow-inner">
+                        <TvImage
                           src={resolveDisplayAvatar(preparation.imageUrl, preparation.id)}
                           alt={preparation.name || 'Voorbereid personage'}
-                          className="h-full w-full scale-[1.15] object-cover"
                         />
                       </div>
                     </div>

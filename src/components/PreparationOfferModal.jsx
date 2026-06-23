@@ -2,6 +2,7 @@ import React from 'react';
 import { Crown, Check, X } from 'lucide-react';
 import { resolveDisplayAvatar } from '../lib/placeholders';
 import ModalFrame from './ModalFrame';
+import TvImage from './TvImage';
 
 function formatModifier(value) {
   const safeValue = Number(value ?? 0) || 0;
@@ -36,11 +37,10 @@ export default function PreparationOfferModal({ isOpen, preparation, onAccept, o
 
         <div className="flex-1 overflow-y-auto">
           <div className="grid gap-5 p-5 md:grid-cols-[140px_minmax(0,1fr)] md:p-6">
-            <div className="mx-auto h-[140px] w-[140px] overflow-hidden rounded-2xl border border-[color-mix(in_srgb,var(--tv-border),transparent_28%)] tv-panel-inset shadow-inner">
-              <img
+            <div className="tv-image-frame mx-auto h-[140px] w-[140px] overflow-hidden rounded-2xl border border-[color-mix(in_srgb,var(--tv-border),transparent_28%)] tv-panel-inset shadow-inner">
+              <TvImage
                 src={resolveDisplayAvatar(preparation.imageUrl, preparation.id)}
                 alt={preparation.name || 'Voorbereid personage'}
-                className="h-full w-full scale-[1.18] object-cover"
               />
             </div>
 

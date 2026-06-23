@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { LayoutGrid, List, Plus, Eye, EyeOff, Hand, User, KeyRound, Search, SlidersHorizontal } from 'lucide-react';
 import { getHandoutIcon } from '../lib/handoutUtils';
+import TvImage from './TvImage';
 
 function HandoutsView({ role, handouts, currentPlayerId, onToggleVisibility, onToggleSecretVisibility, onOpenHandout, onCreateHandout, onClaim }) {
   const [viewMode, setViewMode] = useState('list');
@@ -228,9 +229,9 @@ function HandoutsView({ role, handouts, currentPlayerId, onToggleVisibility, onT
               >
                 <div className="absolute inset-0 opacity-[0.03] bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI4IiBoZWlnaHQ9IjgiPgo8cmVjdCB3aWR0aD0iOCIgaGVpZ2h0PSI4IiBmaWxsPSIjZmZmIiBmaWxsLW9wYWNpdHk9IjAuMSIvPgo8L3N2Zz4=')] pointer-events-none" />
 
-                <div className={`tv-handout-media ${viewMode === 'grid' ? 'aspect-[16/9] w-full border-b' : 'aspect-square w-20 border-r md:w-24'} relative flex shrink-0 items-center justify-center overflow-hidden`}>
+                <div className={`tv-handout-media tv-image-frame tv-image-frame--zoom-hover ${viewMode === 'grid' ? 'aspect-[16/9] w-full border-b' : 'aspect-square w-20 border-r md:w-24'} relative flex shrink-0 items-center justify-center overflow-hidden`}>
                   {handout.imageUrl ? (
-                    <img src={handout.imageUrl} alt={handout.title} className="absolute inset-0 h-full w-full object-cover scale-[1.25] transition-transform duration-500 group-hover:scale-[1.4]" />
+                    <TvImage src={handout.imageUrl} alt={handout.title} className="absolute inset-0" />
                   ) : (
                     <div className="absolute inset-0 bg-gradient-to-br from-[color-mix(in_srgb,var(--tv-accent),transparent_88%)] via-[color-mix(in_srgb,var(--tv-bg-surface),transparent_20%)] to-[color-mix(in_srgb,var(--tv-bg-canvas),transparent_10%)]" />
                   )}

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { ImagePlus, Package } from 'lucide-react';
 import { ITEM_PLACEHOLDER_IMAGES } from '../lib/placeholders';
 import ModalFrame from './ModalFrame';
+import TvImage from './TvImage';
 
 function AddItemModal({ isOpen, onClose, onSave, role, party, currentPlayerId, itemToEdit }) {
   const [formData, setFormData] = useState({
@@ -119,7 +120,7 @@ function AddItemModal({ isOpen, onClose, onSave, role, party, currentPlayerId, i
                 <input type="file" accept="image/*" className="hidden" onChange={handleImageChange} />
                 {formData.imageUrl ? (
                   <>
-                    <img src={formData.imageUrl} alt="item" className="w-full h-full object-cover scale-[1.25] opacity-80 group-hover:opacity-45 transition-opacity" />
+                    <TvImage src={formData.imageUrl} alt="item" className="opacity-80 group-hover:opacity-45 transition-opacity" />
                     <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
                       <ImagePlus className="w-6 h-6 tv-text" />
                     </div>
@@ -142,9 +143,9 @@ function AddItemModal({ isOpen, onClose, onSave, role, party, currentPlayerId, i
                       key={url}
                       type="button"
                       onClick={() => handlePickPlaceholder(url)}
-                      className={`aspect-square rounded-md overflow-hidden border transition-all duration-200 hover:scale-110 active:scale-95 ${formData.imageUrl === url ? 'border-[var(--tv-accent)] shadow-[0_0_6px_var(--tv-accent-shadow-sm)]' : 'border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] hover:border-[var(--tv-accent)]/50'}`}
+                      className={`tv-image-frame aspect-square overflow-hidden rounded-md border transition-all duration-200 hover:scale-110 active:scale-95 ${formData.imageUrl === url ? 'border-[var(--tv-accent)] shadow-[0_0_6px_var(--tv-accent-shadow-sm)]' : 'border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] hover:border-[var(--tv-accent)]/50'}`}
                     >
-                      <img src={url} alt="" className="w-full h-full object-cover scale-[1.25]" loading="lazy" />
+                      <TvImage src={url} alt="" loading="lazy" />
                     </button>
                   ))}
                 </div>

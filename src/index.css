@@ -2625,3 +2625,186 @@ header > div {
   background: color-mix(in srgb, var(--tv-bg-modal), transparent 4%);
   padding: 0.75rem 0.875rem;
 }
+
+/* Image cover — hides placeholder white borders via controlled zoom */
+.tv-image-frame {
+  overflow: hidden;
+  position: relative;
+}
+
+.tv-image-cover {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  transform: scale(var(--tv-image-zoom, 1.22));
+  transform-origin: center center;
+  transition: transform 320ms ease, opacity 200ms ease;
+}
+
+.tv-image-frame--zoom-hover:hover .tv-image-cover {
+  transform: scale(calc(var(--tv-image-zoom, 1.22) * 1.08));
+}
+
+.tv-image-contain {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  object-position: center;
+}
+
+/* Combat slagorde — turn & condition presentation */
+@keyframes tv-turn-beacon {
+  0%, 100% {
+    box-shadow: 0 0 0 color-mix(in srgb, var(--tv-accent), transparent 100%), 0 0 12px color-mix(in srgb, var(--tv-accent), transparent 72%);
+    transform: scale(1);
+  }
+  50% {
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--tv-accent), transparent 82%), 0 0 22px color-mix(in srgb, var(--tv-accent), transparent 48%);
+    transform: scale(1.04);
+  }
+}
+
+@keyframes tv-turn-banner-flash {
+  0% { filter: brightness(1.35); transform: scale(1.01); }
+  100% { filter: brightness(1); transform: scale(1); }
+}
+
+@keyframes tv-condition-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-2px); }
+}
+
+@keyframes tv-turn-rail {
+  0%, 100% { opacity: 0.72; }
+  50% { opacity: 1; }
+}
+
+.tv-turn-banner {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+  border-radius: 0.875rem;
+  border: 1px solid color-mix(in srgb, var(--tv-accent), transparent 48%);
+  background: linear-gradient(
+    90deg,
+    color-mix(in srgb, var(--tv-accent), transparent 84%),
+    color-mix(in srgb, var(--tv-bg-surface), transparent 8%)
+  );
+  padding: 0.55rem 0.75rem;
+  font-family: var(--font-fantasy);
+  font-size: 0.75rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--tv-text-primary);
+  box-shadow: 0 0 18px color-mix(in srgb, var(--tv-accent), transparent 78%);
+}
+
+.tv-turn-banner--flash {
+  animation: tv-turn-banner-flash 900ms ease-out;
+}
+
+.tv-turn-banner__tag {
+  margin-left: auto;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--tv-accent), transparent 42%);
+  background: color-mix(in srgb, var(--tv-accent), transparent 78%);
+  padding: 0.15rem 0.5rem;
+  font-size: 0.625rem;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  color: var(--tv-text-primary);
+}
+
+.tv-combat-row--turn {
+  border-color: color-mix(in srgb, var(--tv-accent), transparent 32%) !important;
+  background: linear-gradient(
+    100deg,
+    color-mix(in srgb, var(--tv-accent), transparent 86%) 0%,
+    color-mix(in srgb, var(--tv-bg-surface), transparent 6%) 48%
+  ) !important;
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--tv-accent), transparent 58%),
+    0 14px 30px color-mix(in srgb, var(--tv-accent), transparent 84%);
+}
+
+.tv-combat-row--turn-paused {
+  border-color: color-mix(in srgb, var(--tv-border), transparent 18%) !important;
+  background: color-mix(in srgb, var(--tv-bg-surface), transparent 4%) !important;
+}
+
+.tv-combat-turn-rail {
+  position: absolute;
+  left: 0;
+  top: 0.45rem;
+  bottom: 0.45rem;
+  width: 0.2rem;
+  border-radius: 999px;
+  background: var(--tv-accent);
+  animation: tv-turn-rail 1.6s ease-in-out infinite;
+}
+
+.tv-turn-marker {
+  display: flex;
+  height: 2rem;
+  width: 2rem;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--tv-border), transparent 28%);
+  background: color-mix(in srgb, var(--tv-bg-modal), #000 6%);
+  color: var(--tv-text-secondary);
+}
+
+.tv-turn-marker--active {
+  border-color: color-mix(in srgb, var(--tv-accent), transparent 35%);
+  background: color-mix(in srgb, var(--tv-accent), transparent 78%);
+  color: var(--tv-text-primary);
+  animation: tv-turn-beacon 1.8s ease-in-out infinite;
+}
+
+.tv-turn-marker--paused {
+  border-color: color-mix(in srgb, var(--tv-status-warning), transparent 42%);
+  background: color-mix(in srgb, var(--tv-status-warning), transparent 86%);
+  color: color-mix(in srgb, var(--tv-status-warning), #fff 72%);
+}
+
+.tv-condition-chip {
+  display: inline-flex;
+  height: 1.375rem;
+  width: 1.375rem;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--tv-condition-tone, var(--tv-status-inactive)), transparent 42%);
+  background: color-mix(in srgb, var(--tv-condition-tone, var(--tv-status-inactive)), transparent 86%);
+  color: color-mix(in srgb, var(--tv-condition-tone, var(--tv-status-inactive)), #fff 68%);
+  box-shadow: 0 0 10px color-mix(in srgb, var(--tv-condition-tone, var(--tv-status-inactive)), transparent 78%);
+  animation: tv-condition-float 2.6s ease-in-out infinite;
+}
+
+.tv-condition-chip--more {
+  width: auto;
+  min-width: 1.375rem;
+  padding: 0 0.3rem;
+  font-size: 0.5625rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+}
+
+.tv-feedback-sparkle {
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: radial-gradient(circle at 50% 0%, color-mix(in srgb, var(--tv-accent), transparent 72%), transparent 58%);
+  opacity: 0;
+  animation: tv-feedback-sparkle 700ms ease-out forwards;
+}
+
+@keyframes tv-feedback-sparkle {
+  0% { opacity: 0.85; }
+  100% { opacity: 0; }
+}

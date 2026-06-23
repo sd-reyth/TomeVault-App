@@ -1,6 +1,7 @@
 import React from 'react';
 import ModalFrame from './ModalFrame';
 import { resolveDisplayAvatar } from '../lib/placeholders';
+import TvImage from './TvImage';
 
 export default function PlayerPickerModal({ isOpen, players, preparation, onClose, onAssign }) {
   if (!isOpen) return null;
@@ -27,11 +28,10 @@ export default function PlayerPickerModal({ isOpen, players, preparation, onClos
                   onClick={() => onAssign?.(player.id)}
                   className="tv-view-card flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left"
                 >
-                  <div className="h-12 w-12 shrink-0 overflow-hidden rounded-xl border border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] tv-panel-inset shadow-inner">
-                    <img
+                  <div className="tv-image-frame h-12 w-12 shrink-0 overflow-hidden rounded-xl border border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] tv-panel-inset shadow-inner">
+                    <TvImage
                       src={resolveDisplayAvatar(player.avatar, player.id)}
                       alt={player.name}
-                      className="h-full w-full scale-[1.15] object-cover"
                     />
                   </div>
                   <div className="min-w-0">

@@ -1,6 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import { Hand, Plus, Package, Search, Trash2 } from 'lucide-react';
 import { resolveDisplayAvatar } from '../lib/placeholders';
+import TvImage from './TvImage';
 import { getHandoutIcon } from '../lib/handoutUtils';
 import WalletSection from './WalletSection';
 
@@ -10,9 +11,9 @@ function ItemCard({ item, role, currentPlayerId, canManageInventory, onUpdateIte
 
   return (
     <div className="flex items-start gap-3 rounded-xl border border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] tv-panel-inset p-3 shadow-sm transition-all duration-200 ease-out tv-hover-surface hover:border-[color-mix(in_srgb,var(--tv-border),transparent_28%)]">
-      <div className="h-10 w-10 shrink-0 overflow-hidden rounded-lg border border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] tv-input-surface shadow-inner flex items-center justify-center">
+      <div className="tv-image-frame h-10 w-10 shrink-0 overflow-hidden rounded-lg border border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] tv-input-surface shadow-inner flex items-center justify-center">
         {item.imageUrl && !imageFailed ? (
-          <img src={item.imageUrl} alt="" className="w-full h-full object-cover scale-[1.25]" onError={() => setImageFailed(true)} />
+          <TvImage src={item.imageUrl} alt="" onError={() => setImageFailed(true)} />
         ) : (
           <Package className="w-5 h-5 tv-muted" />
         )}
@@ -162,8 +163,8 @@ function InventoryView({ role, inventory, wallets, party, currentPlayerId, hando
           return (
             <div key={player.id} className="relative rounded-2xl border border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] tv-panel-inset p-4 shadow-md backdrop-blur-sm md:p-6">
               <div className="mb-5 flex items-center gap-3">
-                <div className="flex h-8 w-8 items-center justify-center overflow-hidden rounded-lg border border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] tv-input-surface text-amber-300 shadow-inner">
-                  <img src={resolveDisplayAvatar(player.avatar, player.id)} alt="Avatar" className="w-full h-full object-cover" />
+                <div className="tv-image-frame flex h-8 w-8 items-center justify-center overflow-hidden rounded-lg border border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] tv-input-surface text-amber-300 shadow-inner">
+                  <TvImage src={resolveDisplayAvatar(player.avatar, player.id)} alt="Avatar" />
                 </div>
                 <h3 className="text-lg font-semibold tracking-[0.12em] text-[var(--tv-accent)] md:text-xl">{player.name}</h3>
               </div>
@@ -248,9 +249,9 @@ function InventoryView({ role, inventory, wallets, party, currentPlayerId, hando
                             className="group flex cursor-pointer items-start gap-3 rounded-xl border border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] tv-panel-inset p-3 shadow-sm transition-all duration-200 ease-out hover:border-[var(--tv-accent)]/25 tv-hover-surface"
                             onClick={() => onOpenHandout(handout)}
                           >
-                            <div className="relative flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] tv-input-surface shadow-inner">
+                            <div className="tv-image-frame relative flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] tv-input-surface shadow-inner">
                               {handout.imageUrl ? (
-                                <img src={handout.imageUrl} alt="" className="w-full h-full object-cover scale-[1.25]" />
+                                <TvImage src={handout.imageUrl} alt="" />
                               ) : (
                                 <Icon className="w-5 h-5 tv-muted" />
                               )}

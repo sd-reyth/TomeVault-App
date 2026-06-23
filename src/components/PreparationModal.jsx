@@ -3,6 +3,7 @@ import { X, ImagePlus, Trash2, Fingerprint, Plus, NotebookPen } from 'lucide-rea
 import { PROFILE_PROMPT_AVATARS, resolveDisplayAvatar } from '../lib/placeholders';
 import { STAT_SUGGESTIONS } from '../data/mockData';
 import ModalFrame from './ModalFrame';
+import TvImage from './TvImage';
 
 function getInitialPreparationState(preparation) {
   return {
@@ -93,10 +94,9 @@ export default function PreparationModal({ isOpen, preparation, onClose, onSave,
             <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
           <label className="group relative flex h-24 w-24 cursor-pointer items-center justify-center overflow-hidden rounded-xl border-2 border-[color-mix(in_srgb,var(--tv-border),transparent_35%)] tv-panel-inset shadow-xl transition-all hover:border-[var(--tv-accent)]/60 md:h-32 md:w-32">
             <input type="file" accept="image/*" className="hidden" onChange={handleImageChange} />
-            <img
+            <TvImage
               src={resolveDisplayAvatar(formData.imageUrl, formData.id || 'new-preparation')}
               alt="Voorbereidingsportret"
-              className="h-full w-full object-cover object-center scale-[1.18]"
             />
             <div className="absolute inset-0 flex items-center justify-center bg-[color-mix(in_srgb,var(--tv-bg-canvas),transparent_38%)] opacity-0 transition-opacity group-hover:opacity-100">
               <ImagePlus className="h-6 w-6 tv-text" />
@@ -159,7 +159,7 @@ export default function PreparationModal({ isOpen, preparation, onClose, onSave,
                         : 'border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] hover:border-[var(--tv-accent)]/60'
                     }`}
                   >
-                    <img src={url} alt="" className="h-full w-full object-cover object-center scale-[1.2]" loading="lazy" />
+                    <TvImage src={url} alt="" loading="lazy" />
                   </button>
                 ))}
                 <button
@@ -188,7 +188,7 @@ export default function PreparationModal({ isOpen, preparation, onClose, onSave,
                             : 'border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] hover:border-[var(--tv-accent)]/60'
                         }`}
                       >
-                        <img src={url} alt="" className="h-full w-full object-cover object-center scale-[1.2]" loading="lazy" />
+                        <TvImage src={url} alt="" loading="lazy" />
                       </button>
                     ))}
                   </div>

@@ -7,6 +7,7 @@ import {
 import { STAT_SUGGESTIONS } from '../data/mockData';
 import { sendChatMessage } from '../lib/chatUtils';
 import ModalFrame from './ModalFrame';
+import TvImage from './TvImage';
 
 const CHAT_ACCENT_COLORS = {
   indigo: '#6366f1',
@@ -130,10 +131,9 @@ function CharacterProfileModal({ isOpen, onClose, character, role, currentPlayer
               const displayAvatar = resolveDisplayAvatar(formData.avatar, character.id);
               return (
                 <>
-                  <img
+                  <TvImage
                     src={displayAvatar}
                     alt="Portret"
-                    className="h-full w-full scale-[1.18] object-cover object-center"
                   />
                   {canEdit && (
                     <div className="absolute inset-0 flex items-center justify-center bg-[color-mix(in_srgb,var(--tv-bg-canvas),transparent_38%)] opacity-0 transition-opacity group-hover:opacity-100">
@@ -201,7 +201,7 @@ function CharacterProfileModal({ isOpen, onClose, character, role, currentPlayer
                           : 'border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] hover:border-[color-mix(in_srgb,var(--tv-accent),transparent_58%)]'
                       }`}
                     >
-                      <img src={url} alt="" className="h-full w-full scale-[1.2] object-cover object-center" loading="lazy" />
+                      <TvImage src={url} alt="" loading="lazy" />
                     </button>
                   ))}
                   <button
@@ -224,7 +224,7 @@ function CharacterProfileModal({ isOpen, onClose, character, role, currentPlayer
                           onClick={() => handlePickAvatar(url)}
                           className={`aspect-square overflow-hidden rounded-md border transition-all ${formData.avatar === url ? 'border-[color-mix(in_srgb,var(--tv-accent),transparent_40%)]' : 'border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] hover:border-[color-mix(in_srgb,var(--tv-accent),transparent_58%)]'}`}
                         >
-                          <img src={url} alt="" className="h-full w-full scale-[1.2] object-cover object-center" loading="lazy" />
+                          <TvImage src={url} alt="" loading="lazy" />
                         </button>
                       ))}
                     </div>

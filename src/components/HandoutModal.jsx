@@ -3,6 +3,7 @@ import { ImagePlus, Eye, EyeOff, Hand, Trash2, UserPlus } from 'lucide-react';
 import { getHandoutIcon } from '../lib/handoutUtils';
 import { getAllPlaceholderImages, suggestHandoutImages } from '../lib/placeholders';
 import ModalFrame from './ModalFrame';
+import TvImage from './TvImage';
 
 function HandoutModal({ isOpen, onClose, handout, role, players = [], currentPlayerId, onSave, onDelete, onAddToInitiative, canAddToInitiative }) {
   const [isEditing, setIsEditing] = useState(false);
@@ -103,7 +104,7 @@ function HandoutModal({ isOpen, onClose, handout, role, players = [], currentPla
                   <input type="file" accept="image/*" className="hidden" onChange={handleImageChange} />
                   {formData.imageUrl ? (
                     <>
-                      <img src={formData.imageUrl} alt="Handout preview" className="w-full h-full object-contain p-2 tv-input-surface" />
+                      <TvImage src={formData.imageUrl} alt="Handout preview" contain className="p-2 tv-input-surface" />
                       <div className="absolute left-2 top-2 rounded border border-cyan-700/60 bg-cyan-950/65 px-2 py-1 text-[9px] font-bold uppercase tracking-[0.16em] text-cyan-200">
                         Volledige upload
                       </div>
@@ -144,7 +145,7 @@ function HandoutModal({ isOpen, onClose, handout, role, players = [], currentPla
                               : 'border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] hover:border-[var(--tv-accent)]/50'
                           }`}
                         >
-                          <img src={url} alt="" className="w-full h-full object-cover scale-[1.25]" loading="lazy" />
+                          <TvImage src={url} alt="" loading="lazy" />
                         </button>
                       ))}
                       <button
@@ -167,7 +168,7 @@ function HandoutModal({ isOpen, onClose, handout, role, players = [], currentPla
                               onClick={() => handlePickPlaceholder(url)}
                               className={`aspect-square rounded-md overflow-hidden border transition-all ${formData.imageUrl === url ? 'border-[var(--tv-accent)] shadow-[0_0_6px_var(--tv-accent-shadow-sm)]' : 'border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] hover:border-[var(--tv-accent)]/50'}`}
                             >
-                              <img src={url} alt="" className="w-full h-full object-cover scale-[1.25]" loading="lazy" />
+                              <TvImage src={url} alt="" loading="lazy" />
                             </button>
                           ))}
                         </div>
@@ -401,15 +402,16 @@ function HandoutModal({ isOpen, onClose, handout, role, players = [], currentPla
                   {formData.title}
                 </h2>
                 {formData.imageUrl && (
-                  <div className="w-full h-48 md:h-64 rounded-xl border border-[color-mix(in_srgb,var(--tv-border),transparent_28%)] overflow-hidden shadow-lg mt-6 tv-input-surface relative isolate">
-                    <img
+                  <div className="tv-image-frame relative isolate w-full h-48 md:h-64 rounded-xl border border-[color-mix(in_srgb,var(--tv-border),transparent_28%)] overflow-hidden shadow-lg mt-6 tv-input-surface">
+                    <TvImage
                       src={formData.imageUrl}
                       alt=""
                       aria-hidden="true"
-                      className="absolute inset-0 w-full h-full object-cover scale-[1.65] blur-2xl opacity-70 saturate-125"
+                      zoom={1.65}
+                      className="absolute inset-0 blur-2xl opacity-70 saturate-125"
                     />
                     <div className="absolute inset-0 bg-gradient-to-b color-mix(in srgb, var(--tv-bg-canvas), transparent 90%) via-transparent color-mix(in srgb, var(--tv-bg-canvas), transparent 75%)" />
-                    <img src={formData.imageUrl} alt={formData.title} className="relative z-10 w-full h-full object-cover scale-[1.18]" />
+                    <TvImage src={formData.imageUrl} alt={formData.title} className="relative z-10" />
                   </div>
                 )}
               </div>

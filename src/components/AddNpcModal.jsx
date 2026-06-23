@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { UserPlus, ImagePlus } from 'lucide-react';
 import ModalFrame from './ModalFrame';
+import TvImage from './TvImage';
 
 export default function AddNpcModal({ isOpen, onClose, onSave }) {
   const [name, setName] = useState('');
@@ -52,7 +53,7 @@ export default function AddNpcModal({ isOpen, onClose, onSave }) {
               <input type="file" accept="image/*" className="hidden" onChange={handleImageChange} />
               {avatarUrl ? (
                 <>
-                  <img src={avatarUrl} alt="NPC Portret preview" className="w-full h-full object-cover opacity-80 group-hover:opacity-50 transition-opacity" />
+                  <TvImage src={avatarUrl} alt="NPC Portret preview" className="opacity-80 group-hover:opacity-50 transition-opacity" />
                   <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
                     <ImagePlus className="w-6 h-6 tv-text drop-shadow-md" />
                   </div>
