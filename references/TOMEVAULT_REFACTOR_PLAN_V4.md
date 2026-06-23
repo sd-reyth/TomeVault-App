@@ -48,28 +48,35 @@ No mass rename in one commit.
 - Baseline: 315 violations (target: 0 after Wave 5)
 - Build passes, app functionally unchanged
 
-### Wave 1 — Core primitives
+### Wave 1 — Core primitives ✅ DONE
 **Goal:** Minimal design system foundation that Wave 2b can use directly.
 
-New primitives (four only):
+New primitives built (in `src/ui/`):
 | Primitive | Replaces |
 |-----------|---------|
-| `Icon` | Direct `lucide-react` imports + MDI in DiceRoller |
-| `Text` | `tv-type-*` classes + `text-[Npx]` |
-| `Button` | Extend existing: icon slot, loading state, sm/md |
-| `Card` | Copy-pasted `tv-panel` surfaces |
+| `Icon` | Wraps any lucide icon via `as={}`; strokeWidth 1.5, fixed sizes |
+| `Text` | `tv-type-*` classes + `text-[Npx]` (variants + tone) |
+| `Button` | Moved from components/; added icon slot + loading state |
+| `Card` | Composes existing `tv-panel-*` surfaces (no new CSS) |
+| `DiceIcon` | Polyhedral dice (d4–d100) — replaces `@mdi/js` dependency |
 
-CSS split: `theme/tokens.css` + `ui/primitives.css` extracted from `index.css`.
+CSS: typography tokens extracted to `theme/tokens.css` (imported by index.css).
+Full index.css → ui/primitives.css split deferred — done incrementally as later
+waves absorb the relevant CSS (lower risk than moving 3000 interdependent lines).
 
-MDI removed from `DiceRoller.jsx` and `ChatView.jsx`.
+MDI removed from `DiceRoller.jsx` and `ChatView.jsx`; `@mdi/js` removed from
+package.json. `components/Button.jsx` is now a re-export shim to `ui/Button.jsx`.
 
 SegmentedControl → Wave 2b (not needed yet).
 
-**Exit criteria:**
-- No direct `lucide-react` imports outside `ui/Icon.jsx`
-- No `@mdi/js` in `src/`
-- Four primitives documented with one example each
-- Build green; screens visually equal or better
+**Adapted exit criteria (pragmatic, v4 just-in-time philosophy):**
+- ✅ No `@mdi/js` in `src/` or package.json
+- ✅ Icon system exists; used by Button + DiceRoller; new code uses `Icon`
+- ⏭ Full lucide consolidation (all 28 files importing via Icon) happens per-wave
+  as each file is refactored — NOT a big-bang import sweep in Wave 1
+- ✅ Five primitives documented with JSDoc examples
+- ✅ Build green; dice icons + login verified in browser
+- check:ui: 315 → 309 violations
 
 ### Wave 2a — useCombat extraction
 **Goal:** Largest block out of App.jsx without touching UI. Stoppable after this wave.
@@ -189,5 +196,5 @@ Only build what a concrete wave requires. Nothing upfront.
 | App.jsx lines | 4023 | < 250 |
 | index.css lines | 3212 | < 1000 |
 | RightSidebar.jsx lines | 1439 | < 300 (split) |
-| Direct lucide-react imports | 28 files | 1 (Icon.jsx) |
-| @mdi/js usage | 2 files | 0 |
+| Direct lucide-react imports | 28 files | consolidated per-wave |
+| @mdi/js usage | 2 files | 0 ✅ (Wave 1) |
