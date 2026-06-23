@@ -1,14 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { playUiSound } from '../lib/uiFeedback';
-import {
-  mdiDiceD4,
-  mdiDiceD6,
-  mdiDiceD8,
-  mdiDiceD10,
-  mdiDiceD12,
-  mdiDiceD20,
-  mdiDiceD10Outline,
-} from '@mdi/js';
+import DiceIcon from '../ui/DiceIcon';
 
 const DICE_TYPES = [
   { label: 'd4', sides: 4 },
@@ -22,16 +14,6 @@ const DICE_TYPES = [
 
 const MAX_DICE_PER_ROLL = 10;
 
-const DICE_ICON_PATHS = {
-  4: mdiDiceD4,
-  6: mdiDiceD6,
-  8: mdiDiceD8,
-  10: mdiDiceD10,
-  12: mdiDiceD12,
-  20: mdiDiceD20,
-  100: mdiDiceD10Outline,
-};
-
 const DICE_ICON_COLORS = {
   4: '#60a5fa',
   6: '#34d399',
@@ -43,17 +25,8 @@ const DICE_ICON_COLORS = {
 };
 
 function DiceTypeIcon({ sides, className = '' }) {
-  const iconPath = DICE_ICON_PATHS[sides] || mdiDiceD10Outline;
   const iconColor = DICE_ICON_COLORS[sides] || '#f59e0b';
-
-  return (
-    <svg viewBox="0 0 24 24" className={className} fill="none" aria-hidden="true" style={{ color: iconColor }}>
-      <path d={iconPath} fill="currentColor" />
-      {sides === 100 ? (
-        <text x="12" y="14" textAnchor="middle" fontSize="5.8" fill="#0f172a" stroke="none" fontWeight="700">00</text>
-      ) : null}
-    </svg>
-  );
+  return <DiceIcon sides={sides} className={className} style={{ color: iconColor }} />;
 }
 
 function getRollActionAccent() {

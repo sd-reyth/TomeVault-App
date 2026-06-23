@@ -2,16 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { MessageSquare, Palette, Pencil, Trash2, X, Check, CornerUpLeft, SendHorizontal, Dice5 } from 'lucide-react';
 import DiceRollerSheet, { getDiceThemeChrome } from './DiceRollerSheet';
 import { safeLocalStorageGet, safeLocalStorageSet } from '../lib/browserStorage';
-import {
-  mdiDiceD4,
-  mdiDiceD6,
-  mdiDiceD8,
-  mdiDiceD10,
-  mdiDiceD12,
-  mdiDiceD20,
-  mdiDiceD10Outline,
-  mdiDiceMultiple,
-} from '@mdi/js';
+import DiceIcon, { DiceMultipleIcon } from '../ui/DiceIcon';
 
 const CHAT_COLORS = [
   { id: 'indigo',   bg: '#1e1b4b', border: '#4338ca', text: '#e0e7ff', swatch: '#6366f1', name: 'Indigo'   },
@@ -41,16 +32,6 @@ function getStoredChatColor(fallback = null) {
   return isKnownChatColor(fallback) ? fallback : null;
 }
 
-const CHAT_DICE_ICON_PATHS = {
-  4: mdiDiceD4,
-  6: mdiDiceD6,
-  8: mdiDiceD8,
-  10: mdiDiceD10,
-  12: mdiDiceD12,
-  20: mdiDiceD20,
-  100: mdiDiceD10Outline,
-};
-
 const CHAT_DICE_ICON_COLORS = {
   4: '#60a5fa',
   6: '#34d399',
@@ -62,17 +43,8 @@ const CHAT_DICE_ICON_COLORS = {
 };
 
 function ChatDiceIcon({ sides, className = 'w-4 h-4' }) {
-  const iconPath = CHAT_DICE_ICON_PATHS[sides] || mdiDiceD10Outline;
   const iconColor = CHAT_DICE_ICON_COLORS[sides] || '#f59e0b';
-
-  return (
-    <svg viewBox="0 0 24 24" className={className} fill="none" aria-hidden="true" style={{ color: iconColor }}>
-      <path d={iconPath} fill="currentColor" />
-      {Number(sides) === 100 ? (
-        <text x="12" y="14" textAnchor="middle" fontSize="5.8" fill="#0f172a" stroke="none" fontWeight="700">00</text>
-      ) : null}
-    </svg>
-  );
+  return <DiceIcon sides={sides} className={className} style={{ color: iconColor }} />;
 }
 
 function parseDiceMessage(text) {
@@ -475,9 +447,7 @@ function ChatView({ chat, setChat, role, uid, playerName, preferredChatColor, th
                           <div className="grid grid-cols-[86px_minmax(0,1fr)] items-stretch gap-2">
                             <div className="flex min-h-[84px] shrink-0 flex-col justify-center rounded-xl border border-[var(--tv-accent)]/25 bg-[radial-gradient(circle_at_top,color-mix(in_srgb,var(--tv-accent),transparent 75%),color-mix(in_srgb,var(--tv-accent),transparent 80%_58%,rgba(0,0,0,0)_100%)] px-2 py-2 text-center">
                               <div className="mb-1 inline-flex items-center gap-1 text-[8px] font-semibold uppercase tracking-[0.16em] text-[var(--tv-accent)]/90">
-                                <svg viewBox="0 0 24 24" className="h-3 w-3" fill="none" aria-hidden="true" style={{ color: '#fde68a' }}>
-                                  <path d={mdiDiceMultiple} fill="currentColor" />
-                                </svg>
+                                <DiceMultipleIcon className="h-3 w-3" style={{ color: '#fde68a' }} />
                                 Totaal
                               </div>
                               <div className="font-fantasy text-4xl leading-none tracking-[0.08em] text-[var(--tv-accent)] drop-shadow-[0_0_10px_var(--tv-accent-shadow)] md:text-[2.65rem]">

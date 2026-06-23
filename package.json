@@ -12,7 +12,6 @@
     "check:ui": "node scripts/check-ui.js"
   },
   "dependencies": {
-    "@mdi/js": "^7.4.47",
     "@tailwindcss/vite": "^4.2.4",
     "@vitejs/plugin-react": "^6.0.1",
     "firebase": "^12.12.1",
