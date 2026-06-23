@@ -82,24 +82,24 @@ export default function PreparationModal({ isOpen, preparation, onClose, onSave,
     <ModalFrame
       isOpen={isOpen}
       onClose={onClose}
-      title={preparation ? 'Voorbereiding Bewerken' : 'Nieuwe Voorbereiding'}
-      subtitle="Werk een voorbereid profiel uit met stats, verborgen eigenschappen en lore."
+      title={preparation ? 'Voorbereiding' : 'Nieuw'}
+      subtitle={formData.name || 'Profiel'}
       icon={NotebookPen}
       maxWidthClassName="max-w-md"
       bodyClassName="px-0 py-0 overflow-y-hidden sm:px-0 sm:py-0"
     >
         <div className="flex flex-1 flex-col overflow-y-auto no-scrollbar px-4 pb-4 pt-4 sm:px-6 sm:pb-6">
-          <div className="mb-4 rounded-2xl border border-white/10 bg-zinc-950/72 p-4 shadow-inner">
+          <div className="tv-panel-inset mb-4 rounded-2xl p-4 shadow-inner">
             <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-          <label className="group relative flex h-24 w-24 cursor-pointer items-center justify-center overflow-hidden rounded-xl border-2 border-white/15 bg-white/5 shadow-xl transition-all hover:border-[var(--tv-accent)]/60 md:h-32 md:w-32">
+          <label className="group relative flex h-24 w-24 cursor-pointer items-center justify-center overflow-hidden rounded-xl border-2 border-[color-mix(in_srgb,var(--tv-border),transparent_35%)] tv-panel-inset shadow-xl transition-all hover:border-[var(--tv-accent)]/60 md:h-32 md:w-32">
             <input type="file" accept="image/*" className="hidden" onChange={handleImageChange} />
             <img
               src={resolveDisplayAvatar(formData.imageUrl, formData.id || 'new-preparation')}
               alt="Voorbereidingsportret"
               className="h-full w-full object-cover object-center scale-[1.18]"
             />
-            <div className="absolute inset-0 flex items-center justify-center bg-zinc-950/62 opacity-0 transition-opacity group-hover:opacity-100">
-              <ImagePlus className="h-6 w-6 text-stone-200" />
+            <div className="absolute inset-0 flex items-center justify-center bg-[color-mix(in_srgb,var(--tv-bg-canvas),transparent_38%)] opacity-0 transition-opacity group-hover:opacity-100">
+              <ImagePlus className="h-6 w-6 tv-text" />
             </div>
           </label>
 
@@ -133,20 +133,20 @@ export default function PreparationModal({ isOpen, preparation, onClose, onSave,
                 type="text"
                 value={formData.name || ''}
                 onChange={(event) => handleChange('name', event.target.value)}
-                className="w-full border-b border-white/10 bg-transparent px-1 py-1 text-2xl font-fantasy font-bold text-stone-100 outline-none transition-colors focus:border-[var(--tv-accent)]/70 md:text-3xl"
+                className="w-full border-b border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] bg-transparent px-1 py-1 text-2xl font-fantasy font-bold tv-text outline-none transition-colors focus:border-[var(--tv-accent)]/70 md:text-3xl"
                 placeholder="Karakter Naam"
               />
               <input
                 type="text"
                 value={formData.subtitle || ''}
                 onChange={(event) => handleChange('subtitle', event.target.value)}
-                className="mt-1 w-full border-b border-transparent bg-transparent px-1 py-1 text-sm italic text-stone-400 outline-none transition-colors hover:border-white/10 focus:border-white/20"
+                className="mt-1 w-full border-b border-transparent bg-transparent px-1 py-1 text-sm italic tv-text-sub outline-none transition-colors hover:border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] focus:border-[color-mix(in_srgb,var(--tv-accent),transparent_58%)]"
                 placeholder="Rol / klasse / archetype"
               />
             </div>
 
             <div>
-              <div className="mb-2 text-[10px] font-bold uppercase tracking-widest text-stone-400">Of kies een avatar</div>
+              <div className="mb-2 text-[10px] font-bold uppercase tracking-widest tv-text-sub">Of kies een avatar</div>
               <div className="flex gap-1.5 overflow-x-auto pb-1 no-scrollbar">
                 {PROFILE_PROMPT_AVATARS.slice(0, 18).map((url) => (
                   <button
@@ -156,7 +156,7 @@ export default function PreparationModal({ isOpen, preparation, onClose, onSave,
                     className={`h-10 w-10 shrink-0 overflow-hidden rounded-lg border-2 transition-all ${
                       formData.imageUrl === url
                         ? 'border-[var(--tv-accent)] shadow-[0_0_6px_color-mix(in_srgb,var(--tv-accent),transparent_50%)]'
-                        : 'border-white/10 hover:border-[var(--tv-accent)]/60'
+                        : 'border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] hover:border-[var(--tv-accent)]/60'
                     }`}
                   >
                     <img src={url} alt="" className="h-full w-full object-cover object-center scale-[1.2]" loading="lazy" />
@@ -165,8 +165,8 @@ export default function PreparationModal({ isOpen, preparation, onClose, onSave,
                 <button
                   type="button"
                   onClick={() => setShowAllPromptAvatars((value) => !value)}
-                  className={`h-10 w-10 shrink-0 rounded-lg border-2 bg-white/5 font-fantasy text-lg text-stone-300 transition-all ${
-                    showAllPromptAvatars ? 'border-[var(--tv-accent)] bg-[color-mix(in_srgb,var(--tv-accent),transparent_70%)]' : 'border-stone-700 hover:border-stone-600/60'
+                  className={`h-10 w-10 shrink-0 rounded-lg border-2 tv-panel-inset font-fantasy text-lg tv-text transition-all ${
+                    showAllPromptAvatars ? 'border-[var(--tv-accent)] bg-[color-mix(in_srgb,var(--tv-accent),transparent_70%)]' : 'border-[color-mix(in_srgb,var(--tv-border),transparent_28%)] hover:border-[color-mix(in_srgb,var(--tv-accent),transparent_58%)]'
                   }`}
                   title="Toon alle prompt avatars"
                 >
@@ -175,7 +175,7 @@ export default function PreparationModal({ isOpen, preparation, onClose, onSave,
               </div>
 
               {showAllPromptAvatars && (
-                <div className="mt-3 max-h-52 overflow-y-auto rounded-lg border border-white/10 bg-white/5 p-2 no-scrollbar">
+                <div className="mt-3 max-h-52 overflow-y-auto rounded-lg border border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] tv-panel-inset p-2 no-scrollbar">
                   <div className="grid grid-cols-5 gap-1.5 sm:grid-cols-6">
                     {PROFILE_PROMPT_AVATARS.map((url) => (
                       <button
@@ -185,7 +185,7 @@ export default function PreparationModal({ isOpen, preparation, onClose, onSave,
                         className={`aspect-square overflow-hidden rounded-md border transition-all ${
                           formData.imageUrl === url
                             ? 'border-[var(--tv-accent)] shadow-[0_0_6px_color-mix(in_srgb,var(--tv-accent),transparent_50%)]'
-                            : 'border-white/10 hover:border-[var(--tv-accent)]/60'
+                            : 'border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] hover:border-[var(--tv-accent)]/60'
                         }`}
                       >
                         <img src={url} alt="" className="h-full w-full object-cover object-center scale-[1.2]" loading="lazy" />
@@ -196,57 +196,32 @@ export default function PreparationModal({ isOpen, preparation, onClose, onSave,
               )}
             </div>
 
-            <div className="rounded-xl border border-white/10 bg-white/5 p-3 shadow-inner">
-              <div className="mb-2 text-[10px] font-bold uppercase tracking-widest text-stone-400">Snelle profielwaarden</div>
-              <div className="grid grid-cols-3 gap-3">
-                <div className="flex flex-col items-center justify-center p-2">
-                  <span className="mb-1 text-[10px] font-bold uppercase tracking-widest text-stone-500">HP</span>
-                  <div className="flex items-baseline gap-1">
-                    <input
-                      type="number"
-                      value={formData.hp || 0}
-                      onChange={(event) => handleChange('hp', event.target.value)}
-                      className="hide-arrows w-8 border-b border-white/10 bg-transparent text-center text-lg font-bold text-[var(--tv-accent)] outline-none focus:border-[var(--tv-accent)]"
-                    />
-                    <span className="text-xs text-stone-600">/</span>
-                    <input
-                      type="number"
-                      value={formData.maxHp || 0}
-                      onChange={(event) => handleChange('maxHp', event.target.value)}
-                      className="hide-arrows w-8 border-b border-white/10 bg-transparent text-center text-xs font-bold text-stone-500 outline-none focus:border-[var(--tv-accent)]"
-                    />
-                  </div>
+            <div className="tv-stat-grid">
+              <div className="tv-stat-cell">
+                <span className="tv-label mb-1">HP</span>
+                <div className="flex items-baseline gap-1">
+                  <input type="number" value={formData.hp || 0} onChange={(event) => handleChange('hp', event.target.value)} className="tv-stat-input hide-arrows text-lg" />
+                  <span className="tv-muted text-xs">/</span>
+                  <input type="number" value={formData.maxHp || 0} onChange={(event) => handleChange('maxHp', event.target.value)} className="tv-stat-input hide-arrows text-xs tv-muted" />
                 </div>
-
-                <div className="flex flex-col items-center justify-center border-x border-white/10 p-2">
-                  <span className="mb-1 text-[10px] font-bold uppercase tracking-widest text-stone-500">AC</span>
-                  <input
-                    type="number"
-                    value={formData.ac || 10}
-                    onChange={(event) => handleChange('ac', event.target.value)}
-                    className="hide-arrows w-10 border-b border-white/10 bg-transparent text-center text-lg font-bold text-stone-200 outline-none focus:border-[var(--tv-accent)]"
-                  />
-                </div>
-
-                <div className="flex flex-col items-center justify-center p-2">
-                  <span className="mb-1 text-[10px] font-bold uppercase tracking-widest text-stone-500">Init Mod</span>
-                  <input
-                    type="number"
-                    value={formData.initMod || 0}
-                    onChange={(event) => handleChange('initMod', event.target.value)}
-                    className="hide-arrows w-10 border-b border-white/10 bg-transparent text-center text-lg font-bold text-stone-200 outline-none focus:border-[var(--tv-accent)]"
-                  />
-                </div>
+              </div>
+              <div className="tv-stat-cell tv-stat-cell--divider">
+                <span className="tv-label mb-1">AC</span>
+                <input type="number" value={formData.ac || 10} onChange={(event) => handleChange('ac', event.target.value)} className="tv-stat-input hide-arrows text-lg tv-text" />
+              </div>
+              <div className="tv-stat-cell">
+                <span className="tv-label mb-1">Init</span>
+                <input type="number" value={formData.initMod || 0} onChange={(event) => handleChange('initMod', event.target.value)} className="tv-stat-input hide-arrows text-lg tv-text" />
               </div>
             </div>
 
             <div className="flex flex-col">
-              <h4 className="mb-2 flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-stone-400">
+              <h4 className="mb-2 flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest tv-text-sub">
                 <Fingerprint className="h-3 w-3" /> Verborgen eigenschappen
               </h4>
               <div className="flex flex-wrap gap-2">
                 {(formData.customStats || []).map((stat) => (
-                  <div key={stat.id} className="flex items-center overflow-hidden rounded-lg border border-white/10 bg-white/5 shadow-inner transition-colors focus-within:border-[var(--tv-accent)]/60">
+                  <div key={stat.id} className="flex items-center overflow-hidden rounded-lg border border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] tv-panel-inset shadow-inner transition-colors focus-within:border-[var(--tv-accent)]/60">
                     <input
                       list="preparation-stat-options"
                       value={stat.name}
@@ -254,19 +229,19 @@ export default function PreparationModal({ isOpen, preparation, onClose, onSave,
                         const cleanAbbr = event.target.value.split(' - ')[0].trim().toUpperCase();
                         updateCustomStat(stat.id, 'name', cleanAbbr);
                       }}
-                      className="w-16 border-r border-white/10 bg-transparent p-1.5 text-center text-[10px] font-bold uppercase tracking-widest text-[var(--tv-accent)] outline-none placeholder-stone-600"
+                      className="w-16 border-r border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] bg-transparent p-1.5 text-center text-[10px] font-bold uppercase tracking-widest text-[var(--tv-accent)] outline-none placeholder:tv-muted"
                       placeholder="NAAM"
                     />
                     <input
                       type="number"
                       value={stat.value}
                       onChange={(event) => updateCustomStat(stat.id, 'value', event.target.value)}
-                      className="hide-arrows w-10 bg-transparent p-1 text-center text-sm font-bold text-stone-200 outline-none"
+                      className="hide-arrows w-10 bg-transparent p-1 text-center text-sm font-bold tv-text outline-none"
                     />
                     <button
                       type="button"
                       onClick={() => removeCustomStat(stat.id)}
-                      className="bg-zinc-950/55 p-1.5 text-stone-500 transition-colors hover:bg-zinc-900 hover:text-rose-400"
+                      className="tv-panel-inset p-1.5 tv-muted transition-colors hover:opacity-90 hover:text-rose-400"
                       title="Verwijder eigenschap"
                     >
                       <X className="h-3 w-3" />
@@ -276,7 +251,7 @@ export default function PreparationModal({ isOpen, preparation, onClose, onSave,
                 <button
                   type="button"
                   onClick={addCustomStat}
-                  className="flex h-8 w-8 items-center justify-center rounded-lg border border-dashed border-white/15 bg-white/5 text-stone-500 transition-colors hover:border-[var(--tv-accent)]/60 hover:text-[var(--tv-accent)]"
+                  className="flex h-8 w-8 items-center justify-center rounded-lg border border-dashed border-[color-mix(in_srgb,var(--tv-border),transparent_35%)] tv-panel-inset tv-muted transition-colors hover:border-[var(--tv-accent)]/60 hover:text-[var(--tv-accent)]"
                   title="Voeg eigenschap toe"
                 >
                   <Plus className="h-4 w-4" />
@@ -290,14 +265,14 @@ export default function PreparationModal({ isOpen, preparation, onClose, onSave,
             </div>
 
             <div className="mt-4 flex min-h-[160px] flex-1 flex-col">
-              <h4 className="mb-2 flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-stone-400">
+              <h4 className="mb-2 flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest tv-text-sub">
                 <NotebookPen className="h-3 w-3" /> Notities & Lore
               </h4>
               <textarea
                 value={formData.bio || ''}
                 onChange={(event) => handleChange('bio', event.target.value)}
                 placeholder="Achtergrondverhaal, spreuken, wapens of tijdelijke effecten..."
-                className="w-full flex-1 resize-none rounded-lg border border-white/10 bg-white/5 p-3 text-sm leading-relaxed text-stone-300 transition-colors focus:border-[var(--tv-accent)]/60 focus:outline-none"
+                className="w-full flex-1 resize-none rounded-lg border border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] tv-panel-inset p-3 text-sm leading-relaxed tv-text transition-colors focus:border-[var(--tv-accent)]/60 focus:outline-none"
               />
             </div>
           </div>

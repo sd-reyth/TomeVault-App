@@ -46,16 +46,14 @@ export default function SessionManageModal({
       onClose={onClose}
       title="Sessiebeheer"
       icon={Hash}
-      subtitle="Werk het sessienummer bij en open de deelopties vanaf hier."
+      subtitle="Sessienummer en deelopties"
       maxWidthClassName="max-w-md"
       bodyClassName="gap-5"
     >
 
           {/* Session number stepper */}
           <div>
-            <label className="mb-2 block text-[10px] font-semibold uppercase tracking-[0.18em] text-stone-500">
-              Sessienummer
-            </label>
+            <label className="tv-label mb-2 block">Sessienummer</label>
             <div className="flex items-center gap-2">
               <button
                 type="button"
@@ -86,16 +84,14 @@ export default function SessionManageModal({
           {/* Session code + URL */}
           {sessionId ? (
             <div>
-              <label className="mb-2 block text-[10px] font-semibold uppercase tracking-[0.18em] text-stone-500">
-                Uitnodigingsgegevens
-              </label>
-              <div className="tv-panel-block divide-y divide-white/10">
+              <label className="tv-label mb-2 block">Uitnodiging</label>
+              <div className="tv-panel-block divide-y divide-[color-mix(in_srgb,var(--tv-border),transparent_42%)]">
                 {/* Code row */}
                 <div className="flex flex-col items-start gap-3 px-3 py-2.5 sm:flex-row sm:items-center sm:justify-between">
                   <div className="min-w-0 flex items-center gap-2">
-                    <Hash className="h-3.5 w-3.5 shrink-0 text-stone-500" />
+                    <Hash className="h-3.5 w-3.5 shrink-0 tv-muted" />
                     <div className="min-w-0">
-                      <div className="mb-0.5 text-[9px] uppercase tracking-[0.2em] text-stone-500">Sessiecode</div>
+                      <div className="mb-0.5 text-[9px] uppercase tracking-[0.2em] tv-muted">Sessiecode</div>
                       <div className="truncate text-xs tracking-[0.14em] tv-accent">{canonicalSessionCode}</div>
                     </div>
                   </div>
@@ -112,10 +108,10 @@ export default function SessionManageModal({
                 {/* URL row */}
                 <div className="flex flex-col items-start gap-3 px-3 py-2.5 sm:flex-row sm:items-center sm:justify-between">
                   <div className="min-w-0 flex items-center gap-2">
-                    <Link className="h-3.5 w-3.5 shrink-0 text-stone-500" />
+                    <Link className="h-3.5 w-3.5 shrink-0 tv-muted" />
                     <div className="min-w-0">
-                      <div className="mb-0.5 text-[9px] uppercase tracking-[0.2em] text-stone-500">Join-link</div>
-                      <div className="truncate text-xs text-stone-300">{joinUrl}</div>
+                      <div className="mb-0.5 text-[9px] uppercase tracking-[0.2em] tv-muted">Join-link</div>
+                      <div className="truncate text-xs tv-text">{joinUrl}</div>
                     </div>
                   </div>
                   <button

@@ -88,8 +88,8 @@ function HandoutModal({ isOpen, onClose, handout, role, players = [], currentPla
     <ModalFrame
       isOpen={isOpen}
       onClose={onClose}
-      title={handout ? 'Handout Inspecteren' : 'Nieuwe Handout'}
-      subtitle={formData.type === 'npc' ? 'NPC, document of lootkaart beheren vanuit een gedeeld formaat.' : 'Documenten, loot en kaarten in hetzelfde uniforme venster.'}
+      title={handout ? 'Handout' : 'Nieuw'}
+      subtitle={formData.title || (formData.type === 'npc' ? 'NPC' : 'Document')}
       icon={Icon}
       maxWidthClassName="max-w-2xl"
       bodyClassName="px-0 py-0 overflow-y-hidden sm:px-0 sm:py-0"
@@ -99,7 +99,7 @@ function HandoutModal({ isOpen, onClose, handout, role, players = [], currentPla
             <form id="handout-form" onSubmit={handleSave} className="flex flex-col gap-5">
               
               <div className="flex justify-center w-full">
-                <label className="relative group cursor-pointer w-full h-32 md:h-40 rounded-xl border-2 border-dashed border-white/20 tv-panel-inset hover:bg-white/7 hover:border-[var(--tv-accent)]/50 flex items-center justify-center overflow-hidden transition-all shadow-inner">
+                <label className="relative group cursor-pointer w-full h-32 md:h-40 rounded-xl border-2 border-dashed border-[color-mix(in_srgb,var(--tv-accent),transparent_58%)] tv-panel-inset hover:color-mix(in srgb, var(--tv-bg-surface), transparent 6%) hover:border-[var(--tv-accent)]/50 flex items-center justify-center overflow-hidden transition-all shadow-inner">
                   <input type="file" accept="image/*" className="hidden" onChange={handleImageChange} />
                   {formData.imageUrl ? (
                     <>
@@ -107,7 +107,7 @@ function HandoutModal({ isOpen, onClose, handout, role, players = [], currentPla
                       <div className="absolute left-2 top-2 rounded border border-cyan-700/60 bg-cyan-950/65 px-2 py-1 text-[9px] font-bold uppercase tracking-[0.16em] text-cyan-200">
                         Volledige upload
                       </div>
-                      <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-stone-950/35">
+                      <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity tv-panel-inset">
                         <ImagePlus className="w-8 h-8 tv-text drop-shadow-md" />
                       </div>
                     </>
@@ -187,7 +187,7 @@ function HandoutModal({ isOpen, onClose, handout, role, players = [], currentPla
                     value={formData.title} 
                     onChange={e => setFormData({...formData, title: e.target.value})}
                     placeholder="Bijv. Geheime Brief van de Koning"
-                    className="w-full tv-panel-inset border border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] rounded-lg px-4 py-3 text-lg font-fantasy font-bold tv-text placeholder-stone-500 focus:outline-none focus:border-[var(--tv-accent)]/70 focus:bg-white/7 transition-all duration-200"
+                    className="w-full tv-panel-inset border border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] rounded-lg px-4 py-3 text-lg font-fantasy font-bold tv-text placeholder:tv-muted focus:outline-none focus:border-[var(--tv-accent)]/70 focus:color-mix(in srgb, var(--tv-bg-surface), transparent 6%) transition-all duration-200"
                   />
                 </div>
                 <div className="w-full md:w-1/3">
@@ -201,7 +201,7 @@ function HandoutModal({ isOpen, onClose, handout, role, players = [], currentPla
                       assignedToUid: e.target.value === 'npc' ? null : prev.assignedToUid,
                       assignedToNick: e.target.value === 'npc' ? null : prev.assignedToNick,
                     }))}
-                    className="w-full appearance-none rounded-lg border border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] tv-panel-inset px-4 py-3 text-sm font-fantasy tracking-wider tv-text transition-colors focus:outline-none focus:border-[var(--tv-accent)]/60 focus:bg-white/7"
+                    className="w-full appearance-none rounded-lg border border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] tv-panel-inset px-4 py-3 text-sm font-fantasy tracking-wider tv-text transition-colors focus:outline-none focus:border-[var(--tv-accent)]/60 focus:color-mix(in srgb, var(--tv-bg-surface), transparent 6%)"
                   >
                     <option value="clue">Clue / Document</option>
                     <option value="loot">Loot / Voorwerp</option>
@@ -226,7 +226,7 @@ function HandoutModal({ isOpen, onClose, handout, role, players = [], currentPla
                       value={formData.npcSubtitle || ''}
                       onChange={e => setFormData({ ...formData, npcSubtitle: e.target.value })}
                       placeholder="Bijv. Aartsvijand"
-                      className="w-full rounded-lg border border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] tv-panel-inset px-4 py-2.5 text-sm font-story tv-text placeholder-stone-500 transition-colors focus:outline-none focus:border-rose-500/60"
+                      className="w-full rounded-lg border border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] tv-panel-inset px-4 py-2.5 text-sm font-story tv-text placeholder:tv-muted transition-colors focus:outline-none focus:border-rose-500/60"
                     />
                   </div>
                   <div className="grid grid-cols-3 gap-3">
@@ -266,7 +266,7 @@ function HandoutModal({ isOpen, onClose, handout, role, players = [], currentPla
               <div>
                 <label className="block text-[10px] font-bold tv-muted uppercase tracking-widest mb-1.5 flex justify-between">
                   <span>Publieke Inhoud</span>
-                  <span className="text-stone-600 font-normal normal-case">Zichtbaar voor spelers</span>
+                  <span className="tv-muted font-normal normal-case">Zichtbaar voor spelers</span>
                 </label>
                 <textarea 
                   required
@@ -274,21 +274,21 @@ function HandoutModal({ isOpen, onClose, handout, role, players = [], currentPla
                   value={formData.content} 
                   onChange={e => setFormData({...formData, content: e.target.value})}
                   placeholder="Wat zien of lezen de spelers als ze dit bekijken?"
-                  className="w-full resize-none rounded-lg border border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] tv-panel-inset px-4 py-3 text-sm font-story leading-relaxed tv-text placeholder-stone-500 transition-colors focus:outline-none focus:border-[var(--tv-accent)]/60"
+                  className="w-full resize-none rounded-lg border border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] tv-panel-inset px-4 py-3 text-sm font-story leading-relaxed tv-text placeholder:tv-muted transition-colors focus:outline-none focus:border-[var(--tv-accent)]/60"
                 />
               </div>
 
               <div>
                 <label className="block text-[10px] font-bold text-amber-700 uppercase tracking-widest mb-1.5 flex justify-between">
                   <span>Secret</span>
-                  <span className="text-stone-600 font-normal normal-case">Alleen voor de GM</span>
+                  <span className="tv-muted font-normal normal-case">Alleen voor de GM</span>
                 </label>
                 <textarea 
                   rows={3}
                   value={formData.secret || ''} 
                   onChange={e => setFormData({...formData, secret: e.target.value})}
                   placeholder="Zijn er vallen? Bevat het valse informatie? Wat is de ware aard?"
-                  className="w-full resize-none rounded-lg border border-amber-900/35 bg-amber-950/18 px-4 py-3 text-sm font-story leading-relaxed text-amber-200/90 placeholder-stone-600 transition-colors focus:outline-none focus:border-amber-500/60"
+                  className="w-full resize-none rounded-lg border border-amber-900/35 bg-amber-950/18 px-4 py-3 text-sm font-story leading-relaxed text-amber-200/90 placeholder:tv-muted transition-colors focus:outline-none focus:border-amber-500/60"
                 />
               </div>
 
@@ -306,7 +306,7 @@ function HandoutModal({ isOpen, onClose, handout, role, players = [], currentPla
                         assignedToNick: nextPlayer?.name || null,
                       }));
                     }}
-                    className="w-full bg-stone-950/50 border border-[color-mix(in_srgb,var(--tv-border),transparent_28%)] rounded-lg px-4 py-2.5 text-sm font-story tv-text focus:outline-none focus:border-cyan-700/50 transition-colors"
+                    className="w-full tv-panel-inset border border-[color-mix(in_srgb,var(--tv-border),transparent_28%)] rounded-lg px-4 py-2.5 text-sm font-story tv-text focus:outline-none focus:border-cyan-700/50 transition-colors"
                   >
                     <option value="">Iedereen in de party</option>
                     {players.map((player) => (
@@ -336,11 +336,11 @@ function HandoutModal({ isOpen, onClose, handout, role, players = [], currentPla
               ) : null}
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-2">
-                <div className="flex items-center gap-3 bg-stone-950/30 border border-[color-mix(in_srgb,var(--tv-border),transparent_28%)]/50 p-3 rounded-lg">
+                <div className="flex items-center gap-3 tv-panel-inset border border-[color-mix(in_srgb,var(--tv-border),transparent_28%)]/50 p-3 rounded-lg">
                   <button 
                     type="button"
                     onClick={() => setFormData({...formData, isRevealed: !formData.isRevealed})}
-                    className={`p-2 rounded transition-colors shrink-0 ${formData.isRevealed ? 'bg-amber-900/40 text-amber-500' : 'bg-stone-900 tv-muted hover:tv-text'}`}
+                    className={`p-2 rounded transition-colors shrink-0 ${formData.isRevealed ? 'bg-amber-900/40 text-amber-500' : 'tv-chip-surface tv-muted hover:tv-text'}`}
                   >
                     {formData.isRevealed ? <Eye className="w-5 h-5" /> : <EyeOff className="w-5 h-5" />}
                   </button>
@@ -353,11 +353,11 @@ function HandoutModal({ isOpen, onClose, handout, role, players = [], currentPla
                 </div>
 
                 {formData.type === 'loot' ? (
-                  <div className="flex items-center gap-3 bg-stone-950/30 border border-[color-mix(in_srgb,var(--tv-border),transparent_28%)]/50 p-3 rounded-lg">
+                  <div className="flex items-center gap-3 tv-panel-inset border border-[color-mix(in_srgb,var(--tv-border),transparent_28%)]/50 p-3 rounded-lg">
                     <button 
                       type="button"
                       onClick={() => setFormData({...formData, claimable: !formData.claimable})}
-                      className={`p-2 rounded transition-colors shrink-0 ${formData.claimable ? 'bg-amber-900/40 text-amber-500' : 'bg-stone-900 tv-muted hover:tv-text'}`}
+                      className={`p-2 rounded transition-colors shrink-0 ${formData.claimable ? 'bg-amber-900/40 text-amber-500' : 'tv-chip-surface tv-muted hover:tv-text'}`}
                     >
                       <Hand className="w-5 h-5" />
                     </button>
@@ -369,8 +369,8 @@ function HandoutModal({ isOpen, onClose, handout, role, players = [], currentPla
                     </div>
                   </div>
                 ) : (
-                  <div className="flex items-center gap-3 bg-stone-950/30 border border-[color-mix(in_srgb,var(--tv-border),transparent_28%)]/50 p-3 rounded-lg opacity-80">
-                    <div className="p-2 rounded shrink-0 bg-stone-900 tv-muted">
+                  <div className="flex items-center gap-3 tv-panel-inset border border-[color-mix(in_srgb,var(--tv-border),transparent_28%)]/50 p-3 rounded-lg opacity-80">
+                    <div className="p-2 rounded shrink-0 tv-chip-surface tv-muted">
                       <Hand className="w-5 h-5" />
                     </div>
                     <div className="flex flex-col min-w-0">
@@ -389,7 +389,7 @@ function HandoutModal({ isOpen, onClose, handout, role, players = [], currentPla
               <div className="relative border-b border-[color-mix(in_srgb,var(--tv-border),transparent_28%)]/50 pb-6 text-center">
                 {isGM && handout ? (
                   <div className="absolute right-0 top-0">
-                    <button onClick={() => setIsEditing(true)} className="rounded-lg border border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] tv-panel-inset px-3 py-1.5 text-xs font-fantasy uppercase tracking-wider tv-text transition-colors hover:bg-white/7 hover:tv-text">
+                    <button onClick={() => setIsEditing(true)} className="rounded-lg border border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] tv-panel-inset px-3 py-1.5 text-xs font-fantasy uppercase tracking-wider tv-text transition-colors hover:color-mix(in srgb, var(--tv-bg-surface), transparent 6%) hover:tv-text">
                       Bewerken
                     </button>
                   </div>
@@ -408,7 +408,7 @@ function HandoutModal({ isOpen, onClose, handout, role, players = [], currentPla
                       aria-hidden="true"
                       className="absolute inset-0 w-full h-full object-cover scale-[1.65] blur-2xl opacity-70 saturate-125"
                     />
-                    <div className="absolute inset-0 bg-gradient-to-b from-stone-950/10 via-transparent to-stone-950/25" />
+                    <div className="absolute inset-0 bg-gradient-to-b color-mix(in srgb, var(--tv-bg-canvas), transparent 90%) via-transparent color-mix(in srgb, var(--tv-bg-canvas), transparent 75%)" />
                     <img src={formData.imageUrl} alt={formData.title} className="relative z-10 w-full h-full object-cover scale-[1.18]" />
                   </div>
                 )}
@@ -454,7 +454,7 @@ function HandoutModal({ isOpen, onClose, handout, role, players = [], currentPla
                     type="button"
                     onClick={() => onAddToInitiative?.(formData)}
                     disabled={!canAddToInitiative}
-                    className={`mt-4 flex w-full items-center justify-center gap-2 rounded-lg border px-4 py-3 text-sm font-fantasy tracking-[0.14em] transition-colors ${canAddToInitiative ? 'border-rose-900/50 bg-gradient-to-r from-rose-800 to-rose-700 tv-text hover:from-rose-700 hover:to-rose-600' : 'cursor-not-allowed border-[color-mix(in_srgb,var(--tv-border),transparent_28%)] bg-stone-950/50 tv-muted'}`}
+                    className={`mt-4 flex w-full items-center justify-center gap-2 rounded-lg border px-4 py-3 text-sm font-fantasy tracking-[0.14em] transition-colors ${canAddToInitiative ? 'border-rose-900/50 bg-gradient-to-r from-rose-800 to-rose-700 tv-text hover:from-rose-700 hover:to-rose-600' : 'cursor-not-allowed border-[color-mix(in_srgb,var(--tv-border),transparent_28%)] tv-panel-inset tv-muted'}`}
                   >
                     <UserPlus className="w-4 h-4" /> {canAddToInitiative ? 'Voeg toe aan slagorde' : 'Pauzeer gevecht om toe te voegen'}
                   </button>
@@ -517,7 +517,7 @@ function HandoutModal({ isOpen, onClose, handout, role, players = [], currentPla
                   if (!handout) onClose(); 
                   else setIsEditing(false); 
                 }} 
-                className="h-9 inline-flex items-center justify-center rounded-lg border border-[color-mix(in_srgb,var(--tv-border),transparent_20%)] bg-stone-800 px-4 font-fantasy text-sm uppercase tracking-[0.16em] tv-text transition-colors hover:bg-stone-700 hover:tv-text"
+                className="h-9 inline-flex items-center justify-center rounded-lg border border-[color-mix(in_srgb,var(--tv-border),transparent_20%)] tv-chip-surface px-4 font-fantasy text-sm uppercase tracking-[0.16em] tv-text transition-colors hover:opacity-90 hover:tv-text"
               >
                 Annuleren
               </button>

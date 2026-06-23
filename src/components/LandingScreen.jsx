@@ -108,7 +108,7 @@ function BackfillButton({ onBackfillMemberships }) {
       type="button"
       onClick={handleClick}
       disabled={loading}
-      className="landing-action-button border-white/10 bg-white/5 text-stone-300 hover:border-white/20 hover:text-stone-100 disabled:opacity-70 inline-flex items-center gap-2"
+      className="tv-entry-action border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] tv-panel-inset tv-text hover:border-[color-mix(in_srgb,var(--tv-accent),transparent_58%)] hover:tv-text disabled:opacity-70 inline-flex items-center gap-2"
     >
       {loading ? (
         <>
@@ -506,12 +506,12 @@ export default function LandingScreen({
 
   const recentSessionsSection = uid && showSessionHub ? (
     <section className="mx-auto w-full max-w-5xl">
-      <div className="landing-surface rounded-[26px] p-4 md:p-5 lg:p-6">
+      <div className="tv-entry-hero-card rounded-[26px] p-4 md:p-5 lg:p-6">
         <div className="flex items-center justify-center gap-3 text-center">
           <div className="landing-logo-shell h-11 w-11 shrink-0">
             <img src={TOMEVAULT_LOGO_SRC} alt="TomeVault logo" className="landing-logo" />
           </div>
-          <h2 className="text-xl md:text-2xl font-fantasy tracking-[0.12em] text-stone-100">Recente sessies</h2>
+          <h2 className="text-xl md:text-2xl font-fantasy tracking-[0.12em] tv-text">Recente sessies</h2>
         </div>
 
         <div className="mt-4 flex flex-wrap justify-center gap-2">
@@ -519,7 +519,7 @@ export default function LandingScreen({
               type="button"
               onClick={() => onBackfillMemberships?.()}
               disabled={sessionBusy}
-              className="landing-action-button border-white/10 bg-white/5 text-stone-200 hover:border-white/20 hover:text-stone-100 disabled:opacity-50"
+              className="tv-entry-action border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] tv-panel-inset tv-text hover:border-[color-mix(in_srgb,var(--tv-accent),transparent_58%)] hover:tv-text disabled:opacity-50"
               title="Herstel oude sessies waar je GM of speler bent"
             >
               Herstel oud
@@ -528,7 +528,7 @@ export default function LandingScreen({
               <button
                 type="button"
                 onClick={() => setShowHiddenSessions((value) => !value)}
-                className="landing-action-button border-white/10 bg-white/5 text-stone-200 hover:border-white/20 hover:text-stone-100"
+                className="tv-entry-action border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] tv-panel-inset tv-text hover:border-[color-mix(in_srgb,var(--tv-accent),transparent_58%)] hover:tv-text"
               >
                 {showHiddenSessions ? 'Verberg verborgen' : `Toon verborgen (${hiddenRecentCount})`}
               </button>
@@ -536,8 +536,8 @@ export default function LandingScreen({
         </div>
 
         {displayedRecentSessions.length === 0 ? (
-          <div className="mt-4 rounded-[22px] border border-dashed border-white/10 bg-white/5 px-4 py-6 text-center">
-            <p className="text-sm text-stone-300 font-story italic">Nog geen recente sessies.</p>
+          <div className="mt-4 rounded-[22px] border border-dashed border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] tv-panel-inset px-4 py-6 text-center">
+            <p className="text-sm tv-text font-story italic">Nog geen recente sessies.</p>
           </div>
         ) : (
           <div className="mt-4 grid gap-3">
@@ -556,18 +556,18 @@ export default function LandingScreen({
               return (
                 <article
                   key={session.sessionId}
-                  className={`landing-session-card ${session.role === 'dm' ? 'border-amber-900/35 bg-[linear-gradient(180deg,rgba(120,53,15,0.16),rgba(12,10,9,0.82))] hover:border-amber-700/45' : 'border-indigo-900/35 bg-[linear-gradient(180deg,rgba(49,46,129,0.16),rgba(12,10,9,0.82))] hover:border-indigo-600/45'} ${isHidden ? 'opacity-70' : ''}`}
+                  className={`tv-session-card ${session.role === 'dm' ? 'border-amber-900/35 bg-[linear-gradient(180deg,rgba(120,53,15,0.16),rgba(12,10,9,0.82))] hover:border-amber-700/45' : 'border-indigo-900/35 bg-[linear-gradient(180deg,rgba(49,46,129,0.16),rgba(12,10,9,0.82))] hover:border-indigo-600/45'} ${isHidden ? 'opacity-70' : ''}`}
                 >
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0">
-                      <div className="truncate text-lg font-fantasy text-stone-100">{session.sessionName || 'Naamloze Sessie'}</div>
-                      <div className="mt-2 flex flex-wrap items-center gap-2 text-[11px] uppercase tracking-[0.18em] text-stone-500">
+                      <div className="truncate text-lg font-fantasy tv-text">{session.sessionName || 'Naamloze Sessie'}</div>
+                      <div className="mt-2 flex flex-wrap items-center gap-2 text-[11px] uppercase tracking-[0.18em] tv-muted">
                         <span>Code {displayCode}</span>
-                        <span className="text-stone-700">•</span>
+                        <span className="tv-muted">•</span>
                         <span>{session.updatedAtLabel}</span>
                       </div>
                     </div>
-                    <span className={`landing-chip ${roleAccent}`}>{roleLabel}</span>
+                    <span className={`tv-entry-chip ${roleAccent}`}>{roleLabel}</span>
                   </div>
 
                   <div className="mt-4 flex flex-wrap gap-2">
@@ -585,7 +585,7 @@ export default function LandingScreen({
                       type="button"
                       onClick={() => (isHidden ? onRestoreRecentSession?.(session.sessionId) : onHideRecentSession?.(session.sessionId))}
                       disabled={sessionBusy}
-                      className={`landing-action-button border-white/10 bg-white/5 ${isHidden ? 'text-amber-200 hover:border-white/20 hover:text-amber-100' : 'text-stone-300 hover:border-white/20 hover:text-stone-100'}`}
+                      className={`tv-entry-action border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] tv-panel-inset ${isHidden ? 'text-amber-200 hover:border-[color-mix(in_srgb,var(--tv-accent),transparent_58%)] hover:text-amber-100' : 'tv-text hover:border-[color-mix(in_srgb,var(--tv-accent),transparent_58%)] hover:tv-text'}`}
                       title={isHidden ? 'Zet terug in recente lijst' : 'Verberg uit deze lijst'}
                     >
                       {isHidden ? 'Herstel' : 'Verberg'}
@@ -614,13 +614,13 @@ export default function LandingScreen({
       <div className="grid gap-8 md:grid-cols-2 md:gap-10">
         <div className="space-y-2 text-center md:text-left">
           <div className="landing-kicker text-amber-500">Wat is TomeVault</div>
-          <p className="text-sm md:text-base text-stone-300 font-story leading-relaxed">
+          <p className="text-sm md:text-base tv-text font-story leading-relaxed">
             Een rustige digitale tafel waar handouts, chat, notities en sessies samenkomen zonder dashboard-chaos.
           </p>
         </div>
         <div className="space-y-2 text-center md:text-left">
           <div className="landing-kicker text-amber-400">Wie zijn wij</div>
-          <p className="text-sm md:text-base text-stone-300 font-story leading-relaxed">
+          <p className="text-sm md:text-base tv-text font-story leading-relaxed">
             We bouwen TomeVault voor groepen die sfeer, focus en duidelijkheid belangrijker vinden dan drukke tooling.
           </p>
         </div>
@@ -632,7 +632,7 @@ export default function LandingScreen({
     <section className="mx-auto w-full max-w-6xl pt-3 md:pt-5">
       <div className="landing-panel rounded-[32px] px-5 py-8 md:px-7 md:py-10 lg:px-10">
         <div className="text-center">
-          <h2 className="text-3xl font-fantasy tracking-[0.18em] text-stone-100 md:text-4xl">
+          <h2 className="text-3xl font-fantasy tracking-[0.18em] tv-text md:text-4xl">
             Wat biedt de Waard?
           </h2>
           <div className="mx-auto mt-5 h-px w-28 bg-gradient-to-r from-transparent via-amber-700/50 to-transparent" />
@@ -648,10 +648,10 @@ export default function LandingScreen({
                   <Icon className="h-8 w-8" />
                 </div>
                 <div className="space-y-3">
-                  <h3 className="text-xl font-story font-semibold text-stone-100 md:text-2xl">
+                  <h3 className="text-xl font-story font-semibold tv-text md:text-2xl">
                     {feature.title}
                   </h3>
-                  <p className="text-sm font-story leading-relaxed text-stone-400 md:text-base">
+                  <p className="text-sm font-story leading-relaxed tv-text-sub md:text-base">
                     {feature.description}
                   </p>
                 </div>
@@ -674,10 +674,10 @@ export default function LandingScreen({
       </div>
 
       <div className="mt-8 text-center">
-        <h2 className="text-4xl font-fantasy tracking-[0.18em] text-stone-100 md:text-5xl lg:text-6xl">
+        <h2 className="text-4xl font-fantasy tracking-[0.18em] tv-text md:text-5xl lg:text-6xl">
           Aanschouw de Tafel
         </h2>
-        <p className="mx-auto mt-4 max-w-3xl text-base font-story leading-relaxed text-stone-400 md:text-lg">
+        <p className="mx-auto mt-4 max-w-3xl text-base font-story leading-relaxed tv-text-sub md:text-lg">
           Werp de dobbelstenen of bekijk het perkament. De herberg wacht.
         </p>
       </div>
@@ -690,7 +690,7 @@ export default function LandingScreen({
               <span className="h-2.5 w-2.5 rounded-full bg-amber-800/45" />
               <span className="h-2.5 w-2.5 rounded-full bg-amber-700/35" />
             </div>
-            <div className="flex items-center gap-2 text-[11px] uppercase tracking-[0.26em] text-stone-500 md:text-xs">
+            <div className="flex items-center gap-2 text-[11px] uppercase tracking-[0.26em] tv-muted md:text-xs">
               <BookOpen className="h-3.5 w-3.5 text-amber-400" />
               Kelder van de Goblin Koning
             </div>
@@ -699,13 +699,13 @@ export default function LandingScreen({
           <div className="grid min-h-[28rem] lg:grid-cols-[18rem_minmax(0,1fr)]">
             <div className="flex flex-col justify-between border-b border-amber-900/20 bg-[rgba(24,14,10,0.74)] lg:border-b-0 lg:border-r lg:border-amber-900/20">
               <div className="space-y-4 px-4 py-5 md:px-5 md:py-6">
-                <div className="max-w-[14rem] rounded-[14px] border border-amber-900/30 bg-[rgba(40,21,11,0.7)] px-4 py-3 text-left font-story text-sm leading-relaxed text-stone-200">
+                <div className="max-w-[14rem] rounded-[14px] border border-amber-900/30 bg-[rgba(40,21,11,0.7)] px-4 py-3 text-left font-story text-sm leading-relaxed tv-text">
                   Jullie horen een zwaar gerommel uit de diepte...
                 </div>
 
                 <div>
                   <div className="text-[10px] uppercase tracking-[0.24em] text-indigo-400">Reyth</div>
-                  <div className="mt-2 max-w-[14rem] rounded-[14px] border border-indigo-900/35 bg-indigo-950/22 px-4 py-4 text-left font-story text-sm leading-relaxed text-stone-100">
+                  <div className="mt-2 max-w-[14rem] rounded-[14px] border border-indigo-900/35 bg-indigo-950/22 px-4 py-4 text-left font-story text-sm leading-relaxed tv-text">
                     Ik trek mijn zwaard en ga voor de deur staan.
                   </div>
                 </div>
@@ -713,25 +713,25 @@ export default function LandingScreen({
                 <div>
                   <div className="text-[10px] uppercase tracking-[0.24em] text-amber-400">Jij</div>
                   <div className="mt-2 flex max-w-[14rem] items-center gap-4 rounded-[14px] border border-amber-900/30 bg-[rgba(23,18,12,0.82)] px-3 py-3">
-                    <div className="flex h-12 w-12 items-center justify-center rounded-xl border border-amber-900/40 bg-stone-950/80 text-3xl font-semibold text-amber-400">
+                    <div className="flex h-12 w-12 items-center justify-center rounded-xl border border-amber-900/40 tv-input-surface text-3xl font-semibold text-amber-400">
                       16
                     </div>
-                    <div className="font-story text-sm italic text-stone-400">Werpt een steen...</div>
+                    <div className="font-story text-sm italic tv-text-sub">Werpt een steen...</div>
                   </div>
                 </div>
 
-                <div className="pt-1 text-center font-story text-xs italic text-stone-500">
+                <div className="pt-1 text-center font-story text-xs italic tv-muted">
                   Je rolt de perkamentrol open.
                 </div>
               </div>
 
-              <div className="grid grid-cols-[1fr_auto] gap-0 border-t border-amber-900/20 bg-stone-950/55 p-3">
-                <div className="flex min-h-11 items-center rounded-l-[14px] border border-r-0 border-amber-900/25 px-4 font-story text-sm text-stone-500">
+              <div className="grid grid-cols-[1fr_auto] gap-0 border-t border-amber-900/20 tv-panel-inset p-3">
+                <div className="flex min-h-11 items-center rounded-l-[14px] border border-r-0 border-amber-900/25 px-4 font-story text-sm tv-muted">
                   Schrijf met de veer...
                 </div>
                 <button
                   type="button"
-                  className="flex min-h-11 items-center justify-center rounded-r-[14px] border border-amber-900/25 bg-amber-950/22 px-4 text-stone-300 transition-colors hover:bg-amber-900/28 hover:text-stone-100"
+                  className="flex min-h-11 items-center justify-center rounded-r-[14px] border border-amber-900/25 bg-amber-950/22 px-4 tv-text transition-colors hover:bg-amber-900/28 hover:tv-text"
                   aria-label="Voorbeeldactie versturen"
                 >
                   <ArrowRight className="h-4 w-4" />
@@ -746,7 +746,7 @@ export default function LandingScreen({
                     <div className="flex h-16 w-16 items-center justify-center rounded-full border border-amber-900/30 bg-amber-950/18">
                       <Eye className="h-9 w-9 text-amber-500" />
                     </div>
-                    <div className="text-sm font-fantasy uppercase tracking-[0.26em] text-stone-200 md:text-base">
+                    <div className="text-sm font-fantasy uppercase tracking-[0.26em] tv-text md:text-base">
                       Open de verzegelde rol
                     </div>
                   </div>
@@ -799,19 +799,19 @@ export default function LandingScreen({
       ) : null}
 
       <div className="fixed bottom-4 right-4 z-30 max-w-[calc(100vw-2rem)]">
-        <div className="landing-ambience-dock">
+        <div className="tv-ambience-dock">
           <button
             type="button"
             onClick={handleToggleLandingAmbience}
             title="De achtergrondvideo speelt altijd. Geluid blijft zacht en start pas na een tik."
-            className={`landing-ambience-button ${landingAmbienceEnabled ? 'landing-ambience-button-active' : ''}`}
+            className={`tv-entry-action ${landingAmbienceEnabled ? 'tv-button-accent-muted' : ''}`}
           >
             {landingAmbienceEnabled ? <Volume2 className="h-4 w-4" /> : <VolumeX className="h-4 w-4" />}
             <span className="hidden sm:inline">{landingAmbienceLabel}</span>
           </button>
           {landingAmbienceEnabled ? (
             <div className="flex min-w-[8.75rem] items-center gap-3">
-              <span className="text-[10px] uppercase tracking-[0.22em] text-stone-500">Volume</span>
+              <span className="text-[10px] uppercase tracking-[0.22em] tv-muted">Volume</span>
               <input
                 type="range"
                 min="0"
@@ -854,10 +854,10 @@ export default function LandingScreen({
                         <img src={TOMEVAULT_LOGO_SRC} alt="TomeVault logo" className="landing-logo" />
                       </div>
                     </div>
-                    <h1 className="max-w-4xl text-4xl leading-[0.96] font-fantasy tracking-[0.08em] text-stone-100 sm:text-5xl lg:text-6xl">
+                    <h1 className="max-w-4xl text-4xl leading-[0.96] font-fantasy tracking-[0.08em] tv-text sm:text-5xl lg:text-6xl">
                       Kies je volgende stap.
                     </h1>
-                    <p className="max-w-2xl text-base md:text-lg text-stone-300 font-story leading-relaxed">
+                    <p className="max-w-2xl text-base md:text-lg tv-text font-story leading-relaxed">
                       Hervat een wereld of open meteen een nieuwe sessie.
                     </p>
                   </>
@@ -868,10 +868,10 @@ export default function LandingScreen({
                         <img src={TOMEVAULT_LOGO_SRC} alt="TomeVault logo" className="landing-logo" />
                       </div>
                     </div>
-                    <h1 className="max-w-4xl text-4xl leading-[0.96] font-fantasy tracking-[0.08em] text-stone-100 sm:text-5xl lg:text-6xl">
+                    <h1 className="max-w-4xl text-4xl leading-[0.96] font-fantasy tracking-[0.08em] tv-text sm:text-5xl lg:text-6xl">
                       Even geduld.
                     </h1>
-                    <p className="max-w-2xl text-base md:text-lg text-stone-300 font-story leading-relaxed">
+                    <p className="max-w-2xl text-base md:text-lg tv-text font-story leading-relaxed">
                       We zoeken je laatste sessie erbij.
                     </p>
                     {uid && (
@@ -888,7 +888,7 @@ export default function LandingScreen({
                   {compactFeatureHighlights.map((feature) => {
                     const Icon = feature.icon;
                     return (
-                      <span key={feature.label} className="landing-chip border-white/10 bg-white/5 text-stone-200">
+                      <span key={feature.label} className="tv-entry-chip border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] tv-panel-inset tv-text">
                         <Icon className={`h-3.5 w-3.5 ${feature.accentClassName}`} />
                         {feature.label}
                       </span>
@@ -922,26 +922,26 @@ export default function LandingScreen({
                   <button
                     type="button"
                     onClick={() => setShowEmailAuthForm((value) => !value)}
-                    className="landing-action-button border-white/10 bg-white/5 text-stone-200 hover:border-white/20 hover:text-stone-100"
+                    className="tv-entry-action border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] tv-panel-inset tv-text hover:border-[color-mix(in_srgb,var(--tv-accent),transparent_58%)] hover:tv-text"
                   >
                     {showEmailAuthForm ? 'Verberg e-mail' : 'Gebruik e-mail'}
                   </button>
                 </div>
 
                 {showEmailAuthForm ? (
-                  <form onSubmit={handleEmailAuth} className="mt-4 border-t border-white/10 pt-4">
-                    <div className="flex rounded-2xl border border-white/10 bg-zinc-950/72 p-1">
+                  <form onSubmit={handleEmailAuth} className="mt-4 border-t border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] pt-4">
+                    <div className="flex rounded-2xl border border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] tv-panel-inset p-1">
                       <button
                         type="button"
                         onClick={() => setEmailMode('login')}
-                        className={`flex-1 rounded-xl px-3 py-2 text-xs uppercase tracking-[0.18em] transition-colors ${emailMode === 'login' ? 'bg-white/5 text-stone-100' : 'text-stone-400 hover:text-stone-200'}`}
+                        className={`flex-1 rounded-xl px-3 py-2 text-xs uppercase tracking-[0.18em] transition-colors ${emailMode === 'login' ? 'tv-panel-inset tv-text' : 'tv-text-sub hover:tv-text'}`}
                       >
                         Inloggen
                       </button>
                       <button
                         type="button"
                         onClick={() => setEmailMode('signup')}
-                        className={`flex-1 rounded-xl px-3 py-2 text-xs uppercase tracking-[0.18em] transition-colors ${emailMode === 'signup' ? 'bg-white/5 text-stone-100' : 'text-stone-400 hover:text-stone-200'}`}
+                        className={`flex-1 rounded-xl px-3 py-2 text-xs uppercase tracking-[0.18em] transition-colors ${emailMode === 'signup' ? 'tv-panel-inset tv-text' : 'tv-text-sub hover:tv-text'}`}
                       >
                         Aanmaken
                       </button>
@@ -954,7 +954,7 @@ export default function LandingScreen({
                           placeholder="Weergavenaam"
                           value={authName}
                           onChange={(e) => setAuthName(e.target.value)}
-                          className="landing-input landing-input-amber"
+                          className="tv-field"
                         />
                       ) : null}
                       <input
@@ -962,14 +962,14 @@ export default function LandingScreen({
                         placeholder="jij@email.com"
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
-                        className="landing-input landing-input-amber"
+                        className="tv-field"
                       />
                       <input
                         type="password"
                         placeholder="Wachtwoord"
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
-                        className="landing-input landing-input-amber"
+                        className="tv-field"
                       />
                       {emailMode === 'signup' ? (
                         <input
@@ -977,13 +977,13 @@ export default function LandingScreen({
                           placeholder="Bevestig wachtwoord"
                           value={confirmPassword}
                           onChange={(e) => setConfirmPassword(e.target.value)}
-                          className="landing-input landing-input-amber"
+                          className="tv-field"
                         />
                       ) : null}
                       <button
                         type="submit"
                         disabled={authLoading || sessionBusy}
-                        className="landing-button landing-button-muted w-full disabled:opacity-60"
+                        className="tv-button-secondary w-full disabled:opacity-60"
                       >
                         {emailMode === 'signup' ? 'Account Aanmaken' : 'Inloggen met E-mail'}
                       </button>
@@ -1002,14 +1002,14 @@ export default function LandingScreen({
                 <button
                   type="button"
                   onClick={() => onSignOut?.()}
-                  className="landing-action-button border-rose-900/50 bg-rose-950/25 text-rose-200 hover:border-rose-700/60 hover:bg-rose-950/40 hover:text-rose-100"
+                  className="tv-entry-action border-rose-900/50 bg-rose-950/25 text-rose-200 hover:border-rose-700/60 hover:bg-rose-950/40 hover:text-rose-100"
                 >
                   <LogOut className="mr-2 h-4 w-4" />
                   Log uit
                 </button>
               </div>
             ) : (
-              <p className="max-w-xl text-sm md:text-base text-stone-400 font-story leading-relaxed">
+              <p className="max-w-xl text-sm md:text-base tv-text-sub font-story leading-relaxed">
                 {sessionBusy
                   ? 'We proberen je meest recente sessie direct te openen.'
                   : 'We laden je sessies om te bepalen of je direct terug de wereld in kunt.'}
@@ -1060,20 +1060,20 @@ export default function LandingScreen({
               <LandingThemePicker theme={resolvedLandingTheme} onThemeChange={onThemeChange} />
 
               <div className="mt-4 flex justify-center">
-                <div className="landing-role-toggle">
+                <div className="tv-role-toggle">
                   <button
                     type="button"
                     onClick={() => handleRoleToggle('player')}
-                    className={`landing-role-toggle-button ${activeRoleTab === 'player' ? 'landing-role-toggle-button-indigo' : ''}`}
+                    className={`tv-role-toggle-btn ${activeRoleTab === 'player' ? 'tv-role-toggle-btn--active' : ''}`}
                   >
                     Speler
                   </button>
                   <button
                     type="button"
                     onClick={() => handleRoleToggle('gm')}
-                    className={`landing-role-toggle-button ${activeRoleTab === 'gm' ? 'landing-role-toggle-button-amber' : ''}`}
+                    className={`tv-role-toggle-btn ${activeRoleTab === 'gm' ? 'tv-role-toggle-btn--active' : ''}`}
                   >
-                    Game Master
+                    GM
                   </button>
                 </div>
               </div>
@@ -1164,7 +1164,7 @@ export default function LandingScreen({
             <button
               type="button"
               onClick={() => setShowContactForm((value) => !value)}
-              className="landing-action-button border-amber-900/50 bg-amber-950/20 text-amber-200 hover:border-amber-700/60 hover:text-amber-100"
+              className="tv-entry-action border-amber-900/50 bg-amber-950/20 text-amber-200 hover:border-amber-700/60 hover:text-amber-100"
             >
               <Mail className="mr-2 h-4 w-4" />
               {showContactForm ? 'Verberg feedback' : 'Feedback'}
@@ -1172,32 +1172,32 @@ export default function LandingScreen({
           </div>
 
           {showContactForm ? (
-            <div className="landing-surface mt-4 rounded-[24px] p-4 md:p-5">
+            <div className="tv-entry-hero-card mt-4 rounded-[24px] p-4 md:p-5">
               <form onSubmit={handleContactSubmit} className="grid gap-3 md:grid-cols-2 text-left">
                 <input
                   type="text"
                   value={contactName}
                   onChange={(e) => setContactName(e.target.value)}
                   placeholder="Je naam"
-                  className="landing-input landing-input-emerald"
+                  className="tv-field"
                 />
                 <input
                   type="email"
                   value={contactEmail}
                   onChange={(e) => setContactEmail(e.target.value)}
                   placeholder="E-mail"
-                  className="landing-input landing-input-emerald"
+                  className="tv-field"
                 />
                 <textarea
                   value={contactMessage}
                   onChange={(e) => setContactMessage(e.target.value)}
                   rows={4}
                   placeholder="Bericht"
-                  className="landing-input landing-input-emerald md:col-span-2 resize-none"
+                  className="tv-field md:col-span-2 resize-none"
                 />
                 <button
                   type="submit"
-                  className="landing-button landing-button-emerald md:col-span-2"
+                  className="tv-button-primary md:col-span-2"
                 >
                   Verstuur via E-mail
                 </button>
@@ -1208,33 +1208,33 @@ export default function LandingScreen({
       </div>
 
       {deleteTarget && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-zinc-950/84 p-4 backdrop-blur-md">
-          <div className="w-full max-w-md overflow-hidden rounded-2xl border border-white/10 bg-zinc-950/96 shadow-[0_28px_80px_rgba(0,0,0,0.45)]">
-            <div className="flex items-center justify-between gap-3 border-b border-white/10 px-4 py-4 bg-white/[0.03]">
+        <div className="fixed inset-0 z-50 flex items-center justify-center tv-backdrop p-4 backdrop-blur-md">
+          <div className="w-full max-w-md overflow-hidden rounded-2xl border border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] tv-surface shadow-[0_28px_80px_rgba(0,0,0,0.45)]">
+            <div className="flex items-center justify-between gap-3 border-b border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] px-4 py-4 bg-white/[0.03]">
               <div className="flex items-center gap-2 text-rose-300">
                 <AlertTriangle className="w-5 h-5" />
-                <h3 className="font-fantasy tracking-wider text-stone-100">Sessie Permanent Wissen</h3>
+                <h3 className="font-fantasy tracking-wider tv-text">Sessie Permanent Wissen</h3>
               </div>
-              <button onClick={closeDeleteFlow} className="text-stone-500 hover:text-stone-200 transition-colors">
+              <button onClick={closeDeleteFlow} className="tv-muted hover:tv-text transition-colors">
                 <X className="w-5 h-5" />
               </button>
             </div>
 
             {!showGmDeleteWarning ? (
               <div className="space-y-4 px-5 py-5">
-                <p className="text-sm text-stone-300 font-story leading-relaxed">
+                <p className="text-sm tv-text font-story leading-relaxed">
                   Om deze sessie permanent te verwijderen, typ de volledige sessienaam exact over zoals hieronder weergegeven.
                 </p>
-                <div className="rounded-xl border border-white/10 bg-white/5 px-4 py-3">
-                  <div className="text-[10px] uppercase tracking-widest text-stone-500 mb-1">Te bevestigen sessie</div>
-                  <div className="font-fantasy text-stone-100 font-bold break-words">{deleteTarget.sessionName || 'Naamloze Sessie'}</div>
+                <div className="rounded-xl border border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] tv-panel-inset px-4 py-3">
+                  <div className="text-[10px] uppercase tracking-widest tv-muted mb-1">Te bevestigen sessie</div>
+                  <div className="font-fantasy tv-text font-bold break-words">{deleteTarget.sessionName || 'Naamloze Sessie'}</div>
                 </div>
                 <input
                   type="text"
                   value={deleteSessionNameInput}
                   onChange={(e) => setDeleteSessionNameInput(e.target.value)}
                   placeholder="Typ de sessienaam exact over"
-                  className="w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2.5 text-sm text-stone-200 placeholder-stone-500 transition-colors focus:outline-none focus:border-rose-500/60"
+                  className="w-full rounded-xl border border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] tv-panel-inset px-3 py-2.5 text-sm tv-text placeholder:tv-muted transition-colors focus:outline-none focus:border-rose-500/60"
                 />
                 {deleteError && (
                   <div className="rounded-lg border border-rose-900/50 bg-rose-950/30 px-3 py-2 text-xs text-rose-300">
@@ -1245,7 +1245,7 @@ export default function LandingScreen({
                   <button
                     type="button"
                     onClick={closeDeleteFlow}
-                    className="flex-1 rounded-lg border border-white/10 py-2.5 text-xs font-fantasy tracking-wider text-stone-300 transition-colors hover:bg-white/5"
+                    className="flex-1 rounded-lg border border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] py-2.5 text-xs font-fantasy tracking-wider tv-text transition-colors hover:tv-panel-inset"
                   >
                     Annuleer
                   </button>
@@ -1261,7 +1261,7 @@ export default function LandingScreen({
               </div>
             ) : (
               <div className="space-y-4 px-5 py-5">
-                <p className="text-sm text-stone-300 font-story leading-relaxed">
+                <p className="text-sm tv-text font-story leading-relaxed">
                   U bent de GM van deze sessie en staat op het punt de volledige campagne definitief te verwijderen. Spelers kunnen deze wereld daarna niet meer betreden en dit kan niet ongedaan worden gemaakt.
                 </p>
                 <div className="rounded-xl border border-rose-900/40 bg-rose-950/20 px-4 py-3 text-sm text-rose-100 font-story leading-relaxed">
@@ -1271,7 +1271,7 @@ export default function LandingScreen({
                   <button
                     type="button"
                     onClick={() => setShowGmDeleteWarning(false)}
-                    className="flex-1 rounded-lg border border-white/10 py-2.5 text-xs font-fantasy tracking-wider text-stone-300 transition-colors hover:bg-white/5"
+                    className="flex-1 rounded-lg border border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] py-2.5 text-xs font-fantasy tracking-wider tv-text transition-colors hover:tv-panel-inset"
                   >
                     Terug
                   </button>

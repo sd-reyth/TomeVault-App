@@ -62,7 +62,7 @@ function StyledQRCode({ value, theme, size }) {
   return (
     <div
       ref={containerRef}
-      className="overflow-hidden rounded-2xl border border-white/10 shadow-lg"
+      className="overflow-hidden rounded-2xl border border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] shadow-lg"
       style={{ width: size, height: size, minWidth: size, minHeight: size }}
     />
   );
@@ -97,7 +97,7 @@ export default function ShareModal({ isOpen, onClose, sessionId, theme }) {
       onClose={onClose}
       title="Deel sessie"
       icon={QrCode}
-      subtitle="Scan of kopieer om spelers aan te sluiten."
+      subtitle="Scan of kopieer"
       maxWidthClassName="max-w-sm"
       bodyClassName="gap-4"
     >
@@ -107,12 +107,12 @@ export default function ShareModal({ isOpen, onClose, sessionId, theme }) {
         </div>
 
         <div className="tv-panel-block px-3.5 py-3">
-          <div className="text-[9px] uppercase tracking-[0.2em] text-stone-500">Sessiecode</div>
+          <div className="text-[9px] uppercase tracking-[0.2em] tv-muted">Sessiecode</div>
           <div className="tv-accent mt-1.5 font-mono text-sm tracking-widest">{canonicalSessionCode}</div>
         </div>
 
         <div className="tv-panel-block px-3.5 py-3">
-          <div className="text-[9px] uppercase tracking-[0.2em] text-stone-500">Join-link</div>
+          <div className="text-[9px] uppercase tracking-[0.2em] tv-muted">Join-link</div>
           <div className="tv-text mt-1.5 break-all font-mono text-xs leading-relaxed">{joinUrl}</div>
         </div>
       </div>
