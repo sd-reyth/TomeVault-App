@@ -8,7 +8,8 @@
     "build": "vite build",
     "preview": "vite preview",
     "preview:host": "vite preview --host 0.0.0.0",
-    "deploy:hosting": "firebase deploy --only hosting"
+    "deploy:hosting": "firebase deploy --only hosting",
+    "check:ui": "node scripts/check-ui.js"
   },
   "dependencies": {
     "@mdi/js": "^7.4.47",

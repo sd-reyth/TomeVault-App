@@ -21,33 +21,11 @@ import { getJoinTagLookupVariants } from '../lib/sessionUtils';
 import landingBackgroundVideo from '../../Video/landingBG.mp4';
 import RuntimeBadge from './RuntimeBadge';
 import Button from './Button';
-import { APP_THEMES } from '../lib/appThemes';
-
 const LANDING_AMBIENCE_ENABLED_STORAGE_KEY = 'tomevault:landing:ambience-enabled';
 const LANDING_AMBIENCE_VOLUME_STORAGE_KEY = 'tomevault:landing:ambience-volume';
 const DEFAULT_LANDING_AMBIENCE_VOLUME = 12;
 const TOMEVAULT_LOGO_SRC = '/references/tomeVaultLogo1.png';
 
-function LandingThemePicker({ theme, onThemeChange }) {
-  if (!onThemeChange) return null;
-
-  return (
-    <div className="tv-theme-picker" role="group" aria-label="Kies thema">
-      {APP_THEMES.map((entry) => (
-        <button
-          key={entry.value}
-          type="button"
-          title={entry.label}
-          aria-label={entry.label}
-          aria-pressed={theme === entry.value}
-          onClick={() => onThemeChange(entry.value)}
-          className={`tv-theme-swatch ${theme === entry.value ? 'tv-theme-swatch--active' : ''}`}
-          style={{ background: entry.swatch }}
-        />
-      ))}
-    </div>
-  );
-}
 
 function clampLandingAmbienceVolume(value, fallback = DEFAULT_LANDING_AMBIENCE_VOLUME) {
   const numericValue = Number(value);
@@ -821,7 +799,6 @@ export default function LandingScreen({
                     <p className="max-w-2xl text-base md:text-lg tv-text-sub font-story leading-relaxed">
                       Jouw magische tafel aan de taverne.
                     </p>
-                    <LandingThemePicker theme={resolvedLandingTheme} onThemeChange={onThemeChange} />
                   </>
                 ) : showSessionHub ? (
                   <>
@@ -1032,8 +1009,6 @@ export default function LandingScreen({
               <h2 className="text-xl md:text-2xl font-fantasy tracking-[0.12em] tv-text">
                 {activeRoleTab === 'gm' ? 'Nieuwe sessie' : 'Meedoen'}
               </h2>
-
-              <LandingThemePicker theme={resolvedLandingTheme} onThemeChange={onThemeChange} />
 
               <div className="mt-4 flex justify-center">
                 <div className="tv-role-toggle">
