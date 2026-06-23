@@ -95,9 +95,10 @@ export default function PreparationsView({
   };
 
   return (
-    <section className="flex h-full flex-col gap-4 md:gap-5">
-      <header className="overflow-hidden rounded-2xl border border-white/10 bg-white/5 shadow-sm backdrop-blur-sm">
-        <div className="flex flex-col gap-4 border-b border-white/10 bg-white/5 p-3 shadow-sm xl:flex-row xl:items-center xl:justify-between md:p-4">
+    <section className="relative flex h-full min-h-0 flex-col overflow-hidden rounded-2xl border border-white/10 bg-zinc-950/72 shadow-[0_22px_60px_rgba(0,0,0,0.34)] backdrop-blur-md">
+      <div className="absolute inset-0 opacity-[0.03] bg-[radial-gradient(circle_at_top,rgba(251,191,36,0.10),transparent_36%),url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI4IiBoZWlnaHQ9IjgiPgo8cmVjdCB3aWR0aD0iOCIgaGVpZ2h0PSI4IiBmaWxsPSIjZmZmIiBmaWxsLW9wYWNpdHk9IjAuMSIvPgo8L3N2Zz4=')] pointer-events-none" />
+
+      <header className="relative z-10 flex shrink-0 flex-col gap-4 border-b border-white/10 bg-white/5 p-3 shadow-sm xl:flex-row xl:items-center xl:justify-between md:p-4">
           <div className="max-w-2xl min-w-0">
             <h1 className="font-fantasy text-2xl font-bold tracking-[0.1em] tv-heading-shimmer md:text-3xl">Voorbereidingen</h1>
             <p className="tv-panel-copy mt-1 text-xs md:mt-2 md:text-sm">
@@ -125,10 +126,10 @@ export default function PreparationsView({
               Nieuw
             </button>
           </div>
-        </div>
       </header>
 
-      <div className="grid items-start gap-4 xl:grid-cols-[minmax(0,1.35fr)_296px] xl:gap-4">
+      <div className="relative z-10 min-h-0 flex-1 overflow-y-auto p-3 no-scrollbar md:p-4">
+        <div className="grid items-start gap-4 xl:grid-cols-[minmax(0,1.35fr)_296px] xl:gap-4">
         <div className="tv-panel-shell min-h-0 p-4 md:p-5">
           <div className="flex flex-col gap-3 border-b border-white/10 pb-4 sm:flex-row sm:items-start sm:justify-between">
             <div className="min-w-0">
@@ -354,6 +355,7 @@ export default function PreparationsView({
             )}
           </div>
         </aside>
+        </div>
       </div>
     </section>
   );

@@ -88,9 +88,10 @@ function InventoryView({ role, inventory, wallets, party, currentPlayerId, hando
   ], []);
 
   return (
-    <div className="h-full flex flex-col">
-      <div className="mb-6 overflow-hidden rounded-2xl border border-white/10 bg-white/5 shadow-sm backdrop-blur-sm md:mb-8">
-        <div className="flex flex-col gap-4 border-b border-white/10 bg-white/5 p-3 shadow-sm sm:flex-row sm:items-center sm:justify-between sm:gap-3 md:p-4">
+    <div className="relative flex h-full min-h-0 flex-col overflow-hidden rounded-2xl border border-white/10 bg-zinc-950/72 shadow-[0_22px_60px_rgba(0,0,0,0.34)] backdrop-blur-md">
+      <div className="absolute inset-0 opacity-[0.03] bg-[radial-gradient(circle_at_top,rgba(251,191,36,0.10),transparent_36%),url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI4IiBoZWlnaHQ9IjgiPgo8cmVjdCB3aWR0aD0iOCIgaGVpZ2h0PSI4IiBmaWxsPSIjZmZmIiBmaWxsLW9wYWNpdHk9IjAuMSIvPgo8L3N2Zz4=')] pointer-events-none" />
+
+      <div className="relative z-10 flex shrink-0 flex-col gap-4 border-b border-white/10 bg-white/5 p-3 shadow-sm sm:flex-row sm:items-center sm:justify-between sm:gap-3 md:p-4">
           <div>
             <h2 className="font-fantasy text-2xl font-bold tracking-[0.1em] tv-heading-shimmer md:text-3xl">De Schatkamer</h2>
             <p className="mt-1 text-xs italic text-stone-400 md:text-sm">Goudstukken, uitrusting en magische artefacten.</p>
@@ -99,9 +100,8 @@ function InventoryView({ role, inventory, wallets, party, currentPlayerId, hando
             <Plus className="h-4 w-4 shrink-0" /> <span>Nieuw item</span>
           </button>
         </div>
-      </div>
 
-      <div className="flex-1 overflow-y-auto space-y-6 md:space-y-8 no-scrollbar pb-10">
+      <div className="relative z-10 flex-1 overflow-y-auto space-y-6 p-3 pb-10 no-scrollbar md:space-y-8 md:p-4">
         {role === 'gm' && wallets.party && (
           <div className="relative overflow-visible py-2 md:py-3">
             <WalletSection
