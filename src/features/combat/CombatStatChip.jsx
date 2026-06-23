@@ -13,11 +13,13 @@ export default function CombatStatChip({
   onClick,
   title,
   children,
+  className = '',
 }) {
-  const className = [
+  const chipClass = [
     'tv-combat-stat',
     interactive ? 'tv-combat-stat--interactive' : '',
     low ? 'tv-combat-stat--low' : '',
+    className,
   ]
     .filter(Boolean)
     .join(' ');
@@ -34,12 +36,7 @@ export default function CombatStatChip({
 
   if (interactive) {
     return (
-      <button
-        type="button"
-        className={className}
-        onClick={onClick}
-        title={title}
-      >
+      <button type="button" className={chipClass} onClick={onClick} title={title}>
         <Text variant="label" as="span">{label}</Text>
         {content}
       </button>
@@ -47,7 +44,7 @@ export default function CombatStatChip({
   }
 
   return (
-    <div className={className} title={title} onClick={(event) => event.stopPropagation()}>
+    <div className={chipClass} title={title} onClick={(event) => event.stopPropagation()}>
       <Text variant="label" as="span">{label}</Text>
       {content}
     </div>

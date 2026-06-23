@@ -63,7 +63,11 @@ GM control deck onderaan, altijd zichtbaar zonder scrollen
 
 # WAVES
 
-## 🔴 Wave A — Slagorde Revolution (NU — blocking)
+## Wave A — Slagorde + Shell Revolution (NU)
+
+**Scope expanded per user:** not rail-only — topbar chips, sidebar nav pills, main view shells, and combat rail in one cohesive `revolution.css` pass.
+
+**Delivered in branch:** `cursor/sessie-polish-5028`
 
 **Doel:** De combat rail waar je trots op bent. Alles wat je dwars zit, weg. Pocket Bard-niveau op dit ene paneel.
 

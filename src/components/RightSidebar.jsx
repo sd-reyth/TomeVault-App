@@ -597,7 +597,8 @@ function RightSidebar({
           <span className={`absolute left-1/2 top-1/2 h-16 w-[3px] -translate-x-1/2 -translate-y-1/2 rounded-full transition-colors ${isDragging ? 'tv-drag-handle tv-drag-handle--active shadow-[0_0_12px_color-mix(in_srgb,var(--tv-text-primary),transparent_75%)]' : 'tv-drag-handle hover:tv-drag-handle--active'}`} />
         </button>
 
-        <div className="tv-view-shell-header tv-rail-shell-header border-b px-3.5 py-3 md:mt-0 md:px-4 md:py-3.5">
+        <div className="tv-rail-body flex min-h-0 flex-1 flex-col overflow-hidden">
+        <div className="tv-view-shell-header tv-rail-shell-header shrink-0 border-b px-3.5 py-3 md:mt-0 md:px-4 md:py-3.5">
           <div className="relative">
             {isGm ? (
               <CombatGmHeader
@@ -695,7 +696,7 @@ function RightSidebar({
           ) : null}
         </div>
 
-        <div className="flex flex-1 flex-col overflow-hidden px-3.5 py-3.5 md:px-4 md:py-4">
+        <div className="tv-rail-roster flex min-h-0 flex-1 flex-col overflow-hidden px-1 py-3 md:px-1.5 md:py-3.5">
           {showInfo ? (
             <div className="mb-3 rounded-xl border border-[color-mix(in_srgb,var(--tv-border),transparent_28%)] tv-chip-surface p-4">
               <Text variant="label" tone="muted">Slagorde info</Text>
@@ -766,7 +767,7 @@ function RightSidebar({
         </div>
 
         {role === 'gm' ? (
-          <div className="tv-input-footer border-t px-3.5 pt-3 pb-[calc(env(safe-area-inset-bottom,0px)+0.625rem)] md:px-4 md:pt-3.5 md:pb-3">
+          <div className="tv-combat-deck">
             <div className="grid grid-cols-2 gap-2">
               <Button
                 variant="secondary"
@@ -804,6 +805,7 @@ function RightSidebar({
             ) : null}
           </div>
         ) : null}
+        </div>
       </aside>
 
       {endCombatConfirmOpen ? (

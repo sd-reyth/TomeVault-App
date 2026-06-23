@@ -1,5 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Scroll, MessageSquare, Backpack, NotebookPen, Crown, Settings } from 'lucide-react';
+import Icon from '../ui/Icon';
+import Text from '../ui/Text';
 import { safeLocalStorageGet, safeLocalStorageSet } from '../lib/browserStorage';
 
 const SIDEBAR_DEFAULT_WIDTH = 252;
@@ -86,7 +88,7 @@ export default function Sidebar({ activeTab, setActiveTab, onOpenSettings, role 
   return (
     <aside
       style={{ '--sidebar-width': `${sidebarWidth}px` }}
-      className="app-shell-mobile-nav fixed bottom-0 left-0 z-30 flex h-16 w-full flex-row items-center justify-around border-t tv-nav-bg px-2 backdrop-blur-md md:relative md:h-full md:shrink-0 md:w-[var(--sidebar-width)] md:min-w-[var(--sidebar-width)] md:max-w-[var(--sidebar-width)] md:flex-col md:justify-start md:border-r md:border-t-0 md:px-0 md:py-5 md:pb-4 md:backdrop-blur-md md:flex md:flex-col md:overflow-hidden"
+      className="app-shell-mobile-nav tv-nav-bg fixed bottom-0 left-0 z-30 flex h-[4.25rem] w-full flex-row items-center justify-around border-t px-2 pb-[env(safe-area-inset-bottom,0px)] backdrop-blur-md md:relative md:h-full md:shrink-0 md:w-[var(--sidebar-width)] md:min-w-[var(--sidebar-width)] md:max-w-[var(--sidebar-width)] md:flex-col md:justify-start md:border-r md:border-t-0 md:px-0 md:py-5 md:pb-4 md:backdrop-blur-md md:flex md:flex-col md:overflow-hidden"
     >
       <nav ref={navRef} className={`flex w-full flex-row items-center justify-between gap-1 md:flex-col md:flex-1 md:min-h-0 md:overflow-y-auto md:pr-2 md:no-scrollbar md:pt-4 ${isCollapsed ? 'md:px-2' : 'md:px-3.5 md:gap-2'}`}>
         {tabs.map((tab) => {
@@ -97,14 +99,14 @@ export default function Sidebar({ activeTab, setActiveTab, onOpenSettings, role 
               onClick={() => setActiveTab(tab.id)}
               aria-label={tab.label}
               className={`
-                group relative flex min-h-[48px] min-w-0 flex-1 flex-col items-center justify-center rounded-xl border border-transparent p-2 text-sm font-medium tracking-normal transition-all duration-200 ease-out active:scale-[0.985] md:w-full md:flex-none ${isCollapsed ? 'md:min-h-[54px] md:px-2 md:py-3' : (isIconRail ? 'md:min-h-[48px] md:justify-center md:px-2.5 md:py-2.5' : 'md:min-h-[50px] md:flex-row md:justify-start md:gap-3 md:px-3.5 md:py-2.5')}
+                group relative flex min-h-[44px] min-w-0 flex-1 flex-col items-center justify-center rounded-full border border-transparent p-2 transition-all duration-200 ease-out active:scale-[0.97] md:w-full md:flex-none ${isCollapsed ? 'md:min-h-[52px] md:px-2 md:py-3' : (isIconRail ? 'md:min-h-[48px] md:justify-center md:px-2.5 md:py-2.5' : 'md:min-h-[48px] md:flex-row md:justify-start md:gap-2.5 md:rounded-xl md:px-3 md:py-2.5')}
                 ${isActive ? 'tv-nav-item-active' : 'tv-nav-item'}
               `}
               title={tab.label}
             >
               {isActive && !isCollapsed ? <span className="hidden md:block absolute left-0 top-2 bottom-2 w-[3px] rounded-r tv-nav-indicator" /> : null}
-              <tab.icon className={`h-5 w-5 shrink-0 transition-colors duration-200 md:h-[17px] md:w-[17px] ${isActive ? 'tv-nav-icon-active' : 'tv-nav-icon'}`} />
-              <span className={`${isCollapsed || isIconRail ? 'hidden' : 'hidden md:block'} max-w-full truncate text-[14px] font-fantasy font-semibold uppercase tracking-[0.12em]`}>{tab.label}</span>
+              <Icon as={tab.icon} size="md" className={isActive ? 'tv-nav-icon-active' : 'tv-nav-icon'} />
+              <Text variant="label" as="span" className={`${isCollapsed || isIconRail ? 'hidden' : 'hidden md:block'} max-w-full truncate`}>{tab.label}</Text>
               {isIconRail && !isCollapsed ? (
                 <span className="pointer-events-none absolute left-[calc(100%+10px)] top-1/2 z-40 hidden -translate-y-1/2 whitespace-nowrap rounded-md tv-nav-tooltip px-2 py-1 text-[10px] font-fantasy font-semibold uppercase tracking-[0.12em] shadow-lg md:group-hover:block">
                   {tab.label}
@@ -119,10 +121,10 @@ export default function Sidebar({ activeTab, setActiveTab, onOpenSettings, role 
           onClick={onOpenSettings}
           aria-label="Configuratie"
           title="Configuratie"
-          className={`group relative flex min-h-[48px] min-w-0 flex-1 flex-col items-center justify-center rounded-xl border border-transparent p-2 text-sm font-medium tracking-normal transition-all duration-200 ease-out active:scale-[0.985] md:flex md:w-full md:flex-none ${isCollapsed ? 'md:min-h-[54px] md:px-2 md:py-3' : (isIconRail ? 'md:min-h-[48px] md:justify-center md:px-2.5 md:py-2.5' : 'md:min-h-[50px] md:flex-row md:justify-start md:gap-3 md:px-3.5 md:py-2.5')} tv-nav-item`}
+          className={`group relative flex min-h-[44px] min-w-0 flex-1 flex-col items-center justify-center rounded-full border border-transparent p-2 transition-all duration-200 ease-out active:scale-[0.97] md:flex md:w-full md:flex-none ${isCollapsed ? 'md:min-h-[52px] md:px-2 md:py-3' : (isIconRail ? 'md:min-h-[48px] md:justify-center md:px-2.5 md:py-2.5' : 'md:min-h-[48px] md:flex-row md:justify-start md:gap-2.5 md:rounded-xl md:px-3 md:py-2.5')} tv-nav-item`}
         >
-          <Settings className="h-5 w-5 shrink-0 tv-nav-icon transition-colors duration-200 md:h-[17px] md:w-[17px]" />
-          <span className={`${isCollapsed || isIconRail ? 'hidden' : 'hidden md:block'} max-w-full truncate text-[14px] font-fantasy font-semibold uppercase tracking-[0.12em]`}>Configuratie</span>
+          <Icon as={Settings} size="md" className="tv-nav-icon" />
+          <Text variant="label" as="span" className={`${isCollapsed || isIconRail ? 'hidden' : 'hidden md:block'} max-w-full truncate`}>Configuratie</Text>
           {isIconRail && !isCollapsed ? (
             <span className="pointer-events-none absolute left-[calc(100%+10px)] top-1/2 z-40 hidden -translate-y-1/2 whitespace-nowrap rounded-md tv-nav-tooltip px-2 py-1 text-[10px] font-fantasy font-semibold uppercase tracking-[0.12em] shadow-lg md:group-hover:block">
               Configuratie

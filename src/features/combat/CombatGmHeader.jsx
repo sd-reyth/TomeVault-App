@@ -28,6 +28,8 @@ export default function CombatGmHeader({
     ? FlameKindling
     : (combatStatus === COMBAT_STATUS.PAUSED ? Shield : Swords);
 
+  const isLive = combatStatus === COMBAT_STATUS.ACTIVE;
+
   const handleSegmentChange = (next) => {
     if (next === 'paused' && combatStatus === COMBAT_STATUS.ACTIVE) {
       onPause?.();
@@ -39,16 +41,12 @@ export default function CombatGmHeader({
   };
 
   return (
-    <div
-      className={`w-full rounded-2xl border px-4 py-4 text-left transition-all tv-combat-card ${
-        combatStatus === COMBAT_STATUS.IDLE
-          ? 'hover:border-[color-mix(in_srgb,var(--tv-border),transparent_20%)]'
-          : (combatStatus === COMBAT_STATUS.PAUSED ? '' : 'tv-combat-card--active')
-      } ${isActionBusy ? 'opacity-80' : ''}`}
-    >
-      <div className="mb-3 flex items-center justify-between gap-3 border-b border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] pb-3">
+    <div className={`tv-combat-hero ${isLive ? 'tv-combat-hero--live' : ''} ${isActionBusy ? 'opacity-80' : ''}`}>
+      {isLive ? <div className="tv-combat-hero__glow" aria-hidden="true" /> : null}
+
+      <div className="relative mb-3 flex items-center justify-between gap-2">
         <Text variant="label" tone="accent">Slagorde</Text>
-        <div className="flex items-center gap-1.5">
+        <div className="flex items-center gap-1">
           <IconButton
             icon={isPinned ? Pin : PinOff}
             label={isPinned ? 'Losmaken' : 'Vastzetten'}
@@ -69,35 +67,26 @@ export default function CombatGmHeader({
         </div>
       </div>
 
-      <div className="grid gap-3 sm:grid-cols-[40px_minmax(0,1fr)] sm:items-center">
-        <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border ${combatStatus === COMBAT_STATUS.ACTIVE ? 'tv-button-accent-muted' : 'tv-chip-surface tv-accent'}`}>
+      <div className="relative flex items-start gap-3">
+        <div className="tv-combat-hero__status-chip shrink-0">
           <Icon as={StatusIcon} size="md" />
         </div>
-
-        <div className="min-w-0 flex-1">
+        <div className="min-w-0 flex-1 pt-0.5">
           <div className="flex flex-wrap items-center gap-2">
-            <Text variant="subtitle" as="span">{statusTitle}</Text>
+            <Text variant="title" as="span" className="!text-base md:!text-lg">{statusTitle}</Text>
             {combatInProgress ? (
-              <Text variant="label" tone="accent" as="span" className="rounded-full border border-[color-mix(in_srgb,var(--tv-accent),transparent_55%)] bg-[color-mix(in_srgb,var(--tv-accent),transparent_84%)] px-2.5 py-1 shadow-inner">
-                Ronde {turnRound}
-              </Text>
+              <span className="tv-combat-hero__round-pill">Ronde {turnRound}</span>
             ) : null}
           </div>
           {statusSubtitle ? (
-            <Text variant="meta" as="p" className="mt-1 leading-5">{statusSubtitle}</Text>
+            <Text variant="meta" as="p" className="mt-1.5 max-w-[28ch] leading-5">{statusSubtitle}</Text>
           ) : null}
         </div>
       </div>
 
-      <div className="mt-3.5 flex flex-col gap-2">
+      <div className="relative mt-4 flex flex-col gap-2">
         {combatStatus === COMBAT_STATUS.IDLE ? (
-          <Button
-            variant="primary"
-            block
-            disabled={isActionBusy}
-            onClick={onStart}
-            icon={Swords}
-          >
+          <Button variant="primary" block disabled={isActionBusy} onClick={onStart} icon={Swords}>
             Start gevecht
           </Button>
         ) : (

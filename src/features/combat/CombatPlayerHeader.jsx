@@ -21,17 +21,15 @@ export default function CombatPlayerHeader({
     ? Shield
     : (combatStatus === COMBAT_STATUS.PAUSED ? Shield : Swords);
 
+  const isLive = combatStatus === COMBAT_STATUS.ACTIVE;
+
   return (
-    <div
-      className={`w-full rounded-2xl border px-4 py-4 text-left transition-all tv-combat-card ${
-        combatStatus === COMBAT_STATUS.IDLE
-          ? ''
-          : (combatStatus === COMBAT_STATUS.PAUSED ? '' : 'tv-combat-card--active')
-      } ${isMyTurn ? 'ring-1 ring-[var(--tv-accent)]/45 tv-breathe-glow' : ''}`}
-    >
-      <div className="mb-3 flex items-center justify-between gap-3 border-b border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] pb-3">
+    <div className={`tv-combat-hero ${isLive ? 'tv-combat-hero--live' : ''} ${isMyTurn ? 'ring-2 ring-[var(--tv-accent)]/35' : ''}`}>
+      {isLive ? <div className="tv-combat-hero__glow" aria-hidden="true" /> : null}
+
+      <div className="relative mb-3 flex items-center justify-between gap-2">
         <Text variant="label" tone="accent">Slagorde</Text>
-        <div className="flex items-center gap-1.5">
+        <div className="flex items-center gap-1">
           <IconButton
             icon={isPinned ? Pin : PinOff}
             label={isPinned ? 'Losmaken' : 'Vastzetten'}
@@ -45,28 +43,26 @@ export default function CombatPlayerHeader({
             icon={X}
             label="Sluiten"
             variant="danger"
+            size="sm"
             onClick={onClose}
             className={isPinned ? 'hidden' : 'inline-flex lg:hidden'}
           />
         </div>
       </div>
 
-      <div className="grid gap-3 sm:grid-cols-[48px_minmax(0,1fr)] sm:items-start">
-        <div className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border ${combatStatus === COMBAT_STATUS.ACTIVE ? 'tv-button-accent-muted' : 'tv-chip-surface tv-accent'} ${isMyTurn ? 'tv-breathe-glow' : ''}`}>
+      <div className="relative flex items-start gap-3">
+        <div className={`tv-combat-hero__status-chip shrink-0 ${isMyTurn ? 'tv-breathe-glow' : ''}`}>
           <Icon as={StatusIcon} size="md" />
         </div>
-
-        <div className="min-w-0 flex-1">
+        <div className="min-w-0 flex-1 pt-0.5">
           <div className="flex flex-wrap items-center gap-2">
-            <Text variant="subtitle" as="span">{statusTitle}</Text>
+            <Text variant="title" as="span" className="!text-base md:!text-lg">{statusTitle}</Text>
             {combatInProgress ? (
-              <Text variant="label" tone="accent" as="span" className="rounded-full border border-[color-mix(in_srgb,var(--tv-accent),transparent_55%)] bg-[color-mix(in_srgb,var(--tv-accent),transparent_84%)] px-2.5 py-1 shadow-inner">
-                Ronde {turnRound}
-              </Text>
+              <span className="tv-combat-hero__round-pill">Ronde {turnRound}</span>
             ) : null}
           </div>
-          <Text variant="body" as="p" className="mt-2 leading-6">{statusPrimaryLine}</Text>
-          <Text variant="meta" as="p" className="mt-1 leading-5">{statusSecondaryLine}</Text>
+          <Text variant="body" as="p" className="mt-1.5 leading-6">{statusPrimaryLine}</Text>
+          <Text variant="meta" as="p" className="mt-0.5 leading-5">{statusSecondaryLine}</Text>
         </div>
       </div>
     </div>
