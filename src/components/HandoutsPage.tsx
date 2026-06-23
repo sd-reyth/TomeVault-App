@@ -1,5 +1,6 @@
 import { useState } from 'react'
-import { Search, Filter, Plus, Clock, Users } from 'lucide-react'
+import { Search, Plus, Clock, Users } from 'lucide-react'
+import ScreenHeader from './ScreenHeader'
 
 export default function HandoutsPage() {
   const [searchQuery, setSearchQuery] = useState('')
@@ -20,15 +21,15 @@ export default function HandoutsPage() {
 
   return (
     <div className="max-w-6xl mx-auto">
-      <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-6 mb-8">
-        <div>
-          <h2 className="text-4xl font-fantasy tracking-tight">Oude Geschriften</h2>
-          <p className="text-[var(--tv-text-secondary)] mt-1">Documenten, kaarten en magische voorwerpen ontdekt tijdens de reis.</p>
-        </div>
-        <button className="flex items-center gap-2 px-6 py-3 bg-[var(--tv-accent)] hover:bg-[var(--tv-accent)]/90 text-white rounded-2xl font-medium transition-all active:scale-[0.985] self-start lg:self-auto">
-          <Plus className="w-4 h-4" /> Nieuw Handout
-        </button>
-      </div>
+      <ScreenHeader
+        title="Oude Geschriften"
+        subtitle="Documenten, kaarten en magische voorwerpen ontdekt tijdens de reis."
+        primaryAction={{
+          label: 'Nieuw Handout',
+          icon: Plus,
+          onClick: () => {},
+        }}
+      />
 
       {/* Search & Filters */}
       <div className="flex flex-col md:flex-row gap-4 mb-6">
@@ -68,7 +69,7 @@ export default function HandoutsPage() {
                 <div className="font-medium text-lg group-hover:text-[var(--tv-accent)] transition-colors">{handout.title}</div>
                 <div className="text-sm text-[var(--tv-text-secondary)] mt-1 line-clamp-2">{handout.preview}</div>
               </div>
-              <div className={`text-xs px-3 py-1 rounded-full flex-shrink-0 ml-4 ${handout.type === 'secret' ? 'bg-red-500/10 text-red-400' : handout.type === 'map' ? 'bg-amber-500/10 text-amber-400' : 'bg-blue-500/10 text-blue-400'}`}>
+              <div className={`text-xs px-3 py-1 rounded-full font-medium flex-shrink-0 ml-4 ${handout.type === 'secret' ? 'badge-type-secret' : handout.type === 'map' ? 'badge-type-map' : 'badge-type-lore'}`}>
                 {handout.type.toUpperCase()}
               </div>
             </div>
