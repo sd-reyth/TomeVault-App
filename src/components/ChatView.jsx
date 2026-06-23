@@ -345,8 +345,8 @@ function ChatView({ chat, setChat, role, uid, playerName, preferredChatColor, th
 
       {/* Color picker overlay */}
       {showColorPicker && (
-        <div className="absolute inset-0 z-30 flex items-start justify-center overflow-y-auto bg-zinc-950/86 p-3 backdrop-blur-md sm:p-4">
-          <div className="my-auto w-full max-w-sm shrink-0 rounded-3xl border border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] bg-zinc-950 p-4 shadow-[0_20px_60px_rgba(0,0,0,0.4)] sm:p-6">
+        <div className="tv-backdrop absolute inset-0 z-30 flex items-start justify-center overflow-y-auto p-3 backdrop-blur-md sm:p-4">
+          <div className="tv-surface my-auto w-full max-w-sm shrink-0 rounded-3xl p-4 sm:p-6">
             <div className="flex justify-between items-center mb-1">
               <h3 className="text-sm uppercase tracking-[0.18em] tv-text">Kies jouw kleur</h3>
               {chatColor && (
@@ -385,7 +385,7 @@ function ChatView({ chat, setChat, role, uid, playerName, preferredChatColor, th
                     <span className="w-full truncate text-center text-[8px] font-medium uppercase leading-none tv-text-sub">{c.name}</span>
                     {isActive && (
                       <span className="absolute right-1 top-1 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-white shadow">
-                        <Check className="w-2 h-2 text-stone-900" strokeWidth={3} />
+                        <Check className="w-2 h-2 tv-text" strokeWidth={3} style={{ color: 'var(--tv-bg-canvas)' }} />
                       </span>
                     )}
                   </button>
@@ -531,7 +531,7 @@ function ChatView({ chat, setChat, role, uid, playerName, preferredChatColor, th
                 {activeMenu === c.id && (
                   <div
                     ref={menuRef}
-                    className={`absolute bottom-full z-20 min-w-[140px] overflow-hidden rounded-2xl border border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] bg-zinc-950 py-1 shadow-[0_18px_50px_rgba(0,0,0,0.34)] ${isOwn ? 'right-0' : 'left-0'} mb-1.5`}
+                    className={`tv-context-menu absolute bottom-full z-20 py-1 ${isOwn ? 'right-0' : 'left-0'} mb-1.5`}
                   >
                     <button
                       onClick={() => startReply(c)}

@@ -26,6 +26,35 @@ const LANDING_AMBIENCE_VOLUME_STORAGE_KEY = 'tomevault:landing:ambience-volume';
 const DEFAULT_LANDING_AMBIENCE_VOLUME = 12;
 const TOMEVAULT_LOGO_SRC = '/references/tomeVaultLogo1.png';
 
+const ENTRY_THEMES = [
+  { value: 'ember-forge', swatch: '#ff9d42', label: 'Ember' },
+  { value: 'dawn-parchment', swatch: '#9c6f2e', label: 'Dawn' },
+  { value: 'midnight-tome', swatch: '#9f7dff', label: 'Night' },
+  { value: 'forest-scroll', swatch: '#6bc66b', label: 'Forest' },
+  { value: 'blood-moon', swatch: '#c41e3a', label: 'Blood' },
+];
+
+function LandingThemePicker({ theme, onThemeChange }) {
+  if (!onThemeChange) return null;
+
+  return (
+    <div className="tv-theme-picker" role="group" aria-label="Kies thema">
+      {ENTRY_THEMES.map((entry) => (
+        <button
+          key={entry.value}
+          type="button"
+          title={entry.label}
+          aria-label={entry.label}
+          aria-pressed={theme === entry.value}
+          onClick={() => onThemeChange(entry.value)}
+          className={`tv-theme-swatch ${theme === entry.value ? 'tv-theme-swatch--active' : ''}`}
+          style={{ background: entry.swatch }}
+        />
+      ))}
+    </div>
+  );
+}
+
 function clampLandingAmbienceVolume(value, fallback = DEFAULT_LANDING_AMBIENCE_VOLUME) {
   const numericValue = Number(value);
   if (!Number.isFinite(numericValue)) return fallback;
@@ -121,6 +150,7 @@ export default function LandingScreen({
   onBackfillMemberships,
   runtimeBadge,
   theme,
+  onThemeChange,
   appUpdateNotice,
   onReloadApp,
 }) {
@@ -151,6 +181,7 @@ export default function LandingScreen({
   const [contactName, setContactName] = useState('');
   const [contactEmail, setContactEmail] = useState('');
   const [contactMessage, setContactMessage] = useState('');
+  const [showMarketing, setShowMarketing] = useState(false);
   const [showContactForm, setShowContactForm] = useState(false);
   const [{ inviteCode, isJoinPath }] = useState(() => getLandingJoinContext());
   const [activeRoleTab, setActiveRoleTab] = useState(() => {
@@ -265,7 +296,7 @@ export default function LandingScreen({
   const activeRecentSessions = (recentSessions || []).filter((s) => s.status !== 'hidden');
   const gmRecentCount = activeRecentSessions.filter((s) => s.role === 'dm').length;
   const playerRecentCount = activeRecentSessions.filter((s) => s.role !== 'dm').length;
-  const resolvedLandingTheme = uid ? (theme || 'amber') : 'amber';
+  const resolvedLandingTheme = theme || 'ember-forge';
 
   useEffect(() => {
     if (inviteCode) {
@@ -729,7 +760,7 @@ export default function LandingScreen({
   ) : null;
 
   return (
-    <div data-landing-theme={resolvedLandingTheme} className="landing-root relative min-h-screen overflow-x-hidden bg-stone-950 bg-texture">
+    <div data-theme={resolvedLandingTheme} data-landing-theme={resolvedLandingTheme} className="tv-entry-root landing-root relative min-h-screen overflow-x-hidden bg-texture">
       <div className="landing-video-backdrop" aria-hidden="true">
         <video
           ref={landingVideoRef}
@@ -808,12 +839,13 @@ export default function LandingScreen({
                         <img src={TOMEVAULT_LOGO_SRC} alt="TomeVault logo" className="landing-logo" />
                       </div>
                     </div>
-                    <h1 className="max-w-4xl text-5xl leading-[0.9] font-fantasy tracking-[0.08em] text-stone-100 sm:text-6xl lg:text-7xl xl:text-[5.15rem]">
-                      TOME<span className="text-amber-500">VAULT</span>
+                    <h1 className="max-w-4xl text-5xl leading-[0.9] font-fantasy tracking-[0.08em] tv-text sm:text-6xl lg:text-7xl xl:text-[5.15rem]">
+                      TOME<span className="tv-accent">VAULT</span>
                     </h1>
-                    <p className="max-w-2xl text-base md:text-lg text-stone-300 font-story leading-relaxed">
-                      Handouts, chat en sessies op een rustige plek.
+                    <p className="max-w-2xl text-base md:text-lg tv-text-sub font-story leading-relaxed">
+                      Jouw magische tafel aan de taverne.
                     </p>
+                    <LandingThemePicker theme={resolvedLandingTheme} onThemeChange={onThemeChange} />
                   </>
                 ) : showSessionHub ? (
                   <>
@@ -867,19 +899,16 @@ export default function LandingScreen({
             </div>
 
             {!uid ? (
-              <div className="landing-surface w-full max-w-[34rem] rounded-[22px] p-5 md:p-6 text-left lg:max-w-[36rem]">
-                <div className="landing-kicker text-amber-500 text-center">Log eerst in</div>
-                <p className="mt-3 text-center font-story text-sm leading-relaxed text-stone-300">
-                  TomeVault gebruikt nu een account-first toegang. Zo blijven je sessies, voorkeuren en herstelacties beschikbaar op elk apparaat.
-                </p>
+              <div className="tv-entry-hero-card tv-entry-rail w-full rounded-[22px] p-5 text-left md:p-6">
+                <div className="tv-label text-center">Inloggen</div>
                 <div className="mt-4 space-y-3">
                   <button
                     type="button"
                     onClick={onSignInGoogle}
                     disabled={authLoading || sessionBusy}
-                    className="landing-button landing-button-amber w-full disabled:opacity-60"
+                    className="tv-button-primary h-11 w-full rounded-xl font-fantasy text-sm uppercase tracking-[0.16em] disabled:opacity-60"
                   >
-                    Doorgaan met Google
+                    Google
                   </button>
                 </div>
 
@@ -989,11 +1018,23 @@ export default function LandingScreen({
           </div>
         </section>
 
-        {landingAboutSection}
+        {showMarketing ? landingAboutSection : null}
 
-        {landingFeatureSection}
+        {showMarketing ? landingFeatureSection : null}
 
-        {landingShowcaseSection}
+        {showMarketing ? landingShowcaseSection : null}
+
+        {!uid ? (
+          <div className="mx-auto w-full max-w-5xl text-center">
+            <button
+              type="button"
+              onClick={() => setShowMarketing((value) => !value)}
+              className="tv-button-secondary rounded-xl px-4 py-2 text-xs font-fantasy uppercase tracking-[0.16em]"
+            >
+              {showMarketing ? 'Minder' : 'Over TomeVault'}
+            </button>
+          </div>
+        ) : null}
 
         {sessionError ? (
           <div className="mx-auto w-full max-w-5xl rounded-2xl border border-rose-900/50 bg-rose-950/35 px-4 py-3 text-sm text-rose-200">
@@ -1010,11 +1051,13 @@ export default function LandingScreen({
         {recentSessionsSection}
 
         {showSessionHub ? (
-          <section className={`mx-auto w-full max-w-5xl landing-surface rounded-[26px] p-4 md:p-5 lg:p-6 ${activeRoleTab === 'gm' ? 'border-amber-900/30' : 'border-indigo-900/30'}`}>
+          <section className={`tv-entry-rail tv-entry-hero-card tv-entry-sheet mx-auto w-full max-w-5xl p-4 md:p-5 lg:p-6`}>
             <div className="text-center">
-              <h2 className="text-xl md:text-2xl font-fantasy tracking-[0.12em] text-stone-100">
-                {activeRoleTab === 'gm' ? 'Start een sessie' : 'Sluit aan bij een wereld'}
+              <h2 className="text-xl md:text-2xl font-fantasy tracking-[0.12em] tv-text">
+                {activeRoleTab === 'gm' ? 'Nieuwe sessie' : 'Meedoen'}
               </h2>
+
+              <LandingThemePicker theme={resolvedLandingTheme} onThemeChange={onThemeChange} />
 
               <div className="mt-4 flex justify-center">
                 <div className="landing-role-toggle">
@@ -1045,22 +1088,22 @@ export default function LandingScreen({
                       placeholder="Sessienaam"
                       value={gmSessionName}
                       onChange={(e) => setGmSessionName(e.target.value)}
-                      className="landing-input landing-input-amber"
+                      className="tv-field"
                     />
                     <input
                       type="password"
                       placeholder="PIN (4-8 cijfers)"
                       value={gmSessionPin}
                       onChange={(e) => setGmSessionPin(e.target.value)}
-                      className="landing-input landing-input-amber"
+                      className="tv-field"
                     />
                     <button
                       type="button"
                       onClick={handleGmCreate}
                       disabled={!uid || sessionBusy}
-                      className="landing-button landing-button-amber w-full disabled:opacity-60"
+                      className="tv-button-primary h-11 w-full rounded-xl font-fantasy text-sm uppercase tracking-[0.16em] disabled:opacity-60"
                     >
-                      Sessie Ontwaken
+                      Start
                     </button>
                     {localGmError ? (
                       <div className="rounded-2xl border border-rose-900/50 bg-rose-950/35 px-4 py-3 text-sm text-rose-200">
@@ -1072,24 +1115,24 @@ export default function LandingScreen({
                   <div className="grid gap-3">
                     <input
                       type="text"
-                      placeholder="Je karakternaam"
+                      placeholder="Karakternaam"
                       value={playerName}
                       onChange={(e) => setPlayerName(e.target.value)}
-                      className="landing-input landing-input-indigo"
+                      className="tv-field"
                     />
                     <input
                       type="text"
-                      placeholder="Sessie Code"
+                      placeholder="Sessiecode"
                       value={sessionCode}
                       onChange={(e) => setSessionCode(e.target.value.toUpperCase())}
-                      className="landing-input landing-input-indigo uppercase"
+                      className="tv-field uppercase"
                     />
                     <input
                       type="password"
-                      placeholder={canJoinWithoutPin ? 'PIN niet nodig voor bekende sessie' : 'PIN (4-8 cijfers)'}
+                      placeholder={canJoinWithoutPin ? 'PIN niet nodig' : 'PIN'}
                       value={sessionPin}
                       onChange={(e) => setSessionPin(e.target.value)}
-                      className={`landing-input ${canJoinWithoutPin ? 'landing-input-emerald' : 'landing-input-indigo'}`}
+                      className="tv-field"
                     />
                     {canJoinWithoutPin ? (
                       <div className="rounded-2xl border border-amber-900/50 bg-amber-950/30 px-4 py-3 text-sm text-amber-200 font-story">
@@ -1100,9 +1143,9 @@ export default function LandingScreen({
                       type="button"
                       onClick={handlePlayerJoin}
                       disabled={!uid || sessionBusy}
-                      className="landing-button landing-button-indigo w-full disabled:opacity-60"
+                      className="tv-button-primary h-11 w-full rounded-xl font-fantasy text-sm uppercase tracking-[0.16em] disabled:opacity-60"
                     >
-                      Betreed de Wereld
+                      Join
                     </button>
                     {localPlayerError ? (
                       <div className="rounded-2xl border border-rose-900/50 bg-rose-950/35 px-4 py-3 text-sm text-rose-200">

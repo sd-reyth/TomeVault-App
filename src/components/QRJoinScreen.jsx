@@ -2,10 +2,6 @@ import React, { useEffect, useRef, useState } from 'react';
 import { Flame, Loader2, LogIn, Mail, ShieldCheck, Swords } from 'lucide-react';
 import landingBackgroundVideo from '../../Video/landingBG.mp4';
 
-/**
- * Shown when the user arrives via a QR-code invite link (?code=…).
- * Joining stays PIN-free, but now requires an account before the player enters the session.
- */
 export default function QRJoinScreen({
   inviteCode,
   uid,
@@ -16,12 +12,12 @@ export default function QRJoinScreen({
   onSignInGoogle,
   onUseFullLogin,
   onJoin,
+  theme = 'ember-forge',
 }) {
   const videoRef = useRef(null);
   const [name, setName] = useState('');
   const [localError, setLocalError] = useState('');
 
-  // Muted autoplay background video.
   useEffect(() => {
     const v = videoRef.current;
     if (!v) return;
@@ -33,11 +29,11 @@ export default function QRJoinScreen({
     setLocalError('');
     const trimmedName = name.trim();
     if (!trimmedName) {
-      setLocalError('Voer je naam in zodat de andere spelers je kennen.');
+      setLocalError('Voer je naam in.');
       return;
     }
     if (!uid) {
-      setLocalError('Log eerst in voordat je via deze uitnodiging kunt deelnemen.');
+      setLocalError('Log eerst in.');
       return;
     }
     onJoin(trimmedName, inviteCode);
@@ -47,79 +43,69 @@ export default function QRJoinScreen({
   const displayError = localError || authError || sessionError;
 
   return (
-    <div className="relative flex min-h-screen w-full flex-col items-center justify-center overflow-hidden bg-zinc-950">
-      {/* Background video */}
+    <div data-theme={theme} className="tv-entry-root relative flex min-h-screen w-full flex-col items-center justify-center overflow-hidden">
       <video
         ref={videoRef}
         src={landingBackgroundVideo}
-        className="pointer-events-none absolute inset-0 h-full w-full object-cover opacity-30"
+        className="landing-video-element pointer-events-none absolute inset-0 h-full w-full object-cover opacity-35"
         loop
         playsInline
         autoPlay
         muted
       />
+      <div className="landing-video-darkener pointer-events-none absolute inset-0" />
 
-      {/* Overlay gradient */}
-      <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-stone-950/60 via-transparent to-stone-950/90" />
-
-      {/* Content card */}
-      <div className="relative z-10 flex w-full max-w-sm flex-col items-center gap-8 px-6 py-12">
-
-        {/* Logo */}
+      <div className="tv-entry-rail relative z-10 flex w-full max-w-sm flex-col items-center gap-6 px-6 py-12">
         <div className="flex flex-col items-center gap-3">
           <div className="flex items-center gap-3">
-            <Flame className="h-8 w-8 text-amber-500 drop-shadow-[0_0_12px_rgba(245,158,11,0.8)]" />
-            <span className="font-fantasy text-2xl tracking-[0.22em] text-stone-100">
-              TOME<span className="text-amber-500">VAULT</span>
+            <Flame className="tv-accent h-8 w-8 tv-magic-glow" />
+            <span className="font-fantasy text-2xl tracking-[0.22em] tv-text">
+              TOME<span className="tv-accent">VAULT</span>
             </span>
           </div>
-          <span className="font-story text-sm text-stone-400 tracking-wide">
-            Je bent uitgenodigd voor een sessie
-          </span>
+          <span className="tv-label">Uitnodiging</span>
         </div>
 
-        {/* Divider with swords icon */}
         <div className="flex w-full items-center gap-3">
-          <div className="h-px flex-1 bg-gradient-to-r from-transparent to-stone-700/60" />
-          <Swords className="h-4 w-4 text-stone-600" />
-          <div className="h-px flex-1 bg-gradient-to-l from-transparent to-stone-700/60" />
+          <div className="h-px flex-1 bg-gradient-to-r from-transparent to-[color-mix(in_srgb,var(--tv-border),transparent_20%)]" />
+          <Swords className="tv-muted h-4 w-4" />
+          <div className="h-px flex-1 bg-gradient-to-l from-transparent to-[color-mix(in_srgb,var(--tv-border),transparent_20%)]" />
         </div>
 
-        {/* Join form */}
-        <div className="flex w-full flex-col gap-4">
+        <div className="tv-entry-hero-card flex w-full flex-col gap-4 p-5">
           {!uid ? (
             <>
               <div className="rounded-2xl border border-emerald-900/35 bg-emerald-950/18 px-4 py-3 text-sm font-story leading-relaxed text-emerald-100">
                 <div className="flex items-center gap-2 font-fantasy text-[11px] uppercase tracking-[0.18em] text-emerald-300">
                   <ShieldCheck className="h-3.5 w-3.5" />
-                  Account vereist
+                  Account
                 </div>
                 <p className="mt-2 text-sm leading-relaxed text-emerald-100/90">
-                  Log eerst in om via deze uitnodiging verder te gaan. Daarna kun je zonder PIN meteen aan tafel aanschuiven.
+                  Log in om via deze uitnodiging mee te doen — zonder PIN.
                 </p>
               </div>
 
-              {displayError && (
+              {displayError ? (
                 <p className="rounded-lg border border-rose-900/40 bg-rose-950/30 px-4 py-2.5 font-story text-sm text-rose-300">
                   {displayError}
                 </p>
-              )}
+              ) : null}
 
               <button
                 type="button"
                 onClick={() => onSignInGoogle?.()}
                 disabled={isBusy}
-                className="h-11 w-full inline-flex items-center justify-center gap-2.5 rounded-xl font-fantasy text-sm uppercase tracking-[0.18em] transition-all disabled:opacity-50 disabled:cursor-not-allowed tv-button-primary"
+                className="tv-button-primary flex h-11 w-full items-center justify-center gap-2.5 rounded-xl font-fantasy text-sm uppercase tracking-[0.18em] disabled:cursor-not-allowed disabled:opacity-50"
               >
                 {isBusy ? (
                   <>
                     <Loader2 className="h-4 w-4 animate-spin" />
-                    Verbinden…
+                    …
                   </>
                 ) : (
                   <>
                     <LogIn className="h-4 w-4" />
-                    Doorgaan met Google
+                    Google
                   </>
                 )}
               </button>
@@ -128,18 +114,16 @@ export default function QRJoinScreen({
                 type="button"
                 onClick={() => onUseFullLogin?.()}
                 disabled={isBusy}
-                className="h-11 w-full inline-flex items-center justify-center gap-2.5 rounded-xl border border-white/10 bg-white/5 px-4 font-story text-sm text-stone-200 transition-colors hover:border-white/20 hover:text-stone-100 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="tv-button-secondary flex h-11 w-full items-center justify-center gap-2.5 rounded-xl px-4 font-story text-sm disabled:cursor-not-allowed disabled:opacity-50"
               >
                 <Mail className="h-4 w-4" />
-                Gebruik e-mail of maak een account
+                E-mail
               </button>
             </>
           ) : (
             <>
               <div>
-                <label className="mb-1.5 block text-[10px] font-bold uppercase tracking-widest text-stone-500">
-                  Jouw naam aan tafel
-                </label>
+                <label className="tv-label mb-1.5 block">Naam</label>
                 <input
                   type="text"
                   value={name}
@@ -148,31 +132,31 @@ export default function QRJoinScreen({
                   placeholder="Bijv. Aragorn"
                   maxLength={32}
                   disabled={isBusy}
-                  className="h-11 w-full rounded-lg border border-white/10 bg-white/5 px-4 font-story text-sm text-stone-200 placeholder-stone-600 transition-colors focus:border-[var(--tv-accent)]/70 focus:outline-none disabled:opacity-50"
+                  className="tv-field"
                 />
               </div>
 
-              {displayError && (
+              {displayError ? (
                 <p className="rounded-lg border border-rose-900/40 bg-rose-950/30 px-4 py-2.5 font-story text-sm text-rose-300">
                   {displayError}
                 </p>
-              )}
+              ) : null}
 
               <button
                 type="button"
                 onClick={handleJoin}
                 disabled={isBusy}
-                className="h-11 w-full inline-flex items-center justify-center gap-2.5 rounded-xl font-fantasy text-sm uppercase tracking-[0.18em] transition-all disabled:opacity-50 disabled:cursor-not-allowed tv-button-primary"
+                className="tv-button-primary flex h-11 w-full items-center justify-center gap-2.5 rounded-xl font-fantasy text-sm uppercase tracking-[0.18em] disabled:cursor-not-allowed disabled:opacity-50"
               >
                 {isBusy ? (
                   <>
                     <Loader2 className="h-4 w-4 animate-spin" />
-                    Deelnemen…
+                    …
                   </>
                 ) : (
                   <>
                     <LogIn className="h-4 w-4" />
-                    Direct deelnemen
+                    Deelnemen
                   </>
                 )}
               </button>
@@ -180,28 +164,18 @@ export default function QRJoinScreen({
           )}
         </div>
 
-        {/* Session code hint */}
-        <div className="flex flex-col items-center gap-1 opacity-40">
-          <span className="font-fantasy text-[9px] uppercase tracking-[0.2em] text-stone-500">Sessiecode</span>
-          <span className="font-fantasy text-xs tracking-[0.14em] text-[var(--tv-accent)]/80">{inviteCode}</span>
+        <div className="flex flex-col items-center gap-1 opacity-60">
+          <span className="tv-label">Code</span>
+          <span className="font-fantasy text-xs tracking-[0.14em] tv-accent">{inviteCode}</span>
         </div>
 
-        {/* Fine print */}
-        <p className="text-center font-story text-[11px] leading-5 text-stone-600">
-          Via QR-code deelnemen vereist geen PIN, maar wel een account.
-          <br />
-          Lukt het niet?{' '}
-          <button
-            type="button"
-            onClick={() => {
-              onUseFullLogin?.();
-            }}
-            className="text-[var(--tv-accent)]/70 underline underline-offset-2 hover:text-[var(--tv-accent)] transition-colors"
-          >
-            Gebruik het aanmeldformulier
-          </button>
-          .
-        </p>
+        <button
+          type="button"
+          onClick={() => onUseFullLogin?.()}
+          className="tv-muted text-center font-story text-[11px] underline-offset-2 hover:tv-accent hover:underline"
+        >
+          Aanmeldformulier
+        </button>
       </div>
     </div>
   );

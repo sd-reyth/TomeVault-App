@@ -2,17 +2,16 @@ import React from 'react';
 
 function PlaceholderView({ title, icon: Icon, description }) {
   return (
-    <div className="h-full flex flex-col items-center justify-center text-center text-stone-500 border-2 border-dashed border-white/10 rounded-xl p-6 md:p-10 bg-white/5 backdrop-blur-sm">
-      <div className="w-16 h-16 md:w-20 md:h-20 bg-white/5 border border-white/10 rounded-2xl flex items-center justify-center mb-4 md:mb-6 shadow-inner">
-        <Icon className="w-8 h-8 md:w-10 md:h-10 text-amber-700/50" />
+    <div className="tv-empty-state h-full min-h-[12rem] rounded-xl border-2 border-dashed p-6 md:p-10">
+      <div className="tv-chip-surface mb-4 flex h-16 w-16 items-center justify-center rounded-2xl shadow-inner md:mb-6 md:h-20 md:w-20">
+        <Icon className="tv-accent h-8 w-8 opacity-60 md:h-10 md:w-10" />
       </div>
-      <h2 className="text-xl md:text-3xl font-bold text-stone-400 mb-2 md:mb-3 font-fantasy tracking-widest uppercase">{title}</h2>
-      <p className="max-w-xs md:max-w-md font-story italic text-stone-500 text-sm md:text-lg">
-        {description}
-      </p>
-      <p className="max-w-xs md:max-w-md text-[10px] md:text-xs font-sans text-stone-600 mt-4 md:mt-6 uppercase tracking-widest">
-        — Visuele schil gereed voor magie —
-      </p>
+      <h2 className="tv-title-section mb-2 text-xl md:mb-3 md:text-2xl">{title}</h2>
+      {description ? (
+        <p className="max-w-md font-story text-sm italic tv-text-sub md:text-base">
+          {description}
+        </p>
+      ) : null}
     </div>
   );
 }

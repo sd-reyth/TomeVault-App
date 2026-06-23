@@ -1,5 +1,5 @@
 import React from 'react';
-import { Crown } from 'lucide-react';
+import { Crown, Check, X } from 'lucide-react';
 import { resolveDisplayAvatar } from '../lib/placeholders';
 import ModalFrame from './ModalFrame';
 
@@ -22,76 +22,70 @@ export default function PreparationOfferModal({ isOpen, preparation, onAccept, o
       isOpen={isOpen}
       onClose={onReject}
       title="Rolvoorstel"
-      subtitle="Een rol ligt voor je klaar. Bekijk eerst wat er verandert voordat je accepteert."
+      subtitle={preparation.name || 'Naamloos personage'}
       icon={Crown}
       maxWidthClassName="max-w-xl"
       bodyClassName="px-0 py-0 overflow-y-hidden sm:px-0 sm:py-0"
     >
       <div className="flex flex-1 flex-col overflow-hidden">
-        <div className="relative overflow-hidden border-b border-white/10 bg-gradient-to-br from-white/10 via-white/5 to-amber-950/20 p-5">
-          <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(251,146,60,0.12),transparent_40%)]"/>
-          <div className="relative z-10 flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.22em] text-amber-300">
-            <Crown className="h-3.5 w-3.5" />
-            Een rol ligt voor je klaar
-          </div>
-          <h2 className="relative z-10 mt-3 font-fantasy text-2xl tracking-[0.08em] text-stone-100">{preparation.name || 'Naamloos personage'}</h2>
+        <div className="tv-profile-banner relative overflow-hidden border-b border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] p-5">
           {preparation.subtitle ? (
-            <p className="relative z-10 mt-1 text-sm italic text-stone-400">{preparation.subtitle}</p>
+            <p className="tv-text-sub mt-1 text-sm italic">{preparation.subtitle}</p>
           ) : null}
         </div>
 
         <div className="flex-1 overflow-y-auto">
           <div className="grid gap-5 p-5 md:grid-cols-[140px_minmax(0,1fr)] md:p-6">
-            <div className="mx-auto h-[140px] w-[140px] overflow-hidden rounded-2xl border border-stone-800 bg-stone-950 shadow-inner">
+            <div className="mx-auto h-[140px] w-[140px] overflow-hidden rounded-2xl border border-[color-mix(in_srgb,var(--tv-border),transparent_28%)] tv-panel-inset shadow-inner">
               <img
                 src={resolveDisplayAvatar(preparation.imageUrl, preparation.id)}
                 alt={preparation.name || 'Voorbereid personage'}
-                className="h-full w-full object-cover scale-[1.18]"
+                className="h-full w-full scale-[1.18] object-cover"
               />
             </div>
 
             <div>
-              <p className="text-sm leading-7 text-stone-400">
-                De GM heeft een voorbereid personage voor je klaargezet. Als je dit accepteert, worden je profielnaam, rol of titel,
-                avatar, profielwaarden, verborgen eigenschappen en bio bijgewerkt. Eerst maken we automatisch een herstelpunt, zodat
-                je oude profiel veilig blijft. Inventaris, wallet en losse notities blijven ongemoeid.
+              <p className="tv-meta text-sm leading-7">
+                De GM biedt een voorbereid personage aan. Je profiel wordt bijgewerkt; inventaris en wallet blijven intact. Er wordt automatisch een herstelpunt gemaakt.
               </p>
 
               <div className="mt-4 flex flex-wrap gap-2">
                 {statPills.map((pill) => (
                   <span
                     key={`${preparation.id}-${pill}`}
-                    className="rounded-full border border-white/10 bg-white/5 px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.16em] text-stone-400"
+                    className="tv-chip-surface rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.16em] tv-text-sub"
                   >
                     {pill}
                   </span>
                 ))}
               </div>
 
-              <div className="mt-4 rounded-xl border border-white/10 bg-white/5 p-4 text-sm leading-7 text-stone-300">
-                {preparation.bio || <span className="italic text-stone-500">Deze voorbereiding bevat nog geen bio.</span>}
+              <div className="tv-panel-inset mt-4 rounded-xl p-4 text-sm leading-7 tv-text">
+                {preparation.bio || <span className="italic tv-muted">Geen bio.</span>}
               </div>
             </div>
           </div>
         </div>
 
-        <div className="shrink-0 border-t border-white/10 bg-white/5 px-4 pt-4 pb-[calc(env(safe-area-inset-bottom,0px)+1rem)] sm:pb-4">
-          <div className="flex flex-col gap-3 sm:flex-row sm:justify-end">
-            <button
-              type="button"
-              onClick={onReject}
-              className="h-9 inline-flex items-center justify-center rounded-lg border border-white/10 bg-white/5 px-4 font-fantasy text-sm uppercase tracking-[0.16em] text-stone-300 transition-all duration-200 hover:border-rose-400/50 hover:bg-rose-950/20 hover:text-rose-300 active:scale-95"
-            >
-              Weigeren
-            </button>
-            <button
-              type="button"
-              onClick={onAccept}
-              className="h-9 inline-flex items-center justify-center rounded-lg px-5 font-fantasy text-sm uppercase tracking-[0.16em] active:scale-95 tv-button-primary"
-            >
-              Neem deze rol aan
-            </button>
-          </div>
+        <div className="tv-modal-footer shrink-0 !justify-stretch sm:!justify-end">
+          <button
+            type="button"
+            onClick={onReject}
+            aria-label="Weigeren"
+            className="tv-icon-btn tv-icon-btn--danger h-10 flex-1 sm:flex-none sm:px-4"
+          >
+            <X className="h-4 w-4" />
+            <span className="ml-2 hidden text-xs font-fantasy uppercase tracking-[0.16em] sm:inline">Weiger</span>
+          </button>
+          <button
+            type="button"
+            onClick={onAccept}
+            aria-label="Rol accepteren"
+            className="tv-button-primary flex h-10 flex-1 items-center justify-center gap-2 rounded-lg sm:flex-none sm:px-5"
+          >
+            <Check className="h-4 w-4" />
+            <span className="text-sm font-fantasy uppercase tracking-[0.16em]">Aanvaard</span>
+          </button>
         </div>
       </div>
     </ModalFrame>

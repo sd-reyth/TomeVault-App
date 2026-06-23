@@ -3579,6 +3579,7 @@ export default function TomeVaultApp() {
           sessionBusy={sessionBusy}
           authError={authError}
           sessionError={sessionError}
+          theme={theme}
           onSignInGoogle={handleSignInGoogle}
           onUseFullLogin={() => setQrJoinDone(true)}
           onJoin={(playerNameInput, code) => {
@@ -3616,6 +3617,7 @@ export default function TomeVaultApp() {
           onBackfillMemberships={handleBackfillMemberships}
           runtimeBadge={runtimeBadge}
           theme={theme}
+          onThemeChange={applyTheme}
           appUpdateNotice={appUpdateNotice}
           onReloadApp={() => window.location.reload()}
       />
