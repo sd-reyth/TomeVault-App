@@ -569,7 +569,7 @@ function ChatView({ chat, setChat, role, uid, playerName, preferredChatColor, th
       </div>
 
       {/* Input area */}
-      <div className="relative z-10 shrink-0 border-t border-white/10 bg-zinc-950/92">
+      <div className="tv-input-footer relative z-10 shrink-0">
         {/* Reply preview */}
         {replyingTo && !editingMsg && (
           <div className="flex items-start gap-2 px-3 pb-1 pt-2.5">
@@ -604,7 +604,7 @@ function ChatView({ chat, setChat, role, uid, playerName, preferredChatColor, th
             onChange={e => setMsg(e.target.value)}
             onClick={() => { if (!chatColor) setShowColorPicker(true); }}
             placeholder={chatColor ? (editingMsg ? 'Pas je bericht aan...' : 'Spreek in de schaduwen...') : 'Kies eerst een kleur...'}
-            className="h-10 min-w-0 w-full flex-[1_1_100%] rounded-xl border border-white/10 bg-white/5 px-3 text-sm italic text-stone-100 transition-colors placeholder-stone-500 focus:border-[var(--tv-accent)]/50 focus:bg-white/7 focus:outline-none md:px-4 sm:flex-[1_1_auto]"
+            className="tv-input-surface h-10 min-w-0 w-full flex-[1_1_100%] rounded-xl px-3 text-sm italic transition-colors focus:outline-none md:px-4 sm:flex-[1_1_auto]"
           />
           <div className={`flex items-center gap-2 ${editingMsg ? 'w-full sm:w-auto' : 'ml-auto sm:ml-0'}`}>
             {!editingMsg && (

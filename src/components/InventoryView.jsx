@@ -111,9 +111,9 @@ function InventoryView({ role, inventory, wallets, party, currentPlayerId, hando
           </div>
 
           <div className="flex w-full items-stretch sm:w-auto">
-            <div className="flex min-w-0 flex-1 flex-col justify-center rounded-l-xl border border-white/10 bg-black/25 px-3 py-2.5 sm:min-w-[190px]">
-              <span className="text-[10px] uppercase tracking-[0.18em] text-stone-500">Totale waarde</span>
-              <span className="mt-1 truncate text-lg font-semibold tabular-nums text-stone-100 md:text-xl">{formatGoldEquivalent(totalGoldEquivalent)} goud</span>
+            <div className="flex min-w-0 flex-1 flex-col justify-center rounded-l-xl border px-3 py-2.5 tv-chip-surface sm:min-w-[190px]">
+              <span className="text-[10px] uppercase tracking-[0.18em] tv-muted">Totale waarde</span>
+              <span className="mt-1 truncate text-lg font-semibold tabular-nums tv-text md:text-xl">{formatGoldEquivalent(totalGoldEquivalent)} goud</span>
             </div>
             <button
               onClick={onOpenAddItem}

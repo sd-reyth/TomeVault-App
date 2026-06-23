@@ -261,6 +261,60 @@ body {
   color: var(--tv-text-primary);
 }
 
+.tv-muted {
+  color: var(--tv-text-secondary);
+}
+
+.tv-chip-surface {
+  border: 1px solid color-mix(in srgb, var(--tv-border), transparent 38%);
+  background: color-mix(in srgb, var(--tv-bg-surface), transparent 10%);
+  color: var(--tv-text-primary);
+}
+
+.tv-icon-action {
+  border: 1px solid color-mix(in srgb, var(--tv-border), transparent 38%);
+  background: color-mix(in srgb, var(--tv-bg-surface), transparent 6%);
+  color: var(--tv-text-secondary);
+  transition:
+    border-color 160ms ease,
+    background-color 160ms ease,
+    color 160ms ease,
+    transform 160ms ease;
+}
+
+.tv-icon-action:hover {
+  border-color: color-mix(in srgb, var(--tv-accent), transparent 58%);
+  background: color-mix(in srgb, var(--tv-accent), transparent 92%);
+  color: var(--tv-text-primary);
+}
+
+.tv-handout-card {
+  border: 1px solid color-mix(in srgb, var(--tv-border), transparent 38%);
+  background: color-mix(in srgb, var(--tv-bg-surface), transparent 6%);
+  color: var(--tv-text-primary);
+}
+
+.tv-handout-card:hover {
+  border-color: color-mix(in srgb, var(--tv-accent), transparent 58%);
+  box-shadow: var(--tv-shadow);
+}
+
+.tv-handout-card--hidden {
+  border-style: dashed;
+  opacity: 0.78;
+  background: color-mix(in srgb, var(--tv-bg-surface), transparent 18%);
+}
+
+.tv-handout-media {
+  border-color: color-mix(in srgb, var(--tv-border), transparent 40%);
+  background: color-mix(in srgb, var(--tv-bg-canvas), transparent 4%);
+}
+
+.tv-input-footer {
+  border-top: 1px solid color-mix(in srgb, var(--tv-border), transparent 42%);
+  background: color-mix(in srgb, var(--tv-bg-surface), transparent 4%);
+}
+
 .tv-panel-shell {
   border: 1px solid color-mix(in srgb, var(--tv-border), transparent 14%);
   border-radius: 1.5rem;
@@ -528,6 +582,20 @@ body {
   background: color-mix(in srgb, var(--tv-type-lore), transparent 90%);
   color: var(--tv-type-lore);
   border: 1px solid color-mix(in srgb, var(--tv-type-lore), transparent 48%);
+}
+
+@media (max-width: 640px) {
+  .tv-topbar-session-label {
+    max-width: 6.5rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
+
+.tv-muted:hover.tv-text,
+.hover\:tv-text:hover {
+  color: var(--tv-text-primary);
 }
 
 .tv-input-surface:focus {

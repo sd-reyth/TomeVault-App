@@ -175,17 +175,17 @@ export default function TopBar({ role, sessionId, sessionNumber, theme, combatSt
       <div className="grid h-14 grid-cols-[minmax(0,1fr)_auto] items-center gap-3 px-3 sm:gap-4 sm:px-4 md:h-16 md:gap-5 md:px-5">
         <div className="flex min-w-0 items-center gap-2 sm:gap-2.5 md:gap-3.5">
           <img src="/references/tomeVaultLogo1.png" alt="TomeVault" className="h-6 w-6 shrink-0 object-contain sm:h-7 sm:w-7 md:h-8 md:w-8" />
-          <span className="hidden font-fantasy text-lg font-bold tracking-widest text-stone-100 sm:block md:text-xl">
+          <span className="hidden font-fantasy text-lg font-bold tracking-widest tv-text sm:block md:text-xl">
             TOME<span className="text-[color:var(--tv-accent)]">VAULT</span>
           </span>
 
           <div className="ml-0.5 flex min-w-0 items-center gap-1.5 sm:gap-2 md:ml-3 md:gap-2.5">
             <div
-              className="hidden h-9 items-center rounded-xl border border-white/10 bg-white/5 px-2.5 shadow-inner sm:flex md:px-3"
+              className="tv-chip-surface hidden h-9 items-center rounded-xl px-2.5 shadow-inner sm:flex md:px-3"
               title="Campagne sessienummer"
             >
-              <span className="mr-1.5 hidden text-[9px] uppercase tracking-[0.2em] text-stone-500 md:inline md:text-[10px]">Sessie</span>
-              <span className="text-[11px] font-medium tracking-[0.12em] text-stone-100 md:text-xs">#{Math.max(1, Number(sessionNumber) || 1)}</span>
+              <span className="tv-muted mr-1.5 hidden text-[9px] uppercase tracking-[0.2em] md:inline md:text-[10px]">Sessie</span>
+              <span className="text-[11px] font-medium tracking-[0.12em] tv-text md:text-xs">#{Math.max(1, Number(sessionNumber) || 1)}</span>
             </div>
 
             <div ref={sessionMenuRef} className="relative h-9 min-w-0 max-w-full">
@@ -195,10 +195,8 @@ export default function TopBar({ role, sessionId, sessionNumber, theme, combatSt
                   setIsMobileActionsOpen(false);
                   setIsSessionMenuOpen((open) => !open);
                 }}
-                className={`flex h-full min-w-0 max-w-full items-center gap-1.5 rounded-xl border px-2.5 pr-2 transition-all duration-200 ease-out active:scale-[0.985] sm:gap-2 sm:pl-3 sm:pr-2.5 ${
-                  isSessionMenuOpen
-                    ? 'border-white/10 bg-white/7 text-stone-100'
-                    : 'border-white/10 bg-white/5 text-stone-300 hover:bg-white/7 hover:text-stone-100'
+                className={`tv-chip-surface flex h-full min-w-0 max-w-full items-center gap-1.5 rounded-xl px-2.5 pr-2 transition-all duration-200 ease-out active:scale-[0.985] sm:gap-2 sm:pl-3 sm:pr-2.5 ${
+                  isSessionMenuOpen ? 'ring-1 ring-[color:var(--tv-accent)]/35' : ''
                 }`}
                 title="Sessiemenu openen"
               >
@@ -206,9 +204,9 @@ export default function TopBar({ role, sessionId, sessionNumber, theme, combatSt
                   <span className="absolute h-2.5 w-2.5 rounded-full" style={{ background: 'color-mix(in srgb, var(--tv-accent), transparent 80%)' }} />
                   <span className="relative z-10 h-1.5 w-1.5 rounded-full" style={{ background: 'var(--tv-accent)', boxShadow: 'var(--tv-glow)' }} />
                 </span>
-                <span className="text-[10px] font-medium tracking-[0.14em] text-stone-100 sm:hidden">{compactSessionLabel}</span>
-                <span className="hidden max-w-[140px] truncate text-xs font-medium tracking-[0.12em] text-stone-100 sm:inline md:max-w-[240px]">{sessionLabel}</span>
-                <ChevronDown className={`h-3.5 w-3.5 shrink-0 text-stone-500 transition-transform duration-200 ${isSessionMenuOpen ? 'rotate-180 text-stone-100' : ''}`} />
+                <span className="tv-topbar-session-label text-[10px] font-medium tracking-[0.14em] tv-text sm:hidden">{compactSessionLabel}</span>
+                <span className="hidden max-w-[140px] truncate text-xs font-medium tracking-[0.12em] tv-text sm:inline md:max-w-[240px]">{sessionLabel}</span>
+                <ChevronDown className={`h-3.5 w-3.5 shrink-0 tv-muted transition-transform duration-200 ${isSessionMenuOpen ? 'rotate-180 tv-text' : ''}`} />
               </button>
 
               {isSessionMenuOpen ? (
@@ -259,7 +257,7 @@ export default function TopBar({ role, sessionId, sessionNumber, theme, combatSt
             <button
               type="button"
               onClick={onToggleAmbiencePanel}
-              className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border px-0 shadow-inner transition-all duration-200 ease-out active:scale-[0.985] md:w-auto md:gap-2.5 md:px-3.5 ${ambience?.isPlaying ? 'border-white/10 bg-white/7 text-stone-100 tv-breathe-glow' : 'border-white/10 bg-white/5 text-stone-300 hover:bg-white/7 hover:text-stone-100'}`}
+              className={`tv-chip-surface flex h-10 w-10 shrink-0 items-center justify-center rounded-xl px-0 shadow-inner transition-all duration-200 ease-out active:scale-[0.985] md:w-auto md:gap-2.5 md:px-3.5 ${ambience?.isPlaying ? 'tv-breathe-glow tv-text' : 'tv-muted hover:tv-text'}`}
               title={isPlayer ? 'Open audio-instellingen' : (ambience?.isPlaying ? 'Open actieve sessiesfeer' : 'Open sferenpaneel')}
             >
               <span className="relative flex h-7 w-7 items-center justify-center rounded-lg bg-white/5">

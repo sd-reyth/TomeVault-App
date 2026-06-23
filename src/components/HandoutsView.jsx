@@ -224,33 +224,33 @@ function HandoutsView({ role, handouts, currentPlayerId, onToggleVisibility, onT
               <div
                 key={handout.id}
                 onClick={() => onOpenHandout(handout)}
-                className={`group relative flex cursor-pointer overflow-hidden rounded-2xl border transition-all duration-200 ease-out ${viewMode === 'grid' ? 'flex-col' : 'flex-row items-stretch'} backdrop-blur-sm ${handout.isRevealed ? 'border-white/10 bg-white/5 shadow-lg hover:border-[var(--tv-accent)]/25 hover:shadow-xl hover:shadow-black/25' : 'border-white/10 border-dashed bg-white/[0.03] opacity-70 hover:opacity-100 hover:border-white/20'}`}
+                className={`group relative flex cursor-pointer overflow-hidden rounded-2xl transition-all duration-200 ease-out ${viewMode === 'grid' ? 'flex-col' : 'flex-row items-stretch'} backdrop-blur-sm ${handout.isRevealed ? 'tv-handout-card shadow-lg' : 'tv-handout-card tv-handout-card--hidden'}`}
               >
                 <div className="absolute inset-0 opacity-[0.03] bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI4IiBoZWlnaHQ9IjgiPgo8cmVjdCB3aWR0aD0iOCIgaGVpZ2h0PSI4IiBmaWxsPSIjZmZmIiBmaWxsLW9wYWNpdHk9IjAuMSIvPgo8L3N2Zz4=')] pointer-events-none" />
 
-                <div className={`${viewMode === 'grid' ? 'aspect-[16/9] w-full border-b' : 'aspect-square w-20 border-r md:w-24'} relative flex shrink-0 items-center justify-center overflow-hidden border-white/10 bg-zinc-950/85`}>
+                <div className={`tv-handout-media ${viewMode === 'grid' ? 'aspect-[16/9] w-full border-b' : 'aspect-square w-20 border-r md:w-24'} relative flex shrink-0 items-center justify-center overflow-hidden`}>
                   {handout.imageUrl ? (
                     <img src={handout.imageUrl} alt={handout.title} className="absolute inset-0 h-full w-full object-cover scale-[1.25] transition-transform duration-500 group-hover:scale-[1.4]" />
                   ) : (
-                    <div className="absolute inset-0 bg-gradient-to-br from-amber-500/12 via-zinc-900/70 to-zinc-950" />
+                    <div className="absolute inset-0 bg-gradient-to-br from-[color-mix(in_srgb,var(--tv-accent),transparent_88%)] via-[color-mix(in_srgb,var(--tv-bg-surface),transparent_20%)] to-[color-mix(in_srgb,var(--tv-bg-canvas),transparent_10%)]" />
                   )}
 
                   {!handout.imageUrl ? (
-                    <Icon className={`${viewMode === 'grid' ? 'h-10 w-10 md:h-12 md:w-12' : 'h-6 w-6 md:h-8 md:w-8'} relative z-10 text-stone-600 drop-shadow-md`} strokeWidth={1.5} />
+                    <Icon className={`${viewMode === 'grid' ? 'h-10 w-10 md:h-12 md:w-12' : 'h-6 w-6 md:h-8 md:w-8'} relative z-10 tv-muted drop-shadow-md`} strokeWidth={1.5} />
                   ) : null}
 
                   {role === 'gm' && viewMode === 'grid' ? (
                     <div className="absolute right-2 top-2 z-20 flex items-center gap-1.5 md:right-3 md:top-3">
                       <button
                         onClick={(event) => { event.stopPropagation(); toggleSecretVisibility(handout.id); }}
-                        className={`rounded-lg border bg-zinc-950/92 p-2 shadow-md transition-colors ${isSecretVisibleToPlayers(handout) ? 'border-cyan-500/45 text-cyan-300 hover:border-cyan-400' : 'border-white/10 text-stone-400 hover:border-cyan-500/35 hover:text-cyan-300'}`}
+                        className={`tv-icon-action rounded-lg p-2 shadow-md ${isSecretVisibleToPlayers(handout) ? 'border-cyan-500/45 text-cyan-300 hover:border-cyan-400' : ''}`}
                         title={isSecretVisibleToPlayers(handout) ? 'Verberg Secret voor spelers' : 'Toon Secret aan alle spelers'}
                       >
                         <KeyRound className="h-4 w-4" />
                       </button>
                       <button
                         onClick={(event) => { event.stopPropagation(); toggleVisibility(handout.id); }}
-                        className="rounded-lg border border-white/10 bg-zinc-950/92 p-2 text-stone-400 shadow-md transition-colors hover:border-amber-500/35 hover:text-amber-300"
+                        className="tv-icon-action rounded-lg p-2 shadow-md"
                         title={handout.isRevealed ? 'Verberg in de schaduwen' : 'Onthul aan de party'}
                       >
                         {handout.isRevealed ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
@@ -261,7 +261,7 @@ function HandoutsView({ role, handouts, currentPlayerId, onToggleVisibility, onT
                   {role === 'player' && viewMode === 'grid' && isClaimableLoot(handout) ? (
                     <button
                       onClick={(event) => { event.stopPropagation(); onClaim(handout.id); }}
-                      className="absolute right-2 top-2 z-20 rounded-lg border border-amber-500/25 bg-zinc-950/92 p-2 text-amber-300 shadow-md transition-colors hover:border-amber-400 hover:text-amber-200 md:right-3 md:top-3"
+                      className="tv-icon-action absolute right-2 top-2 z-20 rounded-lg border border-amber-500/25 p-2 text-amber-300 shadow-md md:right-3 md:top-3"
                       title="Claim dit object"
                     >
                       <Hand className="h-4 w-4" />
@@ -329,19 +329,19 @@ function HandoutsView({ role, handouts, currentPlayerId, onToggleVisibility, onT
                     ) : null}
 
                     {viewMode === 'list' ? (
-                      <h3 className="truncate text-sm font-medium leading-snug tracking-[0.08em] text-stone-100 md:text-base">
+                      <h3 className="truncate text-sm font-medium leading-snug tracking-[0.08em] tv-text md:text-base">
                         {handout.title}
                       </h3>
                     ) : null}
                   </div>
 
                   {viewMode === 'grid' ? (
-                    <h3 className="mb-2 text-base font-medium leading-snug tracking-[0.08em] text-stone-100 md:mb-3 md:text-lg">
+                    <h3 className="mb-2 text-base font-medium leading-snug tracking-[0.08em] tv-text md:mb-3 md:text-lg">
                       {handout.title}
                     </h3>
                   ) : null}
 
-                  <p className={`leading-relaxed text-stone-300/85 ${viewMode === 'grid' ? 'mb-3 line-clamp-3 text-xs md:mb-4 md:text-sm' : 'line-clamp-1 pr-12 text-[11px] md:line-clamp-2 md:text-xs'}`}>
+                  <p className={`tv-muted leading-relaxed ${viewMode === 'grid' ? 'mb-3 line-clamp-3 text-xs md:mb-4 md:text-sm' : 'line-clamp-1 pr-12 text-[11px] md:line-clamp-2 md:text-xs'}`}>
                     {handout.content}
                   </p>
 
