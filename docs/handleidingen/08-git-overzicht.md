@@ -183,5 +183,22 @@ GitHub = code sync tussen laptops. Firebase = wat gebruikers online zien.
 ### Let op: twee versies op GitHub
 
 - **`actieve-werkversie`** — jouw echte app (`App.jsx`) ← gebruik deze
-- **`main`** — oudere Grok/TypeScript-lijn (`App.tsx`) — negeren tenzij je bewust terugschakelt
+- **`main`** — oudere Grok/TypeScript-lijn (`App.tsx`) — gearchiveerd, kan later verwijderd worden
+
+### Gearchiveerde oude branches (juni 2026)
+
+Oude branches zijn **lokaal verwijderd**, maar veilig bewaard als **tags** (bladwijzers in git):
+
+| Tag | Wat zat erin? |
+|-----|---------------|
+| `archief/grok-typescript-27mei-2026` | Grok HandoutsPage / App.tsx-lijn |
+| `archief/live-test-bugfixes` | Bugfixes tijdens live D&D-test |
+| `archief/ui-herontwerp-lichtmodus` | UI-herontwerp licht thema |
+| `archief/oud-main-initiative-bug` | Oude main bij initiative-tracker bug |
+
+Een tag terugzetten (alleen als je ooit iets nodig hebt):
+```powershell
+git checkout archief/grok-typescript-27mei-2026
+```
+
 
