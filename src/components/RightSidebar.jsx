@@ -597,7 +597,7 @@ function RightSidebar({
           <span className={`absolute left-1/2 top-1/2 h-16 w-[3px] -translate-x-1/2 -translate-y-1/2 rounded-full transition-colors ${isDragging ? 'tv-drag-handle tv-drag-handle--active shadow-[0_0_12px_color-mix(in_srgb,var(--tv-text-primary),transparent_75%)]' : 'tv-drag-handle hover:tv-drag-handle--active'}`} />
         </button>
 
-        <div className="tv-view-shell-header mt-14 border-b px-3.5 py-3 md:mt-0 md:px-4 md:py-3.5">
+        <div className="tv-view-shell-header tv-rail-shell-header border-b px-3.5 py-3 md:mt-0 md:px-4 md:py-3.5">
           <div className="relative">
             {isGm ? (
               <CombatGmHeader

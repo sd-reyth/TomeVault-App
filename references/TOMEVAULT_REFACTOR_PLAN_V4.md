@@ -129,6 +129,12 @@ UX non-negotiables delivered:
 - ⏳ Feature flag `tomevault:new-rail` deferred (new UI is default; old markup removed in-place)
 - ⏳ Full session QA with populated roster + turn advance (empty roster in dev session)
 
+**Visual polish pass (2025-06):**
+- Labeled rail toolbar (Uitleg/Stop) + footer Buttons (Rol allen/NPC)
+- `CombatStatChip` + mobile-first participant row grid (`tv-combat-participant-row`)
+- Dawn parchment contrast overrides for combat card, turn row, segmented control
+- Mobile safe-area padding on rail shell header + footer
+
 ### Wave 3 — App.jsx slimmer
 **Goal:** Maintainability. Logical after Wave 2a removes combat.
 
