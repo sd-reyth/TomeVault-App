@@ -1,11 +1,18 @@
 import React, { useState, useEffect } from 'react';
-import { Crown, X, ImagePlus, Fingerprint, Plus, NotebookPen, UserRound, Save } from 'lucide-react';
+import { AlertCircle, Check, Crown, Fingerprint, ImagePlus, NotebookPen, Plus, Save, Trash2, UserRound, X } from 'lucide-react';
 import {
   resolveDisplayAvatar,
   PROFILE_PROMPT_AVATARS,
 } from '../lib/placeholders';
 import { STAT_SUGGESTIONS } from '../data/mockData';
 import { sendChatMessage } from '../lib/chatUtils';
+import { COMBAT_STATUS } from '../lib/battleUtils';
+import {
+  CONDITIONS,
+  CONDITION_BADGE_COLORS,
+  getActiveConditions,
+} from '../lib/battleConditions';
+import { CONDITION_ICON_MAP } from '../features/combat/conditionIconMap';
 import ModalFrame from './ModalFrame';
 import TvImage from './TvImage';
 
@@ -23,12 +30,28 @@ const CHAT_ACCENT_COLORS = {
   cyan: '#22d3ee',
 };
 
-function CharacterProfileModal({ isOpen, onClose, character, role, currentPlayerId, onSave, onTransferGm, chatColor, onOpenInitiativeSwap, initiativeOrder }) {
+function CharacterProfileModal({
+  isOpen,
+  onClose,
+  character,
+  role,
+  currentPlayerId,
+  combatStatus,
+  onSave,
+  onTransferGm,
+  onRemoveFromCombat,
+  onUpdateStat,
+  chatColor,
+  onOpenInitiativeSwap,
+  initiativeOrder,
+}) {
   const [formData, setFormData] = useState({});
   const [pendingAvatarFile, setPendingAvatarFile] = useState(null);
   const [confirmTransfer, setConfirmTransfer] = useState(false);
+  const [confirmRemove, setConfirmRemove] = useState(false);
   const [showAllPromptAvatars, setShowAllPromptAvatars] = useState(false);
   const [level, setLevel] = useState(1);
+  const [conditionsDraftIds, setConditionsDraftIds] = useState([]);
 
   useEffect(() => {
     if (character) {
@@ -36,7 +59,9 @@ function CharacterProfileModal({ isOpen, onClose, character, role, currentPlayer
       setLevel(Number(character.level) || 1);
       setPendingAvatarFile(null);
       setConfirmTransfer(false);
+      setConfirmRemove(false);
       setShowAllPromptAvatars(false);
+      setConditionsDraftIds(getActiveConditions(character).map((condition) => condition.id));
     }
   }, [character]);
 
@@ -53,6 +78,13 @@ function CharacterProfileModal({ isOpen, onClose, character, role, currentPlayer
     && Array.isArray(initiativeOrder)
     && initiativeOrder.includes(character.id)
   );
+  const canRemoveFromSlagorde = Boolean(
+    isGM
+    && combatStatus !== COMBAT_STATUS.ACTIVE
+    && onRemoveFromCombat
+    && (character.isNpc || (!character.isNpc && character.id !== currentPlayerId))
+  );
+  const activeConditions = getActiveConditions(formData);
   const bannerAccent = CHAT_ACCENT_COLORS[chatColor] || null;
 
   const handleChange = (field, value) => {
@@ -96,6 +128,24 @@ function CharacterProfileModal({ isOpen, onClose, character, role, currentPlayer
   const removeCustomStat = (id) => {
     const newStats = (formData.customStats || []).filter(s => s.id !== id);
     handleChange('customStats', newStats);
+  };
+
+  const toggleConditionDraft = (conditionId) => {
+    setConditionsDraftIds((current) => {
+      const next = current.includes(conditionId)
+        ? current.filter((id) => id !== conditionId)
+        : [...current, conditionId];
+      const nextConditions = next.map((id) => ({ id, active: true }));
+      onUpdateStat?.(character.id, 'conditions', nextConditions);
+      handleChange('conditions', nextConditions);
+      return next;
+    });
+  };
+
+  const handleConfirmRemove = async () => {
+    await onRemoveFromCombat?.(character);
+    setConfirmRemove(false);
+    onClose?.();
   };
 
   const handleLevelChange = (change) => {
@@ -386,6 +436,79 @@ function CharacterProfileModal({ isOpen, onClose, character, role, currentPlayer
             )}
 
             <div className="mt-4 flex min-h-[120px] flex-1 flex-col">
+              {isGM ? (
+                <div className="mb-5">
+                  <h4 className="tv-label mb-2">Status & condities</h4>
+                  <div className="grid grid-cols-2 gap-2">
+                    {CONDITIONS.map((condition) => {
+                      const isActive = conditionsDraftIds.includes(condition.id);
+                      const ConditionListIcon = CONDITION_ICON_MAP[condition.icon] || AlertCircle;
+                      return (
+                        <button
+                          key={condition.id}
+                          type="button"
+                          onClick={() => toggleConditionDraft(condition.id)}
+                          className={`flex flex-col items-start rounded-lg border p-3 text-left transition-all ${
+                            isActive
+                              ? `${CONDITION_BADGE_COLORS[condition.color]} border-current`
+                              : 'border-[color-mix(in_srgb,var(--tv-border),transparent_28%)] tv-view-card tv-muted hover:border-[color-mix(in_srgb,var(--tv-border),transparent_20%)] hover:opacity-90/60'
+                          }`}
+                        >
+                          <div className="mb-1 flex items-center gap-1.5">
+                            <ConditionListIcon className="h-4 w-4" />
+                            {isActive ? <Check className="h-3 w-3" /> : null}
+                          </div>
+                          <div className="text-xs font-bold uppercase tracking-[0.12em]">{condition.label}</div>
+                          <div className={`text-[10px] tracking-[0.08em] ${isActive ? 'opacity-90' : 'opacity-60'}`}>{condition.description}</div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                  {activeConditions.length === 0 ? (
+                    <p className="mt-2 text-[11px] leading-5 tv-muted">Geen actieve condities.</p>
+                  ) : null}
+                </div>
+              ) : null}
+
+              {canRemoveFromSlagorde ? (
+                <div className="mb-5 rounded-lg border border-[color-mix(in_srgb,var(--tv-status-danger),transparent_55%)] tv-tone-enemy-surface p-3">
+                  {!confirmRemove ? (
+                    <button
+                      type="button"
+                      onClick={() => setConfirmRemove(true)}
+                      className="flex w-full items-center justify-center gap-2 rounded-lg border border-[color-mix(in_srgb,var(--tv-status-danger),transparent_45%)] px-3 py-2 text-xs font-semibold uppercase tracking-[0.14em] tv-tone-enemy-text transition-colors hover:bg-[color-mix(in_srgb,var(--tv-status-danger),transparent_88%)]"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                      {character.isNpc ? 'Verwijder uit slagorde' : 'Haal uit gevecht'}
+                    </button>
+                  ) : (
+                    <div className="space-y-2">
+                      <p className="text-[11px] leading-relaxed tv-text">
+                        {character.isNpc
+                          ? `Weet je zeker dat je ${formData.name || character.name} wilt verwijderen?`
+                          : `${formData.name || character.name} verdwijnt uit de initiativelijst en kan later opnieuw meedoen.`}
+                      </p>
+                      <div className="flex flex-col gap-2 sm:flex-row">
+                        <button
+                          type="button"
+                          onClick={() => setConfirmRemove(false)}
+                          className="tv-button-secondary flex-1 rounded-lg py-2 text-xs font-fantasy tracking-wider"
+                        >
+                          Annuleren
+                        </button>
+                        <button
+                          type="button"
+                          onClick={handleConfirmRemove}
+                          className="tv-button-danger flex-1 rounded-lg py-2 text-xs font-fantasy tracking-wider"
+                        >
+                          Ja, verwijder
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ) : null}
+
               <h4 className="tv-label mb-2 flex items-center gap-2">
                 <NotebookPen className="h-3 w-3" /> Lore
               </h4>

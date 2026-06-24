@@ -4,7 +4,7 @@ import AmbiencePanel from './AmbiencePanel';
 import RuntimeBadge from './RuntimeBadge';
 import { COMBAT_STATUS, getTurnApproachRatio, getTurnsUntilMember, sortPartyByInitiative } from '../lib/battleUtils';
 
-export default function TopBar({ role, sessionId, sessionNumber, theme, combatStatus, currentTurnId, initiativeOrder, party, currentPlayerId, onLogout, ambience, onToggleAmbiencePanel, onCloseAmbiencePanel, onToggleAmbiencePlayback, onSelectAmbienceTrack, onSetSessionAmbienceVolume, onSetListenerAmbienceVolume, onUnlockAmbienceAudio, onToggleParty, onOpenShare, onOpenProfile, onOpenSettings, onOpenSessionPanel, onOpenSourcelist, runtimeBadge }) {
+export default function TopBar({ role, sessionId, sessionNumber, theme, combatStatus, currentTurnId, initiativeOrder, party, currentPlayerId, isPartyOpen, onLogout, ambience, onToggleAmbiencePanel, onCloseAmbiencePanel, onToggleAmbiencePlayback, onSelectAmbienceTrack, onSetSessionAmbienceVolume, onSetListenerAmbienceVolume, onUnlockAmbienceAudio, onToggleParty, onOpenShare, onOpenProfile, onOpenSettings, onOpenSessionPanel, onOpenSourcelist, runtimeBadge }) {
   const sortedParty = sortPartyByInitiative(Array.isArray(party) ? party : [], Array.isArray(initiativeOrder) ? initiativeOrder : []);
   const turnsUntilMine = getTurnsUntilMember(sortedParty, initiativeOrder, currentTurnId, currentPlayerId);
   const turnApproachRatio = getTurnApproachRatio(sortedParty, initiativeOrder, currentTurnId, currentPlayerId);
@@ -14,13 +14,15 @@ export default function TopBar({ role, sessionId, sessionNumber, theme, combatSt
     ? Flame
     : (combatStatus === COMBAT_STATUS.PAUSED ? Shield : Swords);
   const partyIndicatorAngle = `${Math.round(Math.max(0, Math.min(1, turnApproachRatio || 0)) * 360)}deg`;
-  const partyButtonTitle = combatStatus === COMBAT_STATUS.IDLE
-    ? 'Open slagorde - ruststand'
-    : (isMyTurn
-      ? 'Open slagorde - jouw beurt'
-      : (combatStatus === COMBAT_STATUS.PAUSED
-        ? 'Open slagorde - gevecht gepauzeerd'
-        : (turnsUntilMine === null ? 'Open slagorde - gevecht actief' : `Open slagorde - nog ${turnsUntilMine} beurt(en)`)));
+  const partyButtonTitle = isPartyOpen
+    ? 'Verberg slagorde'
+    : (combatStatus === COMBAT_STATUS.IDLE
+      ? 'Open slagorde - ruststand'
+      : (isMyTurn
+        ? 'Open slagorde - jouw beurt'
+        : (combatStatus === COMBAT_STATUS.PAUSED
+          ? 'Open slagorde - gevecht gepauzeerd'
+          : (turnsUntilMine === null ? 'Open slagorde - gevecht actief' : `Open slagorde - nog ${turnsUntilMine} beurt(en)`))));
   const ambienceTitle = ambience?.currentTrack?.scene || 'Sferen';
   const ambienceSubtitle = ambience?.isPlaying ? 'Live aan tafel' : 'Sfeer staat klaar';
   const ambienceFillWidth = `${Math.max(0, Math.min(100, Number(ambience?.sessionVolume) || 0))}%`;
@@ -314,8 +316,9 @@ export default function TopBar({ role, sessionId, sessionNumber, theme, combatSt
 
           <button
             onClick={onToggleParty}
-            className="relative flex h-10 w-10 items-center justify-center rounded-xl tv-text-sub transition-all duration-200 ease-out hover:tv-panel-inset hover:tv-text active:scale-[0.985] lg:hidden"
+            className={`relative flex h-10 w-10 items-center justify-center rounded-xl transition-all duration-200 ease-out active:scale-[0.985] ${isPartyOpen ? 'tv-panel-inset tv-text shadow-inner' : 'tv-text-sub hover:tv-panel-inset hover:tv-text'}`}
             title={partyButtonTitle}
+            aria-pressed={isPartyOpen}
           >
             <PartyIcon className={`h-5 w-5 ${combatStatus !== COMBAT_STATUS.IDLE ? 'text-[color:var(--tv-accent)]' : ''}`} />
             {role === 'player' && combatStatus !== COMBAT_STATUS.IDLE ? (

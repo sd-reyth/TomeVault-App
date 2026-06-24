@@ -40,7 +40,7 @@ import {
   sortPartyByInitiative,
 } from '../lib/battleUtils';
 
-const RIGHT_SIDEBAR_DEFAULT_WIDTH = 288;
+const RIGHT_SIDEBAR_DEFAULT_WIDTH = 380;
 const RIGHT_SIDEBAR_MIN_WIDTH = 248;
 const RIGHT_SIDEBAR_MAX_WIDTH = 380;
 const RIGHT_SIDEBAR_STORAGE_KEY = 'tomevault.battleSidebarWidth';
@@ -132,14 +132,12 @@ function RightSidebar({
   onRemoveNpc,
   theme,
 }) {
-  const [showInfo, setShowInfo] = useState(false);
   const [sidebarWidth, setSidebarWidth] = useState(RIGHT_SIDEBAR_DEFAULT_WIDTH);
   const [isDragging, setIsDragging] = useState(false);
   const [statusError, setStatusError] = useState('');
   const [isActionBusy, setIsActionBusy] = useState(false);
   const [pendingMissingAction, setPendingMissingAction] = useState(null);
   const [tieResolutionState, setTieResolutionState] = useState(null);
-  const [kickTarget, setKickTarget] = useState(null);
   const [endCombatConfirmOpen, setEndCombatConfirmOpen] = useState(false);
   const [conditionsTarget, setConditionsTarget] = useState(null);
   const [conditionsDraftIds, setConditionsDraftIds] = useState([]);
@@ -171,6 +169,9 @@ function RightSidebar({
     return member.name;
   };
   const currentTurnDisplayName = getVisibleCombatName(currentTurnMember);
+  const currentTurnOrderIndex = currentTurnMember
+    ? sortedParty.findIndex((member) => member.id === currentTurnMember.id) + 1
+    : null;
   const combatPaused = combatStatus === COMBAT_STATUS.PAUSED;
 
   const showPlayerRollPanel = role === 'player'
@@ -399,37 +400,6 @@ function RightSidebar({
     }
   };
 
-  const handleRemoveNpc = async (npcId) => {
-    if (!canManageRoster || isActionBusy) return;
-    setStatusError('');
-    setIsActionBusy(true);
-    try {
-      await onRemoveNpc?.(npcId);
-    } catch (error) {
-      console.error('NPC verwijderen fout:', error);
-      setStatusError('NPC verwijderen is mislukt.');
-    } finally {
-      setIsActionBusy(false);
-    }
-  };
-
-  const handleConfirmKickPlayer = async () => {
-    if (!kickTarget || isActionBusy) return;
-
-    setStatusError('');
-    setIsActionBusy(true);
-
-    try {
-      await onKickPlayerFromCombat?.(kickTarget.id);
-      setKickTarget(null);
-    } catch (error) {
-      console.error('Speler uit gevecht kicken fout:', error);
-      setStatusError('De speler kon niet uit het gevecht worden verwijderd.');
-    } finally {
-      setIsActionBusy(false);
-    }
-  };
-
   const handleRequestJoinCombat = async () => {
     if (!myCharacter || !canRequestCombatJoin || isActionBusy) return;
 
@@ -580,10 +550,10 @@ function RightSidebar({
       <aside
         style={{ '--battle-sidebar-width': `${sidebarWidth}px` }}
         className={`
-          fixed left-0 right-0 z-50 flex flex-col overflow-hidden border-t backdrop-blur-md transition-transform duration-300 ease-in-out tv-rail-surface
+          fixed left-0 right-0 z-50 flex flex-col overflow-hidden border-t backdrop-blur-md transition-[transform,width,opacity] duration-300 ease-in-out tv-rail-surface
           ${(isOpen || isPinned) ? 'translate-x-0' : 'translate-x-full'}
           ${isPinned ? 'top-0 h-full md:relative md:h-full md:translate-x-0 md:z-0 md:left-auto md:right-0 md:border-l md:border-t-0 md:w-[var(--battle-sidebar-width)] md:min-w-[var(--battle-sidebar-width)] md:max-w-[var(--battle-sidebar-width)] md:shadow-none' : 'app-shell-overlay-frame'}
-          lg:relative lg:left-auto lg:right-0 lg:top-0 lg:h-full lg:translate-x-0 lg:z-0 lg:flex lg:border-l lg:border-t-0 lg:w-[var(--battle-sidebar-width)] lg:min-w-[var(--battle-sidebar-width)] lg:max-w-[var(--battle-sidebar-width)] lg:shadow-none lg:shadow-[0_22px_60px_rgba(0,0,0,0.34)]
+          ${isOpen ? 'lg:relative lg:left-auto lg:right-0 lg:top-0 lg:h-full lg:translate-x-0 lg:z-0 lg:flex lg:border-l lg:border-t-0 lg:w-[var(--battle-sidebar-width)] lg:min-w-[var(--battle-sidebar-width)] lg:max-w-[var(--battle-sidebar-width)] lg:opacity-100 lg:shadow-none' : 'lg:pointer-events-none lg:absolute lg:right-0 lg:top-0 lg:h-full lg:w-0 lg:min-w-0 lg:max-w-0 lg:translate-x-full lg:overflow-hidden lg:border-0 lg:opacity-0'}
         `}
       >
         <div className="absolute top-0 left-0 hidden h-full w-1 bg-gradient-to-b from-white/8 color-mix(in srgb, var(--tv-border), transparent 40%) to-white/8 md:block" />
@@ -605,9 +575,8 @@ function RightSidebar({
                 combatStatus={combatStatus}
                 combatInProgress={combatInProgress}
                 turnRound={turnRound}
+                currentTurnOrderIndex={currentTurnOrderIndex}
                 isActionBusy={isActionBusy}
-                showInfo={showInfo}
-                onToggleInfo={() => setShowInfo((value) => !value)}
                 isPinned={isPinned}
                 onTogglePinned={() => setIsPinned?.(!isPinned)}
                 onClose={onClose}
@@ -623,11 +592,11 @@ function RightSidebar({
                 combatStatus={combatStatus}
                 combatInProgress={combatInProgress}
                 turnRound={turnRound}
+                currentTurnOrderIndex={currentTurnOrderIndex}
                 isMyTurn={isMyTurn}
                 isPinned={isPinned}
                 onTogglePinned={() => setIsPinned?.(!isPinned)}
                 onClose={onClose}
-                statusTitle={statusTitle}
                 statusPrimaryLine={playerStatusPrimaryLine}
                 statusSecondaryLine={playerStatusSecondaryLine}
               />
@@ -697,21 +666,6 @@ function RightSidebar({
         </div>
 
         <div className="tv-rail-roster flex min-h-0 flex-1 flex-col overflow-hidden px-1 py-3 md:px-1.5 md:py-3.5">
-          {showInfo ? (
-            <div className="mb-3 rounded-xl border border-[color-mix(in_srgb,var(--tv-border),transparent_28%)] tv-chip-surface p-4">
-              <Text variant="label" tone="muted">Slagorde info</Text>
-              <div className="mt-3 space-y-2">
-                {[
-                  'Ruststand laat iedereen initiative voorbereiden voordat de GM start.',
-                  'Gevecht actief vergrendelt initiative-invoer en houdt beurt en ronde bij.',
-                  'Pauzeren geeft ruimte om NPC’s toe te voegen of te verwijderen zonder de ronde kwijt te raken.',
-                ].map((line) => (
-                  <Text key={line} variant="meta" as="p" className="leading-6">{line}</Text>
-                ))}
-              </div>
-            </div>
-          ) : null}
-
           {sortedParty.length === 0 && !showPlayerRollPanel ? (
             <div className="tv-rail-empty flex min-h-[220px] flex-1 items-center justify-center px-6 text-center">
               <div>
@@ -722,7 +676,7 @@ function RightSidebar({
               </div>
             </div>
           ) : (
-            <div ref={rosterScrollRef} className="min-h-0 flex-1 space-y-3 overflow-y-auto pr-1 no-scrollbar">
+            <div ref={rosterScrollRef} className="min-h-0 flex-1 space-y-2 overflow-y-auto pr-1 no-scrollbar md:space-y-2.5">
           {sortedParty.map((member, memberIndex) => {
             const isCurrentTurn = combatInProgress && member.id === currentTurnId;
             const orderIndex = memberIndex + 1;
@@ -757,8 +711,6 @@ function RightSidebar({
                 onUpdateStat={onUpdateStat}
                 onOpenDamageModal={onOpenDamageModal}
                 onOpenConditions={openConditionsEditor}
-                onRemoveNpc={handleRemoveNpc}
-                onKickPlayer={setKickTarget}
               />
             );
           })}
@@ -923,28 +875,6 @@ function RightSidebar({
                 ) : null}
               </div>
             ))}
-          </div>
-        </OverlayDialog>
-      ) : null}
-
-      {kickTarget ? (
-        <OverlayDialog
-          title="Speler uit gevecht verwijderen"
-          description={`${kickTarget.name} verdwijnt uit de initiativelijst en kan later via 'Meedoen' opnieuw een verzoek sturen.`}
-          onClose={() => setKickTarget(null)}
-          actions={(
-            <>
-              <Button variant="ghost" onClick={() => setKickTarget(null)}>
-                Annuleren
-              </Button>
-              <Button variant="danger" onClick={handleConfirmKickPlayer} disabled={isActionBusy}>
-                Ja, verwijder
-              </Button>
-            </>
-          )}
-        >
-          <div className="rounded-xl border border-[color-mix(in_srgb,var(--tv-border),transparent_28%)] tv-panel-inset px-3 py-3 text-sm leading-6 tv-text">
-            Bevestig dat je <span className="font-fantasy tracking-[0.12em] tv-text">{kickTarget.name}</span> uit dit gevecht wilt halen.
           </div>
         </OverlayDialog>
       ) : null}

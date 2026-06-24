@@ -533,7 +533,13 @@ export default function TomeVaultApp() {
   const hasBackGuardRef = useRef(false);
 
   // State voor mobiele lay-out en modals
-  const [isPartyOpen, setIsPartyOpen] = useState(false);
+  const SLAGORDE_OPEN_KEY = 'tomevault.slagordeOpen';
+  const [isPartyOpen, setIsPartyOpen] = useState(() => {
+    if (typeof window === 'undefined') return true;
+    const stored = safeLocalStorageGet(SLAGORDE_OPEN_KEY);
+    if (stored === 'true' || stored === 'false') return stored === 'true';
+    return window.matchMedia('(min-width: 1024px)').matches;
+  });
   const [isSidebarPinned, setIsSidebarPinned] = useState(false);
   const [isNpcModalOpen, setIsNpcModalOpen] = useState(false);
   const [isAddItemModalOpen, setIsAddItemModalOpen] = useState(false);
@@ -2603,6 +2609,23 @@ export default function TomeVaultApp() {
     }
   };
 
+  const handleToggleParty = () => {
+    setIsPartyOpen((previous) => {
+      const next = !previous;
+      safeLocalStorageSet(SLAGORDE_OPEN_KEY, String(next));
+      return next;
+    });
+  };
+
+  const handleRemoveFromCombat = async (character) => {
+    if (!character || role !== 'gm' || combatStatus === COMBAT_STATUS.ACTIVE) return;
+    if (character.isNpc) {
+      await handleDeleteNpc(character.id);
+      return;
+    }
+    await handleKickPlayerFromCombat(character.id);
+  };
+
   const handleAddNpcFromHandout = async (handout) => {
     if (!handout || role !== 'gm' || combatStatus === COMBAT_STATUS.ACTIVE) return;
 
@@ -3167,7 +3190,8 @@ export default function TomeVaultApp() {
           onSetSessionAmbienceVolume={handleSetSessionAmbienceVolume}
           onSetListenerAmbienceVolume={(nextVolume) => setListenerAmbienceVolume(clampAmbienceVolume(nextVolume, listenerAmbienceVolume))}
           onUnlockAmbienceAudio={handleUnlockAmbienceAudio}
-          onToggleParty={() => setIsPartyOpen(!isPartyOpen)}
+          onToggleParty={handleToggleParty}
+          isPartyOpen={isPartyOpen}
           onOpenShare={() => setShowShareModal(true)}
           onOpenProfile={() => setProfileTarget(party.find(p => p.id === CURRENT_PLAYER_ID))}
           onOpenSettings={() => setIsSettingsOpen(true)}
@@ -3318,8 +3342,11 @@ export default function TomeVaultApp() {
           onClose={() => setProfileTarget(null)}
           role={role}
           currentPlayerId={CURRENT_PLAYER_ID}
+          combatStatus={combatStatus}
           onSave={handleProfileSave}
           onTransferGm={handleTransferGm}
+          onRemoveFromCombat={handleRemoveFromCombat}
+          onUpdateStat={handleUpdatePlayerStat}
           chatColor={getCharacterChatColor(profileTarget)}
           initiativeOrder={initiativeOrder}
           onOpenInitiativeSwap={(member) => {
