@@ -1,4 +1,5 @@
-import React, { useEffect } from 'react';
+import { useEffect } from 'react';
+import { DEFAULT_THEME } from '../lib/appThemes';
 import { createPortal } from 'react-dom';
 import {
   Castle,
@@ -100,7 +101,7 @@ export default function SourcelistModal({
   const modal = (
     <div
       data-sourcelist-modal-root="true"
-      data-theme={theme || 'midnight-tome'}
+      data-theme={theme || DEFAULT_THEME}
       className="tv-sourcelist-shell fixed inset-0 z-[90] flex items-end justify-center p-0 sm:items-center sm:p-4"
       onClick={onClose}
     >

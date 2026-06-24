@@ -5,6 +5,13 @@ import TreasureIcon from '../ui/TreasureIcon';
 import Text from '../ui/Text';
 import { COMBAT_STATUS } from '../lib/battleUtils';
 import { safeLocalStorageGet, safeLocalStorageSet } from '../lib/browserStorage';
+import { playUiSound } from '../lib/uiFeedback';
+
+const TAB_SOUND_MAP = {
+  handouts: 'book',
+  notes: 'paper',
+  preparations: 'paper',
+};
 
 const SIDEBAR_DEFAULT_WIDTH = 252;
 const SIDEBAR_MIN_WIDTH = 96;
@@ -103,7 +110,12 @@ export default function Sidebar({ activeTab, setActiveTab, onOpenSettings, role,
           return (
             <button
               key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
+              onClick={() => {
+                if (tab.id !== activeTab && TAB_SOUND_MAP[tab.id]) {
+                  playUiSound(TAB_SOUND_MAP[tab.id]);
+                }
+                setActiveTab(tab.id);
+              }}
               aria-label={tab.label}
               className={`
                 group relative flex min-h-[44px] min-w-0 flex-1 flex-col items-center justify-center rounded-full border border-transparent p-2 transition-all duration-200 ease-out active:scale-[0.97] md:w-full md:flex-none ${isCollapsed ? 'md:min-h-[50px] md:px-2 md:py-2.5' : (isIconRail ? 'md:min-h-[46px] md:justify-center md:px-2.5 md:py-2.5 md:rounded-2xl' : 'md:min-h-[46px] md:flex-row md:justify-start md:gap-2.5 md:rounded-2xl md:px-3 md:py-2.5')}

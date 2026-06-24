@@ -28,7 +28,7 @@ export default function DamageModal({ isOpen, onClose, target, onSave }) {
     if (!amount) return;
     onSave(target.id, target.hp + Number(amount));
     playFeedback({
-      sound: 'success',
+      sound: 'potion',
       element: hpDisplayRef.current,
       variant: 'heal',
       pulseClassName: 'tv-hp-flash--heal',

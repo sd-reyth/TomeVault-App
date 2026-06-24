@@ -280,10 +280,10 @@ function RightSidebar({
     try {
       if (mode === 'start') {
         await onStartCombat?.({ initiativeUpdates, nextInitiativeOrder });
-        playFeedback({ sound: 'success', element: combatHeaderRef.current, variant: 'gold' });
+        playFeedback({ sound: 'combatStart', element: combatHeaderRef.current, variant: 'gold' });
       } else {
         await onResumeCombat?.({ initiativeUpdates, nextInitiativeOrder });
-        playFeedback({ sound: 'success', element: combatHeaderRef.current });
+        playFeedback({ sound: 'combatResume', element: combatHeaderRef.current });
       }
     } catch (error) {
       console.error('Combat flow fout:', error);
@@ -340,6 +340,7 @@ function RightSidebar({
     setIsActionBusy(true);
     try {
       await onPauseCombat?.();
+      playFeedback({ sound: 'combatPause', element: combatHeaderRef.current });
     } catch (error) {
       console.error('Gevecht pauzeren fout:', error);
       setStatusError('Gevecht pauzeren is mislukt.');
@@ -400,7 +401,7 @@ function RightSidebar({
     setIsActionBusy(true);
     try {
       await onEndCombat?.();
-      playUiSound('warning');
+      playFeedback({ sound: 'combatEnd', element: combatHeaderRef.current, variant: 'danger' });
       setEndCombatConfirmOpen(false);
     } catch (error) {
       console.error('Gevecht beëindigen fout:', error);
@@ -445,7 +446,7 @@ function RightSidebar({
     if (!isGm || !conditionsTarget) return;
     const nextConditions = conditionsDraftIds.map((id) => ({ id, active: true }));
     onUpdateStat?.(conditionsTarget.id, 'conditions', nextConditions);
-    playUiSound('success');
+    playUiSound('paper');
     setConditionsTarget(null);
   };
 

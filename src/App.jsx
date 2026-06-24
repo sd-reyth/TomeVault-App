@@ -101,6 +101,7 @@ import RightSidebar from './components/RightSidebar';
 import InitiativeSwapModal from './components/InitiativeSwapModal';
 import OwnerAdminPanel from './components/OwnerAdminPanel';
 import { resolveActivePlan } from './lib/accessPlans';
+import { DEFAULT_THEME, LANDING_DEFAULT_THEME } from './lib/appThemes';
 
 async function uploadImageToStorage(file, path) {
   const ref = storageRef(storage, path);
@@ -395,8 +396,8 @@ export default function TomeVaultApp() {
   const [qrJoinDone, setQrJoinDone] = useState(false);
   const showQRJoin = Boolean(qrInviteCode && view === 'landing' && !qrJoinDone);
   const [theme, setTheme] = useState(() => {
-    if (typeof window === 'undefined') return 'midnight-tome';
-    return window.localStorage.getItem('tomevault-theme') || 'midnight-tome';
+    if (typeof window === 'undefined') return DEFAULT_THEME;
+    return window.localStorage.getItem('tomevault-theme') || DEFAULT_THEME;
   });
 
   const applyTheme = (newTheme) => {
@@ -411,9 +412,10 @@ export default function TomeVaultApp() {
 
   useEffect(() => {
     if (typeof document !== 'undefined') {
-      document.documentElement.setAttribute('data-theme', theme);
+      const effectiveTheme = view === 'landing' ? LANDING_DEFAULT_THEME : theme;
+      document.documentElement.setAttribute('data-theme', effectiveTheme);
     }
-  }, [theme]);
+  }, [theme, view]);
 
   const [brightness, setBrightness] = useState(() => {
     const saved = safeLocalStorageGet('tv_brightness');
@@ -1924,7 +1926,7 @@ export default function TomeVaultApp() {
               return {
                 id: d.id,
                 authorId: n.ownerRole === 'dm' ? 'gm' : (n.ownerUid || uid),
-                title: n.title || 'Nieuwe Notitie',
+                title: typeof n.title === 'string' ? n.title : 'Nieuwe Notitie',
                 content: n.content || '',
                 lastEditedMs: (n.updatedAt || n.createdAt)?.toMillis ? (n.updatedAt || n.createdAt).toMillis() : Date.now(),
                 lastEdited: formatLastEditedLabel(n.updatedAt || n.createdAt),

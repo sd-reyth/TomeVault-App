@@ -12,7 +12,7 @@ import {
 } from 'lucide-react';
 import ModalFrame from './ModalFrame';
 import Button from './Button';
-import { APP_THEMES } from '../lib/appThemes';
+import { APP_THEMES, DEFAULT_THEME } from '../lib/appThemes';
 
 const BRIGHTNESS_LABELS = ['Donker', 'Iets donkerder', 'Normaal', 'Iets lichter', 'Lichter'];
 
@@ -67,7 +67,7 @@ function SettingsModal({
   onOpenOwnerPanel,
 }) {
   const [draftName, setDraftName] = useState(playerName || '');
-  const [draftTheme, setDraftTheme] = useState(theme || 'midnight-tome');
+  const [draftTheme, setDraftTheme] = useState(theme || DEFAULT_THEME);
   const [draftBrightness, setDraftBrightness] = useState(brightness !== undefined ? brightness : 2);
   const [draftUiSounds, setDraftUiSounds] = useState(uiSounds !== false);
   const [openPanel, setOpenPanel] = useState(null);
@@ -80,14 +80,14 @@ function SettingsModal({
   useEffect(() => {
     if (!isOpen) return;
     setDraftName(playerName || '');
-    setDraftTheme(theme || 'midnight-tome');
+    setDraftTheme(theme || DEFAULT_THEME);
     setDraftBrightness(brightness !== undefined ? brightness : 2);
     setDraftUiSounds(uiSounds !== false);
     setOpenPanel(null);
   }, [isOpen, playerName, theme, brightness, uiSounds]);
 
   const themes = APP_THEMES;
-  const activeTheme = themes.find((entry) => entry.value === draftTheme) || themes[2];
+  const activeTheme = themes.find((entry) => entry.value === draftTheme) || themes.find((entry) => entry.value === DEFAULT_THEME) || themes[0];
   const roleLabel = role === 'gm' ? 'Game Master' : 'Speler';
   const roleShort = role === 'gm' ? 'GM' : 'Speler';
   const initials = useMemo(() => getInitials(draftName || playerName), [draftName, playerName]);

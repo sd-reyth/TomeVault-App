@@ -344,29 +344,31 @@ export default function PreparationsView({
             </div>
           </section>
 
-          <aside className="tv-panel-shell tv-prep-sidebar">
+          <aside className="tv-prep-sidebar">
+            <div className="tv-prep-sidebar__glow" aria-hidden />
+
             <div className="tv-prep-sidebar__chrome">
-              <div className="tv-prep-panel__head">
-                <h3 className="tv-panel-title text-sm">Overzicht</h3>
+              <div className="tv-prep-sidebar__section-head">
+                <h3 className="tv-prep-sidebar__title">Overzicht</h3>
                 <button
                   type="button"
                   onClick={() => setShowInfo((value) => !value)}
-                  className={`tv-toolbar-icon-btn ${showInfo ? 'border-[color-mix(in_srgb,var(--tv-accent),transparent_30%)] bg-[color-mix(in_srgb,var(--tv-accent),transparent_88%)] text-[var(--tv-accent)]' : 'tv-panel-inset tv-muted tv-hover-surface hover:text-[var(--tv-accent)]'}`}
+                  className={`tv-prep-sidebar__info-btn ${showInfo ? 'is-active' : ''}`}
                   title={showInfo ? 'Verberg uitleg' : 'Toon uitleg'}
                   aria-pressed={showInfo}
                 >
-                  <Info className="h-4 w-4" />
+                  <Info className="h-3.5 w-3.5" aria-hidden />
                 </button>
               </div>
 
               <div className="tv-prep-stat-grid">
                 {[
-                  { label: 'Klaar', value: readyCount },
-                  { label: 'Open', value: pendingCount },
-                  { label: 'In gebruik', value: acceptedCount },
-                  { label: 'Herstel', value: backups.length },
+                  { label: 'Klaar', value: readyCount, tone: 'ready' },
+                  { label: 'Open', value: pendingCount, tone: 'open' },
+                  { label: 'In gebruik', value: acceptedCount, tone: 'active' },
+                  { label: 'Herstel', value: backups.length, tone: 'restore' },
                 ].map((item) => (
-                  <div key={item.label} className="tv-prep-stat">
+                  <div key={item.label} className={`tv-prep-stat tv-prep-stat--${item.tone}`}>
                     <span className="tv-prep-stat__label">{item.label}</span>
                     <span className="tv-prep-stat__value">{item.value}</span>
                   </div>
@@ -402,18 +404,25 @@ export default function PreparationsView({
             ) : null}
 
             <div className="tv-prep-sidebar__block tv-prep-sidebar__block--flush">
-              <div className="tv-prep-panel__head">
-                <div className="flex min-w-0 items-center gap-1.5">
-                  <History className="h-3.5 w-3.5 shrink-0 tv-accent" aria-hidden />
-                  <h3 className="tv-panel-title text-sm">Herstelpunten</h3>
+              <div className="tv-prep-sidebar__section-head">
+                <div className="flex min-w-0 items-center gap-2">
+                  <span className="tv-prep-sidebar__section-icon" aria-hidden>
+                    <History className="h-3.5 w-3.5" />
+                  </span>
+                  <h3 className="tv-prep-sidebar__title">Herstelpunten</h3>
                 </div>
-                <span className="tv-prep-panel__badge">{backups.length}</span>
+                <span className="tv-prep-sidebar__count">{backups.length}</span>
               </div>
 
               {backups.length === 0 ? (
-                <p className="tv-prep-backups-empty">
-                  Na een acceptatie verschijnt hier automatisch een terugzetpunt voor de speler.
-                </p>
+                <div className="tv-prep-backups-empty">
+                  <div className="tv-prep-backups-empty__icon" aria-hidden>
+                    <History className="h-4 w-4" />
+                  </div>
+                  <p className="tv-prep-backups-empty__copy">
+                    Na een acceptatie verschijnt hier automatisch een terugzetpunt voor de speler.
+                  </p>
+                </div>
               ) : (
                 <div className="tv-prep-backup-list">
                   {backups.map((backup) => (

@@ -7,16 +7,18 @@ import {
   Check,
   ChevronDown,
   Crown,
-  Dices,
   DoorOpen,
+  EyeOff,
+  KeyRound,
+  LayoutGrid,
+  List,
   LogOut,
-  Mail,
+  Map,
   MessageSquare,
   NotebookPen,
   Plus,
   Scroll,
   ScrollText,
-  SendHorizontal,
   ShieldCheck,
   Sparkles,
   Swords,
@@ -39,6 +41,7 @@ import {
   LANDING_HERO,
   LANDING_PRICING,
 } from '../lib/landingContent';
+import { LANDING_DEFAULT_THEME } from '../lib/appThemes';
 import landingBackgroundVideo from '../../Video/landingBG.mp4';
 import RuntimeBadge from './RuntimeBadge';
 import Button from './Button';
@@ -46,6 +49,7 @@ const LANDING_AMBIENCE_ENABLED_STORAGE_KEY = 'tomevault:landing:ambience-enabled
 const LANDING_AMBIENCE_VOLUME_STORAGE_KEY = 'tomevault:landing:ambience-volume';
 const DEFAULT_LANDING_AMBIENCE_VOLUME = 12;
 const TOMEVAULT_LOGO_SRC = '/references/tomeVaultLogo1.png';
+const NUGGET_MARK_SRC = new URL('../../assets/nugget.svg', import.meta.url).href;
 
 const FEATURE_ICONS = {
   handouts: ScrollText,
@@ -57,11 +61,37 @@ const FEATURE_ICONS = {
 };
 
 const SHOWCASE_NAV = [
-  { icon: Scroll, label: 'Handouts' },
-  { icon: MessageSquare, label: 'Fluisteringen', active: true },
+  { icon: Scroll, label: 'Handouts', active: true },
+  { icon: MessageSquare, label: 'Fluisteringen' },
   { icon: TreasureIcon, label: 'Schatkamer' },
   { icon: Crown, label: 'Voorbereidingen' },
   { icon: NotebookPen, label: 'Kronieken' },
+];
+
+const SHOWCASE_HANDOUTS = [
+  {
+    title: 'Kaart van de Kelder',
+    type: 'map',
+    content: 'Vier gangen naar het noorden. De zuidelijke deur is verzegeld met runen.',
+    icon: Map,
+    revealed: true,
+  },
+  {
+    title: 'Journaal van de Goblin Koning',
+    type: 'lore',
+    content: 'De laatste regels zijn geschreven in een trillende hand…',
+    icon: ScrollText,
+    revealed: true,
+    secretParty: true,
+  },
+  {
+    title: 'De Verzegelde Rol',
+    type: 'lore',
+    content: 'Nog verborgen voor de spelers tot jij klaar bent om te onthullen.',
+    icon: ScrollText,
+    revealed: false,
+    hidden: true,
+  },
 ];
 
 
@@ -249,7 +279,7 @@ export default function LandingScreen({
       return;
     }
 
-    playFeedback({ sound: 'success', element: event?.currentTarget, variant: 'gold' });
+    playFeedback({ sound: 'paper', element: event?.currentTarget, variant: 'gold' });
     onJoin('gm', sessionName, {
       skipPinPrompt: true,
       defaultPin: pin,
@@ -279,7 +309,7 @@ export default function LandingScreen({
       setLocalPlayerError('Voer een PIN van 4 tot 8 cijfers in.');
       return;
     }
-    playFeedback({ sound: 'success', element: event?.currentTarget, variant: 'gold' });
+    playFeedback({ sound: 'paper', element: event?.currentTarget, variant: 'gold' });
     onJoin('player', sessionCode.toUpperCase(), {
       pin: sessionPin.trim(),
       skipPin: canJoinWithoutPin,
@@ -319,7 +349,7 @@ export default function LandingScreen({
   const activeRecentSessions = (recentSessions || []).filter((s) => s.status !== 'hidden');
   const gmRecentCount = activeRecentSessions.filter((s) => s.role === 'dm').length;
   const playerRecentCount = activeRecentSessions.filter((s) => s.role !== 'dm').length;
-  const resolvedLandingTheme = theme || 'ember-forge';
+  const resolvedLandingTheme = LANDING_DEFAULT_THEME;
 
   useEffect(() => {
     if (inviteCode) {
@@ -508,58 +538,76 @@ export default function LandingScreen({
     window.location.href = `mailto:hello@tomevault.app?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
   };
 
-  const landingAmbienceLabel = 'Geluid';
   const pricing = buildPricingColumns(pricingAudience);
 
-  const contactSection = (
-    <section className="mx-auto w-full max-w-xl pt-1 text-center">
-      <div className="flex justify-center">
-        <button
-          type="button"
-          onClick={() => setShowContactForm((value) => !value)}
-          className="tv-entry-action border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] tv-panel-inset tv-text hover:border-[color-mix(in_srgb,var(--tv-accent),transparent_58%)] hover:tv-text"
-        >
-          <Mail className="mr-2 h-4 w-4" />
-          {showContactForm ? 'Verberg feedback' : 'Feedback'}
-        </button>
-      </div>
-
-      {showContactForm ? (
-        <div className="lp-card mt-4 p-4 md:p-5">
-          <form onSubmit={handleContactSubmit} className="grid gap-3 md:grid-cols-2 text-left">
-            <input
-              type="text"
-              value={contactName}
-              onChange={(e) => setContactName(e.target.value)}
-              placeholder="Je naam"
-              className="tv-field"
-            />
-            <input
-              type="email"
-              value={contactEmail}
-              onChange={(e) => setContactEmail(e.target.value)}
-              placeholder="E-mail"
-              className="tv-field"
-            />
-            <textarea
-              value={contactMessage}
-              onChange={(e) => setContactMessage(e.target.value)}
-              rows={4}
-              placeholder="Bericht"
-              className="tv-field md:col-span-2 resize-none"
-            />
-            <button type="submit" className="tv-button-primary md:col-span-2">
-              Verstuur via E-mail
-            </button>
-          </form>
-        </div>
+  const landingAmbienceDock = (
+    <div className={`lp-ambience ${landingAmbienceEnabled ? 'lp-ambience--open' : ''}`}>
+      <button
+        type="button"
+        onClick={handleToggleLandingAmbience}
+        title="De achtergrondvideo speelt altijd. Geluid blijft zacht en start pas na een tik."
+        aria-label={landingAmbienceEnabled ? 'Geluid uitzetten' : 'Geluid aanzetten'}
+        aria-pressed={landingAmbienceEnabled}
+        className="lp-ambience-toggle tv-toolbar-icon-btn"
+      >
+        {landingAmbienceEnabled ? <Volume2 className="h-4 w-4" /> : <VolumeX className="h-4 w-4" />}
+      </button>
+      {landingAmbienceEnabled ? (
+        <input
+          type="range"
+          min="0"
+          max="24"
+          step="1"
+          value={landingAmbienceVolume}
+          onChange={handleLandingAmbienceVolumeChange}
+          className="lp-ambience-slider ambience-slider"
+          aria-label="Volume van sfeergeluid"
+        />
       ) : null}
-    </section>
+    </div>
   );
 
+  const contactFormMarkup = (
+    <form onSubmit={handleContactSubmit} className="grid gap-3 md:grid-cols-2 text-left">
+      <input
+        type="text"
+        value={contactName}
+        onChange={(e) => setContactName(e.target.value)}
+        placeholder="Je naam"
+        className="tv-field"
+      />
+      <input
+        type="email"
+        value={contactEmail}
+        onChange={(e) => setContactEmail(e.target.value)}
+        placeholder="E-mail"
+        className="tv-field"
+      />
+      <textarea
+        value={contactMessage}
+        onChange={(e) => setContactMessage(e.target.value)}
+        rows={4}
+        placeholder="Bericht"
+        className="tv-field md:col-span-2 resize-none"
+      />
+      <button type="submit" className="tv-button-primary md:col-span-2">
+        Verstuur via E-mail
+      </button>
+    </form>
+  );
+
+  const contactFormPanel = showContactForm ? (
+    <div className="lp-footer-contact">
+      <div className="lp-card p-4 md:p-5">{contactFormMarkup}</div>
+    </div>
+  ) : null;
+
   const loginCard = (
-    <div className="lp-card w-full max-w-md p-5 text-left md:p-6">
+    <div className="lp-card lp-hero-login-card w-full p-5 text-left md:p-6">
       <div className="tv-label text-center">Inloggen</div>
+      <p className="lp-hero-login-lead mt-2 text-center">
+        Maak gratis een account of log in om je sessies te openen.
+      </p>
       <div className="mt-4 space-y-3">
         <button
           type="button"
@@ -577,11 +625,11 @@ export default function LandingScreen({
         </div>
       ) : null}
 
-      <div className="mt-4 flex flex-wrap gap-2">
+      <div className="mt-4">
         <button
           type="button"
           onClick={() => setShowEmailAuthForm((value) => !value)}
-          className="tv-entry-action border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] tv-panel-inset tv-text hover:border-[color-mix(in_srgb,var(--tv-accent),transparent_58%)] hover:tv-text"
+          className="tv-entry-action h-11 w-full border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] tv-panel-inset tv-text hover:border-[color-mix(in_srgb,var(--tv-accent),transparent_58%)] hover:tv-text"
         >
           {showEmailAuthForm ? 'Verberg e-mail' : 'Gebruik e-mail'}
         </button>
@@ -684,8 +732,8 @@ export default function LandingScreen({
         <div className="lp-scrim" aria-hidden="true" />
 
         {runtimeBadge ? (
-          <div className="fixed right-4 top-20 z-40">
-            <RuntimeBadge runtimeBadge={runtimeBadge} />
+          <div className="lp-runtime-badge fixed bottom-4 left-4 z-40">
+            <RuntimeBadge runtimeBadge={runtimeBadge} compact />
           </div>
         ) : null}
 
@@ -727,41 +775,46 @@ export default function LandingScreen({
           </div>
         </nav>
 
-        {/* ─── Hero ─── */}
+        {/* ─── Hero + inloggen ─── */}
         <header id="top" className="lp-hero">
-          <div className="lp-hero-inner">
-            <img src={TOMEVAULT_LOGO_SRC} alt="TomeVault logo" className="lp-hero-logo tv-logo-breathe" />
-            <div className="lp-eyebrow">{LANDING_HERO.eyebrow}</div>
-            <h1 className="lp-hero-title">
-              TOME<span className="lp-accent">VAULT</span>
-            </h1>
-            <p className="lp-hero-sub">{LANDING_HERO.subtitle}</p>
-            <div className="lp-hero-cta">
-              <button type="button" className="lp-btn lp-btn--primary lp-btn--lg" onClick={() => scrollToSection('inloggen')}>
-                {LANDING_HERO.primaryCta}
-                <ArrowRight className="h-4 w-4" />
-              </button>
-              <button type="button" className="lp-btn lp-btn--ghost lp-btn--lg" onClick={() => scrollToSection('functies')}>
-                {LANDING_HERO.secondaryCta}
-              </button>
-            </div>
-            <div className="lp-trust-row">
-              {compactFeatureHighlights.map((feature) => {
-                const Icon = feature.icon;
-                return (
-                  <span key={feature.label} className="tv-entry-chip border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] tv-panel-inset tv-text">
-                    <Icon className="h-3.5 w-3.5 tv-accent" />
-                    {feature.label}
-                  </span>
-                );
-              })}
+          <div className="lp-shell lp-hero-shell">
+            <div className="lp-hero-stack">
+              <img src={TOMEVAULT_LOGO_SRC} alt="TomeVault logo" className="lp-hero-logo tv-logo-breathe" />
+              <div className="lp-eyebrow">{LANDING_HERO.eyebrow}</div>
+              <h1 className="lp-hero-title">
+                TOME<span className="lp-accent">VAULT</span>
+              </h1>
+              <p className="lp-hero-sub">{LANDING_HERO.subtitle}</p>
+              <div className="lp-trust-row">
+                {compactFeatureHighlights.map((feature) => {
+                  const Icon = feature.icon;
+                  return (
+                    <span key={feature.label} className="tv-entry-chip border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] tv-panel-inset tv-text">
+                      <Icon className="h-3.5 w-3.5 tv-accent" />
+                      {feature.label}
+                    </span>
+                  );
+                })}
+              </div>
+
+              <div id="inloggen" className="lp-hero-login">
+                {loginCard}
+              </div>
+
+              <p className="lp-hero-or" aria-hidden="true">Of</p>
+
+              <div className="lp-hero-cta">
+                <button type="button" className="lp-btn lp-btn--ghost lp-btn--lg" onClick={() => scrollToSection('functies')}>
+                  {LANDING_HERO.secondaryCta}
+                </button>
+              </div>
             </div>
           </div>
         </header>
 
         {/* ─── Voor wie ─── */}
         <section className="lp-section">
-          <div className="lp-shell">
+          <div className="lp-shell lp-shell--narrow">
             <div className="lp-section-head">
               <div className="lp-eyebrow">Eén tafel, twee rollen</div>
               <h2 className="lp-h2">Gebouwd voor jouw groep</h2>
@@ -773,8 +826,10 @@ export default function LandingScreen({
                   <div className="lp-feature-icon">
                     {audience.id === 'gm' ? <Crown className="h-6 w-6" /> : <Swords className="h-6 w-6" />}
                   </div>
-                  <h3 className="lp-feature-title">{audience.title}</h3>
-                  <p className="lp-feature-text">{audience.description}</p>
+                  <div className="lp-audience-body">
+                    <h3 className="lp-feature-title">{audience.title}</h3>
+                    <p className="lp-feature-text">{audience.description}</p>
+                  </div>
                 </article>
               ))}
             </div>
@@ -783,7 +838,7 @@ export default function LandingScreen({
 
         {/* ─── Functies ─── */}
         <section id="functies" className="lp-section">
-          <div className="lp-shell">
+          <div className="lp-shell lp-shell--narrow">
             <div className="lp-section-head">
               <div className="lp-eyebrow">Wat biedt de Waard</div>
               <h2 className="lp-h2">Alles voor je tafel, op één plek</h2>
@@ -791,16 +846,16 @@ export default function LandingScreen({
                 Geen losse tools meer. TomeVault brengt je hele sessie samen in één rustige, warme ruimte.
               </p>
             </div>
-            <div className="lp-feature-grid">
+            <div className="lp-feature-list">
               {LANDING_FEATURES.map((feature) => {
                 const Icon = FEATURE_ICONS[feature.icon] || Sparkles;
                 return (
-                  <article key={feature.title} className="lp-card lp-feature-card">
-                    <div className="lp-feature-icon">
-                      <Icon className="h-6 w-6" />
+                  <article key={feature.title} className="lp-feature-item">
+                    <Icon className="lp-feature-item-icon h-5 w-5" aria-hidden="true" />
+                    <div className="lp-feature-item-body">
+                      <h3 className="lp-feature-item-title">{feature.title}</h3>
+                      <p className="lp-feature-item-text">{feature.description}</p>
                     </div>
-                    <h3 className="lp-feature-title">{feature.title}</h3>
-                    <p className="lp-feature-text">{feature.description}</p>
                   </article>
                 );
               })}
@@ -810,82 +865,107 @@ export default function LandingScreen({
 
         {/* ─── Showcase ─── */}
         <section id="showcase" className="lp-section">
-          <div className="lp-shell">
+          <div className="lp-shell lp-shell--narrow">
             <div className="lp-section-head">
-              <div className="lp-eyebrow">Aanschouw de tafel</div>
-              <h2 className="lp-h2">Zo voelt een sessie</h2>
-              <p className="lp-lead">Werp de dobbelstenen of bekijk het perkament. De herberg wacht.</p>
+              <div className="lp-eyebrow">Het hart van TomeVault</div>
+              <h2 className="lp-h2">Handouts op het juiste moment</h2>
+              <p className="lp-lead">
+                Deel kaarten, lore en geheimen wanneer jij de rol openrolt — spelers zien precies wat jij wilt onthullen.
+              </p>
             </div>
 
-            <div className="lp-card mt-10 p-3 md:p-5 lg:p-6">
-              <div className="tv-landing-showcase-frame">
-                <div className="tv-landing-showcase-toolbar">
-                  <div className="flex items-center gap-2">
-                    <span className="tv-landing-showcase-dot" />
-                    <span className="tv-landing-showcase-dot opacity-80" />
-                    <span className="tv-landing-showcase-dot opacity-60" />
-                  </div>
-                  <div className="flex items-center gap-2 text-[11px] uppercase tracking-[0.26em] tv-muted md:text-xs">
-                    <BookOpen className="h-3.5 w-3.5 tv-accent" />
-                    Kelder van de Goblin Koning
-                  </div>
-                </div>
+            <div className="lp-card lp-showcase">
+              <div className="lp-showcase-bar">
+                <span className="lp-showcase-dots">
+                  <span className="lp-showcase-dot" />
+                  <span className="lp-showcase-dot" />
+                  <span className="lp-showcase-dot" />
+                </span>
+                <span className="lp-showcase-title">
+                  <BookOpen className="h-3.5 w-3.5" />
+                  Kelder van de Goblin Koning
+                </span>
+              </div>
 
-                <div className="grid min-h-[28rem] lg:grid-cols-[18rem_minmax(0,1fr)]">
-                  <div className="tv-landing-showcase-sidebar flex flex-col justify-between">
-                    <div className="space-y-4 px-4 py-5 md:px-5 md:py-6">
-                      <div className="tv-landing-showcase-bubble">
-                        Jullie horen een zwaar gerommel uit de diepte...
-                      </div>
-
-                      <div>
-                        <div className="text-[10px] uppercase tracking-[0.24em] tv-accent">Reyth</div>
-                        <div className="tv-landing-showcase-bubble tv-landing-showcase-bubble--player mt-2">
-                          Ik trek mijn zwaard en ga voor de deur staan.
-                        </div>
-                      </div>
-
-                      <div>
-                        <div className="text-[10px] uppercase tracking-[0.24em] tv-accent">Jij</div>
-                        <div className="tv-landing-showcase-bubble tv-landing-showcase-bubble--accent mt-2 flex max-w-[14rem] items-center gap-4 px-3 py-3">
-                          <div className="flex h-12 w-12 items-center justify-center rounded-xl tv-input-surface text-3xl font-semibold tv-accent">
-                            16
-                          </div>
-                          <div className="font-story text-sm italic tv-text-sub">Werpt een steen...</div>
-                        </div>
-                      </div>
-
-                      <div className="pt-1 text-center font-story text-xs italic tv-muted">
-                        Je rolt de perkamentrol open.
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-[1fr_auto] gap-0 border-t border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] tv-panel-inset p-3">
-                      <div className="flex min-h-11 items-center rounded-l-[14px] border border-r-0 border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] px-4 font-story text-sm tv-muted">
-                        Schrijf met de veer...
-                      </div>
-                      <button
-                        type="button"
-                        className="tv-satisfy-pop flex min-h-11 items-center justify-center rounded-r-[14px] border border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] tv-surface-raised px-4 tv-text transition-colors tv-hover-surface"
-                        aria-label="Voorbeeldactie versturen"
+              <div className="lp-showcase-app">
+                <aside className="lp-showcase-nav tv-nav-bg">
+                  {SHOWCASE_NAV.map((item) => {
+                    const Icon = item.icon;
+                    return (
+                      <div
+                        key={item.label}
+                        className={`lp-showcase-nav-item ${item.active ? 'lp-showcase-nav-item--active' : ''}`}
                       >
-                        <ArrowRight className="h-4 w-4" />
-                      </button>
+                        <Icon className="lp-showcase-nav-icon h-5 w-5" />
+                        <span>{item.label}</span>
+                      </div>
+                    );
+                  })}
+                  <div className="lp-showcase-nav-spacer" />
+                  <div className="lp-showcase-nav-foot">
+                    <span className="lp-showcase-chip">GM</span>
+                    <span className="lp-showcase-chip">Sessie #3</span>
+                  </div>
+                </aside>
+
+                <div className="lp-showcase-main lp-showcase-handouts">
+                  <div className="lp-showcase-handouts-head">
+                    <span className="lp-showcase-handouts-title">
+                      <Scroll className="h-4 w-4" strokeWidth={1.5} aria-hidden />
+                      Handouts
+                    </span>
+                    <div className="lp-showcase-handouts-tools">
+                      <div className="tv-view-toolbar flex items-center rounded-xl p-1">
+                        <span className="tv-view-toolbar__btn" aria-hidden>
+                          <List className="h-4 w-4" />
+                        </span>
+                        <span className="tv-view-toolbar__btn tv-view-toolbar__btn--active" aria-hidden>
+                          <LayoutGrid className="h-4 w-4" />
+                        </span>
+                      </div>
+                      <span className="lp-showcase-handouts-add tv-toolbar-icon-btn tv-button-primary" aria-hidden>
+                        <Plus className="h-4 w-4" />
+                      </span>
                     </div>
                   </div>
 
-                  <div className="tv-landing-showcase-stage landing-grid flex items-center justify-center px-4 py-6 md:px-6 lg:px-8">
-                    <div className="tv-landing-showcase-card">
-                      <div className="tv-landing-showcase-fragment landing-preview-fragment md:min-h-[15rem]">
-                        <div className="flex flex-col items-center gap-4 text-center">
-                          <div className="tv-showcase-glow flex h-16 w-16 items-center justify-center rounded-full border border-[color-mix(in_srgb,var(--tv-accent),transparent_55%)] tv-entry-feature-icon">
-                            <Eye className="h-9 w-9 tv-accent" />
-                          </div>
-                          <div className="text-sm font-fantasy uppercase tracking-[0.26em] tv-text md:text-base">
-                            Open de verzegelde rol
-                          </div>
-                        </div>
-                      </div>
+                  <div className="lp-showcase-handouts-body">
+                    <div className="lp-showcase-handouts-grid">
+                      {SHOWCASE_HANDOUTS.map((handout) => {
+                        const Icon = handout.icon;
+                        return (
+                          <article
+                            key={handout.title}
+                            className={`lp-showcase-handout tv-handout-card flex flex-col overflow-hidden rounded-2xl shadow-lg ${handout.revealed ? '' : 'tv-handout-card--hidden'}`}
+                          >
+                            <div className="tv-handout-media tv-image-frame aspect-[16/9] w-full border-b relative flex shrink-0 items-center justify-center overflow-hidden">
+                              <div className="absolute inset-0 bg-gradient-to-br from-[color-mix(in_srgb,var(--tv-accent),transparent_88%)] via-[color-mix(in_srgb,var(--tv-bg-surface),transparent_20%)] to-[color-mix(in_srgb,var(--tv-bg-canvas),transparent_10%)]" />
+                              <Icon className="relative z-10 h-10 w-10 tv-muted drop-shadow-md md:h-12 md:w-12" strokeWidth={1.5} aria-hidden />
+                            </div>
+                            <div className="relative z-10 flex flex-1 flex-col overflow-hidden p-4 md:p-5">
+                              <div className="mb-2 flex flex-wrap items-center gap-1.5 md:mb-3">
+                                <span className="tv-tag tv-handout-meta-tag tv-handout-meta-tag--type">{handout.type}</span>
+                                {handout.secretParty ? (
+                                  <span className="tv-tag tv-handout-meta-tag tv-handout-meta-tag--secret">
+                                    <KeyRound className="h-2.5 w-2.5" aria-hidden /> Party ziet secret
+                                  </span>
+                                ) : null}
+                                {handout.hidden ? (
+                                  <span className="tv-tag tv-handout-meta-tag tv-handout-meta-tag--muted">
+                                    <EyeOff className="h-2.5 w-2.5" aria-hidden /> Verborgen
+                                  </span>
+                                ) : null}
+                              </div>
+                              <h3 className="mb-2 text-base font-medium leading-snug tracking-[0.08em] tv-text md:mb-3 md:text-lg">
+                                {handout.title}
+                              </h3>
+                              <p className="tv-muted line-clamp-3 text-xs leading-relaxed md:text-sm">
+                                {handout.content}
+                              </p>
+                            </div>
+                          </article>
+                        );
+                      })}
                     </div>
                   </div>
                 </div>
@@ -895,8 +975,8 @@ export default function LandingScreen({
         </section>
 
         {/* ─── Prijzen ─── */}
-        <section id="prijzen" className="lp-section">
-          <div className="lp-shell">
+        <section id="prijzen" className="lp-section lp-section--band">
+          <div className="lp-shell lp-shell--narrow">
             <div className="lp-section-head">
               <div className="lp-eyebrow">Gratis beginnen, groeien wanneer je wilt</div>
               <h2 className="lp-h2">Kies je pad</h2>
@@ -993,22 +1073,8 @@ export default function LandingScreen({
           </div>
         </section>
 
-        {/* ─── Inloggen ─── */}
-        <section id="inloggen" className="lp-section">
-          <div className="lp-shell">
-            <div className="lp-section-head">
-              <div className="lp-eyebrow">Stap binnen</div>
-              <h2 className="lp-h2">Begin je avontuur</h2>
-              <p className="lp-lead">Maak gratis een account of log in om je sessies te openen.</p>
-            </div>
-            <div className="mt-9 flex justify-center">
-              {loginCard}
-            </div>
-          </div>
-        </section>
-
         {/* ─── Over + FAQ ─── */}
-        <section id="over" className="lp-section">
+        <section id="over" className="lp-section lp-section--band">
           <div className="lp-shell lp-shell--narrow">
             <div className="lp-section-head">
               <div className="lp-eyebrow">{LANDING_ABOUT.eyebrow}</div>
@@ -1027,24 +1093,6 @@ export default function LandingScreen({
                 </details>
               ))}
             </div>
-
-            <div className="mt-10">{contactSection}</div>
-          </div>
-        </section>
-
-        {/* ─── Closing CTA ─── */}
-        <section className="lp-section">
-          <div className="lp-shell lp-shell--narrow">
-            <div className="lp-card lp-cta-band">
-              <h2 className="lp-h2">Klaar om je wereld te openen?</h2>
-              <p className="lp-lead mt-3">Verzamel je groep aan de digitale tafel — vanavond nog.</p>
-              <div className="mt-6 flex justify-center">
-                <button type="button" className="lp-btn lp-btn--primary lp-btn--lg" onClick={() => scrollToSection('inloggen')}>
-                  {LANDING_HERO.primaryCta}
-                  <ArrowRight className="h-4 w-4" />
-                </button>
-              </div>
-            </div>
           </div>
         </section>
 
@@ -1060,41 +1108,31 @@ export default function LandingScreen({
               <button type="button" className="lp-footer-link" onClick={() => scrollToSection('prijzen')}>Prijzen</button>
               <button type="button" className="lp-footer-link" onClick={() => scrollToSection('over')}>Over</button>
               <button type="button" className="lp-footer-link" onClick={() => scrollToSection('inloggen')}>Inloggen</button>
+              <button type="button" className="lp-footer-link" onClick={() => setShowContactForm((value) => !value)}>
+                {showContactForm ? 'Sluit feedback' : 'Feedback'}
+              </button>
             </div>
             <div className="lp-footer-legal">
-              © {new Date().getFullYear()} TomeVault — Jouw magische tafel aan de taverne.
+              <span className="lp-footer-legal-copy">
+                © {new Date().getFullYear()} TomeVault — Jouw magische tafel aan de taverne.
+              </span>
+              <span className="lp-footer-credit">
+                <img src={NUGGET_MARK_SRC} alt="" className="lp-footer-credit-mark" aria-hidden="true" />
+                Gesmeed door{' '}
+                <span className="lp-footer-credit-name">SneezingDonkey</span>
+              </span>
             </div>
           </div>
+          {contactFormPanel ? (
+            <div className="lp-shell lp-shell--narrow lp-footer-contact-shell">
+              {contactFormPanel}
+            </div>
+          ) : null}
         </footer>
 
         {/* ─── Ambience dock ─── */}
         <div className="fixed bottom-4 right-4 z-40 max-w-[calc(100vw-2rem)]">
-          <div className="tv-ambience-dock">
-            <button
-              type="button"
-              onClick={handleToggleLandingAmbience}
-              title="De achtergrondvideo speelt altijd. Geluid blijft zacht en start pas na een tik."
-              className={`tv-entry-action ${landingAmbienceEnabled ? 'tv-button-accent-muted' : ''}`}
-            >
-              {landingAmbienceEnabled ? <Volume2 className="h-4 w-4" /> : <VolumeX className="h-4 w-4" />}
-              <span className="hidden sm:inline">{landingAmbienceLabel}</span>
-            </button>
-            {landingAmbienceEnabled ? (
-              <div className="flex min-w-[8.75rem] items-center gap-3">
-                <span className="text-[10px] uppercase tracking-[0.22em] tv-muted">Volume</span>
-                <input
-                  type="range"
-                  min="0"
-                  max="24"
-                  step="1"
-                  value={landingAmbienceVolume}
-                  onChange={handleLandingAmbienceVolumeChange}
-                  className="ambience-slider w-24 sm:w-28"
-                  aria-label="Volume van sfeergeluid"
-                />
-              </div>
-            ) : null}
-          </div>
+          {landingAmbienceDock}
         </div>
       </div>
     );
@@ -1125,8 +1163,8 @@ export default function LandingScreen({
       <div className="lp-scrim" aria-hidden="true" />
 
       {runtimeBadge ? (
-        <div className="absolute right-4 top-4 z-30">
-          <RuntimeBadge runtimeBadge={runtimeBadge} />
+        <div className="lp-runtime-badge fixed bottom-4 left-4 z-30">
+          <RuntimeBadge runtimeBadge={runtimeBadge} compact />
         </div>
       ) : null}
 
@@ -1274,7 +1312,7 @@ export default function LandingScreen({
                           <button
                             type="button"
                             onClick={(event) => {
-                              playFeedback({ sound: 'success', element: event.currentTarget, variant: 'gold' });
+                              playFeedback({ sound: 'paper', element: event.currentTarget, variant: 'gold' });
                               onResumeRecentSession?.(session, defaultAsRole);
                             }}
                             disabled={sessionBusy}
@@ -1422,7 +1460,14 @@ export default function LandingScreen({
           </section>
         ) : null}
 
-        {contactSection}
+        <div className="lp-hub-footer mt-8 border-t border-[color-mix(in_srgb,var(--tv-border),transparent_55%)] pt-6 text-center">
+          <button type="button" className="lp-footer-link" onClick={() => setShowContactForm((value) => !value)}>
+            {showContactForm ? 'Sluit feedback' : 'Feedback'}
+          </button>
+          {contactFormPanel ? (
+            <div className="mx-auto mt-4 max-w-xl text-left">{contactFormPanel}</div>
+          ) : null}
+        </div>
       </div>
 
       {deleteTarget && (
@@ -1492,32 +1537,7 @@ export default function LandingScreen({
 
       {/* Ambience dock */}
       <div className="fixed bottom-4 right-4 z-30 max-w-[calc(100vw-2rem)]">
-        <div className="tv-ambience-dock">
-          <button
-            type="button"
-            onClick={handleToggleLandingAmbience}
-            title="De achtergrondvideo speelt altijd. Geluid blijft zacht en start pas na een tik."
-            className={`tv-entry-action ${landingAmbienceEnabled ? 'tv-button-accent-muted' : ''}`}
-          >
-            {landingAmbienceEnabled ? <Volume2 className="h-4 w-4" /> : <VolumeX className="h-4 w-4" />}
-            <span className="hidden sm:inline">{landingAmbienceLabel}</span>
-          </button>
-          {landingAmbienceEnabled ? (
-            <div className="flex min-w-[8.75rem] items-center gap-3">
-              <span className="text-[10px] uppercase tracking-[0.22em] tv-muted">Volume</span>
-              <input
-                type="range"
-                min="0"
-                max="24"
-                step="1"
-                value={landingAmbienceVolume}
-                onChange={handleLandingAmbienceVolumeChange}
-                className="ambience-slider w-24 sm:w-28"
-                aria-label="Volume van sfeergeluid"
-              />
-            </div>
-          ) : null}
-        </div>
+        {landingAmbienceDock}
       </div>
     </div>
   );

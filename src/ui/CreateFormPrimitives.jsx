@@ -9,6 +9,10 @@ export const CREATE_MODAL_BODY_CLASS =
 export const CREATE_MODAL_SCROLL_CLASS =
   'flex-1 min-h-0 overflow-y-auto px-4 py-4 sm:px-6 sm:py-5';
 
+/** Flat modal body — one padding layer, no inner panel box */
+export const CREATE_MODAL_FLAT_SCROLL_CLASS =
+  'flex-1 min-h-0 overflow-y-auto px-5 py-4 sm:px-6 sm:py-5';
+
 export function CreateFormField({ label, htmlFor, hint, aside, children }) {
   const LabelTag = htmlFor ? 'label' : 'span';
 
@@ -36,8 +40,15 @@ export function CreateFormPanel({ children }) {
   );
 }
 
-export function CreateFormSection({ children, className = '' }) {
+export function CreateFormSection({ children, className = '', flat = false }) {
+  if (flat) {
+    return <section className={`space-y-2 ${className}`.trim()}>{children}</section>;
+  }
   return <div className={`p-3.5 ${className}`.trim()}>{children}</div>;
+}
+
+export function CreateFormStack({ children, className = '' }) {
+  return <div className={`tv-create-form-stack ${className}`.trim()}>{children}</div>;
 }
 
 export function CreateFormChipGrid({ options, value, onChange, columns = 2 }) {
@@ -84,10 +95,10 @@ export function CreateFormIdentityRow({
   meta,
   autoFocus = false,
   required = false,
+  flat = false,
 }) {
-  return (
-    <CreateFormSection>
-      <div className="flex items-start gap-3">
+  const content = (
+    <div className="flex items-start gap-3">
         <button
           type="button"
           onClick={onImageClick}
@@ -122,8 +133,11 @@ export function CreateFormIdentityRow({
           {meta ? <p className="text-[11px] leading-snug tv-muted">{meta}</p> : null}
         </div>
       </div>
-    </CreateFormSection>
   );
+
+  if (flat) return content;
+
+  return <CreateFormSection>{content}</CreateFormSection>;
 }
 
 export function CreateFormImageActions({

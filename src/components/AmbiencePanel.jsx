@@ -1,4 +1,5 @@
-import React, { useEffect } from 'react';
+import { useEffect } from 'react';
+import { DEFAULT_THEME } from '../lib/appThemes';
 import { createPortal } from 'react-dom';
 import {
   Castle,
@@ -116,7 +117,7 @@ export default function AmbiencePanel({
   const panel = (
     <div
       data-ambience-panel-root="true"
-      data-theme={theme || 'midnight-tome'}
+      data-theme={theme || DEFAULT_THEME}
       className="tv-ambience-shell fixed inset-0 z-[60] flex items-end justify-center p-0 sm:items-center sm:p-4"
       onClick={onClose}
     >

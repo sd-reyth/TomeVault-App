@@ -42,7 +42,7 @@ export const APP_THEMES = [
   },
 ];
 
-export const DEFAULT_THEME = 'midnight-tome';
+export const DEFAULT_THEME = 'ember-forge';
 
 export const LANDING_DEFAULT_THEME = 'ember-forge';
 

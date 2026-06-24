@@ -1,7 +1,11 @@
 import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { NotebookPen, FilePlus2, Save, Trash2, Search, ScrollText, Feather, Lock, ArrowLeft } from 'lucide-react';
+import { playUiSound, playWriteSound, playWritingFromValueChange, primeUiAudio } from '../lib/uiFeedback';
 
-function getNotePreview(content = '', maxLen = 72) {  const trimmed = String(content || '').replace(/\s+/g, ' ').trim();
+const SAVE_DEBOUNCE_MS = 800;
+
+function getNotePreview(content = '', maxLen = 72) {
+  const trimmed = String(content || '').replace(/\s+/g, ' ').trim();
   if (!trimmed) return 'Nog geen tekst — tik om te beginnen…';
   return trimmed.length > maxLen ? `${trimmed.slice(0, maxLen)}…` : trimmed;
 }
@@ -19,7 +23,13 @@ function NotesView({
   const [searchQuery, setSearchQuery] = useState('');
   const [saveState, setSaveState] = useState('saved');
   const [mobileShowList, setMobileShowList] = useState(true);
-  const saveTimerRef = useRef(null);
+  const saveDebounceRef = useRef(null);
+  const saveStateTimerRef = useRef(null);
+  const pendingPatchesRef = useRef(new Map());
+  const activeNoteIdRef = useRef(null);
+  const prevActiveNoteIdRef = useRef(null);
+  const noteFieldValuesRef = useRef({ title: '', content: '' });
+  activeNoteIdRef.current = activeNoteId;
   const myNotes = notes.filter(n => n.authorId === (role === 'gm' ? 'gm' : currentPlayerId));
   const activeNote = myNotes.find(n => n.id === activeNoteId) || null;
 
@@ -31,6 +41,37 @@ function NotesView({
       return haystack.includes(query);
     });
   }, [myNotes, searchQuery]);
+
+  useEffect(() => {
+    noteFieldValuesRef.current = {
+      title: activeNote?.title ?? '',
+      content: activeNote?.content ?? '',
+    };
+  }, [activeNote?.id]);
+
+  useEffect(() => {
+    if (!activeNote) return undefined;
+
+    const handleNotesKeyDown = (event) => {
+      const target = event.target;
+      if (!target?.closest?.('.tv-notes-parchment')) return;
+      if (event.isComposing || event.ctrlKey || event.metaKey || event.altKey) return;
+
+      primeUiAudio();
+
+      if (event.key === 'Enter') {
+        playWriteSound({ char: '\n' });
+        return;
+      }
+
+      if (event.key.length !== 1) return;
+
+      playWriteSound({ char: event.key });
+    };
+
+    document.addEventListener('keydown', handleNotesKeyDown, true);
+    return () => document.removeEventListener('keydown', handleNotesKeyDown, true);
+  }, [activeNote?.id]);
 
   useEffect(() => {
     if (!activeNoteId && myNotes.length > 0) {
@@ -48,15 +89,71 @@ function NotesView({
     }
   }, [myNotes.length]);
 
-  useEffect(() => () => {    if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
-  }, []);
-
   const pulseSaveState = useCallback((nextState) => {
     setSaveState(nextState);
-    if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
+    if (saveStateTimerRef.current) clearTimeout(saveStateTimerRef.current);
     if (nextState === 'saved') return;
-    saveTimerRef.current = setTimeout(() => setSaveState('saved'), 1400);
+    saveStateTimerRef.current = setTimeout(() => setSaveState('saved'), 1400);
   }, []);
+
+  const flushNoteSave = useCallback(async (noteId) => {
+    if (!noteId || !onUpdateNoteRemote) return;
+
+    const patch = pendingPatchesRef.current.get(noteId);
+    if (!patch || Object.keys(patch).length === 0) return;
+
+    pendingPatchesRef.current.delete(noteId);
+
+    try {
+      await onUpdateNoteRemote(noteId, patch);
+      if (activeNoteIdRef.current === noteId) pulseSaveState('saved');
+    } catch (err) {
+      console.error('Notitie opslaan mislukt:', err);
+      const retryPatch = { ...patch, ...pendingPatchesRef.current.get(noteId) };
+      pendingPatchesRef.current.set(noteId, retryPatch);
+      if (activeNoteIdRef.current === noteId) pulseSaveState('error');
+    }
+  }, [onUpdateNoteRemote, pulseSaveState]);
+
+  const flushPendingForNote = useCallback(async (noteId) => {
+    if (!noteId) return;
+    if (saveDebounceRef.current) {
+      clearTimeout(saveDebounceRef.current);
+      saveDebounceRef.current = null;
+    }
+    await flushNoteSave(noteId);
+  }, [flushNoteSave]);
+
+  const scheduleNoteSave = useCallback((noteId, field, value) => {
+    if (!onUpdateNoteRemote || !noteId) return;
+
+    const existing = pendingPatchesRef.current.get(noteId) || {};
+    pendingPatchesRef.current.set(noteId, { ...existing, [field]: value });
+    pulseSaveState('writing');
+
+    if (saveDebounceRef.current) clearTimeout(saveDebounceRef.current);
+    saveDebounceRef.current = setTimeout(() => {
+      saveDebounceRef.current = null;
+      void flushNoteSave(noteId);
+    }, SAVE_DEBOUNCE_MS);
+  }, [flushNoteSave, onUpdateNoteRemote, pulseSaveState]);
+
+  useEffect(() => {
+    const prevId = prevActiveNoteIdRef.current;
+    if (prevId && prevId !== activeNoteId) {
+      void flushPendingForNote(prevId);
+    }
+    prevActiveNoteIdRef.current = activeNoteId;
+  }, [activeNoteId, flushPendingForNote]);
+
+  useEffect(() => () => {
+    if (saveDebounceRef.current) clearTimeout(saveDebounceRef.current);
+    if (saveStateTimerRef.current) clearTimeout(saveStateTimerRef.current);
+    const activeId = activeNoteIdRef.current;
+    if (activeId && pendingPatchesRef.current.has(activeId)) {
+      void flushNoteSave(activeId);
+    }
+  }, [flushNoteSave]);
 
   const handleCreateNote = async () => {
     try {
@@ -69,6 +166,7 @@ function NotesView({
         setActiveNoteId(createdId);
         setMobileShowList(false);
         setSaveState('saved');
+        playUiSound('paper');
         return;
       }
     } catch (err) {
@@ -88,33 +186,49 @@ function NotesView({
     setActiveNoteId(newNote.id);
     setMobileShowList(false);
     setSaveState('saved');
+    playUiSound('paper');
   };
 
-  const handleUpdateNote = async (field, value) => {
+  const handleUpdateNote = (field, value) => {
     if (!activeNote) return;
 
-    pulseSaveState('writing');
+    setNotes((prev) => prev.map((n) =>
+      n.id === activeNote.id ? { ...n, [field]: value, lastEdited: 'Zojuist' } : n
+    ));
 
     if (onUpdateNoteRemote) {
-      try {
-        await onUpdateNoteRemote(activeNote.id, { [field]: value });
-        pulseSaveState('saved');
-      } catch (err) {
-        console.error('Notitie opslaan mislukt:', err);
-        pulseSaveState('error');
-      }
-    } else {
-      pulseSaveState('saved');
+      scheduleNoteSave(activeNote.id, field, value);
+      return;
     }
 
-    const updatedNotes = notes.map(n =>
-      n.id === activeNote.id ? { ...n, [field]: value, lastEdited: 'Zojuist' } : n
-    );
-    setNotes(updatedNotes);
+    pulseSaveState('saved');
+  };
+
+  const handleNoteFieldBlur = () => {
+    if (activeNote) flushPendingForNote(activeNote.id);
+  };
+
+  const handleNoteFieldFocus = () => {
+    primeUiAudio();
+  };
+
+  const handleNoteFieldChange = (field) => (event) => {
+    const nextValue = event.target.value;
+    const previousValue = noteFieldValuesRef.current[field] ?? '';
+
+    primeUiAudio();
+    if (nextValue.length > previousValue.length) {
+      playWritingFromValueChange(previousValue, nextValue);
+    }
+
+    noteFieldValuesRef.current[field] = nextValue;
+    handleUpdateNote(field, nextValue);
   };
 
   const handleDeleteNote = async (id) => {
     if (window.confirm('Weet je zeker dat je deze notitie wilt verwijderen?')) {
+      await flushPendingForNote(id);
+      pendingPatchesRef.current.delete(id);
       if (onDeleteNoteRemote) {
         try {
           await onDeleteNoteRemote(id);
@@ -133,6 +247,7 @@ function NotesView({
   };
 
   const handleSelectNote = (id) => {
+    if (id !== activeNoteId) playUiSound('paper');
     setActiveNoteId(id);
     setMobileShowList(false);
   };
@@ -273,15 +388,20 @@ function NotesView({
                 <div className="relative z-10 flex min-h-0 flex-1 flex-col p-4 md:p-6">
                   <input
                     type="text"
+                    data-note-field="title"
                     value={activeNote.title}
-                    onChange={(e) => handleUpdateNote('title', e.target.value)}
+                    onFocus={handleNoteFieldFocus}
+                    onChange={handleNoteFieldChange('title')}
+                    onBlur={handleNoteFieldBlur}
                     className="mb-3 border-b border-[color-mix(in_srgb,var(--tv-border),transparent_48%)] bg-transparent pb-2 font-fantasy text-xl font-bold tracking-[0.08em] tv-text outline-none transition-colors focus:border-[color-mix(in_srgb,var(--tv-accent),transparent_45%)] md:mb-4 md:text-2xl"
-                    placeholder="Titel van je notitie…"
                     aria-label="Notitietitel"
                   />
                   <textarea
+                    data-note-field="content"
                     value={activeNote.content}
-                    onChange={(e) => handleUpdateNote('content', e.target.value)}
+                    onFocus={handleNoteFieldFocus}
+                    onChange={handleNoteFieldChange('content')}
+                    onBlur={handleNoteFieldBlur}
                     className="no-scrollbar tv-notes-editor font-story flex-1 resize-none bg-transparent text-sm leading-[1.75] tv-text outline-none md:text-base"
                     placeholder="Begin met schrijven — questnotities, NPC-dialoog, geheime plannen…"
                     aria-label="Notitie-inhoud"

@@ -7,9 +7,9 @@ import {
   resolveDisplayAvatar,
   PROFILE_PROMPT_AVATARS,
 } from '../lib/placeholders';
-import { STAT_SUGGESTIONS } from '../data/mockData';
 import { sendChatMessage } from '../lib/chatUtils';
 import { COMBAT_STATUS } from '../lib/battleUtils';
+import CustomStatChips from '../ui/CustomStatChips';
 import {
   CONDITIONS,
   CONDITION_BADGE_COLORS,
@@ -418,39 +418,12 @@ function CharacterProfileModal({
             open={showStatsPanel}
             onToggle={() => setShowStatsPanel((current) => !current)}
           >
-            <div className="flex flex-wrap gap-2">
-              {(formData.customStats || []).map((stat) => (
-                <div key={stat.id} className="tv-chip-surface flex items-center overflow-hidden rounded-lg">
-                  <input
-                    list="stat-options"
-                    value={stat.name}
-                    onChange={(e) => {
-                      const cleanAbbr = e.target.value.split(' - ')[0].trim().toUpperCase();
-                      updateCustomStat(stat.id, 'name', cleanAbbr);
-                    }}
-                    className="tv-accent w-16 border-r border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] bg-transparent p-1.5 text-center text-[10px] font-bold uppercase tracking-widest outline-none placeholder:tv-muted"
-                    placeholder="—"
-                  />
-                  <input
-                    type="number"
-                    value={stat.value}
-                    onChange={(e) => updateCustomStat(stat.id, 'value', e.target.value)}
-                    className="tv-text w-10 hide-arrows bg-transparent p-1 text-center text-sm font-bold outline-none"
-                  />
-                  <button onClick={() => removeCustomStat(stat.id)} className="p-1.5 tv-muted transition-colors tv-hover-danger" title="Verwijder" aria-label="Verwijder eigenschap">
-                    <X className="h-3 w-3" />
-                  </button>
-                </div>
-              ))}
-              <button onClick={addCustomStat} className="tv-icon-btn tv-icon-btn--sm border border-dashed tv-chip-surface tv-muted transition-colors hover:tv-accent hover:border-[color-mix(in_srgb,var(--tv-accent),transparent_52%)]" title="Voeg eigenschap toe" aria-label="Voeg eigenschap toe">
-                <Plus className="h-4 w-4" />
-              </button>
-            </div>
-            <datalist id="stat-options">
-              {STAT_SUGGESTIONS.map((s) => (
-                <option key={s.abbr} value={`${s.abbr} - ${s.name}`} />
-              ))}
-            </datalist>
+            <CustomStatChips
+              stats={formData.customStats || []}
+              onAdd={addCustomStat}
+              onUpdate={updateCustomStat}
+              onRemove={removeCustomStat}
+            />
           </ProfileFold>
         ) : null}
 

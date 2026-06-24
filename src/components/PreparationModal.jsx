@@ -1,18 +1,18 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { NotebookPen, Plus, Save, UserRound, X } from 'lucide-react';
+import { NotebookPen, Plus, Save, UserRound } from 'lucide-react';
 import { PROFILE_PROMPT_AVATARS, resolveDisplayAvatar } from '../lib/placeholders';
-import { STAT_SUGGESTIONS } from '../data/mockData';
 import ModalFrame from './ModalFrame';
 import Button from './Button';
+import CustomStatChips from '../ui/CustomStatChips';
 import {
   CREATE_MODAL_BODY_CLASS,
-  CREATE_MODAL_SCROLL_CLASS,
+  CREATE_MODAL_FLAT_SCROLL_CLASS,
   CreateFormField,
   CreateFormIdentityRow,
   CreateFormImageActions,
-  CreateFormPanel,
   CreateFormPlaceholderGrid,
   CreateFormSection,
+  CreateFormStack,
 } from '../ui/CreateFormPrimitives';
 
 function getInitialPreparationState(preparation) {
@@ -136,7 +136,7 @@ export default function PreparationModal({
       title={isEditing ? 'Voorbereiding' : 'Nieuw profiel'}
       subtitle={formData.name || 'Karakterprofiel'}
       icon={NotebookPen}
-      maxWidthClassName="max-w-lg"
+      maxWidthClassName="max-w-xl"
       bodyClassName={CREATE_MODAL_BODY_CLASS}
       footer={(
         <div className={`grid w-full gap-2 ${isEditing ? 'sm:grid-cols-[auto_1fr_1fr]' : 'sm:grid-cols-2'}`}>
@@ -169,9 +169,10 @@ export default function PreparationModal({
       <form id="preparation-form" onSubmit={handleSubmit} className="flex min-h-0 flex-1 flex-col">
         <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleImageChange} />
 
-        <div className={CREATE_MODAL_SCROLL_CLASS}>
-          <CreateFormPanel>
+        <div className={CREATE_MODAL_FLAT_SCROLL_CLASS}>
+          <CreateFormStack>
             <CreateFormIdentityRow
+              flat
               imageUrl={resolveDisplayAvatar(formData.imageUrl, formData.id || 'new-preparation')}
               onImageClick={openFilePicker}
               fallbackIcon={UserRound}
@@ -183,58 +184,49 @@ export default function PreparationModal({
               autoFocus
               required
             />
-
-            <CreateFormSection>
-              <CreateFormField label="Rol / klasse / archetype" htmlFor="prep-subtitle">
-                <input
-                  id="prep-subtitle"
-                  type="text"
-                  value={formData.subtitle || ''}
-                  onChange={(event) => handleChange('subtitle', event.target.value)}
-                  placeholder="Bijv. Elf Ranger"
-                  className="tv-field"
+            <CreateFormImageActions
+              onUpload={openFilePicker}
+              showPicker={showPlaceholderPicker}
+              onTogglePicker={() => setShowPlaceholderPicker((value) => !value)}
+              onClear={() => {
+                setPendingFile(null);
+                handleChange('imageUrl', null);
+              }}
+              hasImage={Boolean(formData.imageUrl)}
+              pickerClosedLabel="Avatar"
+            />
+            {showPlaceholderPicker ? (
+              <div className="space-y-2">
+                <CreateFormPlaceholderGrid
+                  images={placeholderImages}
+                  selectedUrl={formData.imageUrl}
+                  onPick={handlePickAvatar}
+                  maxHeightClass="max-h-36"
+                  gridClass="grid-cols-6 sm:grid-cols-8"
                 />
-              </CreateFormField>
-            </CreateFormSection>
-
-            <CreateFormSection>
-              <CreateFormField label="Portret">
-                <CreateFormImageActions
-                  onUpload={openFilePicker}
-                  showPicker={showPlaceholderPicker}
-                  onTogglePicker={() => setShowPlaceholderPicker((value) => !value)}
-                  onClear={() => {
-                    setPendingFile(null);
-                    handleChange('imageUrl', null);
-                  }}
-                  hasImage={Boolean(formData.imageUrl)}
-                  pickerClosedLabel="Avatar"
-                />
-                {showPlaceholderPicker ? (
-                  <div className="mt-2.5 space-y-2">
-                    <CreateFormPlaceholderGrid
-                      images={placeholderImages}
-                      selectedUrl={formData.imageUrl}
-                      onPick={handlePickAvatar}
-                      maxHeightClass="max-h-40"
-                    />
-                    {!showAllPlaceholders && PROFILE_PROMPT_AVATARS.length > placeholderImages.length ? (
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        block
-                        onClick={() => setShowAllPlaceholders(true)}
-                      >
-                        Toon alle avatars
-                      </Button>
-                    ) : null}
-                  </div>
+                {!showAllPlaceholders && PROFILE_PROMPT_AVATARS.length > placeholderImages.length ? (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    block
+                    onClick={() => setShowAllPlaceholders(true)}
+                  >
+                    Toon alle avatars
+                  </Button>
                 ) : null}
-              </CreateFormField>
-            </CreateFormSection>
+              </div>
+            ) : null}
+            <input
+              id="prep-subtitle"
+              type="text"
+              value={formData.subtitle || ''}
+              onChange={(event) => handleChange('subtitle', event.target.value)}
+              placeholder="Rol / klasse / archetype — bijv. Elf Ranger"
+              className="tv-field"
+            />
 
-            <CreateFormSection>
+            <CreateFormSection flat>
               <CreateFormField label="Kerncijfers">
                 <div className="tv-stat-grid">
                   <div className="tv-stat-cell">
@@ -277,59 +269,19 @@ export default function PreparationModal({
               </CreateFormField>
             </CreateFormSection>
 
-            <CreateFormSection>
+            <CreateFormSection flat>
               <CreateFormField label="Verborgen eigenschappen" aside="Optioneel">
-                <div className="flex flex-wrap gap-2">
-                  {(formData.customStats || []).map((stat) => (
-                    <div
-                      key={stat.id}
-                      className="flex items-center overflow-hidden rounded-lg border border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] tv-panel-inset shadow-inner transition-colors focus-within:border-[var(--tv-accent)]/60"
-                    >
-                      <input
-                        list="preparation-stat-options"
-                        value={stat.name}
-                        onChange={(event) => {
-                          const cleanAbbr = event.target.value.split(' - ')[0].trim().toUpperCase();
-                          updateCustomStat(stat.id, 'name', cleanAbbr);
-                        }}
-                        className="w-16 border-r border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] bg-transparent p-1.5 text-center text-[10px] font-bold uppercase tracking-widest text-[var(--tv-accent)] outline-none placeholder:tv-muted"
-                        placeholder="NAAM"
-                      />
-                      <input
-                        type="number"
-                        value={stat.value}
-                        onChange={(event) => updateCustomStat(stat.id, 'value', event.target.value)}
-                        className="hide-arrows w-10 bg-transparent p-1 text-center text-sm font-bold tv-text outline-none"
-                      />
-                      <button
-                        type="button"
-                        onClick={() => removeCustomStat(stat.id)}
-                        className="tv-panel-inset p-1.5 tv-muted transition-colors tv-hover-danger"
-                        title="Verwijder eigenschap"
-                      >
-                        <X className="h-3 w-3" />
-                      </button>
-                    </div>
-                  ))}
-                  <button
-                    type="button"
-                    onClick={addCustomStat}
-                    className="tv-icon-btn tv-icon-btn--sm border border-dashed border-[color-mix(in_srgb,var(--tv-border),transparent_35%)] tv-panel-inset tv-muted transition-colors hover:border-[var(--tv-accent)]/60 hover:text-[var(--tv-accent)]"
-                    title="Voeg eigenschap toe"
-                  >
-                    <Plus className="h-4 w-4" />
-                  </button>
-                </div>
-                <datalist id="preparation-stat-options">
-                  {STAT_SUGGESTIONS.map((suggestion) => (
-                    <option key={suggestion.abbr} value={`${suggestion.abbr} - ${suggestion.name}`} />
-                  ))}
-                </datalist>
+                <CustomStatChips
+                  stats={formData.customStats || []}
+                  onAdd={addCustomStat}
+                  onUpdate={updateCustomStat}
+                  onRemove={removeCustomStat}
+                />
               </CreateFormField>
             </CreateFormSection>
 
             {players.length > 0 ? (
-              <CreateFormSection>
+              <CreateFormSection flat>
                 <CreateFormField
                   label="Speler in deze sessie"
                   htmlFor="prep-player"
@@ -384,19 +336,19 @@ export default function PreparationModal({
               </CreateFormSection>
             ) : null}
 
-            <CreateFormSection>
+            <CreateFormSection flat>
               <CreateFormField label="Notities & lore" htmlFor="prep-bio">
                 <textarea
                   id="prep-bio"
                   value={formData.bio || ''}
                   onChange={(event) => handleChange('bio', event.target.value)}
                   placeholder="Achtergrondverhaal, spreuken, wapens of tijdelijke effecten..."
-                  rows={4}
-                  className="tv-field resize-none font-story leading-relaxed"
+                  rows={8}
+                  className="tv-field tv-field--textarea font-story leading-relaxed"
                 />
               </CreateFormField>
             </CreateFormSection>
-          </CreateFormPanel>
+          </CreateFormStack>
         </div>
       </form>
     </ModalFrame>

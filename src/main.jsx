@@ -3,6 +3,7 @@ import { createRoot } from 'react-dom/client'
 import './index.css'
 import App from './App.jsx'
 import RuntimeErrorScreen from './components/RuntimeErrorScreen.jsx'
+import { DEFAULT_THEME } from './lib/appThemes.js'
 
 const rootElement = document.getElementById('root')
 const root = createRoot(rootElement)
@@ -12,10 +13,10 @@ function bootstrapTheme() {
   if (typeof window === 'undefined') return
 
   try {
-    const savedTheme = window.localStorage.getItem('tomevault-theme') || 'midnight-tome'
+    const savedTheme = window.localStorage.getItem('tomevault-theme') || DEFAULT_THEME
     document.documentElement.setAttribute('data-theme', savedTheme)
   } catch (_) {
-    document.documentElement.setAttribute('data-theme', 'midnight-tome')
+    document.documentElement.setAttribute('data-theme', DEFAULT_THEME)
   }
 }
 

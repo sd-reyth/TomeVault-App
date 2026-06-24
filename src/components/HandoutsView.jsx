@@ -49,7 +49,7 @@ function HandoutsView({ role, handouts, currentPlayerId, onToggleVisibility, onT
       return;
     }
 
-    playUiSound('success');
+    playUiSound('paper');
     setSecretToggleHint(null);
   };
 
@@ -244,7 +244,10 @@ function HandoutsView({ role, handouts, currentPlayerId, onToggleVisibility, onT
               </button>
 
               <button
-                onClick={onCreateHandout}
+                onClick={() => {
+                  playUiSound('paper');
+                  onCreateHandout?.();
+                }}
                 className="tv-toolbar__btn tv-button-primary w-full gap-2 px-4 text-sm uppercase tracking-[0.16em] active:scale-[0.985] sm:w-auto"
               >
                 <Plus className="h-4 w-4 shrink-0" /> <span className="truncate">Nieuw</span>
@@ -339,7 +342,10 @@ function HandoutsView({ role, handouts, currentPlayerId, onToggleVisibility, onT
             return (
               <div
                 key={handout.id}
-                onClick={() => onOpenHandout(handout)}
+                onClick={() => {
+                  playUiSound('book');
+                  onOpenHandout(handout);
+                }}
                 className={`group relative flex cursor-pointer overflow-hidden rounded-2xl transition-all duration-200 ease-out ${viewMode === 'grid' ? 'flex-col' : 'flex-row items-stretch'} backdrop-blur-sm ${handout.isRevealed ? 'tv-handout-card shadow-lg' : 'tv-handout-card tv-handout-card--hidden'}`}
               >
                 <div className="absolute inset-0 opacity-[0.03] bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI4IiBoZWlnaHQ9IjgiPgo8cmVjdCB3aWR0aD0iOCIgaGVpZ2h0PSI4IiBmaWxsPSIjZmZmIiBmaWxsLW9wYWNpdHk9IjAuMSIvPgo8L3N2Zz4=')] pointer-events-none" />

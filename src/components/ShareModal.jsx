@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import QRCodeStyling from 'qr-code-styling';
 import { Copy, QrCode, Share2 } from 'lucide-react';
 import { buildSessionInviteUrl, toLegacyHashJoinTag, toSafeJoinTagForLink } from '../lib/sessionUtils';
-import { getThemeQrColors } from '../lib/appThemes';
+import { DEFAULT_THEME, getThemeQrColors } from '../lib/appThemes';
 import ModalFrame from './ModalFrame';
 
 function StyledQRCode({ value, theme, size }) {
@@ -64,7 +64,7 @@ function StyledQRCode({ value, theme, size }) {
 export default function ShareModal({ isOpen, onClose, sessionId, theme }) {
   const [copyFeedback, setCopyFeedback] = useState('');
 
-  const resolvedTheme = theme || 'midnight-tome';
+  const resolvedTheme = theme || DEFAULT_THEME;
   const canonicalSessionCode = toLegacyHashJoinTag(sessionId);
   const scannerSafeCode = toSafeJoinTagForLink(sessionId);
   const joinUrl = buildSessionInviteUrl(sessionId);
