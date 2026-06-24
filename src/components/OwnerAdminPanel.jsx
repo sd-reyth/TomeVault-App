@@ -161,7 +161,7 @@ export default function OwnerAdminPanel({ isOpen, onClose, uid, isOwner = false 
                 type="button"
                 onClick={handleLookupUser}
                 disabled={loading}
-                className="tv-button-secondary inline-flex h-10 shrink-0 items-center justify-center gap-2 rounded-lg px-4"
+                className="tv-btn tv-button-secondary shrink-0 gap-2 px-4"
               >
                 <Search className="h-4 w-4" />
                 <span className="hidden sm:inline text-xs font-fantasy uppercase tracking-[0.16em]">Zoek</span>
@@ -180,7 +180,7 @@ export default function OwnerAdminPanel({ isOpen, onClose, uid, isOwner = false 
                     <p className="tv-accent mt-2 text-xs uppercase tracking-[0.16em]">Rol: {resolvedUser.lastKnownRole}</p>
                   ) : null}
                 </div>
-                <div className="tv-chip-surface tv-accent rounded-full px-3 py-1 text-[10px] font-bold uppercase tracking-[0.18em]">
+                <div className="tv-chip-surface tv-tag tv-accent px-3 py-1 text-[10px] font-bold uppercase tracking-[0.18em]">
                   OK
                 </div>
               </div>
@@ -237,7 +237,7 @@ export default function OwnerAdminPanel({ isOpen, onClose, uid, isOwner = false 
             type="button"
             onClick={handleGrantPlan}
             disabled={loading}
-            className="tv-button-primary inline-flex h-10 w-full items-center justify-center gap-2 rounded-lg font-fantasy text-sm uppercase tracking-[0.16em] disabled:opacity-50"
+            className="tv-btn tv-button-primary tv-btn--block w-full gap-2 font-fantasy text-sm uppercase tracking-[0.16em] disabled:opacity-50"
           >
             <Crown className="h-4 w-4" /> {loading ? '…' : selectedPlan.label}
           </button>
@@ -246,7 +246,7 @@ export default function OwnerAdminPanel({ isOpen, onClose, uid, isOwner = false 
             type="button"
             onClick={handleResetToFree}
             disabled={loading}
-            className="tv-button-secondary inline-flex h-10 w-full items-center justify-center gap-2 rounded-lg font-fantasy text-sm uppercase tracking-[0.16em] disabled:opacity-50"
+            className="tv-btn tv-button-secondary tv-btn--block w-full gap-2 font-fantasy text-sm uppercase tracking-[0.16em] disabled:opacity-50"
           >
             <RotateCcw className="h-4 w-4" /> Gratis
           </button>

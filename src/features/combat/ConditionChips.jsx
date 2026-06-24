@@ -5,14 +5,14 @@ import Text from '../../ui/Text';
 import { CONDITION_TONE_HEX, getCondition } from '../../lib/battleConditions';
 import { CONDITION_ICON_MAP } from './conditionIconMap';
 
-export default function ConditionChips({ conditions, isGm, onEdit }) {
+export default function ConditionChips({ conditions, isGm, onEdit, className = '' }) {
   if (!conditions.length) return null;
 
   const visible = conditions.slice(0, 4);
   const overflow = conditions.length - visible.length;
 
   return (
-    <div className="mt-1.5 flex flex-wrap items-center gap-1">
+    <div className={`flex flex-wrap items-center gap-1 ${className || 'mt-1.5'}`}>
       {visible.map((condition, index) => {
         const meta = getCondition(condition.id);
         const ConditionListIcon = CONDITION_ICON_MAP[meta?.icon] || AlertCircle;

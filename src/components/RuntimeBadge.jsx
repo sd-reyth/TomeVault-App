@@ -3,36 +3,42 @@ import React from 'react';
 export default function RuntimeBadge({ runtimeBadge, compact = false, className = '' }) {
   if (!runtimeBadge) return null;
 
-  const toneClasses = compact
-    ? 'tv-runtime-badge tv-runtime-badge--compact'
-    : (runtimeBadge.warning
-      ? 'tv-runtime-badge tv-runtime-badge--warning'
-      : 'tv-runtime-badge tv-runtime-badge--info');
-  const roleChipClasses = compact
-    ? 'rounded-full border border-[color-mix(in_srgb,var(--tv-status-warning),transparent_55%)] bg-[color-mix(in_srgb,var(--tv-status-warning),transparent_88%)] px-2 py-0.5 text-[9px] font-bold uppercase tracking-[0.18em] text-[color-mix(in_srgb,var(--tv-status-warning),#fff_72%)]'
-    : 'rounded-full border border-current/15 bg-black/10 px-2 py-0.5 text-[9px] font-bold uppercase tracking-[0.18em]';
+  if (compact) {
+    return (
+      <div
+        className={`tv-topbar-chip tv-topbar-chip--text tv-topbar-chip--static gap-1.5 px-2.5 text-[10px] font-semibold uppercase tracking-[0.1em] ${className}`.trim()}
+        title={runtimeBadge.warning || `${runtimeBadge.environmentLabel} · ${runtimeBadge.hostLabel} · ${runtimeBadge.sourceLabel}`}
+      >
+        <span className="tv-text">{runtimeBadge.environmentLabel}</span>
+        <span className="tv-muted opacity-60">·</span>
+        <span className="text-[color:var(--tv-accent)]">{runtimeBadge.roleLabel}</span>
+        <span className="tv-muted hidden opacity-60 lg:inline">·</span>
+        <span className="tv-muted hidden lg:inline">{runtimeBadge.hostLabel}</span>
+      </div>
+    );
+  }
+
+  const toneClasses = runtimeBadge.warning
+    ? 'tv-runtime-badge tv-runtime-badge--warning'
+    : 'tv-runtime-badge tv-runtime-badge--info';
 
   return (
     <div
-      className={`rounded-xl border px-3 py-2 ${compact ? '' : 'shadow-[0_12px_28px_rgba(0,0,0,0.18)]'} backdrop-blur ${toneClasses} ${className}`.trim()}
+      className={`rounded-xl border px-3 py-2 shadow-[0_12px_28px_rgba(0,0,0,0.18)] backdrop-blur ${toneClasses} ${className}`.trim()}
       title={runtimeBadge.warning || `${runtimeBadge.environmentLabel} · ${runtimeBadge.hostLabel} · ${runtimeBadge.sourceLabel}`}
     >
       <div className="flex items-center gap-2">
         <span className="text-[9px] font-bold uppercase tracking-[0.22em]">{runtimeBadge.environmentLabel}</span>
-        <span className={roleChipClasses}>
+        <span className="tv-tag border border-current/15 bg-black/10 px-2 py-0.5 text-[9px] font-bold uppercase tracking-[0.18em]">
           {runtimeBadge.roleLabel}
         </span>
         <span className="tv-runtime-badge__meta text-[9px] uppercase tracking-[0.16em]">{runtimeBadge.hostLabel}</span>
       </div>
 
-      {compact ? null : (
-        <>
-          <div className="tv-runtime-badge__meta mt-1 text-[9px] uppercase tracking-[0.18em]">{runtimeBadge.sourceLabel}</div>
-          {runtimeBadge.warning ? (
-            <p className="mt-1 max-w-[240px] text-[10px] leading-4 tv-text-sub">{runtimeBadge.warning}</p>
-          ) : null}
-        </>
-      )}
+      <div className="tv-runtime-badge__meta mt-1 text-[9px] uppercase tracking-[0.18em]">{runtimeBadge.sourceLabel}</div>
+      {runtimeBadge.warning ? (
+        <p className="mt-1 max-w-[240px] text-[10px] leading-4 tv-text-sub">{runtimeBadge.warning}</p>
+      ) : null}
     </div>
   );
 }

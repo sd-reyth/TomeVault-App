@@ -113,7 +113,7 @@ export default function ShareModal({ isOpen, onClose, sessionId, theme }) {
       <div className="grid w-full grid-cols-1 gap-2.5 sm:grid-cols-2">
         <button
           onClick={() => handleCopy(canonicalSessionCode, 'code')}
-          className="tv-button-secondary inline-flex h-9 w-full items-center justify-center gap-2 rounded-lg px-3 text-xs uppercase tracking-[0.14em] transition-all duration-200 ease-out active:scale-[0.985]"
+          className="tv-btn tv-button-secondary tv-btn--block w-full gap-2 text-xs uppercase tracking-[0.14em] transition-all duration-200 ease-out active:scale-[0.985]"
         >
           <Copy className="h-3.5 w-3.5" />
           {copyFeedback === 'code' ? 'Gekopieerd' : 'Code'}
@@ -121,7 +121,7 @@ export default function ShareModal({ isOpen, onClose, sessionId, theme }) {
 
         <button
           onClick={() => handleCopy(joinUrl, 'link')}
-          className="tv-button-secondary inline-flex h-9 w-full items-center justify-center gap-2 rounded-lg px-3 text-xs uppercase tracking-[0.14em] transition-all duration-200 ease-out active:scale-[0.985]"
+          className="tv-btn tv-button-secondary tv-btn--block w-full gap-2 text-xs uppercase tracking-[0.14em] transition-all duration-200 ease-out active:scale-[0.985]"
         >
           <Copy className="h-3.5 w-3.5" />
           {copyFeedback === 'link' ? 'Gekopieerd' : 'Link'}
@@ -131,7 +131,7 @@ export default function ShareModal({ isOpen, onClose, sessionId, theme }) {
           href={`https://wa.me/?text=${encodeURIComponent(waText)}`}
           target="_blank"
           rel="noopener noreferrer"
-          className="tv-button-primary inline-flex h-9 w-full items-center justify-center gap-2 rounded-lg px-3 text-xs uppercase tracking-[0.14em] transition-all duration-200 ease-out active:scale-[0.985] sm:col-span-2"
+          className="tv-btn tv-button-primary tv-btn--block w-full gap-2 text-xs uppercase tracking-[0.14em] transition-all duration-200 ease-out active:scale-[0.985] sm:col-span-2"
         >
           <Share2 className="h-3.5 w-3.5" />
           WhatsApp Delen

@@ -17,37 +17,195 @@
 }
 
 .app-shell-main {
-  padding: 0.75rem !important;
+  padding-inline: 0.75rem !important;
+  padding-top: 0.75rem !important;
+  padding-bottom: calc(var(--tv-mobile-nav-height) + 0.75rem) !important;
 }
 
 @media (min-width: 768px) {
   .app-shell-main {
-    padding: 1rem 1.25rem 1.25rem !important;
+    padding-inline: 1.25rem !important;
+    padding-top: 1rem !important;
+    padding-bottom: 1.25rem !important;
+  }
+}
+
+@media (max-width: 767px) and (orientation: landscape) {
+  .app-shell-main {
+    padding-bottom: calc(var(--tv-mobile-nav-height-compact) + 0.5rem) !important;
   }
 }
 
 /* ─── Top bar ─── */
 .tv-topbar-bg {
   background: color-mix(in srgb, var(--tv-bg-canvas), transparent 12%);
-  border-color: color-mix(in srgb, var(--tv-border), transparent 48%);
+  border-color: var(--tv-divider);
   box-shadow: 0 8px 32px color-mix(in srgb, var(--tv-ink), transparent 92%);
 }
 
 .tv-chip-surface {
-  border-radius: 999px;
-  border-color: color-mix(in srgb, var(--tv-border), transparent 32%);
+  border-radius: var(--tv-radius);
+  border-color: var(--tv-divider);
   background: color-mix(in srgb, var(--tv-bg-surface), transparent 6%);
   box-shadow: inset 0 1px 0 color-mix(in srgb, var(--tv-border), transparent 65%);
 }
 
 /* ─── Sidebar nav pills ─── */
 .tv-nav-bg {
-  background: color-mix(in srgb, var(--tv-bg-canvas), transparent 8%);
-  border-color: color-mix(in srgb, var(--tv-border), transparent 42%);
+  background:
+    radial-gradient(circle at 20% -5%, color-mix(in srgb, var(--tv-accent), transparent 84%), transparent 42%),
+    linear-gradient(
+      168deg,
+      color-mix(in srgb, var(--tv-bg-canvas), transparent 6%) 0%,
+      color-mix(in srgb, var(--tv-bg-canvas), var(--tv-ink) 6%) 100%
+    );
+  border-color: var(--tv-divider);
+  box-shadow: inset -1px 0 0 color-mix(in srgb, var(--tv-border), transparent 55%);
+}
+
+.tv-nav-dock-divider {
+  height: 1px;
+  margin: 0.35rem 0 0.65rem;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    color-mix(in srgb, var(--tv-border), transparent 28%) 18%,
+    color-mix(in srgb, var(--tv-border), transparent 28%) 82%,
+    transparent 100%
+  );
+}
+
+.tv-nav-footer {
+  position: relative;
+  overflow: hidden;
+  width: 100%;
+  flex-shrink: 0;
+  background:
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--tv-bg-surface), transparent 18%) 0%,
+      color-mix(in srgb, var(--tv-bg-canvas), var(--tv-ink) 10%) 100%
+    );
+}
+
+.tv-nav-footer::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    color-mix(in srgb, var(--tv-border), transparent 18%) 20%,
+    color-mix(in srgb, var(--tv-border), transparent 18%) 80%,
+    transparent 100%
+  );
+  pointer-events: none;
+}
+
+.tv-nav-footer__content {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding-block: 0.9rem 1rem;
+}
+
+.tv-nav-footer__content--rail {
+  align-items: center;
+  gap: 0.45rem;
+  padding-block: 0.8rem 0.95rem;
+}
+
+.tv-nav-footer__glow {
+  position: absolute;
+  right: -12%;
+  bottom: -55%;
+  width: 78%;
+  aspect-ratio: 1;
+  border-radius: var(--tv-radius-pill);
+  background: radial-gradient(circle, color-mix(in srgb, var(--tv-accent), transparent 68%), transparent 68%);
+  pointer-events: none;
+}
+
+.tv-nav-footer__mark {
+  position: absolute;
+  right: -0.15rem;
+  bottom: -0.35rem;
+  width: 4.5rem;
+  height: 4.5rem;
+  object-fit: contain;
+  opacity: 0.16;
+  filter: saturate(0.85);
+  pointer-events: none;
+  user-select: none;
+}
+
+.tv-nav-footer__chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 1.35rem;
+  padding: 0.1rem 0.45rem;
+  border-radius: var(--tv-radius);
+  border: 1px solid color-mix(in srgb, var(--tv-border), transparent 35%);
+  font-family: var(--font-ui);
+  font-size: 0.5625rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--tv-text-secondary);
+  background: color-mix(in srgb, var(--tv-bg-canvas), transparent 10%);
+}
+
+.tv-nav-footer__chip--role {
+  border-color: color-mix(in srgb, var(--tv-accent), transparent 62%);
+  color: var(--tv-text-primary);
+  background: color-mix(in srgb, var(--tv-accent), transparent 86%);
+}
+
+.tv-nav-footer__chip--session {
+  font-variant-numeric: tabular-nums;
+}
+
+.tv-nav-footer__chip--live {
+  border-color: color-mix(in srgb, var(--tv-accent), transparent 45%);
+  color: var(--tv-text-primary);
+  background: color-mix(in srgb, var(--tv-accent), transparent 78%);
+  box-shadow: 0 0 12px color-mix(in srgb, var(--tv-accent), transparent 72%);
+}
+
+.tv-nav-footer__chip--paused {
+  border-color: color-mix(in srgb, var(--tv-border), transparent 20%);
+  color: var(--tv-text-secondary);
+}
+
+.tv-nav-footer__status {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-family: var(--font-ui);
+  font-size: 0.625rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  color: var(--tv-text-primary);
+}
+
+.tv-nav-footer__status--live {
+  color: var(--tv-text-primary);
+  text-shadow: 0 0 18px color-mix(in srgb, var(--tv-accent), transparent 55%);
+}
+
+.tv-nav-footer__status--paused {
+  color: var(--tv-text-secondary);
 }
 
 .tv-nav-item {
-  border-radius: 999px;
+  border-radius: var(--tv-radius-lg);
   font-family: var(--font-ui);
   font-size: 0.6875rem;
   font-weight: 600;
@@ -57,14 +215,20 @@
 }
 
 .tv-nav-item:hover {
-  background: color-mix(in srgb, var(--tv-accent), transparent 90%);
+  background:
+    linear-gradient(
+      130deg,
+      color-mix(in srgb, var(--tv-accent), transparent 90%) 0%,
+      color-mix(in srgb, var(--tv-accent), transparent 94%) 100%
+    );
   color: var(--tv-text-primary);
   transform: translateY(-1px);
+  border-color: color-mix(in srgb, var(--tv-accent), transparent 70%);
 }
 
 .tv-nav-item-active {
   background: linear-gradient(
-    135deg,
+    132deg,
     color-mix(in srgb, var(--tv-accent), transparent 68%),
     color-mix(in srgb, var(--tv-accent), transparent 82%)
   );
@@ -79,34 +243,40 @@
   display: none;
 }
 
+@media (min-width: 768px) {
+  .tv-nav-item {
+    border-radius: var(--tv-radius-lg);
+  }
+}
+
 /* ─── Main view shells (Kronieken, Voorbereidingen, etc.) ─── */
 .tv-view-shell {
-  border-radius: 1.25rem;
-  border-color: color-mix(in srgb, var(--tv-border), transparent 48%);
-  background: color-mix(in srgb, var(--tv-bg-surface), transparent 2%);
+  border-radius: var(--tv-radius-xl);
+  border-color: var(--tv-divider);
+  background: color-mix(in srgb, var(--tv-view-surface), transparent 2%);
   box-shadow:
     0 20px 50px color-mix(in srgb, var(--tv-ink), transparent 88%),
-    inset 0 1px 0 color-mix(in srgb, var(--tv-border), transparent 55%);
+    inset 0 1px 0 color-mix(in srgb, var(--tv-divider), transparent 55%);
 }
 
 .tv-view-shell-header {
-  background: color-mix(in srgb, var(--tv-view-header), transparent 4%);
-  border-bottom-color: color-mix(in srgb, var(--tv-border), transparent 52%);
+  background: var(--tv-view-chrome);
+  border-bottom-color: var(--tv-divider);
 }
 
 .tv-panel-shell {
-  border-radius: 1rem;
-  border-color: color-mix(in srgb, var(--tv-border), transparent 45%);
+  border-radius: var(--tv-radius-lg);
+  border-color: var(--tv-divider);
   background: color-mix(in srgb, var(--tv-bg-surface), transparent 4%);
   box-shadow:
     0 12px 36px color-mix(in srgb, var(--tv-ink), transparent 90%),
-    inset 0 1px 0 color-mix(in srgb, var(--tv-border), transparent 60%);
+    inset 0 1px 0 color-mix(in srgb, var(--tv-divider), transparent 60%);
 }
 
 /* ─── Combat rail shell ─── */
 .tv-rail-surface {
   background: color-mix(in srgb, var(--tv-bg-canvas), transparent 6%) !important;
-  border-color: color-mix(in srgb, var(--tv-border), transparent 45%) !important;
+  border-color: var(--tv-divider) !important;
   box-shadow: -12px 0 40px color-mix(in srgb, var(--tv-ink), transparent 90%);
 }
 
@@ -126,7 +296,7 @@
 
 .tv-combat-deck {
   flex-shrink: 0;
-  border-top: 1px solid color-mix(in srgb, var(--tv-border), transparent 42%);
+  border-top: 1px solid var(--tv-divider);
   background: color-mix(in srgb, var(--tv-bg-canvas), transparent 4%);
   padding: 0.75rem 0.875rem calc(0.75rem + env(safe-area-inset-bottom, 0px));
   box-shadow: 0 -12px 32px color-mix(in srgb, var(--tv-ink), transparent 92%);
@@ -134,8 +304,8 @@
 
 /* ─── Combat rail header (compact) ─── */
 .tv-combat-rail-header {
-  border-radius: 0.875rem;
-  border: 1px solid color-mix(in srgb, var(--tv-border), transparent 42%);
+  border-radius: var(--tv-radius-md);
+  border: 1px solid var(--tv-divider);
   padding: 0.75rem;
   background: color-mix(in srgb, var(--tv-bg-surface), transparent 4%);
 }
@@ -150,10 +320,407 @@
 }
 
 .tv-combat-round-bar {
-  border-radius: 0.75rem;
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  min-height: 2.5rem;
+  border-radius: var(--tv-radius-md);
   border: 1px solid color-mix(in srgb, var(--tv-border), transparent 38%);
   background: color-mix(in srgb, var(--tv-bg-canvas), transparent 6%);
   padding: 0.45rem 0.55rem;
+}
+
+.tv-combat-round-bar__scene {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+  z-index: 1;
+}
+
+.tv-combat-round-bar__content {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.tv-combat-round-bar__orb {
+  position: absolute;
+  border-radius: 999px;
+  filter: blur(16px);
+  opacity: 0.5;
+}
+
+.tv-combat-round-bar__orb--a {
+  width: 46%;
+  height: 150%;
+  top: -28%;
+  left: -12%;
+}
+
+.tv-combat-round-bar__orb--b {
+  width: 38%;
+  height: 130%;
+  right: -8%;
+  bottom: -32%;
+}
+
+.tv-combat-round-bar__sheen {
+  position: absolute;
+  inset: -20% -40%;
+  background: linear-gradient(
+    105deg,
+    transparent 42%,
+    color-mix(in srgb, #fff, transparent 88%) 50%,
+    transparent 58%
+  );
+  transform: translateX(-120%);
+  opacity: 0.7;
+}
+
+.tv-combat-round-bar__ring {
+  position: absolute;
+  inset: 1px;
+  border-radius: calc(var(--tv-radius-md) - 1px);
+  border: 1px solid transparent;
+  opacity: 0;
+}
+
+.tv-combat-round-bar__idle-mark {
+  width: 0.45rem;
+  height: 0.45rem;
+  flex-shrink: 0;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--tv-text-secondary), transparent 35%);
+  box-shadow: 0 0 10px color-mix(in srgb, var(--tv-text-secondary), transparent 70%);
+  animation: tv-round-idle-dot 3.2s ease-in-out infinite;
+}
+
+.tv-combat-round-bar__label {
+  text-shadow: 0 1px 12px color-mix(in srgb, var(--tv-bg-canvas), transparent 20%);
+}
+
+.tv-combat-round-bar__media {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  border-radius: inherit;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.tv-combat-round-bar__video {
+  position: absolute;
+  inset: -22%;
+  width: 144%;
+  height: 144%;
+  object-fit: cover;
+  filter: blur(22px) saturate(1.28) brightness(0.58) contrast(1.1);
+  transform: scale(1.06);
+  opacity: 0.95;
+}
+
+.tv-combat-round-bar__media-veil {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--tv-bg-canvas), transparent 18%) 0%,
+    color-mix(in srgb, var(--tv-bg-canvas), transparent 58%) 100%
+  );
+  opacity: 0.72;
+}
+
+.tv-combat-round-bar__media-veil--idle {
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, #5c3d1e, transparent 72%) 0%,
+    color-mix(in srgb, var(--tv-bg-canvas), transparent 42%) 100%
+  );
+}
+
+.tv-combat-round-bar__media-veil--paused {
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--tv-status-warning), transparent 82%) 0%,
+    color-mix(in srgb, var(--tv-bg-canvas), transparent 46%) 100%
+  );
+}
+
+.tv-combat-round-bar__media-veil--combat,
+.tv-combat-round-bar__media-veil--player-turn,
+.tv-combat-round-bar__media-veil--ally-turn,
+.tv-combat-round-bar__media-veil--enemy-turn {
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--tv-tone-enemy), transparent 84%) 0%,
+    color-mix(in srgb, var(--tv-bg-canvas), transparent 44%) 100%
+  );
+}
+
+.tv-combat-round-bar--idle .tv-combat-round-bar__orb--a,
+.tv-combat-round-bar--paused .tv-combat-round-bar__orb--a,
+.tv-combat-round-bar--combat .tv-combat-round-bar__orb--a,
+.tv-combat-round-bar--player-turn .tv-combat-round-bar__orb--a,
+.tv-combat-round-bar--ally-turn .tv-combat-round-bar__orb--a,
+.tv-combat-round-bar--enemy-turn .tv-combat-round-bar__orb--a {
+  opacity: 0.55;
+}
+
+.tv-combat-round-bar--idle .tv-combat-round-bar__orb--b,
+.tv-combat-round-bar--paused .tv-combat-round-bar__orb--b,
+.tv-combat-round-bar--combat .tv-combat-round-bar__orb--b,
+.tv-combat-round-bar--player-turn .tv-combat-round-bar__orb--b,
+.tv-combat-round-bar--ally-turn .tv-combat-round-bar__orb--b,
+.tv-combat-round-bar--enemy-turn .tv-combat-round-bar__orb--b {
+  opacity: 0.45;
+}
+
+/* Ruststand — rustige ademhaling */
+.tv-combat-round-bar--idle .tv-combat-round-bar__orb--a {
+  background: color-mix(in srgb, var(--tv-text-secondary), transparent 72%);
+  animation: tv-round-idle-drift-a 9s ease-in-out infinite;
+}
+
+.tv-combat-round-bar--idle .tv-combat-round-bar__orb--b {
+  background: color-mix(in srgb, var(--tv-accent), transparent 88%);
+  animation: tv-round-idle-drift-b 11s ease-in-out infinite;
+}
+
+.tv-combat-round-bar--idle .tv-combat-round-bar__sheen {
+  animation: tv-round-idle-sheen 14s ease-in-out infinite;
+}
+
+/* Pauze — langzame amber gloed */
+.tv-combat-round-bar--paused {
+  border-color: color-mix(in srgb, var(--tv-status-warning), transparent 58%);
+}
+
+.tv-combat-round-bar--paused .tv-combat-round-bar__orb--a {
+  background: color-mix(in srgb, var(--tv-status-warning), transparent 78%);
+  animation: tv-round-paused-drift 6s ease-in-out infinite;
+}
+
+.tv-combat-round-bar--paused .tv-combat-round-bar__orb--b {
+  background: color-mix(in srgb, var(--tv-text-secondary), transparent 82%);
+  animation: tv-round-paused-drift 8s ease-in-out infinite reverse;
+}
+
+.tv-combat-round-bar--paused .tv-combat-round-bar__sheen {
+  animation: tv-round-paused-sheen 5s ease-in-out infinite;
+}
+
+/* Gevecht actief — algemene accent-puls */
+.tv-combat-round-bar--combat {
+  border-color: color-mix(in srgb, var(--tv-accent), transparent 62%);
+}
+
+.tv-combat-round-bar--combat .tv-combat-round-bar__orb--a {
+  background: color-mix(in srgb, var(--tv-accent), transparent 80%);
+  animation: tv-round-combat-pulse-a 4.5s ease-in-out infinite;
+}
+
+.tv-combat-round-bar--combat .tv-combat-round-bar__orb--b {
+  background: color-mix(in srgb, var(--tv-accent), transparent 88%);
+  animation: tv-round-combat-pulse-b 5.5s ease-in-out infinite;
+}
+
+.tv-combat-round-bar--combat .tv-combat-round-bar__ring {
+  border-color: color-mix(in srgb, var(--tv-accent), transparent 78%);
+  animation: tv-round-combat-ring 3.6s ease-in-out infinite;
+}
+
+/* Speler aan zet */
+.tv-combat-round-bar--player-turn {
+  border-color: color-mix(in srgb, var(--tv-tone-ally), transparent 48%);
+}
+
+.tv-combat-round-bar--player-turn .tv-combat-round-bar__orb--a {
+  background: color-mix(in srgb, var(--tv-tone-ally), transparent 72%);
+  animation: tv-round-player-surge-a 2.8s ease-in-out infinite;
+}
+
+.tv-combat-round-bar--player-turn .tv-combat-round-bar__orb--b {
+  background: color-mix(in srgb, var(--tv-accent), transparent 78%);
+  animation: tv-round-player-surge-b 3.4s ease-in-out infinite;
+}
+
+.tv-combat-round-bar--player-turn .tv-combat-round-bar__sheen {
+  animation: tv-round-player-sheen 2.6s ease-in-out infinite;
+}
+
+.tv-combat-round-bar--player-turn .tv-combat-round-bar__ring {
+  border-color: color-mix(in srgb, var(--tv-tone-ally), transparent 55%);
+  animation: tv-round-player-ring 2.2s ease-in-out infinite;
+}
+
+/* Bondgenoot aan zet */
+.tv-combat-round-bar--ally-turn .tv-combat-round-bar__orb--a {
+  background: color-mix(in srgb, var(--tv-tone-ally), transparent 80%);
+  animation: tv-round-ally-flow 4.2s ease-in-out infinite;
+}
+
+.tv-combat-round-bar--ally-turn .tv-combat-round-bar__orb--b {
+  background: color-mix(in srgb, var(--tv-accent), transparent 86%);
+  animation: tv-round-ally-flow 5s ease-in-out infinite reverse;
+}
+
+.tv-combat-round-bar--ally-turn .tv-combat-round-bar__sheen {
+  animation: tv-round-ally-sheen 4.8s linear infinite;
+}
+
+/* Vijand aan zet */
+.tv-combat-round-bar--enemy-turn {
+  border-color: color-mix(in srgb, var(--tv-tone-enemy), transparent 50%);
+}
+
+.tv-combat-round-bar--enemy-turn .tv-combat-round-bar__orb--a {
+  background: color-mix(in srgb, var(--tv-tone-enemy), transparent 70%);
+  animation: tv-round-enemy-creep-a 3.8s ease-in-out infinite;
+}
+
+.tv-combat-round-bar--enemy-turn .tv-combat-round-bar__orb--b {
+  background: color-mix(in srgb, var(--tv-status-danger), transparent 82%);
+  animation: tv-round-enemy-creep-b 4.6s ease-in-out infinite;
+}
+
+.tv-combat-round-bar--enemy-turn .tv-combat-round-bar__sheen {
+  animation: tv-round-enemy-sheen 3.2s ease-in-out infinite;
+}
+
+.tv-combat-round-bar--enemy-turn .tv-combat-round-bar__ring {
+  border-color: color-mix(in srgb, var(--tv-tone-enemy), transparent 62%);
+  animation: tv-round-enemy-ring 2.8s ease-in-out infinite;
+}
+
+.tv-combat-turn-index--enemy {
+  border-color: color-mix(in srgb, var(--tv-tone-enemy), transparent 38%) !important;
+  background: color-mix(in srgb, var(--tv-tone-enemy), transparent 78%) !important;
+  color: color-mix(in srgb, var(--tv-tone-enemy), #fff 68%) !important;
+  box-shadow: 0 0 14px color-mix(in srgb, var(--tv-tone-enemy), transparent 58%);
+}
+
+.tv-combat-turn-index--player {
+  box-shadow: 0 0 16px color-mix(in srgb, var(--tv-tone-ally), transparent 52%);
+}
+
+.tv-combat-turn-index--ally {
+  border-color: color-mix(in srgb, var(--tv-tone-ally), transparent 48%) !important;
+  background: color-mix(in srgb, var(--tv-tone-ally), transparent 84%) !important;
+}
+
+.tv-combat-turn-index--paused {
+  border-color: color-mix(in srgb, var(--tv-status-warning), transparent 45%) !important;
+  background: color-mix(in srgb, var(--tv-status-warning), transparent 88%) !important;
+  color: color-mix(in srgb, var(--tv-status-warning), #fff 70%) !important;
+}
+
+@keyframes tv-round-idle-dot {
+  0%, 100% { opacity: 0.45; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.15); }
+}
+
+@keyframes tv-round-idle-drift-a {
+  0%, 100% { transform: translate(0, 0) scale(1); opacity: 0.35; }
+  50% { transform: translate(8%, 6%) scale(1.08); opacity: 0.55; }
+}
+
+@keyframes tv-round-idle-drift-b {
+  0%, 100% { transform: translate(0, 0) scale(1); opacity: 0.25; }
+  50% { transform: translate(-6%, -4%) scale(1.05); opacity: 0.45; }
+}
+
+@keyframes tv-round-idle-sheen {
+  0%, 100% { transform: translateX(-120%); opacity: 0; }
+  45% { opacity: 0.35; }
+  55% { transform: translateX(120%); opacity: 0.2; }
+}
+
+@keyframes tv-round-paused-drift {
+  0%, 100% { transform: translateX(0); opacity: 0.4; }
+  50% { transform: translateX(6%); opacity: 0.55; }
+}
+
+@keyframes tv-round-paused-sheen {
+  0%, 100% { transform: translateX(-100%); opacity: 0.15; }
+  50% { transform: translateX(20%); opacity: 0.35; }
+}
+
+@keyframes tv-round-combat-pulse-a {
+  0%, 100% { opacity: 0.4; transform: scale(1); }
+  50% { opacity: 0.62; transform: scale(1.06); }
+}
+
+@keyframes tv-round-combat-pulse-b {
+  0%, 100% { opacity: 0.28; transform: scale(1); }
+  50% { opacity: 0.48; transform: scale(1.04); }
+}
+
+@keyframes tv-round-combat-ring {
+  0%, 100% { opacity: 0; }
+  50% { opacity: 0.45; }
+}
+
+@keyframes tv-round-player-surge-a {
+  0%, 100% { transform: translate(0, 0) scale(1); opacity: 0.5; }
+  50% { transform: translate(4%, -3%) scale(1.1); opacity: 0.75; }
+}
+
+@keyframes tv-round-player-surge-b {
+  0%, 100% { transform: translate(0, 0) scale(1); opacity: 0.38; }
+  50% { transform: translate(-5%, 4%) scale(1.08); opacity: 0.62; }
+}
+
+@keyframes tv-round-player-sheen {
+  0%, 100% { transform: translateX(-130%); }
+  50% { transform: translateX(130%); }
+}
+
+@keyframes tv-round-player-ring {
+  0%, 100% { opacity: 0.15; }
+  50% { opacity: 0.65; }
+}
+
+@keyframes tv-round-ally-flow {
+  0%, 100% { transform: translateX(0); opacity: 0.38; }
+  50% { transform: translateX(8%); opacity: 0.58; }
+}
+
+@keyframes tv-round-ally-sheen {
+  0% { transform: translateX(-140%); }
+  100% { transform: translateX(140%); }
+}
+
+@keyframes tv-round-enemy-creep-a {
+  0%, 100% { transform: translateX(0) scale(1); opacity: 0.45; }
+  50% { transform: translateX(10%) scale(1.07); opacity: 0.68; }
+}
+
+@keyframes tv-round-enemy-creep-b {
+  0%, 100% { transform: translateX(0); opacity: 0.32; }
+  50% { transform: translateX(-8%); opacity: 0.52; }
+}
+
+@keyframes tv-round-enemy-sheen {
+  0%, 100% { transform: translateX(-110%); opacity: 0.2; }
+  50% { transform: translateX(110%); opacity: 0.42; }
+}
+
+@keyframes tv-round-enemy-ring {
+  0%, 100% { opacity: 0.1; }
+  50% { opacity: 0.55; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tv-combat-round-bar__orb,
+  .tv-combat-round-bar__sheen,
+  .tv-combat-round-bar__ring,
+  .tv-combat-round-bar__idle-mark,
+  .tv-combat-round-bar__video {
+    animation: none !important;
+  }
 }
 
 .tv-combat-turn-index {
@@ -162,7 +729,7 @@
   justify-content: center;
   min-width: 1.75rem;
   height: 1.75rem;
-  border-radius: 0.5rem;
+  border-radius: var(--tv-radius);
   border: 1px solid color-mix(in srgb, var(--tv-border), transparent 35%);
   background: color-mix(in srgb, var(--tv-bg-surface), transparent 8%);
   font-family: var(--font-ui);
@@ -183,11 +750,8 @@
 }
 
 .tv-combat-info-panel {
-  border-radius: 0.75rem;
-  border: 1px solid color-mix(in srgb, var(--tv-border), transparent 32%);
-  background: color-mix(in srgb, var(--tv-bg-canvas), transparent 4%);
-  padding: 0.65rem 0.75rem;
-  box-shadow: inset 0 1px 0 color-mix(in srgb, var(--tv-border), transparent 70%);
+  border-radius: var(--tv-radius-md);
+  padding: 0.75rem 0.8rem;
 }
 
 .tv-combat-participant-media {
@@ -229,7 +793,7 @@
   display: flex;
   min-height: 4.5rem;
   padding: 0;
-  border-radius: 1rem;
+  border-radius: var(--tv-radius-lg);
   transition:
     border-color 200ms ease,
     box-shadow 220ms ease,
@@ -260,7 +824,7 @@
   gap: 0.25rem;
   min-height: 1.375rem;
   padding: 0.15rem 0.4rem;
-  border-radius: 0.35rem;
+  border-radius: var(--tv-radius-xs);
   font-size: 0.5625rem;
   letter-spacing: 0.12em;
   text-transform: uppercase;
@@ -300,7 +864,7 @@
   top: 0.45rem;
   bottom: 0.45rem;
   width: 0.2rem;
-  border-radius: 999px;
+  border-radius: var(--tv-radius);
   background: var(--tv-accent);
   box-shadow: 0 0 14px color-mix(in srgb, var(--tv-accent), transparent 45%);
 }
@@ -320,13 +884,12 @@
 
 /* Segmented + toolbar polish */
 .tv-segmented {
-  border-radius: 999px;
+  border-radius: var(--tv-radius);
   padding: 0.3rem;
   background: color-mix(in srgb, var(--tv-bg-canvas), transparent 8%);
 }
 
 .tv-segmented__option {
-  min-height: 2.875rem;
   font-size: 0.8125rem;
   letter-spacing: 0.06em;
 }
@@ -341,12 +904,12 @@
 }
 
 .tv-rail-toolbar .tv-icon-btn--block {
-  border-radius: 999px;
-  height: 2.5rem;
+  border-radius: var(--tv-radius);
+  height: var(--tv-control-height);
 }
 
 .tv-rail-empty {
-  border-radius: 1rem;
+  border-radius: var(--tv-radius-lg);
   border-style: solid;
   border-color: color-mix(in srgb, var(--tv-border), transparent 55%);
   background: color-mix(in srgb, var(--tv-bg-surface), transparent 10%);
@@ -362,4 +925,73 @@
 [data-theme="dawn-parchment"] .tv-view-shell,
 [data-theme="dawn-parchment"] .tv-panel-shell {
   box-shadow: 0 16px 40px color-mix(in srgb, var(--tv-ink), transparent 90%);
+}
+
+/* ─── Kronieken (notes) ─── */
+.tv-notes-body {
+  min-height: 0;
+  overflow: hidden;
+}
+
+.tv-notes-sidebar {
+  background: color-mix(in srgb, var(--tv-bg-canvas), transparent 6%);
+}
+
+.tv-notes-scroll-item {
+  border-radius: var(--tv-radius);
+  border: 1px solid transparent;
+}
+
+.tv-notes-scroll-item:hover {
+  border-color: color-mix(in srgb, var(--tv-border), transparent 35%);
+  background: color-mix(in srgb, var(--tv-bg-surface), transparent 8%);
+}
+
+.tv-notes-scroll-item--active {
+  border-color: color-mix(in srgb, var(--tv-accent), transparent 58%);
+  background:
+    linear-gradient(
+      135deg,
+      color-mix(in srgb, var(--tv-accent), transparent 90%) 0%,
+      color-mix(in srgb, var(--tv-bg-surface), transparent 4%) 55%
+    );
+  box-shadow:
+    inset 0 1px 0 color-mix(in srgb, var(--tv-accent), transparent 78%),
+    0 8px 22px color-mix(in srgb, var(--tv-ink), transparent 92%);
+}
+
+.tv-notes-parchment {
+  border-radius: var(--tv-radius);
+  border: 1px solid color-mix(in srgb, var(--tv-accent), transparent 62%);
+  background:
+    radial-gradient(ellipse 120% 80% at 50% -20%, color-mix(in srgb, var(--tv-accent), transparent 88%), transparent 55%),
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--tv-bg-surface), #f5e6c8 6%) 0%,
+      color-mix(in srgb, var(--tv-bg-canvas), transparent 2%) 100%
+    );
+  box-shadow:
+    inset 0 1px 0 color-mix(in srgb, #fff, transparent 82%),
+    inset 0 -18px 36px color-mix(in srgb, var(--tv-ink), transparent 94%),
+    0 14px 34px color-mix(in srgb, var(--tv-ink), transparent 90%);
+}
+
+.tv-notes-editor::placeholder {
+  font-style: italic;
+  color: color-mix(in srgb, var(--tv-text-muted), transparent 18%);
+}
+
+.tv-notes-footer {
+  background: color-mix(in srgb, var(--tv-view-chrome), transparent 8%);
+}
+
+.tv-notes-empty-crest {
+  border-radius: var(--tv-radius);
+  border: 1px solid color-mix(in srgb, var(--tv-accent), transparent 62%);
+  background:
+    radial-gradient(circle at 50% 30%, color-mix(in srgb, var(--tv-accent), transparent 82%), transparent 70%),
+    color-mix(in srgb, var(--tv-bg-surface), transparent 6%);
+  box-shadow:
+    inset 0 1px 0 color-mix(in srgb, var(--tv-accent), transparent 78%),
+    0 10px 28px color-mix(in srgb, var(--tv-ink), transparent 92%);
 }

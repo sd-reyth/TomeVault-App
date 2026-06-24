@@ -3,6 +3,7 @@ import { Pin, PinOff, X } from 'lucide-react';
 import { COMBAT_STATUS } from '../../lib/battleUtils';
 import IconButton from '../../ui/IconButton';
 import Text from '../../ui/Text';
+import CombatRoundBar from './CombatRoundBar';
 import { SlagordeInfoButton, SlagordeInfoContent, useSlagordeInfo } from './SlagordeInfoPanel';
 
 export default function CombatPlayerHeader({
@@ -10,18 +11,29 @@ export default function CombatPlayerHeader({
   combatInProgress,
   turnRound,
   currentTurnOrderIndex,
-  isMyTurn,
-  isPinned,
+  currentTurnMember,
+  currentTurnId,
+  isMyTurn,  isPinned,
   onTogglePinned,
   onClose,
   statusPrimaryLine,
   statusSecondaryLine,
+  ambienceActive = true,
 }) {
   const isLive = combatStatus === COMBAT_STATUS.ACTIVE;
   const info = useSlagordeInfo();
 
   return (
     <div className={`tv-combat-rail-header ${isLive ? 'tv-combat-rail-header--live' : ''} ${isMyTurn ? 'tv-combat-rail-header--my-turn' : ''}`}>
+      {isMyTurn && isLive ? (
+        <div
+          key={`turn-banner-${currentTurnId}-${turnRound}`}
+          className="tv-turn-banner tv-turn-banner--flash"
+        >
+          <span>Jouw beurt</span>
+          <span className="tv-turn-banner__tag">Nu</span>
+        </div>
+      ) : null}
       <div className="mb-2.5 flex items-center justify-between gap-2">
         <Text variant="label" tone="accent">Slagorde</Text>
         <div className="flex items-center gap-1 lg:hidden">
@@ -45,25 +57,22 @@ export default function CombatPlayerHeader({
         </div>
       </div>
 
-      {combatInProgress ? (
-        <>
-          <div className="tv-combat-round-bar mb-2 flex items-center gap-2">
-            {currentTurnOrderIndex ? (
-              <span
-                className={`tv-combat-turn-index ${isLive ? 'tv-combat-turn-index--live' : ''}`}
-                title="Huidige beurt in volgorde"
-              >
-                {currentTurnOrderIndex}
-              </span>
-            ) : null}
-            <Text variant="body" as="span" className="min-w-0 flex-1 truncate text-sm font-semibold">
-              Ronde {turnRound}
-            </Text>
-            <SlagordeInfoButton open={info.open} onToggle={info.toggle} />
+      <div className="mb-2 flex flex-col gap-2">
+        <CombatRoundBar
+          combatStatus={combatStatus}
+          turnRound={turnRound}
+          currentTurnOrderIndex={currentTurnOrderIndex}
+          currentTurnMember={currentTurnMember}
+          isMyTurn={isMyTurn}
+          isActive={ambienceActive}
+          infoSlot={combatInProgress ? <SlagordeInfoButton open={info.open} onToggle={info.toggle} /> : null}
+        />
+        {combatInProgress && info.open ? (
+          <div className="tv-combat-info-popover">
+            <SlagordeInfoContent />
           </div>
-          {info.open ? <SlagordeInfoContent /> : null}
-        </>
-      ) : null}
+        ) : null}
+      </div>
 
       <Text variant="body" as="p" className="leading-6">{statusPrimaryLine}</Text>
       {statusSecondaryLine ? (

@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { playUiSound } from '../lib/uiFeedback';
+import { flashFeedback, playFeedback, playUiSound } from '../lib/uiFeedback';
 import Button from './Button';
 import Text from '../ui/Text';
 import CombatGmHeader from '../features/combat/CombatGmHeader';
@@ -129,7 +129,6 @@ function RightSidebar({
   onUpdateStat,
   isPinned,
   setIsPinned,
-  onRemoveNpc,
   theme,
 }) {
   const [sidebarWidth, setSidebarWidth] = useState(RIGHT_SIDEBAR_DEFAULT_WIDTH);
@@ -143,6 +142,7 @@ function RightSidebar({
   const [conditionsDraftIds, setConditionsDraftIds] = useState([]);
   const dragStateRef = useRef({ startX: 0, startWidth: RIGHT_SIDEBAR_DEFAULT_WIDTH });
   const rosterScrollRef = useRef(null);
+  const combatHeaderRef = useRef(null);
 
   const isGm = role === 'gm';
   const battleActive = combatStatus === COMBAT_STATUS.ACTIVE;
@@ -173,6 +173,7 @@ function RightSidebar({
     ? sortedParty.findIndex((member) => member.id === currentTurnMember.id) + 1
     : null;
   const combatPaused = combatStatus === COMBAT_STATUS.PAUSED;
+  const slagordeAmbienceActive = isOpen || isPinned;
 
   const showPlayerRollPanel = role === 'player'
     && combatStatus === COMBAT_STATUS.IDLE
@@ -183,7 +184,11 @@ function RightSidebar({
   useEffect(() => {
     if (!combatInProgress || !currentTurnId) return undefined;
     playUiSound('turn');
-  }, [currentTurnId, combatInProgress, turnRound]);
+    if (role === 'player' && currentTurnId === currentPlayerId) {
+      playUiSound('warning');
+      flashFeedback(combatHeaderRef.current, 'gold');
+    }
+  }, [currentTurnId, combatInProgress, turnRound, role, currentPlayerId]);
 
   const activeTieGroup = tieResolutionState?.tieGroups?.[tieResolutionState.currentIndex] || null;
   const activeTieGroupKey = activeTieGroup ? getTieGroupKey(activeTieGroup[0]) : null;
@@ -275,8 +280,10 @@ function RightSidebar({
     try {
       if (mode === 'start') {
         await onStartCombat?.({ initiativeUpdates, nextInitiativeOrder });
+        playFeedback({ sound: 'success', element: combatHeaderRef.current, variant: 'gold' });
       } else {
         await onResumeCombat?.({ initiativeUpdates, nextInitiativeOrder });
+        playFeedback({ sound: 'success', element: combatHeaderRef.current });
       }
     } catch (error) {
       console.error('Combat flow fout:', error);
@@ -363,6 +370,8 @@ function RightSidebar({
     setIsActionBusy(true);
     try {
       await onRollAllInitiative?.(initiativeUpdates);
+      playUiSound('dice');
+      flashFeedback(combatHeaderRef.current);
     } catch (error) {
       console.error('Rol allen fout:', error);
       setStatusError('Niet alle initiatives konden worden gerold.');
@@ -391,6 +400,7 @@ function RightSidebar({
     setIsActionBusy(true);
     try {
       await onEndCombat?.();
+      playUiSound('warning');
       setEndCombatConfirmOpen(false);
     } catch (error) {
       console.error('Gevecht beëindigen fout:', error);
@@ -435,6 +445,7 @@ function RightSidebar({
     if (!isGm || !conditionsTarget) return;
     const nextConditions = conditionsDraftIds.map((id) => ({ id, active: true }));
     onUpdateStat?.(conditionsTarget.id, 'conditions', nextConditions);
+    playUiSound('success');
     setConditionsTarget(null);
   };
 
@@ -542,7 +553,7 @@ function RightSidebar({
     <>
       {isOpen && !isPinned ? (
         <div
-          className="app-shell-overlay-backdrop tv-backdrop fixed inset-x-0 bottom-0 z-40 backdrop-blur-sm lg:hidden"
+          className="app-shell-overlay-backdrop tv-backdrop fixed inset-x-0 bottom-0 z-40 backdrop-blur-sm md:hidden"
           onClick={onClose}
         />
       ) : null}
@@ -553,7 +564,7 @@ function RightSidebar({
           fixed left-0 right-0 z-50 flex flex-col overflow-hidden border-t backdrop-blur-md transition-[transform,width,opacity] duration-300 ease-in-out tv-rail-surface
           ${(isOpen || isPinned) ? 'translate-x-0' : 'translate-x-full'}
           ${isPinned ? 'top-0 h-full md:relative md:h-full md:translate-x-0 md:z-0 md:left-auto md:right-0 md:border-l md:border-t-0 md:w-[var(--battle-sidebar-width)] md:min-w-[var(--battle-sidebar-width)] md:max-w-[var(--battle-sidebar-width)] md:shadow-none' : 'app-shell-overlay-frame'}
-          ${isOpen ? 'lg:relative lg:left-auto lg:right-0 lg:top-0 lg:h-full lg:translate-x-0 lg:z-0 lg:flex lg:border-l lg:border-t-0 lg:w-[var(--battle-sidebar-width)] lg:min-w-[var(--battle-sidebar-width)] lg:max-w-[var(--battle-sidebar-width)] lg:opacity-100 lg:shadow-none' : 'lg:pointer-events-none lg:absolute lg:right-0 lg:top-0 lg:h-full lg:w-0 lg:min-w-0 lg:max-w-0 lg:translate-x-full lg:overflow-hidden lg:border-0 lg:opacity-0'}
+          ${isOpen ? 'md:relative md:left-auto md:right-0 md:top-0 md:h-full md:translate-x-0 md:z-0 md:flex md:border-l md:border-t-0 md:w-[var(--battle-sidebar-width)] md:min-w-[var(--battle-sidebar-width)] md:max-w-[var(--battle-sidebar-width)] md:opacity-100 md:shadow-none' : 'md:pointer-events-none md:absolute md:right-0 md:top-0 md:h-full md:w-0 md:min-w-0 md:max-w-0 md:translate-x-full md:overflow-hidden md:border-0 md:opacity-0'}
         `}
       >
         <div className="absolute top-0 left-0 hidden h-full w-1 bg-gradient-to-b from-white/8 color-mix(in srgb, var(--tv-border), transparent 40%) to-white/8 md:block" />
@@ -569,13 +580,14 @@ function RightSidebar({
 
         <div className="tv-rail-body flex min-h-0 flex-1 flex-col overflow-hidden">
         <div className="tv-view-shell-header tv-rail-shell-header shrink-0 border-b px-3.5 py-3 md:mt-0 md:px-4 md:py-3.5">
-          <div className="relative">
+          <div className="relative" ref={combatHeaderRef} data-tv-feedback-root>
             {isGm ? (
               <CombatGmHeader
                 combatStatus={combatStatus}
                 combatInProgress={combatInProgress}
                 turnRound={turnRound}
                 currentTurnOrderIndex={currentTurnOrderIndex}
+                currentTurnMember={currentTurnMember}
                 isActionBusy={isActionBusy}
                 isPinned={isPinned}
                 onTogglePinned={() => setIsPinned?.(!isPinned)}
@@ -586,6 +598,7 @@ function RightSidebar({
                 onRequestEndCombat={() => setEndCombatConfirmOpen(true)}
                 statusTitle={statusTitle}
                 statusSubtitle={gmStatusLine}
+                ambienceActive={slagordeAmbienceActive}
               />
             ) : (
               <CombatPlayerHeader
@@ -593,12 +606,15 @@ function RightSidebar({
                 combatInProgress={combatInProgress}
                 turnRound={turnRound}
                 currentTurnOrderIndex={currentTurnOrderIndex}
+                currentTurnMember={currentTurnMember}
+                currentTurnId={currentTurnId}
                 isMyTurn={isMyTurn}
                 isPinned={isPinned}
                 onTogglePinned={() => setIsPinned?.(!isPinned)}
                 onClose={onClose}
                 statusPrimaryLine={playerStatusPrimaryLine}
                 statusSecondaryLine={playerStatusSecondaryLine}
+                ambienceActive={slagordeAmbienceActive}
               />
             )}
 
@@ -619,7 +635,10 @@ function RightSidebar({
                 />
                 <button
                   type="button"
-                  onClick={() => onUpdateStat?.(myCharacter.id, 'init', rollInitiative(myCharacter))}
+                  onClick={() => {
+                    playUiSound('dice');
+                    onUpdateStat?.(myCharacter.id, 'init', rollInitiative(myCharacter));
+                  }}
                   className="flex flex-1 items-center justify-center gap-1 rounded-md px-2 py-2 text-xs font-bold uppercase tracking-[0.18em] transition-colors tv-button-primary"
                 >
                   <Dice5 className="h-3.5 w-3.5" /> Rol (+{myCharacter.initMod || 0})
@@ -665,7 +684,7 @@ function RightSidebar({
           ) : null}
         </div>
 
-        <div className="tv-rail-roster flex min-h-0 flex-1 flex-col overflow-hidden px-1 py-3 md:px-1.5 md:py-3.5">
+        <div className="tv-rail-roster flex min-h-0 flex-1 flex-col overflow-hidden px-1 pb-3 pt-3 md:px-1.5 md:pb-3.5 md:pt-3.5">
           {sortedParty.length === 0 && !showPlayerRollPanel ? (
             <div className="tv-rail-empty flex min-h-[220px] flex-1 items-center justify-center px-6 text-center">
               <div>
@@ -676,7 +695,7 @@ function RightSidebar({
               </div>
             </div>
           ) : (
-            <div ref={rosterScrollRef} className="min-h-0 flex-1 space-y-2 overflow-y-auto pr-1 no-scrollbar md:space-y-2.5">
+            <div ref={rosterScrollRef} className="min-h-0 flex-1 space-y-2 overflow-y-auto pr-1 pt-2 no-scrollbar md:space-y-2.5 md:pt-2.5">
           {sortedParty.map((member, memberIndex) => {
             const isCurrentTurn = combatInProgress && member.id === currentTurnId;
             const orderIndex = memberIndex + 1;

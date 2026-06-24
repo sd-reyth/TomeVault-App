@@ -95,7 +95,7 @@ export default function QRJoinScreen({
                 type="button"
                 onClick={() => onSignInGoogle?.()}
                 disabled={isBusy}
-                className="tv-button-primary flex h-11 w-full items-center justify-center gap-2.5 rounded-xl font-fantasy text-sm uppercase tracking-[0.18em] disabled:cursor-not-allowed disabled:opacity-50"
+                className="tv-btn tv-button-primary tv-btn--block w-full gap-2.5 font-fantasy text-sm uppercase tracking-[0.18em] disabled:cursor-not-allowed disabled:opacity-50"
               >
                 {isBusy ? (
                   <>
@@ -114,7 +114,7 @@ export default function QRJoinScreen({
                 type="button"
                 onClick={() => onUseFullLogin?.()}
                 disabled={isBusy}
-                className="tv-button-secondary flex h-11 w-full items-center justify-center gap-2.5 rounded-xl px-4 font-story text-sm disabled:cursor-not-allowed disabled:opacity-50"
+                className="tv-btn tv-button-secondary tv-btn--block w-full gap-2.5 px-4 font-story text-sm disabled:cursor-not-allowed disabled:opacity-50"
               >
                 <Mail className="h-4 w-4" />
                 E-mail
@@ -146,7 +146,7 @@ export default function QRJoinScreen({
                 type="button"
                 onClick={handleJoin}
                 disabled={isBusy}
-                className="tv-button-primary flex h-11 w-full items-center justify-center gap-2.5 rounded-xl font-fantasy text-sm uppercase tracking-[0.18em] disabled:cursor-not-allowed disabled:opacity-50"
+                className="tv-btn tv-button-primary tv-btn--block w-full gap-2.5 font-fantasy text-sm uppercase tracking-[0.18em] disabled:cursor-not-allowed disabled:opacity-50"
               >
                 {isBusy ? (
                   <>

@@ -1,6 +1,8 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { LayoutGrid, List, Plus, Eye, EyeOff, Hand, User, KeyRound, Search, SlidersHorizontal } from 'lucide-react';
-import { getHandoutIcon } from '../lib/handoutUtils';
+import { AlertTriangle, LayoutGrid, List, Plus, Eye, EyeOff, Hand, User, KeyRound, Search, SlidersHorizontal, Scroll, X } from 'lucide-react';
+import { getHandoutIcon, getHandoutSecretToggleMeta, HANDOUT_SECRET_TOGGLE_ERRORS } from '../lib/handoutUtils';
+import { getAvatarObjectPosition, normalizeAvatarPosition } from '../lib/placeholders';
+import { playUiSound } from '../lib/uiFeedback';
 import TvImage from './TvImage';
 
 function HandoutsView({ role, handouts, currentPlayerId, onToggleVisibility, onToggleSecretVisibility, onOpenHandout, onCreateHandout, onClaim }) {
@@ -17,16 +19,109 @@ function HandoutsView({ role, handouts, currentPlayerId, onToggleVisibility, onT
     && String(handout.type || '').toLowerCase() === 'loot'
   );
 
+  const [secretToggleHint, setSecretToggleHint] = useState(null);
+
   const isSecretVisibleToPlayers = (handout) => handout.secretRevealed === true;
+
+  const handleSecretToggleClick = async (event, handout) => {
+    event.stopPropagation();
+    const meta = getHandoutSecretToggleMeta(handout);
+    if (!meta.canToggle) {
+      setSecretToggleHint({ handoutId: handout.id, message: meta.hint });
+      return;
+    }
+
+    const result = await onToggleSecretVisibility?.(handout.id);
+    if (!result?.ok) {
+      const message = HANDOUT_SECRET_TOGGLE_ERRORS[result?.reason] || 'Secret kon niet worden gewijzigd.';
+      playUiSound('warning');
+      setSecretToggleHint({ handoutId: handout.id, message, reason: result?.reason || 'unknown' });
+      return;
+    }
+
+    if (result.reason === 'no-session') {
+      playUiSound('warning');
+      setSecretToggleHint({
+        handoutId: handout.id,
+        message: HANDOUT_SECRET_TOGGLE_ERRORS['no-session'],
+        reason: 'no-session',
+      });
+      return;
+    }
+
+    playUiSound('success');
+    setSecretToggleHint(null);
+  };
+
+  const handoutGmActionClass = (active) => (
+    `tv-handout-card__action${active ? ' tv-handout-card__action--on' : ''}`
+  );
+
+  const renderSecretToggleButton = (handout) => {
+    const meta = getHandoutSecretToggleMeta(handout);
+    if (!meta.canToggle) return null;
+
+    const revealed = meta.state === 'revealed';
+
+    return (
+      <button
+        type="button"
+        onClick={(event) => handleSecretToggleClick(event, handout)}
+        className={handoutGmActionClass(revealed)}
+        title={meta.hint}
+        aria-pressed={revealed}
+        aria-label={meta.label}
+      >
+        {revealed ? <Eye className="h-3.5 w-3.5" aria-hidden /> : <EyeOff className="h-3.5 w-3.5" aria-hidden />}
+        <span>{revealed ? 'Secret open' : 'Secret dicht'}</span>
+      </button>
+    );
+  };
+
+  const renderHandoutSecretSnippet = (handout, variant = 'gm') => (
+    <div className={`tv-handout-card__secret tv-handout-card__secret--footer ${variant === 'gm' ? 'tv-handout-card__secret--gm' : 'tv-handout-card__secret--revealed'}`}>
+      <p className={`truncate font-story text-[11px] leading-snug md:text-xs ${variant === 'gm' ? 'italic tv-text-sub' : 'tv-text'}`}>
+        {handout.secret}
+      </p>
+    </div>
+  );
+
+  const renderGmFooter = (handout) => (
+    <div
+      className="tv-handout-card__footer"
+      onClick={(event) => event.stopPropagation()}
+      onKeyDown={(event) => event.stopPropagation()}
+    >
+      {handout.secret && isSecretVisibleToPlayers(handout)
+        ? renderHandoutSecretSnippet(handout, 'gm')
+        : <span className="tv-handout-card__footer-spacer" aria-hidden />}
+
+      <div className="tv-handout-card__footer-actions">
+        {renderSecretToggleButton(handout)}
+        <button
+          type="button"
+          onClick={(event) => { event.stopPropagation(); toggleVisibility(handout.id); }}
+          className={handoutGmActionClass(handout.isRevealed)}
+          title={handout.isRevealed ? 'Verberg handout voor spelers' : 'Onthul handout aan spelers'}
+          aria-pressed={Boolean(handout.isRevealed)}
+          aria-label={handout.isRevealed ? 'Zichtbaar voor spelers' : 'Verborgen voor spelers'}
+        >
+          {handout.isRevealed ? <Eye className="h-3.5 w-3.5" aria-hidden /> : <EyeOff className="h-3.5 w-3.5" aria-hidden />}
+          <span>{handout.isRevealed ? 'Zichtbaar' : 'Verborgen'}</span>
+        </button>
+      </div>
+    </div>
+  );
+
+  useEffect(() => {
+    if (!secretToggleHint) return undefined;
+    const timer = window.setTimeout(() => setSecretToggleHint(null), 5000);
+    return () => window.clearTimeout(timer);
+  }, [secretToggleHint]);
 
   const toggleVisibility = (id) => {
     if (role !== 'gm') return;
     onToggleVisibility?.(id);
-  };
-
-  const toggleSecretVisibility = (id) => {
-    if (role !== 'gm') return;
-    onToggleSecretVisibility?.(id);
   };
 
   const visibleBaseHandouts = useMemo(() => handouts.filter((handout) => {
@@ -112,24 +207,24 @@ function HandoutsView({ role, handouts, currentPlayerId, onToggleVisibility, onT
 
   return (
     <div className="tv-view-shell relative z-10 h-full">
-      <div className="tv-view-shell-header flex shrink-0 flex-col gap-4 p-3 sm:flex-row sm:items-center sm:justify-between sm:gap-3 md:p-4">
-        <div>
-          <h2 className="font-fantasy text-2xl font-bold tracking-[0.1em] tv-heading-shimmer md:text-3xl">Oude Geschriften</h2>
-          <p className="tv-panel-copy mt-1 text-xs md:text-sm">Documenten, kaarten en magische voorwerpen ontdekt tijdens de reis.</p>
-        </div>
+      <div className="tv-view-shell-header flex shrink-0 flex-wrap flex-col gap-2 p-3 sm:flex-row sm:items-center sm:justify-between md:p-4">
+        <h2 className="flex items-center gap-2 font-fantasy text-xs font-medium uppercase tracking-[0.18em] tv-text md:text-sm">
+          <Scroll className="tv-view-title-icon" strokeWidth={1.5} aria-hidden />
+          Handouts
+        </h2>
 
-        <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row sm:items-center sm:justify-end">
+        <div className="flex w-full flex-col gap-3 sm:ml-auto sm:w-auto sm:flex-row sm:items-center sm:justify-end">
           <div className="tv-view-toolbar flex w-full items-center justify-center rounded-xl p-1 sm:w-auto sm:justify-start">
             <button
               onClick={() => setViewMode('list')}
-              className={`inline-flex h-9 w-9 items-center justify-center rounded-lg border transition-all duration-200 ease-out ${viewMode === 'list' ? 'border-[var(--tv-accent)]/30 bg-[color-mix(in_srgb,var(--tv-accent),transparent_85%)] text-[var(--tv-accent)] shadow-sm' : 'border-transparent tv-muted hover:border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] tv-hover-surface hover:tv-text'}`}
+              className={`tv-view-toolbar__btn ${viewMode === 'list' ? 'tv-view-toolbar__btn--active' : ''}`}
               title="Lijst weergave"
             >
               <List className="h-4 w-4" />
             </button>
             <button
               onClick={() => setViewMode('grid')}
-              className={`inline-flex h-9 w-9 items-center justify-center rounded-lg border transition-all duration-200 ease-out ${viewMode === 'grid' ? 'border-[var(--tv-accent)]/30 bg-[color-mix(in_srgb,var(--tv-accent),transparent_85%)] text-[var(--tv-accent)] shadow-sm' : 'border-transparent tv-muted hover:border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] tv-hover-surface hover:tv-text'}`}
+              className={`tv-view-toolbar__btn ${viewMode === 'grid' ? 'tv-view-toolbar__btn--active' : ''}`}
               title="Blok weergave"
             >
               <LayoutGrid className="h-4 w-4" />
@@ -141,7 +236,7 @@ function HandoutsView({ role, handouts, currentPlayerId, onToggleVisibility, onT
               <button
                 onClick={toggleClaimedVisibility}
                 disabled={claimedCount === 0}
-                className={`inline-flex h-10 w-full items-center justify-center gap-2 rounded-xl border px-3 text-[10px] uppercase tracking-[0.14em] shadow-sm transition-all duration-200 ease-out sm:w-auto ${claimedCount > 0 ? 'border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] tv-panel-inset tv-text hover:border-[var(--tv-accent)]/25 tv-hover-surface hover:text-[var(--tv-accent)] active:scale-[0.985]' : 'cursor-not-allowed border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] tv-panel-inset tv-muted'}`}
+                className={`tv-toolbar__btn w-full sm:w-auto ${claimedCount > 0 ? 'tv-panel-inset tv-text tv-hover-surface hover:text-[var(--tv-accent)] active:scale-[0.985]' : 'cursor-not-allowed tv-panel-inset tv-muted'}`}
                 title={allClaimedHidden ? 'Maak geclaimde handouts zichtbaar' : 'Verberg geclaimde handouts'}
               >
                 {allClaimedHidden ? <Eye className="h-3.5 w-3.5 shrink-0" /> : <EyeOff className="h-3.5 w-3.5 shrink-0" />}
@@ -150,7 +245,7 @@ function HandoutsView({ role, handouts, currentPlayerId, onToggleVisibility, onT
 
               <button
                 onClick={onCreateHandout}
-                className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-xl px-4 text-sm uppercase tracking-[0.16em] active:scale-[0.985] sm:w-auto tv-button-primary"
+                className="tv-toolbar__btn tv-button-primary w-full gap-2 px-4 text-sm uppercase tracking-[0.16em] active:scale-[0.985] sm:w-auto"
               >
                 <Plus className="h-4 w-4 shrink-0" /> <span className="truncate">Nieuw</span>
               </button>
@@ -158,6 +253,26 @@ function HandoutsView({ role, handouts, currentPlayerId, onToggleVisibility, onT
           ) : null}
         </div>
       </div>
+
+      {secretToggleHint ? (
+        <div className="tv-handout-feedback tv-alert-warning mx-3 md:mx-4" role="alert">
+          <AlertTriangle className="tv-handout-feedback__icon h-4 w-4 shrink-0" aria-hidden />
+          <div className="min-w-0 flex-1">
+            <p className="text-sm font-medium leading-snug">{secretToggleHint.message}</p>
+            {secretToggleHint.reason === 'missing' ? (
+              <p className="mt-1 text-xs opacity-85">Tip: wacht even tot de lijst geladen is, of open de handout opnieuw.</p>
+            ) : null}
+          </div>
+          <button
+            type="button"
+            onClick={() => setSecretToggleHint(null)}
+            className="tv-toolbar-icon-btn shrink-0"
+            aria-label="Melding sluiten"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        </div>
+      ) : null}
 
       <div className="relative z-10 min-h-0 flex-1 overflow-y-auto p-3 no-scrollbar md:p-4">
         <div className="flex flex-col gap-3 md:gap-4">
@@ -169,7 +284,7 @@ function HandoutsView({ role, handouts, currentPlayerId, onToggleVisibility, onT
                 value={searchQuery}
                 onChange={(event) => setSearchQuery(event.target.value)}
                 placeholder="Zoek op titel, inhoud, type of secret..."
-                className="tv-input-surface h-10 w-full rounded-xl pl-9 pr-3 text-sm outline-none transition-colors"
+                className="tv-input-surface tv-chat-compose-input w-full pl-9 pr-3 text-sm outline-none transition-colors"
               />
             </label>
 
@@ -178,7 +293,7 @@ function HandoutsView({ role, handouts, currentPlayerId, onToggleVisibility, onT
               <select
                 value={sortBy}
                 onChange={(event) => setSortBy(event.target.value)}
-                className="tv-input-surface h-10 w-full rounded-xl pl-9 pr-3 text-sm outline-none transition-colors"
+                className="tv-input-surface tv-chat-compose-input w-full pl-9 pr-3 text-sm outline-none transition-colors"
               >
                 <option value="newest">Nieuwste eerst</option>
                 <option value="oldest">Oudste eerst</option>
@@ -193,7 +308,7 @@ function HandoutsView({ role, handouts, currentPlayerId, onToggleVisibility, onT
             <select
               value={typeFilter}
               onChange={(event) => setTypeFilter(event.target.value)}
-              className="tv-input-surface h-10 w-full rounded-xl px-3 text-sm outline-none transition-colors"
+              className="tv-input-surface tv-chat-compose-input w-full px-3 text-sm outline-none transition-colors"
             >
               <option value="all">Alle types</option>
               {typeOptions.map((type) => (
@@ -204,7 +319,7 @@ function HandoutsView({ role, handouts, currentPlayerId, onToggleVisibility, onT
             <select
               value={statusFilter}
               onChange={(event) => setStatusFilter(event.target.value)}
-              className="tv-input-surface h-10 w-full rounded-xl px-3 text-sm outline-none transition-colors"
+              className="tv-input-surface tv-chat-compose-input w-full px-3 text-sm outline-none transition-colors"
             >
               {statusOptions.map((option) => (
                 <option key={option.value} value={option.value}>{option.label}</option>
@@ -231,32 +346,18 @@ function HandoutsView({ role, handouts, currentPlayerId, onToggleVisibility, onT
 
                 <div className={`tv-handout-media tv-image-frame tv-image-frame--zoom-hover ${viewMode === 'grid' ? 'aspect-[16/9] w-full border-b' : 'aspect-square w-20 border-r md:w-24'} relative flex shrink-0 items-center justify-center overflow-hidden`}>
                   {handout.imageUrl ? (
-                    <TvImage src={handout.imageUrl} alt={handout.title} className="absolute inset-0" />
+                    <TvImage
+                      src={handout.imageUrl}
+                      alt={handout.title}
+                      className="absolute inset-0"
+                      style={{ objectPosition: getAvatarObjectPosition(normalizeAvatarPosition(handout.imagePosition)) }}
+                    />
                   ) : (
                     <div className="absolute inset-0 bg-gradient-to-br from-[color-mix(in_srgb,var(--tv-accent),transparent_88%)] via-[color-mix(in_srgb,var(--tv-bg-surface),transparent_20%)] to-[color-mix(in_srgb,var(--tv-bg-canvas),transparent_10%)]" />
                   )}
 
                   {!handout.imageUrl ? (
                     <Icon className={`${viewMode === 'grid' ? 'h-10 w-10 md:h-12 md:w-12' : 'h-6 w-6 md:h-8 md:w-8'} relative z-10 tv-muted drop-shadow-md`} strokeWidth={1.5} />
-                  ) : null}
-
-                  {role === 'gm' && viewMode === 'grid' ? (
-                    <div className="absolute right-2 top-2 z-20 flex items-center gap-1.5 md:right-3 md:top-3">
-                      <button
-                        onClick={(event) => { event.stopPropagation(); toggleSecretVisibility(handout.id); }}
-                        className={`tv-icon-action rounded-lg p-2 shadow-md ${isSecretVisibleToPlayers(handout) ? 'border-[color-mix(in_srgb,var(--tv-tone-ally),transparent_45%)] tv-tone-ally-text' : ''}`}
-                        title={isSecretVisibleToPlayers(handout) ? 'Verberg Secret voor spelers' : 'Toon Secret aan alle spelers'}
-                      >
-                        <KeyRound className="h-4 w-4" />
-                      </button>
-                      <button
-                        onClick={(event) => { event.stopPropagation(); toggleVisibility(handout.id); }}
-                        className="tv-icon-action rounded-lg p-2 shadow-md"
-                        title={handout.isRevealed ? 'Verberg in de schaduwen' : 'Onthul aan de party'}
-                      >
-                        {handout.isRevealed ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
-                      </button>
-                    </div>
                   ) : null}
 
                   {role === 'player' && viewMode === 'grid' && isClaimableLoot(handout) ? (
@@ -270,71 +371,54 @@ function HandoutsView({ role, handouts, currentPlayerId, onToggleVisibility, onT
                   ) : null}
                 </div>
 
-                <div className={`relative z-10 flex flex-1 flex-col overflow-hidden ${viewMode === 'grid' ? 'p-4 md:p-5' : 'justify-center p-2 md:p-3'}`}>
-                  {role === 'gm' && viewMode === 'list' ? (
-                    <div className="absolute right-2 top-1/2 z-20 flex -translate-y-1/2 items-center gap-1.5 md:right-3">
-                      <button
-                        onClick={(event) => { event.stopPropagation(); toggleSecretVisibility(handout.id); }}
-                        className={`rounded-lg border tv-input-surface p-1.5 shadow-sm transition-colors md:p-2 ${isSecretVisibleToPlayers(handout) ? 'border-[color-mix(in_srgb,var(--tv-tone-ally),transparent_45%)] tv-tone-ally-text' : 'border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] tv-text-sub hover:border-[color-mix(in_srgb,var(--tv-tone-ally),transparent_45%)] hover:tv-tone-ally-text'}`}
-                        title={isSecretVisibleToPlayers(handout) ? 'Verberg Secret voor spelers' : 'Toon Secret aan alle spelers'}
-                      >
-                        <KeyRound className="h-4 w-4" />
-                      </button>
-                      <button
-                        onClick={(event) => { event.stopPropagation(); toggleVisibility(handout.id); }}
-                        className="rounded-lg border border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] tv-input-surface p-1.5 tv-text-sub shadow-sm transition-colors hover:border-[color-mix(in_srgb,var(--tv-accent),transparent_45%)] hover:tv-accent md:p-2"
-                        title={handout.isRevealed ? 'Verberg in de schaduwen' : 'Onthul aan de party'}
-                      >
-                        {handout.isRevealed ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
-                      </button>
-                    </div>
-                  ) : null}
-
-                  {role === 'player' && viewMode === 'list' && isClaimableLoot(handout) ? (
-                    <button
-                      onClick={(event) => { event.stopPropagation(); onClaim(handout.id); }}
-                      className="absolute right-2 top-1/2 z-20 -translate-y-1/2 rounded-lg border border-[color-mix(in_srgb,var(--tv-accent),transparent_60%)] tv-input-surface p-1.5 tv-accent shadow-sm transition-colors hover:border-[color-mix(in_srgb,var(--tv-accent),transparent_40%)] md:right-3 md:p-2"
-                      title="Claim dit object"
-                    >
-                      <Hand className="h-4 w-4" />
-                    </button>
-                  ) : null}
-
-                  <div className={`flex items-center gap-2 ${viewMode === 'grid' ? 'mb-2 pr-10 md:mb-3' : 'mb-1 pr-12'}`}>
-                    <span className={`shrink-0 rounded tv-chip-surface tv-accent font-semibold uppercase tracking-widest ${viewMode === 'list' ? 'px-2 py-1 text-[9px]' : 'px-1.5 py-0.5 text-[8px]'}`}>
+                <div className={`relative z-10 flex flex-1 flex-col overflow-hidden ${viewMode === 'grid' ? 'p-4 md:p-5' : 'p-2 md:p-3'}`}>
+                  <div className={`flex flex-wrap items-center gap-1.5 ${viewMode === 'grid' ? 'mb-2 md:mb-3' : 'mb-1'}`}>
+                    <span className="tv-tag tv-handout-meta-tag tv-handout-meta-tag--type">
                       {handout.type}
                     </span>
 
+                    {role === 'gm' && handout.secret && isSecretVisibleToPlayers(handout) ? (
+                      <span className="tv-tag tv-handout-meta-tag tv-handout-meta-tag--secret">
+                        <KeyRound className="h-2.5 w-2.5" aria-hidden /> Party ziet secret
+                      </span>
+                    ) : null}
+
+                    {role === 'gm' && handout.secret && !isSecretVisibleToPlayers(handout) ? (
+                      <span className="tv-tag tv-handout-meta-tag tv-handout-meta-tag--muted">
+                        <KeyRound className="h-2.5 w-2.5" aria-hidden /> GM secret
+                      </span>
+                    ) : null}
+
                     {role === 'gm' && !handout.isRevealed ? (
-                      <span className={`flex shrink-0 items-center gap-1 rounded border border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] tv-input-surface font-semibold uppercase tracking-widest tv-text-sub ${viewMode === 'grid' ? 'px-2 py-1 text-[9px]' : 'px-1.5 py-0.5 text-[8px]'}`}>
-                        <EyeOff className="h-2.5 w-2.5 md:h-3 md:w-3" /> Verborgen
+                      <span className="tv-tag tv-handout-meta-tag tv-handout-meta-tag--muted">
+                        <EyeOff className="h-2.5 w-2.5" aria-hidden /> Verborgen
                       </span>
                     ) : null}
 
                     {role === 'gm' && handout.claimedBy ? (
-                      <span className={`flex shrink-0 items-center gap-1 rounded tv-tone-ally-surface tv-tone-ally-text font-semibold uppercase tracking-widest ${viewMode === 'grid' ? 'px-2 py-1 text-[9px]' : 'px-1.5 py-0.5 text-[8px]'}`}>
-                        <Hand className="h-2.5 w-2.5 md:h-3 md:w-3" /> Geclaimd
+                      <span className="tv-tag tv-handout-meta-tag tv-handout-meta-tag--ally">
+                        <Hand className="h-2.5 w-2.5" aria-hidden /> Geclaimd
                       </span>
                     ) : null}
 
                     {role === 'gm' && handout.assignedToUid ? (
-                      <span className={`flex shrink-0 items-center gap-1 rounded tv-tone-ally-surface tv-tone-ally-text font-semibold uppercase tracking-widest ${viewMode === 'grid' ? 'px-2 py-1 text-[9px]' : 'px-1.5 py-0.5 text-[8px]'}`}>
-                        <User className="h-2.5 w-2.5 md:h-3 md:w-3" /> Toegewezen
+                      <span className="tv-tag tv-handout-meta-tag tv-handout-meta-tag--ally">
+                        <User className="h-2.5 w-2.5" aria-hidden /> Toegewezen
                       </span>
                     ) : null}
 
                     {role === 'player' && handout.assignedToUid === currentPlayerId ? (
-                      <span className={`flex shrink-0 items-center gap-1 rounded tv-tone-ally-surface tv-tone-ally-text font-semibold uppercase tracking-widest ${viewMode === 'grid' ? 'px-2 py-1 text-[9px]' : 'px-1.5 py-0.5 text-[8px]'}`}>
-                        <User className="h-2.5 w-2.5 md:h-3 md:w-3" /> Voor jou
+                      <span className="tv-tag tv-handout-meta-tag tv-handout-meta-tag--ally">
+                        <User className="h-2.5 w-2.5" aria-hidden /> Voor jou
                       </span>
                     ) : null}
-
-                    {viewMode === 'list' ? (
-                      <h3 className="truncate text-sm font-medium leading-snug tracking-[0.08em] tv-text md:text-base">
-                        {handout.title}
-                      </h3>
-                    ) : null}
                   </div>
+
+                  {viewMode === 'list' ? (
+                    <h3 className="mb-1 truncate text-sm font-medium leading-snug tracking-[0.08em] tv-text md:text-base">
+                      {handout.title}
+                    </h3>
+                  ) : null}
 
                   {viewMode === 'grid' ? (
                     <h3 className="mb-2 text-base font-medium leading-snug tracking-[0.08em] tv-text md:mb-3 md:text-lg">
@@ -342,12 +426,12 @@ function HandoutsView({ role, handouts, currentPlayerId, onToggleVisibility, onT
                     </h3>
                   ) : null}
 
-                  <p className={`tv-muted leading-relaxed ${viewMode === 'grid' ? 'mb-3 line-clamp-3 text-xs md:mb-4 md:text-sm' : 'line-clamp-1 pr-12 text-[11px] md:line-clamp-2 md:text-xs'}`}>
+                  <p className={`tv-muted leading-relaxed ${viewMode === 'grid' ? 'mb-3 line-clamp-3 text-xs md:mb-4 md:text-sm' : 'line-clamp-2 text-[11px] md:text-xs'}`}>
                     {handout.content}
                   </p>
 
                   {role === 'gm' && handout.type === 'npc' ? (
-                    <div className={`flex flex-wrap gap-1.5 ${viewMode === 'grid' ? 'mb-3' : 'mb-1 pr-12'}`}>
+                    <div className={`flex flex-wrap gap-1.5 ${viewMode === 'grid' ? 'mb-3' : 'mb-1'}`}>
                       <span className="rounded tv-tone-enemy-chip px-2 py-1 text-[9px] font-semibold uppercase tracking-[0.16em]">
                         HP {Number(handout.npcHp ?? 15) || 15}
                       </span>
@@ -360,17 +444,24 @@ function HandoutsView({ role, handouts, currentPlayerId, onToggleVisibility, onT
                     </div>
                   ) : null}
 
-                  {role === 'gm' && handout.secret ? (
-                    <div className={`tv-tone-secret-surface ${viewMode === 'grid' ? 'mt-auto p-2.5 md:p-3' : 'mt-1 mr-20 flex items-center gap-2 px-2 py-1'} overflow-hidden rounded italic shadow-inner`}>
-                      <strong className={`block shrink-0 text-[9px] uppercase tracking-widest tv-tone-secret-label ${viewMode === 'grid' ? 'mb-1' : ''}`}>Secret</strong>
-                      <span className={`text-[10px] md:text-[11px] ${viewMode === 'list' ? 'truncate' : ''}`}>{handout.secret}</span>
+                  {role === 'gm' ? renderGmFooter(handout) : null}
+
+                  {role === 'player' && handout.secret && isSecretVisibleToPlayers(handout) ? (
+                    <div className="tv-handout-card__footer tv-handout-card__footer--player">
+                      {renderHandoutSecretSnippet(handout, 'player')}
                     </div>
                   ) : null}
 
-                  {role === 'player' && handout.secret && isSecretVisibleToPlayers(handout) ? (
-                    <div className={`tv-tone-ally-surface ${viewMode === 'grid' ? 'mt-auto p-2.5 md:p-3' : 'mt-1 mr-12 flex items-center gap-2 px-2 py-1'} overflow-hidden rounded shadow-inner`}>
-                      <strong className={`block shrink-0 text-[9px] uppercase tracking-widest tv-tone-ally-text ${viewMode === 'grid' ? 'mb-1' : ''}`}>Secret</strong>
-                      <span className={`text-[10px] md:text-[11px] ${viewMode === 'list' ? 'truncate' : ''}`}>{handout.secret}</span>
+                  {role === 'player' && viewMode === 'list' && isClaimableLoot(handout) ? (
+                    <div className="mt-2 flex justify-end border-t border-[color-mix(in_srgb,var(--tv-border),transparent_55%)] pt-2">
+                      <button
+                        type="button"
+                        onClick={(event) => { event.stopPropagation(); onClaim(handout.id); }}
+                        className="tv-btn tv-button-primary gap-2 px-3 text-[11px] uppercase tracking-[0.12em]"
+                        title="Claim dit object"
+                      >
+                        <Hand className="h-3.5 w-3.5" /> Claim
+                      </button>
                     </div>
                   ) : null}
                 </div>

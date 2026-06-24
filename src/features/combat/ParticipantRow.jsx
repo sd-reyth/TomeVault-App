@@ -1,7 +1,7 @@
 import React from 'react';
 import EditableStat from '../../components/EditableStat';
 import TvImage from '../../components/TvImage';
-import { resolveDisplayAvatar } from '../../lib/placeholders';
+import { getAvatarObjectPosition, resolveDisplayAvatar } from '../../lib/placeholders';
 import Text from '../../ui/Text';
 import CombatStatChip from './CombatStatChip';
 import ConditionChips from './ConditionChips';
@@ -28,22 +28,37 @@ export default function ParticipantRow({
 }) {
   const hasConditions = activeConditions.length > 0;
   const hpLow = !hiddenNpcForPlayer && Number(member.hp) < 10;
+  const roleLabel = member.isNpc ? 'NPC' : 'Speler';
+  const rawSubtitle = String(member.subtitle || '').trim();
+  const displaySubtitle = (() => {
+    if (rawSubtitle && rawSubtitle.toLowerCase() !== roleLabel.toLowerCase()) return rawSubtitle;
+    if (member.isNpc) return 'Vijand';
+    return '';
+  })();
 
+  const canOpenProfile = !hiddenNpcForPlayer;
   const rowClass = [
-    'tv-combat-participant-row tv-handout-card group relative flex cursor-pointer flex-row items-stretch overflow-hidden rounded-2xl transition-all duration-200 ease-out',
+    'tv-combat-participant-row tv-handout-card group relative flex flex-row items-stretch overflow-hidden rounded-2xl transition-all duration-200 ease-out',
+    canOpenProfile ? 'cursor-pointer' : 'cursor-default',
     member.isNpc ? 'tv-combat-row--npc' : '',
     isCurrentTurn && battleActive ? 'tv-combat-row--turn' : '',
     isCurrentTurn && combatPaused ? 'tv-combat-row--turn-paused' : '',
   ].filter(Boolean).join(' ');
 
+  const handleOpenProfile = () => {
+    if (!canOpenProfile) return;
+    onOpenProfile?.(member);
+  };
+
   return (
     <div
-      onClick={() => onOpenProfile?.(member)}
+      onClick={handleOpenProfile}
       className={rowClass}
       data-turn={isCurrentTurn ? 'true' : undefined}
-      role="button"
-      tabIndex={0}
+      role={canOpenProfile ? 'button' : undefined}
+      tabIndex={canOpenProfile ? 0 : undefined}
       onKeyDown={(event) => {
+        if (!canOpenProfile) return;
         if (event.key === 'Enter' || event.key === ' ') {
           event.preventDefault();
           onOpenProfile?.(member);
@@ -57,16 +72,17 @@ export default function ParticipantRow({
           src={resolveDisplayAvatar(displayMemberAvatar, member.id)}
           alt={displayMemberName}
           className="absolute inset-0 h-full w-full object-cover opacity-95"
+          style={{ objectPosition: getAvatarObjectPosition(member.avatarPosition) }}
         />
       </div>
 
-      <div className="tv-combat-participant-row__content relative z-10 flex min-w-0 flex-1 flex-col justify-center p-2 md:p-2.5">
-        <div className="mb-1 flex min-w-0 items-center gap-2 pr-8">
-          {member.isNpc ? (
-            <span className="shrink-0 rounded px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-[0.16em] tv-tone-enemy-chip">
-              NPC
-            </span>
-          ) : null}
+      <div className="tv-combat-participant-row__content relative z-10 flex min-w-0 flex-1 flex-col p-2 md:p-2.5">
+        <div className="tv-combat-participant-row__title flex min-w-0 items-center gap-2 pr-8">
+          <span
+            className={`shrink-0 rounded px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-[0.16em] ${member.isNpc ? 'tv-tone-enemy-chip' : 'tv-tone-ally-chip'}`}
+          >
+            {roleLabel}
+          </span>
           <Text
             variant="body"
             as="span"
@@ -75,17 +91,15 @@ export default function ParticipantRow({
             {displayMemberName}
           </Text>
           {hasAlertFeat ? (
-            <Text variant="label" tone="accent" as="span" className="shrink-0 rounded-full px-1.5 py-0.5 text-[9px]">
+            <Text variant="label" tone="accent" as="span" className="tv-tag shrink-0 px-1.5 py-0.5 text-[9px]">
               Alert
             </Text>
           ) : null}
         </div>
 
-        {member.subtitle ? (
-          <Text variant="meta" as="p" className="mb-1 line-clamp-1 pr-8 text-[11px] leading-4">
-            {member.subtitle}
-          </Text>
-        ) : null}
+        <Text variant="meta" as="p" className="tv-combat-participant-row__subtitle line-clamp-1 pr-8 text-[11px] leading-4">
+          {displaySubtitle || '\u00a0'}
+        </Text>
 
         <div className="tv-combat-participant-row__stats flex min-w-0 flex-nowrap items-center gap-1.5">
           <CombatStatChip
@@ -123,13 +137,16 @@ export default function ParticipantRow({
           </CombatStatChip>
         </div>
 
-        {hasConditions ? (
-          <ConditionChips
-            conditions={activeConditions}
-            isGm={isGm}
-            onEdit={() => onOpenConditions?.(member)}
-          />
-        ) : null}
+        <div className="tv-combat-participant-row__conditions">
+          {hasConditions ? (
+            <ConditionChips
+              conditions={activeConditions}
+              isGm={isGm}
+              onEdit={() => onOpenConditions?.(member)}
+              className="mt-0"
+            />
+          ) : null}
+        </div>
       </div>
 
       {combatInProgress ? (

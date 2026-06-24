@@ -1,6 +1,17 @@
-import React, { useState } from 'react';
-import { Crown, Info, Plus, Search, ShieldCheck, Pencil, Hand, Trash } from 'lucide-react';
+import React, { useMemo, useState } from 'react';
+import {
+  Crown,
+  History,
+  Info,
+  Pencil,
+  Plus,
+  Search,
+  Hand,
+  Trash2,
+  UserRound,
+} from 'lucide-react';
 import { resolveDisplayAvatar } from '../lib/placeholders';
+import SegmentedControl from '../ui/SegmentedControl';
 import TvImage from './TvImage';
 
 function formatPreparationTime(ms) {
@@ -20,44 +31,154 @@ function formatModifier(value) {
 
 function getStatusMeta(preparation, party) {
   const assignedPlayer = party.find((member) => member.id === preparation.assignedToUid);
+  const preparedPlayer = party.find((member) => member.id === preparation.preparedForUid);
   const assignedName = assignedPlayer?.name || 'speler';
+  const preparedName = preparedPlayer?.name || 'speler';
 
   if (preparation.assignmentStatus === 'pending') {
     return {
       label: `Wacht op ${assignedName}`,
-      className: 'tv-tone-secret-surface',
+      className: 'tv-prep-status--pending',
     };
   }
 
   if (preparation.assignmentStatus === 'accepted') {
     return {
       label: 'In gebruik',
-      className: 'tv-tone-secret-surface',
+      className: 'tv-prep-status--active',
     };
   }
 
   if (preparation.assignmentStatus === 'rejected') {
     return {
       label: 'Afgeslagen',
-      className: 'tv-tone-enemy-surface',
+      className: 'tv-tone-enemy-chip',
+    };
+  }
+
+  if (preparation.preparedForUid) {
+    return {
+      label: `Voor ${preparedName}`,
+      className: 'tv-prep-status--linked',
     };
   }
 
   return {
     label: 'Klaar',
-    className: 'border-[color-mix(in_srgb,var(--tv-border),transparent_28%)] tv-chip-surface tv-text-sub',
+    className: 'tv-prep-status--ready',
   };
 }
 
 function getPreparationStatPills(preparation) {
-  const pills = [
-    `HP ${Number(preparation.hp ?? 0)}/${Number(preparation.maxHp ?? preparation.hp ?? 0)}`,
-    `AC ${Number(preparation.ac ?? 10)}`,
-    `Init ${formatModifier(preparation.initMod)}`,
+  return [
+    { label: 'HP', value: `${Number(preparation.hp ?? 0)}/${Number(preparation.maxHp ?? preparation.hp ?? 0)}` },
+    { label: 'AC', value: String(Number(preparation.ac ?? 10)) },
+    { label: 'Init', value: formatModifier(preparation.initMod) },
+    ...(preparation.customStats || []).slice(0, 2).map((stat) => ({
+      label: stat.name,
+      value: stat.value,
+    })),
   ];
+}
 
-  return pills.concat(
-    (preparation.customStats || []).slice(0, 2).map((stat) => `${stat.name} ${stat.value}`)
+function matchesStatusFilter(preparation, filter) {
+  if (filter === 'all') return true;
+  if (filter === 'ready') return preparation.assignmentStatus === 'unassigned';
+  if (filter === 'pending') return preparation.assignmentStatus === 'pending';
+  if (filter === 'active') return preparation.assignmentStatus === 'accepted';
+  return true;
+}
+
+function PreparationCard({
+  preparation,
+  party,
+  activePlayers,
+  onEditPreparation,
+  onAssignPreparation,
+  onDeletePreparation,
+}) {
+  const statusMeta = getStatusMeta(preparation, party);
+  const statPills = getPreparationStatPills(preparation);
+
+  const handleDelete = () => {
+    if (!window.confirm(`Verwijder voorbereiding "${preparation.name}"?`)) return;
+    onDeletePreparation?.(preparation);
+  };
+
+  return (
+    <article className="tv-prep-card tv-view-card">
+      <div className="tv-prep-card__media tv-image-frame">
+        <TvImage
+          src={resolveDisplayAvatar(preparation.imageUrl, preparation.id)}
+          alt={preparation.name || 'Voorbereid personage'}
+        />
+      </div>
+
+      <div className="tv-prep-card__main">
+        <div className="tv-prep-card__head">
+          <div className="min-w-0 flex-1">
+            <div className="flex flex-wrap items-center gap-1.5">
+              <h3 className="truncate text-sm font-semibold tracking-[0.04em] tv-text">
+                {preparation.name || 'Naamloos personage'}
+              </h3>
+              <span className={`tv-prep-status ${statusMeta.className}`}>
+                {statusMeta.label}
+              </span>
+            </div>
+            {preparation.subtitle ? (
+              <p className="mt-0.5 truncate text-xs italic tv-muted">{preparation.subtitle}</p>
+            ) : null}
+          </div>
+          <time className="tv-prep-card__time" dateTime={preparation.updatedAtMs ? new Date(preparation.updatedAtMs).toISOString() : undefined}>
+            {formatPreparationTime(preparation.updatedAtMs)}
+          </time>
+        </div>
+
+        <div className="tv-prep-card__stats">
+          {statPills.map((pill) => (
+            <span key={`${preparation.id}-${pill.label}`} className="tv-prep-stat-pill">
+              <span className="tv-prep-stat-pill__label">{pill.label}</span>
+              <span className="tv-prep-stat-pill__value">{pill.value}</span>
+            </span>
+          ))}
+        </div>
+
+        <p className="tv-prep-card__bio">
+          {preparation.bio || 'Nog geen achtergrond of notities toegevoegd.'}
+        </p>
+      </div>
+
+      <div className="tv-prep-card__actions" role="group" aria-label="Profielacties">
+        <button
+          type="button"
+          onClick={() => onEditPreparation?.(preparation)}
+          className="tv-prep-card__action"
+          title="Bewerken"
+        >
+          <Pencil className="h-3.5 w-3.5" />
+          <span>Bewerken</span>
+        </button>
+        <button
+          type="button"
+          onClick={() => onAssignPreparation?.(preparation)}
+          disabled={activePlayers.length === 0}
+          className="tv-prep-card__action tv-prep-card__action--primary"
+          title="Toewijzen aan speler"
+        >
+          <Hand className="h-3.5 w-3.5" />
+          <span>Toewijzen</span>
+        </button>
+        <button
+          type="button"
+          onClick={handleDelete}
+          className="tv-prep-card__action tv-prep-card__action--danger"
+          title="Verwijderen"
+        >
+          <Trash2 className="h-3.5 w-3.5" />
+          <span>Verwijder</span>
+        </button>
+      </div>
+    </article>
   );
 }
 
@@ -66,295 +187,268 @@ export default function PreparationsView({
   backups,
   party,
   onCreatePreparation,
+  onCreateFromPlayer,
   onEditPreparation,
   onDeletePreparation,
   onAssignPreparation,
   onRestoreBackup,
 }) {
   const [query, setQuery] = useState('');
+  const [statusFilter, setStatusFilter] = useState('all');
   const [showInfo, setShowInfo] = useState(false);
-  const [showBackups, setShowBackups] = useState(false);
+
   const activePlayers = party.filter((member) => !member.isNpc);
-  const pendingTemplates = templates.filter((entry) => entry.assignmentStatus === 'pending');
   const readyCount = templates.filter((entry) => entry.assignmentStatus === 'unassigned').length;
+  const pendingCount = templates.filter((entry) => entry.assignmentStatus === 'pending').length;
   const acceptedCount = templates.filter((entry) => entry.assignmentStatus === 'accepted').length;
 
-  const filteredTemplates = templates.filter((entry) => {
-    const statHaystack = (entry.customStats || []).map((stat) => `${stat.name} ${stat.value}`).join(' ');
-    const haystack = `${entry.name || ''} ${entry.subtitle || ''} ${entry.bio || ''} ${statHaystack}`.toLowerCase();
-    return haystack.includes(query.trim().toLowerCase());
-  });
+  const filteredTemplates = useMemo(() => {
+    const needle = query.trim().toLowerCase();
+    return templates.filter((entry) => {
+      if (!matchesStatusFilter(entry, statusFilter)) return false;
+      if (!needle) return true;
+      const statHaystack = (entry.customStats || []).map((stat) => `${stat.name} ${stat.value}`).join(' ');
+      const haystack = `${entry.name || ''} ${entry.subtitle || ''} ${entry.bio || ''} ${statHaystack}`.toLowerCase();
+      return haystack.includes(needle);
+    });
+  }, [templates, query, statusFilter]);
 
-  const handleDelete = (preparation) => {
-    if (!window.confirm(`Verwijder voorbereiding "${preparation.name}"?`)) return;
-    onDeletePreparation?.(preparation);
-  };
+  const statusFilterOptions = useMemo(() => [
+    { value: 'all', label: `Alles (${templates.length})` },
+    { value: 'ready', label: `Klaar (${readyCount})` },
+    { value: 'pending', label: `Open (${pendingCount})` },
+    { value: 'active', label: `Actief (${acceptedCount})` },
+  ], [templates.length, readyCount, pendingCount, acceptedCount]);
 
   const handleRestore = (backup) => {
     if (!window.confirm(`Herstel ${backup.playerName || 'deze speler'} naar de vorige profielstaat?`)) return;
     onRestoreBackup?.(backup);
   };
 
+  const visibleLabel = filteredTemplates.length === 1
+    ? '1 in beeld'
+    : `${filteredTemplates.length} in beeld`;
+
   return (
-    <section className="tv-view-shell relative z-10 h-full">
-      <header className="tv-view-shell-header flex shrink-0 flex-col gap-4 p-3 xl:flex-row xl:items-center xl:justify-between md:p-4">
-          <div className="max-w-2xl min-w-0">
-            <h1 className="font-fantasy text-2xl font-bold tracking-[0.1em] tv-heading-shimmer md:text-3xl">Voorbereidingen</h1>
-            <p className="tv-panel-copy mt-1 text-xs md:mt-2 md:text-sm">
-              Volledige karakterprofielen die je bewaart, verfijnt en later soepel aan een speler koppelt.
-            </p>
+    <div className="tv-view-shell tv-prep-view relative z-10 flex h-full flex-col">
+      <div className="tv-view-shell-header tv-prep-view__header flex shrink-0 flex-col gap-2 p-3 sm:flex-row sm:items-center sm:justify-between md:p-4">
+        <h2 className="flex items-center gap-2 font-fantasy text-xs font-medium uppercase tracking-[0.18em] tv-text md:text-sm">
+          <Crown className="tv-view-title-icon" aria-hidden />
+          Voorbereidingen
+        </h2>
+
+        <div className="tv-toolbar w-full sm:w-auto">
+          <div className="tv-toolbar__stat">
+            <span className="tv-toolbar__stat-label">Profielen</span>
+            <span className="tv-toolbar__stat-value">{templates.length}</span>
           </div>
-
-          <div className="flex w-full flex-col gap-2 sm:flex-row sm:items-center xl:w-auto">
-            <label className="tv-input-surface flex min-w-0 flex-1 items-center gap-2 rounded-xl px-3 py-2.5 shadow-inner xl:min-w-[300px]">
-              <Search className="h-4 w-4 shrink-0 tv-muted" />
-              <input
-                type="search"
-                placeholder="Zoek een voorbereiding"
-                className="w-full bg-transparent text-sm outline-none"
-                value={query}
-                onChange={(event) => setQuery(event.target.value)}
-              />
-            </label>
-            <button
-              type="button"
-              onClick={onCreatePreparation}
-              className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-xl px-4 text-sm uppercase tracking-[0.16em] active:scale-[0.985] sm:w-auto tv-button-primary"
-            >
-              <Plus className="h-4 w-4" />
-              Nieuw
-            </button>
-          </div>
-      </header>
-
-      <div className="relative z-10 min-h-0 flex-1 overflow-y-auto p-3 no-scrollbar md:p-4">
-        <div className="grid items-start gap-4 xl:grid-cols-[minmax(0,1.35fr)_296px] xl:gap-4">
-        <div className="tv-panel-shell min-h-0 p-4 md:p-5">
-          <div className="flex flex-col gap-3 border-b border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] pb-4 sm:flex-row sm:items-start sm:justify-between">
-            <div className="min-w-0">
-              <h2 className="tv-panel-title">Bibliotheek</h2>
-              <p className="tv-panel-copy mt-1 text-sm leading-6">Profielen die klaarstaan om te verfijnen, bewaren of uit te delen.</p>
-            </div>
-            <span className="rounded-full border border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] tv-panel-inset px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] tv-text-sub">
-              {filteredTemplates.length} in beeld
-            </span>
-          </div>
-
-          {filteredTemplates.length === 0 ? (
-            <div className="tv-panel-block flex min-h-[260px] flex-col items-center justify-center border-dashed px-6 py-10 text-center">
-              <div className="flex h-14 w-14 items-center justify-center rounded-2xl border border-[color-mix(in_srgb,var(--tv-accent),transparent_60%)] bg-[color-mix(in_srgb,var(--tv-accent),transparent_86%)] tv-accent shadow-inner">
-                <Crown className="h-6 w-6" />
-              </div>
-              <h3 className="mt-5 font-fantasy text-xl tracking-[0.12em] tv-text">
-                {templates.length === 0 ? 'Nog geen voorbereide personages' : 'Geen treffers voor deze zoekopdracht'}
-              </h3>
-              <p className="mt-3 max-w-md text-sm leading-7 tv-muted">
-                {templates.length === 0
-                  ? 'Open Nieuw om een volledig profiel klaar te zetten of bewaar een bestaand spelersprofiel rechtstreeks vanuit het karaktervenster.'
-                  : 'Pas je zoekterm aan of open een bestaand profiel om het verder te verfijnen.'}
-              </p>
-              <div className="mt-6 flex flex-col items-center gap-3 sm:flex-row" />
-            </div>
-          ) : (
-            <div className="mt-4 grid gap-3">
-              {filteredTemplates.map((preparation) => {
-                const statusMeta = getStatusMeta(preparation, party);
-                const statPills = getPreparationStatPills(preparation);
-                return (
-                  <article
-                    key={preparation.id}
-                    className="grid gap-4 rounded-2xl border border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] tv-panel-inset p-4 shadow-[0_18px_46px_rgba(0,0,0,0.24)] transition-all duration-200 ease-out tv-hover-surface hover:border-[color-mix(in_srgb,var(--tv-border),transparent_28%)] md:grid-cols-[72px_minmax(0,1fr)]"
-                  >
-                    <div className="flex justify-center md:justify-start">
-                      <div className="tv-image-frame h-[72px] w-[72px] overflow-hidden rounded-2xl border border-[color-mix(in_srgb,var(--tv-border),transparent_28%)] tv-chip-surface shadow-inner">
-                        <TvImage
-                          src={resolveDisplayAvatar(preparation.imageUrl, preparation.id)}
-                          alt={preparation.name || 'Voorbereid personage'}
-                        />
-                      </div>
-                    </div>
-
-                    <div className="min-w-0">
-                      <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
-                        <div className="min-w-0">
-                          <div className="flex flex-wrap items-center gap-2">
-                            <h3 className="text-xl font-semibold tracking-[0.08em] tv-text">{preparation.name || 'Naamloos personage'}</h3>
-                            <span className={`rounded-full border px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.18em] ${statusMeta.className}`}>
-                              {statusMeta.label}
-                            </span>
-                          </div>
-                          {preparation.subtitle ? (
-                            <p className="mt-1 text-sm italic tv-text-sub">{preparation.subtitle}</p>
-                          ) : null}
-                        </div>
-                        <div className="text-[11px] uppercase tracking-[0.18em] tv-muted">
-                          Bijgewerkt {formatPreparationTime(preparation.updatedAtMs)}
-                        </div>
-                      </div>
-
-                      <div className="mt-3 flex flex-wrap gap-2">
-                        {statPills.map((pill) => (
-                          <span
-                            key={`${preparation.id}-${pill}`}
-                            className="rounded-full border border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] tv-input-surface px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.16em] tv-text"
-                          >
-                            {pill}
-                          </span>
-                        ))}
-                      </div>
-
-                      <p className="mt-3 line-clamp-3 text-sm leading-7 tv-text-sub">
-                        {preparation.bio || 'Nog geen achtergrond of notities toegevoegd.'}
-                      </p>
-
-                      <div className="prep-card-actions mt-4" role="group" aria-label="Profielacties">
-                        <button
-                          type="button"
-                          onClick={() => onEditPreparation?.(preparation)}
-                          title="Bewerken"
-                          aria-label="Bewerken"
-                          className="prep-card-action prep-card-action-edit"
-                        >
-                          <Pencil className="h-5 w-5" />
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => onAssignPreparation?.(preparation)}
-                          disabled={activePlayers.length === 0}
-                          title="Toewijzen aan speler"
-                          aria-label="Toewijzen aan speler"
-                          className="prep-card-action prep-card-action-assign"
-                        >
-                          <Hand className="h-5 w-5" />
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => handleDelete(preparation)}
-                          title="Verwijderen"
-                          aria-label="Verwijderen"
-                          className="prep-card-action prep-card-action-delete"
-                        >
-                          <Trash className="h-5 w-5" />
-                        </button>
-                      </div>
-                    </div>
-                  </article>
-                );
-              })}
-            </div>
-          )}
+          <button
+            type="button"
+            onClick={onCreatePreparation}
+            title="Nieuw profiel"
+            aria-label="Nieuw profiel"
+            className="tv-toolbar__btn tv-toolbar__btn--square tv-button-primary"
+          >
+            <Plus className="h-4 w-4 shrink-0" />
+          </button>
         </div>
+      </div>
 
-        <aside className="tv-panel-shell p-4 md:p-5 xl:sticky xl:top-3">
-          <div className="flex items-center justify-between gap-3 tv-text">
-            <div className="flex items-center gap-2">
-              <ShieldCheck className="h-4 w-4 tv-accent" />
-              <h2 className="font-fantasy text-lg uppercase tracking-[0.14em]">Overzicht</h2>
-            </div>
-            <button
-              type="button"
-              onClick={() => setShowInfo((value) => !value)}
-              className={`inline-flex h-9 w-9 items-center justify-center rounded-full border transition-all duration-200 ease-out ${showInfo ? 'border-[var(--tv-accent)]/30 bg-[color-mix(in_srgb,var(--tv-accent),transparent_86%)] tv-accent' : 'border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] tv-panel-inset tv-text-sub tv-hover-surface hover:text-[var(--tv-accent)]'}`}
-              title={showInfo ? 'Verberg extra uitleg' : 'Toon extra uitleg'}
-            >
-              <Info className="h-4 w-4" />
-            </button>
-          </div>
-
-          <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-4 xl:grid-cols-2">
-            {[
-              { label: 'Klaar', value: readyCount },
-              { label: 'Open', value: pendingTemplates.length },
-              { label: 'In gebruik', value: acceptedCount },
-              { label: 'Herstelpunten', value: backups.length },
-            ].map((item) => (
-              <article key={item.label} className="rounded-xl border border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] tv-panel-inset p-3">
-                <div className="text-[10px] font-bold uppercase tracking-[0.18em] tv-muted">{item.label}</div>
-                <div className="mt-2 font-fantasy text-2xl tv-text">{item.value}</div>
-              </article>
-            ))}
-          </div>
-
-          {showInfo ? (
-            <div className="mt-4 rounded-xl border border-[color-mix(in_srgb,var(--tv-border),transparent_28%)] tv-chip-surface p-4">
-              <div className="flex flex-wrap gap-2">
-                {['Inventaris blijft', 'Wallet blijft', 'Notities blijven'].map((pill) => (
-                  <span
-                    key={pill}
-                    className="rounded-full border border-[color-mix(in_srgb,var(--tv-border),transparent_28%)] tv-chip-surface px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.16em] tv-text-sub"
-                  >
-                    {pill}
-                  </span>
-                ))}
+      <div className="tv-view-shell-body tv-prep-view__body relative z-10 flex min-h-0 flex-1 flex-col overflow-hidden">
+        <div className="tv-prep-layout">
+          <section className="tv-prep-main">
+            <div className="tv-prep-main__toolbar">
+              <div className="tv-prep-main__head">
+                <h3 className="tv-panel-title text-base">Bibliotheek</h3>
+                <span className="tv-prep-panel__badge">{visibleLabel}</span>
               </div>
 
-              <div className="mt-4 space-y-3">
-                {[
-                  { title: '1. Nieuw', body: 'Maak een voorbereiding aan of bewaar een bestaand spelersprofiel.' },
-                  { title: '2. Werk het af', body: 'Controleer avatar, stats, verborgen eigenschappen en lore.' },
-                  { title: '3. Toewijzen aan speler', body: 'Selecteer daarna direct de speler aan wie je dit personage wilt aanbieden.' },
-                ].map((step) => (
-                  <article key={step.title} className="rounded-lg border border-[color-mix(in_srgb,var(--tv-border),transparent_28%)]/80 tv-panel-inset p-3">
-                    <div className="text-xs font-fantasy uppercase tracking-[0.14em] tv-text">{step.title}</div>
-                    <p className="mt-2 text-sm leading-6 tv-muted">{step.body}</p>
-                  </article>
-                ))}
+              <div className="tv-prep-main__controls">
+                <label className="relative min-w-0 flex-1">
+                  <Search className="absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 tv-muted" aria-hidden />
+                  <input
+                    type="search"
+                    placeholder="Zoek op naam, stats of notities…"
+                    className="tv-input-surface tv-chat-compose-input h-10 w-full pl-9 pr-3 text-sm outline-none transition-colors"
+                    value={query}
+                    onChange={(event) => setQuery(event.target.value)}
+                  />
+                </label>
+
+                <SegmentedControl
+                  block
+                  value={statusFilter}
+                  options={statusFilterOptions}
+                  onChange={setStatusFilter}
+                  aria-label="Filter op status"
+                  className="tv-prep-segmented"
+                />
               </div>
             </div>
-          ) : null}
 
-          <div className="mt-6 border-t border-[color-mix(in_srgb,var(--tv-border),transparent_28%)]/80 pt-4">
-            <div className="flex items-center justify-between gap-3">
-              <h3 className="font-fantasy text-sm uppercase tracking-[0.14em] tv-text">Herstelpunten</h3>
-              <div className="flex items-center gap-2">
-                <span className="rounded-full border border-[color-mix(in_srgb,var(--tv-border),transparent_28%)] tv-chip-surface px-2.5 py-1 text-[10px] uppercase tracking-[0.16em] tv-muted">
-                  {backups.length}
-                </span>
+            <div className="tv-prep-main__body no-scrollbar">
+              {filteredTemplates.length === 0 ? (
+                <div className="tv-prep-empty">
+                  <div className="tv-prep-empty__glow" aria-hidden />
+                  <div className="tv-prep-empty__icon">
+                    <Crown className="h-5 w-5" aria-hidden />
+                  </div>
+                  <h3 className="tv-prep-empty__title">
+                    {templates.length === 0
+                      ? 'Nog geen voorbereide personages'
+                      : 'Geen profielen gevonden'}
+                  </h3>
+                  <p className="tv-prep-empty__copy">
+                    {templates.length === 0
+                      ? 'Zet een nieuw profiel klaar of start met het huidige profiel van een speler in de sessie.'
+                      : 'Pas je zoekterm of filter aan, of maak een nieuw profiel aan.'}
+                  </p>
+                  {templates.length === 0 ? (
+                    <div className="tv-prep-empty__actions">
+                      <button
+                        type="button"
+                        onClick={onCreatePreparation}
+                        className="tv-toolbar__btn tv-button-primary gap-2 px-4"
+                      >
+                        <Plus className="h-4 w-4" />
+                        Profiel opzetten
+                      </button>
+                      {activePlayers.length > 0 ? (
+                        <button
+                          type="button"
+                          onClick={onCreateFromPlayer}
+                          className="tv-toolbar__btn tv-panel-inset tv-text tv-hover-surface hover:text-[var(--tv-accent)]"
+                        >
+                          <UserRound className="h-4 w-4" />
+                          Van speler starten
+                        </button>
+                      ) : null}
+                    </div>
+                  ) : null}
+                </div>
+              ) : (
+                <div className="tv-prep-list">
+                  {filteredTemplates.map((preparation) => (
+                    <PreparationCard
+                      key={preparation.id}
+                      preparation={preparation}
+                      party={party}
+                      activePlayers={activePlayers}
+                      onEditPreparation={onEditPreparation}
+                      onAssignPreparation={onAssignPreparation}
+                      onDeletePreparation={onDeletePreparation}
+                    />
+                  ))}
+                </div>
+              )}
+            </div>
+          </section>
+
+          <aside className="tv-panel-shell tv-prep-sidebar">
+            <div className="tv-prep-sidebar__chrome">
+              <div className="tv-prep-panel__head">
+                <h3 className="tv-panel-title text-sm">Overzicht</h3>
                 <button
                   type="button"
-                  onClick={() => setShowBackups((value) => !value)}
-                  className="rounded-md border border-[color-mix(in_srgb,var(--tv-border),transparent_20%)] tv-chip-surface px-2.5 py-1 text-[10px] uppercase tracking-[0.16em] tv-text transition-colors hover:tv-border-emphasis hover:tv-tone-secret-text xl:hidden"
+                  onClick={() => setShowInfo((value) => !value)}
+                  className={`tv-toolbar-icon-btn ${showInfo ? 'border-[color-mix(in_srgb,var(--tv-accent),transparent_30%)] bg-[color-mix(in_srgb,var(--tv-accent),transparent_88%)] text-[var(--tv-accent)]' : 'tv-panel-inset tv-muted tv-hover-surface hover:text-[var(--tv-accent)]'}`}
+                  title={showInfo ? 'Verberg uitleg' : 'Toon uitleg'}
+                  aria-pressed={showInfo}
                 >
-                  {showBackups ? 'Verberg' : 'Toon'}
+                  <Info className="h-4 w-4" />
                 </button>
+              </div>
+
+              <div className="tv-prep-stat-grid">
+                {[
+                  { label: 'Klaar', value: readyCount },
+                  { label: 'Open', value: pendingCount },
+                  { label: 'In gebruik', value: acceptedCount },
+                  { label: 'Herstel', value: backups.length },
+                ].map((item) => (
+                  <div key={item.label} className="tv-prep-stat">
+                    <span className="tv-prep-stat__label">{item.label}</span>
+                    <span className="tv-prep-stat__value">{item.value}</span>
+                  </div>
+                ))}
               </div>
             </div>
 
-            {(showBackups || backups.length === 0) ? (
-              backups.length === 0 ? (
-                <p className="mt-4 text-sm leading-7 tv-muted">Na een acceptatie verschijnt hier automatisch een terugzetpunt.</p>
+            {showInfo ? (
+              <div className="tv-prep-sidebar__block">
+                <div className="tv-prep-info">
+                  <div className="tv-prep-info__pills">
+                    {['Inventaris blijft', 'Wallet blijft', 'Notities blijven'].map((pill) => (
+                      <span key={pill} className="tv-prep-info__pill">{pill}</span>
+                    ))}
+                  </div>
+                  <ol className="tv-prep-info__steps">
+                    {[
+                      { title: 'Nieuw', body: 'Maak een voorbereiding of bewaar een bestaand spelersprofiel.' },
+                      { title: 'Werk af', body: 'Controleer avatar, stats, verborgen eigenschappen en lore.' },
+                      { title: 'Toewijzen', body: 'Bied het personage aan een speler aan — zij accepteren of wijzen af.' },
+                    ].map((step, index) => (
+                      <li key={step.title} className="tv-prep-info__step">
+                        <span className="tv-prep-info__step-num">{index + 1}</span>
+                        <div className="min-w-0">
+                          <div className="tv-prep-info__step-title">{step.title}</div>
+                          <p className="tv-prep-info__step-body">{step.body}</p>
+                        </div>
+                      </li>
+                    ))}
+                  </ol>
+                </div>
+              </div>
+            ) : null}
+
+            <div className="tv-prep-sidebar__block tv-prep-sidebar__block--flush">
+              <div className="tv-prep-panel__head">
+                <div className="flex min-w-0 items-center gap-1.5">
+                  <History className="h-3.5 w-3.5 shrink-0 tv-accent" aria-hidden />
+                  <h3 className="tv-panel-title text-sm">Herstelpunten</h3>
+                </div>
+                <span className="tv-prep-panel__badge">{backups.length}</span>
+              </div>
+
+              {backups.length === 0 ? (
+                <p className="tv-prep-backups-empty">
+                  Na een acceptatie verschijnt hier automatisch een terugzetpunt voor de speler.
+                </p>
               ) : (
-                <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-1">
+                <div className="tv-prep-backup-list">
                   {backups.map((backup) => (
-                    <article key={backup.id} className="rounded-xl border border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] tv-panel-inset p-3">
-                      <p className="text-[11px] uppercase tracking-[0.16em] tv-muted">
-                        Opgeslagen {formatPreparationTime(backup.createdAtMs)}
-                      </p>
-                      <div className="mt-2 text-sm font-medium tv-text">{backup.playerName || 'Onbekende speler'}</div>
-                      <div className="mt-1 text-xs uppercase tracking-[0.16em] tv-muted">via {backup.templateName || 'Naamloze voorbereiding'}</div>
+                    <article key={backup.id} className="tv-prep-backup">
+                      <div className="tv-prep-backup__head">
+                        <div className="min-w-0">
+                          <p className="tv-prep-backup__name">{backup.playerName || 'Onbekende speler'}</p>
+                          <p className="tv-prep-backup__via">
+                            via {backup.templateName || 'Naamloze voorbereiding'}
+                          </p>
+                        </div>
+                        <time className="tv-prep-backup__time">
+                          {formatPreparationTime(backup.createdAtMs)}
+                        </time>
+                      </div>
                       {backup.restoredAtMs ? (
-                        <p className="mt-3 text-[11px] uppercase tracking-[0.16em] tv-tone-secret-label">
+                        <p className="tv-prep-backup__restored">
                           Hersteld {formatPreparationTime(backup.restoredAtMs)}
                         </p>
                       ) : null}
                       <button
                         type="button"
                         onClick={() => handleRestore(backup)}
-                        className="mt-3 w-full rounded-xl border border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] tv-input-surface px-3 py-2 text-xs tracking-[0.14em] tv-text transition-all duration-200 ease-out hover:tv-input-surface hover:tv-border-emphasis hover:tv-tone-secret-text"
+                        className="tv-prep-backup__restore"
                       >
                         Zet terug
                       </button>
                     </article>
                   ))}
                 </div>
-              )
-            ) : (
-              <p className="mt-4 text-sm leading-7 tv-muted xl:hidden">Herstelpunten verborgen voor een compact mobiel overzicht.</p>
-            )}
-          </div>
-        </aside>
+              )}
+            </div>
+          </aside>
         </div>
       </div>
-    </section>
+    </div>
   );
 }

@@ -2,15 +2,25 @@ import React, { useEffect, useRef, useState } from 'react';
 import {
   AlertTriangle,
   ArrowRight,
+  Backpack,
   BookOpen,
+  Check,
+  ChevronDown,
+  Crown,
+  Dices,
   DoorOpen,
-  Eye,
   LogOut,
   Mail,
+  MessageSquare,
+  NotebookPen,
+  Plus,
+  Scroll,
+  ScrollText,
+  SendHorizontal,
   ShieldCheck,
+  Sparkles,
   Swords,
   Trash2,
-  Users,
   Volume2,
   VolumeX,
   Wand2,
@@ -18,6 +28,17 @@ import {
 } from 'lucide-react';
 import { safeLocalStorageGet, safeLocalStorageSet } from '../lib/browserStorage';
 import { getJoinTagLookupVariants } from '../lib/sessionUtils';
+import { playFeedback } from '../lib/uiFeedback';
+import TreasureIcon from '../ui/TreasureIcon';
+import { PLAN_DEFINITIONS, getPlanFeatureSummary } from '../lib/accessPlans';
+import {
+  LANDING_ABOUT,
+  LANDING_AUDIENCES,
+  LANDING_FAQ,
+  LANDING_FEATURES,
+  LANDING_HERO,
+  LANDING_PRICING,
+} from '../lib/landingContent';
 import landingBackgroundVideo from '../../Video/landingBG.mp4';
 import RuntimeBadge from './RuntimeBadge';
 import Button from './Button';
@@ -25,6 +46,23 @@ const LANDING_AMBIENCE_ENABLED_STORAGE_KEY = 'tomevault:landing:ambience-enabled
 const LANDING_AMBIENCE_VOLUME_STORAGE_KEY = 'tomevault:landing:ambience-volume';
 const DEFAULT_LANDING_AMBIENCE_VOLUME = 12;
 const TOMEVAULT_LOGO_SRC = '/references/tomeVaultLogo1.png';
+
+const FEATURE_ICONS = {
+  handouts: ScrollText,
+  chat: MessageSquare,
+  combat: Swords,
+  notes: BookOpen,
+  inventory: Backpack,
+  roles: ShieldCheck,
+};
+
+const SHOWCASE_NAV = [
+  { icon: Scroll, label: 'Handouts' },
+  { icon: MessageSquare, label: 'Fluisteringen', active: true },
+  { icon: TreasureIcon, label: 'Schatkamer' },
+  { icon: Crown, label: 'Voorbereidingen' },
+  { icon: NotebookPen, label: 'Kronieken' },
+];
 
 
 function clampLandingAmbienceVolume(value, fallback = DEFAULT_LANDING_AMBIENCE_VOLUME) {
@@ -58,6 +96,16 @@ function getLandingJoinContext() {
     inviteCode: String(params.get('code') || params.get('sessionCode') || '').trim(),
     isJoinPath: window.location.pathname.toLowerCase().startsWith('/join'),
   };
+}
+
+function buildPricingColumns(audience) {
+  const config = LANDING_PRICING[audience];
+  const freeDef = PLAN_DEFINITIONS[config.free.planId];
+  const paidDef = PLAN_DEFINITIONS[config.paid.planId];
+  const freeFeatures = getPlanFeatureSummary(freeDef);
+  const paidFeatures = getPlanFeatureSummary(paidDef);
+  const lockedOnFree = paidFeatures.filter((feature) => !freeFeatures.includes(feature)).slice(0, 4);
+  return { config, freeFeatures, paidFeatures, lockedOnFree };
 }
 
 function BackfillButton({ onBackfillMemberships }) {
@@ -153,8 +201,9 @@ export default function LandingScreen({
   const [contactName, setContactName] = useState('');
   const [contactEmail, setContactEmail] = useState('');
   const [contactMessage, setContactMessage] = useState('');
-  const [showMarketing, setShowMarketing] = useState(false);
   const [showContactForm, setShowContactForm] = useState(false);
+  const [navScrolled, setNavScrolled] = useState(false);
+  const [pricingAudience, setPricingAudience] = useState('gm');
   const [{ inviteCode, isJoinPath }] = useState(() => getLandingJoinContext());
   const [activeRoleTab, setActiveRoleTab] = useState(() => {
     const initialContext = getLandingJoinContext();
@@ -186,7 +235,7 @@ export default function LandingScreen({
     return `#${word}-${num}`;
   };
 
-  const handleGmCreate = () => {
+  const handleGmCreate = (event) => {
     setLocalGmError('');
     if (!uid) {
       setLocalGmError('Log eerst in voordat je een sessie start.');
@@ -200,6 +249,7 @@ export default function LandingScreen({
       return;
     }
 
+    playFeedback({ sound: 'success', element: event?.currentTarget, variant: 'gold' });
     onJoin('gm', sessionName, {
       skipPinPrompt: true,
       defaultPin: pin,
@@ -215,7 +265,7 @@ export default function LandingScreen({
   });
   const canJoinWithoutPin = Boolean(knownRecentMatch);
 
-  const handlePlayerJoin = () => {
+  const handlePlayerJoin = (event) => {
     setLocalPlayerError('');
     if (!uid) {
       setLocalPlayerError('Log eerst in voordat je een sessie joint.');
@@ -229,6 +279,7 @@ export default function LandingScreen({
       setLocalPlayerError('Voer een PIN van 4 tot 8 cijfers in.');
       return;
     }
+    playFeedback({ sound: 'success', element: event?.currentTarget, variant: 'gold' });
     onJoin('player', sessionCode.toUpperCase(), {
       pin: sessionPin.trim(),
       skipPin: canJoinWithoutPin,
@@ -315,6 +366,15 @@ export default function LandingScreen({
   }, [authError, localAuthError]);
 
   useEffect(() => {
+    if (typeof window === 'undefined') return undefined;
+
+    const handleScroll = () => setNavScrolled(window.scrollY > 24);
+    handleScroll();
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  useEffect(() => {
     const video = landingVideoRef.current;
     if (!video) return;
 
@@ -382,28 +442,18 @@ export default function LandingScreen({
     }
   };
 
+  const scrollToSection = (id) => {
+    if (typeof document === 'undefined') return;
+    const el = document.getElementById(id);
+    if (!el) return;
+    const top = el.getBoundingClientRect().top + window.scrollY - 76;
+    window.scrollTo({ top: Math.max(top, 0), behavior: 'smooth' });
+  };
+
   const compactFeatureHighlights = [
     { icon: BookOpen, label: 'Handouts' },
     { icon: Wand2, label: 'Realtime' },
     { icon: ShieldCheck, label: 'Rollen' },
-  ];
-
-  const landingFeatureCards = [
-    {
-      icon: BookOpen,
-      title: 'Perkament zonder omweg',
-      description: 'Deel lore, aanwijzingen en kaarten over tafel zonder het rollenspel te breken.',
-    },
-    {
-      icon: Wand2,
-      title: 'Echte tijd, echte magie',
-      description: 'Chat, notities en de status van de wereld blijven voor elke speler synchroon.',
-    },
-    {
-      icon: ShieldCheck,
-      title: 'Orde in de chaos',
-      description: 'Spelleider en spelers delen dezelfde herberg, met eigen afgeschermde rollen.',
-    },
   ];
 
   const closeDeleteFlow = () => {
@@ -459,262 +509,606 @@ export default function LandingScreen({
   };
 
   const landingAmbienceLabel = 'Geluid';
-  const showHeroHighlights = !uid;
+  const pricing = buildPricingColumns(pricingAudience);
 
-  const recentSessionsSection = uid && showSessionHub ? (
-    <section className="mx-auto w-full max-w-5xl">
-      <div className="tv-entry-hero-card rounded-[26px] p-4 md:p-5 lg:p-6">
-        <div className="flex items-center justify-center gap-3 text-center">
-          <div className="landing-logo-shell h-11 w-11 shrink-0">
-            <img src={TOMEVAULT_LOGO_SRC} alt="TomeVault logo" className="landing-logo" />
-          </div>
-          <h2 className="text-xl md:text-2xl font-fantasy tracking-[0.12em] tv-text">Recente sessies</h2>
+  const contactSection = (
+    <section className="mx-auto w-full max-w-xl pt-1 text-center">
+      <div className="flex justify-center">
+        <button
+          type="button"
+          onClick={() => setShowContactForm((value) => !value)}
+          className="tv-entry-action border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] tv-panel-inset tv-text hover:border-[color-mix(in_srgb,var(--tv-accent),transparent_58%)] hover:tv-text"
+        >
+          <Mail className="mr-2 h-4 w-4" />
+          {showContactForm ? 'Verberg feedback' : 'Feedback'}
+        </button>
+      </div>
+
+      {showContactForm ? (
+        <div className="lp-card mt-4 p-4 md:p-5">
+          <form onSubmit={handleContactSubmit} className="grid gap-3 md:grid-cols-2 text-left">
+            <input
+              type="text"
+              value={contactName}
+              onChange={(e) => setContactName(e.target.value)}
+              placeholder="Je naam"
+              className="tv-field"
+            />
+            <input
+              type="email"
+              value={contactEmail}
+              onChange={(e) => setContactEmail(e.target.value)}
+              placeholder="E-mail"
+              className="tv-field"
+            />
+            <textarea
+              value={contactMessage}
+              onChange={(e) => setContactMessage(e.target.value)}
+              rows={4}
+              placeholder="Bericht"
+              className="tv-field md:col-span-2 resize-none"
+            />
+            <button type="submit" className="tv-button-primary md:col-span-2">
+              Verstuur via E-mail
+            </button>
+          </form>
         </div>
+      ) : null}
+    </section>
+  );
 
-        <div className="mt-4 flex flex-wrap justify-center gap-2">
+  const loginCard = (
+    <div className="lp-card w-full max-w-md p-5 text-left md:p-6">
+      <div className="tv-label text-center">Inloggen</div>
+      <div className="mt-4 space-y-3">
+        <button
+          type="button"
+          onClick={onSignInGoogle}
+          disabled={authLoading || sessionBusy}
+          className="tv-button-primary h-11 w-full rounded-xl font-fantasy text-sm uppercase tracking-[0.16em] disabled:opacity-60"
+        >
+          Doorgaan met Google
+        </button>
+      </div>
+
+      {inviteCode || isJoinPath ? (
+        <div className="mt-4 tv-alert-info rounded-xl px-4 py-3 text-sm font-story leading-relaxed">
+          Uitnodiging herkend{inviteCode ? ` voor ${inviteCode.toUpperCase()}` : ''}. Meld je aan en we houden deze code voor je vast.
+        </div>
+      ) : null}
+
+      <div className="mt-4 flex flex-wrap gap-2">
+        <button
+          type="button"
+          onClick={() => setShowEmailAuthForm((value) => !value)}
+          className="tv-entry-action border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] tv-panel-inset tv-text hover:border-[color-mix(in_srgb,var(--tv-accent),transparent_58%)] hover:tv-text"
+        >
+          {showEmailAuthForm ? 'Verberg e-mail' : 'Gebruik e-mail'}
+        </button>
+      </div>
+
+      {showEmailAuthForm ? (
+        <form onSubmit={handleEmailAuth} className="mt-4 border-t border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] pt-4">
+          <div className="flex rounded-xl border border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] tv-panel-inset p-1">
             <button
               type="button"
-              onClick={() => onBackfillMemberships?.()}
-              disabled={sessionBusy}
-              className="tv-entry-action border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] tv-panel-inset tv-text hover:border-[color-mix(in_srgb,var(--tv-accent),transparent_58%)] hover:tv-text disabled:opacity-50"
-              title="Herstel oude sessies waar je GM of speler bent"
+              onClick={() => setEmailMode('login')}
+              className={`flex-1 rounded-xl px-3 py-2 text-xs uppercase tracking-[0.18em] transition-colors ${emailMode === 'login' ? 'tv-panel-inset tv-text' : 'tv-text-sub hover:tv-text'}`}
             >
-              Herstel oud
+              Inloggen
             </button>
-            {hiddenRecentCount > 0 ? (
+            <button
+              type="button"
+              onClick={() => setEmailMode('signup')}
+              className={`flex-1 rounded-xl px-3 py-2 text-xs uppercase tracking-[0.18em] transition-colors ${emailMode === 'signup' ? 'tv-panel-inset tv-text' : 'tv-text-sub hover:tv-text'}`}
+            >
+              Aanmaken
+            </button>
+          </div>
+
+          <div className="mt-4 space-y-3">
+            {emailMode === 'signup' ? (
+              <input
+                type="text"
+                placeholder="Weergavenaam"
+                value={authName}
+                onChange={(e) => setAuthName(e.target.value)}
+                className="tv-field"
+              />
+            ) : null}
+            <input
+              type="email"
+              placeholder="jij@email.com"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="tv-field"
+            />
+            <input
+              type="password"
+              placeholder="Wachtwoord"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="tv-field"
+            />
+            {emailMode === 'signup' ? (
+              <input
+                type="password"
+                placeholder="Bevestig wachtwoord"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                className="tv-field"
+              />
+            ) : null}
+            <button
+              type="submit"
+              disabled={authLoading || sessionBusy}
+              className="tv-button-secondary w-full disabled:opacity-60"
+            >
+              {emailMode === 'signup' ? 'Account Aanmaken' : 'Inloggen met E-mail'}
+            </button>
+          </div>
+        </form>
+      ) : null}
+
+      {(authError || localAuthError) ? (
+        <div className="mt-4 rounded-xl tv-tone-enemy-surface px-4 py-3 text-sm">
+          {localAuthError || authError}
+        </div>
+      ) : null}
+    </div>
+  );
+
+  // ─────────────────────────────────────────────────────────────
+  // LOGGED-OUT MARKETING SITE
+  // ─────────────────────────────────────────────────────────────
+  if (!uid) {
+    return (
+      <div
+        data-theme={resolvedLandingTheme}
+        data-landing-theme={resolvedLandingTheme}
+        className="lp-root tv-entry-root bg-texture"
+      >
+        <div className="landing-video-backdrop" aria-hidden="true">
+          <video
+            ref={landingVideoRef}
+            className="landing-video-element"
+            src={landingBackgroundVideo}
+            autoPlay
+            loop
+            playsInline
+            muted
+            preload="auto"
+            disablePictureInPicture
+          />
+        </div>
+        <div className="lp-scrim" aria-hidden="true" />
+
+        {runtimeBadge ? (
+          <div className="fixed right-4 top-20 z-40">
+            <RuntimeBadge runtimeBadge={runtimeBadge} />
+          </div>
+        ) : null}
+
+        {appUpdateNotice ? (
+          <div className="tv-alert-warning fixed left-4 right-4 top-20 z-40 mx-auto max-w-4xl rounded-xl px-4 py-3 shadow-lg backdrop-blur">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <p className="text-sm font-medium">{appUpdateNotice}</p>
               <button
                 type="button"
-                onClick={() => setShowHiddenSessions((value) => !value)}
-                className="tv-entry-action border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] tv-panel-inset tv-text hover:border-[color-mix(in_srgb,var(--tv-accent),transparent_58%)] hover:tv-text"
+                onClick={() => onReloadApp?.()}
+                className="tv-satisfy-pop rounded-lg border border-[color-mix(in_srgb,var(--tv-status-warning),transparent_42%)] tv-surface-raised px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.16em] transition tv-hover-surface"
               >
-                {showHiddenSessions ? 'Verberg verborgen' : `Toon verborgen (${hiddenRecentCount})`}
+                Nu verversen
               </button>
-            ) : null}
-        </div>
-
-        {displayedRecentSessions.length === 0 ? (
-          <div className="mt-4 rounded-[22px] border border-dashed border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] tv-panel-inset px-4 py-6 text-center">
-            <p className="text-sm tv-text font-story italic">Nog geen recente sessies.</p>
+            </div>
           </div>
-        ) : (
-          <div className="mt-4 grid gap-3">
-            {displayedRecentSessions.map((session) => {
-              const displayCode = session.joinTag || session.sessionId;
-              const roleLabel = session.role === 'dm' ? 'GM' : 'Speler';
-              const defaultAsRole = session.role === 'dm' ? 'gm' : 'player';
-              const isHidden = session.status === 'hidden';
-              const roleChipClass = session.role === 'dm' ? 'tv-role-chip--gm' : 'tv-role-chip--player';
-              const sessionCardClass = session.role === 'dm' ? 'tv-session-card--gm' : 'tv-session-card--player';
-              const sessionActionClass = session.role === 'dm' ? 'tv-session-action--gm' : 'tv-session-action--player';
+        ) : null}
 
-              return (
-                <article
-                  key={session.sessionId}
-                  className={`tv-session-card ${sessionCardClass} ${isHidden ? 'opacity-70' : ''}`}
-                >
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="min-w-0">
-                      <div className="truncate text-lg font-fantasy tv-text">{session.sessionName || 'Naamloze Sessie'}</div>
-                      <div className="mt-2 flex flex-wrap items-center gap-2 text-[11px] uppercase tracking-[0.18em] tv-muted">
-                        <span>Code {displayCode}</span>
-                        <span className="tv-muted">•</span>
-                        <span>{session.updatedAtLabel}</span>
+        {/* ─── Top navigation ─── */}
+        <nav className="lp-nav" data-scrolled={navScrolled ? 'true' : 'false'}>
+          <div className="lp-nav-inner">
+            <button type="button" className="lp-brand" onClick={() => scrollToSection('top')}>
+              <img src={TOMEVAULT_LOGO_SRC} alt="TomeVault logo" className="lp-brand-mark" />
+              <span className="lp-brand-word">TomeVault</span>
+            </button>
+
+            <div className="lp-nav-links">
+              <button type="button" className="lp-nav-link" onClick={() => scrollToSection('functies')}>Functies</button>
+              <button type="button" className="lp-nav-link" onClick={() => scrollToSection('showcase')}>Aan tafel</button>
+              <button type="button" className="lp-nav-link" onClick={() => scrollToSection('prijzen')}>Prijzen</button>
+              <button type="button" className="lp-nav-link" onClick={() => scrollToSection('over')}>Over</button>
+            </div>
+
+            <div className="lp-nav-actions">
+              <button type="button" className="lp-btn lp-btn--primary" onClick={() => scrollToSection('inloggen')}>
+                Inloggen
+              </button>
+            </div>
+          </div>
+        </nav>
+
+        {/* ─── Hero ─── */}
+        <header id="top" className="lp-hero">
+          <div className="lp-hero-inner">
+            <img src={TOMEVAULT_LOGO_SRC} alt="TomeVault logo" className="lp-hero-logo tv-logo-breathe" />
+            <div className="lp-eyebrow">{LANDING_HERO.eyebrow}</div>
+            <h1 className="lp-hero-title">
+              TOME<span className="lp-accent">VAULT</span>
+            </h1>
+            <p className="lp-hero-sub">{LANDING_HERO.subtitle}</p>
+            <div className="lp-hero-cta">
+              <button type="button" className="lp-btn lp-btn--primary lp-btn--lg" onClick={() => scrollToSection('inloggen')}>
+                {LANDING_HERO.primaryCta}
+                <ArrowRight className="h-4 w-4" />
+              </button>
+              <button type="button" className="lp-btn lp-btn--ghost lp-btn--lg" onClick={() => scrollToSection('functies')}>
+                {LANDING_HERO.secondaryCta}
+              </button>
+            </div>
+            <div className="lp-trust-row">
+              {compactFeatureHighlights.map((feature) => {
+                const Icon = feature.icon;
+                return (
+                  <span key={feature.label} className="tv-entry-chip border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] tv-panel-inset tv-text">
+                    <Icon className="h-3.5 w-3.5 tv-accent" />
+                    {feature.label}
+                  </span>
+                );
+              })}
+            </div>
+          </div>
+        </header>
+
+        {/* ─── Voor wie ─── */}
+        <section className="lp-section">
+          <div className="lp-shell">
+            <div className="lp-section-head">
+              <div className="lp-eyebrow">Eén tafel, twee rollen</div>
+              <h2 className="lp-h2">Gebouwd voor jouw groep</h2>
+              <div className="lp-rule" />
+            </div>
+            <div className="lp-audience-grid">
+              {LANDING_AUDIENCES.map((audience) => (
+                <article key={audience.id} className="lp-card lp-audience-card">
+                  <div className="lp-feature-icon">
+                    {audience.id === 'gm' ? <Crown className="h-6 w-6" /> : <Swords className="h-6 w-6" />}
+                  </div>
+                  <h3 className="lp-feature-title">{audience.title}</h3>
+                  <p className="lp-feature-text">{audience.description}</p>
+                </article>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* ─── Functies ─── */}
+        <section id="functies" className="lp-section">
+          <div className="lp-shell">
+            <div className="lp-section-head">
+              <div className="lp-eyebrow">Wat biedt de Waard</div>
+              <h2 className="lp-h2">Alles voor je tafel, op één plek</h2>
+              <p className="lp-lead">
+                Geen losse tools meer. TomeVault brengt je hele sessie samen in één rustige, warme ruimte.
+              </p>
+            </div>
+            <div className="lp-feature-grid">
+              {LANDING_FEATURES.map((feature) => {
+                const Icon = FEATURE_ICONS[feature.icon] || Sparkles;
+                return (
+                  <article key={feature.title} className="lp-card lp-feature-card">
+                    <div className="lp-feature-icon">
+                      <Icon className="h-6 w-6" />
+                    </div>
+                    <h3 className="lp-feature-title">{feature.title}</h3>
+                    <p className="lp-feature-text">{feature.description}</p>
+                  </article>
+                );
+              })}
+            </div>
+          </div>
+        </section>
+
+        {/* ─── Showcase ─── */}
+        <section id="showcase" className="lp-section">
+          <div className="lp-shell">
+            <div className="lp-section-head">
+              <div className="lp-eyebrow">Aanschouw de tafel</div>
+              <h2 className="lp-h2">Zo voelt een sessie</h2>
+              <p className="lp-lead">Werp de dobbelstenen of bekijk het perkament. De herberg wacht.</p>
+            </div>
+
+            <div className="lp-card mt-10 p-3 md:p-5 lg:p-6">
+              <div className="tv-landing-showcase-frame">
+                <div className="tv-landing-showcase-toolbar">
+                  <div className="flex items-center gap-2">
+                    <span className="tv-landing-showcase-dot" />
+                    <span className="tv-landing-showcase-dot opacity-80" />
+                    <span className="tv-landing-showcase-dot opacity-60" />
+                  </div>
+                  <div className="flex items-center gap-2 text-[11px] uppercase tracking-[0.26em] tv-muted md:text-xs">
+                    <BookOpen className="h-3.5 w-3.5 tv-accent" />
+                    Kelder van de Goblin Koning
+                  </div>
+                </div>
+
+                <div className="grid min-h-[28rem] lg:grid-cols-[18rem_minmax(0,1fr)]">
+                  <div className="tv-landing-showcase-sidebar flex flex-col justify-between">
+                    <div className="space-y-4 px-4 py-5 md:px-5 md:py-6">
+                      <div className="tv-landing-showcase-bubble">
+                        Jullie horen een zwaar gerommel uit de diepte...
+                      </div>
+
+                      <div>
+                        <div className="text-[10px] uppercase tracking-[0.24em] tv-accent">Reyth</div>
+                        <div className="tv-landing-showcase-bubble tv-landing-showcase-bubble--player mt-2">
+                          Ik trek mijn zwaard en ga voor de deur staan.
+                        </div>
+                      </div>
+
+                      <div>
+                        <div className="text-[10px] uppercase tracking-[0.24em] tv-accent">Jij</div>
+                        <div className="tv-landing-showcase-bubble tv-landing-showcase-bubble--accent mt-2 flex max-w-[14rem] items-center gap-4 px-3 py-3">
+                          <div className="flex h-12 w-12 items-center justify-center rounded-xl tv-input-surface text-3xl font-semibold tv-accent">
+                            16
+                          </div>
+                          <div className="font-story text-sm italic tv-text-sub">Werpt een steen...</div>
+                        </div>
+                      </div>
+
+                      <div className="pt-1 text-center font-story text-xs italic tv-muted">
+                        Je rolt de perkamentrol open.
                       </div>
                     </div>
-                    <span className={`tv-entry-chip ${roleChipClass}`}>{roleLabel}</span>
-                  </div>
 
-                  <div className="mt-4 flex flex-wrap gap-2">
-                    <button
-                      type="button"
-                      onClick={() => onResumeRecentSession?.(session, defaultAsRole)}
-                      disabled={sessionBusy}
-                      className={`tv-satisfy-pop inline-flex min-h-11 flex-1 items-center justify-center gap-2 rounded-2xl border px-4 py-3 text-sm font-fantasy tracking-[0.16em] transition-all disabled:opacity-50 ${sessionActionClass}`}
-                    >
-                      <DoorOpen className="h-4 w-4" />
-                      Hervat
-                      <ArrowRight className="h-4 w-4" />
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => (isHidden ? onRestoreRecentSession?.(session.sessionId) : onHideRecentSession?.(session.sessionId))}
-                      disabled={sessionBusy}
-                      className={`tv-entry-action border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] ${isHidden ? 'tv-alert-warning' : 'tv-panel-inset tv-text hover:border-[color-mix(in_srgb,var(--tv-accent),transparent_58%)] hover:tv-text'}`}
-                      title={isHidden ? 'Zet terug in recente lijst' : 'Verberg uit deze lijst'}
-                    >
-                      {isHidden ? 'Herstel' : 'Verberg'}
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => handleOpenDeleteFlow(session)}
-                      disabled={sessionBusy}
-                      className="tv-alert-danger flex h-11 w-11 items-center justify-center rounded-2xl transition-colors hover:brightness-110 disabled:opacity-50"
-                      title="Verlaat en wis deze sessie permanent"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </button>
-                  </div>
-                </article>
-              );
-            })}
-          </div>
-        )}
-      </div>
-    </section>
-  ) : null;
-
-  const landingAboutSection = !uid ? (
-    <section className="landing-copy-rail mx-auto w-full max-w-5xl">
-      <div className="grid gap-8 md:grid-cols-2 md:gap-10">
-        <div className="space-y-2 text-center md:text-left">
-          <div className="landing-kicker tv-landing-kicker">Wat is TomeVault</div>
-          <p className="text-sm md:text-base tv-text font-story leading-relaxed">
-            Een rustige digitale tafel waar handouts, chat, notities en sessies samenkomen zonder dashboard-chaos.
-          </p>
-        </div>
-        <div className="space-y-2 text-center md:text-left">
-          <div className="landing-kicker tv-landing-kicker">Wie zijn wij</div>
-          <p className="text-sm md:text-base tv-text font-story leading-relaxed">
-            We bouwen TomeVault voor groepen die sfeer, focus en duidelijkheid belangrijker vinden dan drukke tooling.
-          </p>
-        </div>
-      </div>
-    </section>
-  ) : null;
-
-  const landingFeatureSection = !uid ? (
-    <section className="mx-auto w-full max-w-6xl pt-3 md:pt-5">
-      <div className="landing-panel rounded-[32px] px-5 py-8 md:px-7 md:py-10 lg:px-10">
-        <div className="text-center">
-          <h2 className="text-3xl font-fantasy tracking-[0.18em] tv-text md:text-4xl">
-            Wat biedt de Waard?
-          </h2>
-          <div className="mx-auto mt-5 h-px w-28 tv-landing-divider" />
-        </div>
-
-        <div className="mt-8 grid gap-10 md:grid-cols-3 md:gap-6 lg:gap-10">
-          {landingFeatureCards.map((feature) => {
-            const Icon = feature.icon;
-
-            return (
-              <article key={feature.title} className="mx-auto flex max-w-xs flex-col items-center gap-4 text-center">
-                <div className={`tv-entry-feature-icon h-18 w-18`}>
-                  <Icon className="h-8 w-8" />
-                </div>
-                <div className="space-y-3">
-                  <h3 className="text-xl font-story font-semibold tv-text md:text-2xl">
-                    {feature.title}
-                  </h3>
-                  <p className="text-sm font-story leading-relaxed tv-text-sub md:text-base">
-                    {feature.description}
-                  </p>
-                </div>
-              </article>
-            );
-          })}
-        </div>
-      </div>
-    </section>
-  ) : null;
-
-  const landingShowcaseSection = !uid ? (
-    <section className="mx-auto w-full max-w-6xl pt-5 md:pt-7">
-      <div className="flex items-center justify-center gap-3 tv-muted">
-        <span className="h-px w-20 tv-landing-divider md:w-24" />
-        <span className="h-2 w-2 rotate-45 border border-current" />
-        <span className="h-2 w-2 rotate-45 border border-current opacity-80" />
-        <span className="h-2 w-2 rotate-45 border border-current" />
-        <span className="h-px w-20 tv-landing-divider md:w-24" />
-      </div>
-
-      <div className="mt-8 text-center">
-        <h2 className="text-4xl font-fantasy tracking-[0.18em] tv-text md:text-5xl lg:text-6xl">
-          Aanschouw de Tafel
-        </h2>
-        <p className="mx-auto mt-4 max-w-3xl text-base font-story leading-relaxed tv-text-sub md:text-lg">
-          Werp de dobbelstenen of bekijk het perkament. De herberg wacht.
-        </p>
-      </div>
-
-      <div className="mt-8 landing-panel rounded-[32px] p-3 md:p-5 lg:p-6">
-        <div className="tv-landing-showcase-frame">
-          <div className="tv-landing-showcase-toolbar">
-            <div className="flex items-center gap-2">
-              <span className="tv-landing-showcase-dot" />
-              <span className="tv-landing-showcase-dot opacity-80" />
-              <span className="tv-landing-showcase-dot opacity-60" />
-            </div>
-            <div className="flex items-center gap-2 text-[11px] uppercase tracking-[0.26em] tv-muted md:text-xs">
-              <BookOpen className="h-3.5 w-3.5 tv-accent" />
-              Kelder van de Goblin Koning
-            </div>
-          </div>
-
-          <div className="grid min-h-[28rem] lg:grid-cols-[18rem_minmax(0,1fr)]">
-            <div className="tv-landing-showcase-sidebar flex flex-col justify-between">
-              <div className="space-y-4 px-4 py-5 md:px-5 md:py-6">
-                <div className="tv-landing-showcase-bubble">
-                  Jullie horen een zwaar gerommel uit de diepte...
-                </div>
-
-                <div>
-                  <div className="text-[10px] uppercase tracking-[0.24em] tv-accent">Reyth</div>
-                  <div className="tv-landing-showcase-bubble tv-landing-showcase-bubble--player mt-2">
-                    Ik trek mijn zwaard en ga voor de deur staan.
-                  </div>
-                </div>
-
-                <div>
-                  <div className="text-[10px] uppercase tracking-[0.24em] tv-accent">Jij</div>
-                  <div className="tv-landing-showcase-bubble tv-landing-showcase-bubble--accent mt-2 flex max-w-[14rem] items-center gap-4 px-3 py-3">
-                    <div className="flex h-12 w-12 items-center justify-center rounded-xl tv-input-surface text-3xl font-semibold tv-accent">
-                      16
+                    <div className="grid grid-cols-[1fr_auto] gap-0 border-t border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] tv-panel-inset p-3">
+                      <div className="flex min-h-11 items-center rounded-l-[14px] border border-r-0 border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] px-4 font-story text-sm tv-muted">
+                        Schrijf met de veer...
+                      </div>
+                      <button
+                        type="button"
+                        className="tv-satisfy-pop flex min-h-11 items-center justify-center rounded-r-[14px] border border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] tv-surface-raised px-4 tv-text transition-colors tv-hover-surface"
+                        aria-label="Voorbeeldactie versturen"
+                      >
+                        <ArrowRight className="h-4 w-4" />
+                      </button>
                     </div>
-                    <div className="font-story text-sm italic tv-text-sub">Werpt een steen...</div>
                   </div>
-                </div>
 
-                <div className="pt-1 text-center font-story text-xs italic tv-muted">
-                  Je rolt de perkamentrol open.
+                  <div className="tv-landing-showcase-stage landing-grid flex items-center justify-center px-4 py-6 md:px-6 lg:px-8">
+                    <div className="tv-landing-showcase-card">
+                      <div className="tv-landing-showcase-fragment landing-preview-fragment md:min-h-[15rem]">
+                        <div className="flex flex-col items-center gap-4 text-center">
+                          <div className="tv-showcase-glow flex h-16 w-16 items-center justify-center rounded-full border border-[color-mix(in_srgb,var(--tv-accent),transparent_55%)] tv-entry-feature-icon">
+                            <Eye className="h-9 w-9 tv-accent" />
+                          </div>
+                          <div className="text-sm font-fantasy uppercase tracking-[0.26em] tv-text md:text-base">
+                            Open de verzegelde rol
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
+            </div>
+          </div>
+        </section>
 
-              <div className="grid grid-cols-[1fr_auto] gap-0 border-t border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] tv-panel-inset p-3">
-                <div className="flex min-h-11 items-center rounded-l-[14px] border border-r-0 border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] px-4 font-story text-sm tv-muted">
-                  Schrijf met de veer...
+        {/* ─── Prijzen ─── */}
+        <section id="prijzen" className="lp-section">
+          <div className="lp-shell">
+            <div className="lp-section-head">
+              <div className="lp-eyebrow">Gratis beginnen, groeien wanneer je wilt</div>
+              <h2 className="lp-h2">Kies je pad</h2>
+              <p className="lp-lead">
+                TomeVault is gratis te gebruiken. Upgrade voor onbeperkte werelden en premium extra’s.
+              </p>
+            </div>
+
+            <div className="mt-7 flex justify-center">
+              <div className="tv-role-toggle">
+                {LANDING_AUDIENCES.map((audience) => (
+                  <button
+                    key={audience.id}
+                    type="button"
+                    onClick={() => setPricingAudience(audience.id)}
+                    className={`tv-role-toggle-btn ${pricingAudience === audience.id ? 'tv-role-toggle-btn--active' : ''}`}
+                  >
+                    {audience.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="lp-price-grid">
+              {/* Free plan */}
+              <article className="lp-card lp-price-card">
+                <div className="lp-price-name">{pricing.config.free.name}</div>
+                <p className="lp-price-tagline">{pricing.config.free.tagline}</p>
+                <div className="lp-price-amount-row">
+                  <span className="lp-price-amount">{pricing.config.free.price}</span>
+                  <span className="lp-price-period">{pricing.config.free.period}</span>
+                </div>
+                <div className="lp-price-features">
+                  {pricing.freeFeatures.map((feature) => (
+                    <div key={feature} className="lp-price-feature">
+                      <Check className="h-4 w-4" />
+                      <span>{feature}</span>
+                    </div>
+                  ))}
+                  {pricing.lockedOnFree.map((feature) => (
+                    <div key={feature} className="lp-price-feature lp-price-feature--muted">
+                      <X className="h-4 w-4" />
+                      <span>{feature}</span>
+                    </div>
+                  ))}
                 </div>
                 <button
                   type="button"
-                  className="tv-satisfy-pop flex min-h-11 items-center justify-center rounded-r-[14px] border border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] tv-surface-raised px-4 tv-text transition-colors tv-hover-surface"
-                  aria-label="Voorbeeldactie versturen"
+                  onClick={() => scrollToSection('inloggen')}
+                  className="lp-btn lp-btn--ghost lp-btn--block lp-price-cta"
                 >
+                  {pricing.config.free.cta}
+                </button>
+              </article>
+
+              {/* Paid plan */}
+              <article className="lp-card lp-price-card lp-price-card--featured">
+                {pricing.config.paid.badge ? (
+                  <span className="lp-price-badge">
+                    <Sparkles className="h-3.5 w-3.5" />
+                    {pricing.config.paid.badge}
+                  </span>
+                ) : null}
+                <div className="lp-price-name">{pricing.config.paid.name}</div>
+                <p className="lp-price-tagline">{pricing.config.paid.tagline}</p>
+                <div className="lp-price-amount-row">
+                  <span className="lp-price-amount">{pricing.config.paid.price}</span>
+                  <span className="lp-price-period">{pricing.config.paid.period}</span>
+                </div>
+                {pricing.config.paid.altPrice ? (
+                  <div className="lp-price-alt">{pricing.config.paid.altPrice}</div>
+                ) : null}
+                <div className="lp-price-features">
+                  {pricing.paidFeatures.map((feature) => (
+                    <div key={feature} className="lp-price-feature">
+                      <Check className="h-4 w-4" />
+                      <span>{feature}</span>
+                    </div>
+                  ))}
+                </div>
+                <button
+                  type="button"
+                  onClick={() => scrollToSection('inloggen')}
+                  className="lp-btn lp-btn--primary lp-btn--block lp-price-cta"
+                >
+                  {pricing.config.paid.cta}
+                </button>
+              </article>
+            </div>
+
+            <p className="lp-price-note">
+              Getoonde prijzen zijn indicatief. Je begint gratis — een betaalmethode is niet nodig om te starten.
+            </p>
+          </div>
+        </section>
+
+        {/* ─── Inloggen ─── */}
+        <section id="inloggen" className="lp-section">
+          <div className="lp-shell">
+            <div className="lp-section-head">
+              <div className="lp-eyebrow">Stap binnen</div>
+              <h2 className="lp-h2">Begin je avontuur</h2>
+              <p className="lp-lead">Maak gratis een account of log in om je sessies te openen.</p>
+            </div>
+            <div className="mt-9 flex justify-center">
+              {loginCard}
+            </div>
+          </div>
+        </section>
+
+        {/* ─── Over + FAQ ─── */}
+        <section id="over" className="lp-section">
+          <div className="lp-shell lp-shell--narrow">
+            <div className="lp-section-head">
+              <div className="lp-eyebrow">{LANDING_ABOUT.eyebrow}</div>
+              <h2 className="lp-h2">{LANDING_ABOUT.title}</h2>
+              <p className="lp-lead">{LANDING_ABOUT.body}</p>
+            </div>
+
+            <div className="lp-faq">
+              {LANDING_FAQ.map((item) => (
+                <details key={item.q} className="lp-card lp-faq-item">
+                  <summary className="lp-faq-q">
+                    {item.q}
+                    <ChevronDown className="lp-faq-chevron h-5 w-5" />
+                  </summary>
+                  <div className="lp-faq-a">{item.a}</div>
+                </details>
+              ))}
+            </div>
+
+            <div className="mt-10">{contactSection}</div>
+          </div>
+        </section>
+
+        {/* ─── Closing CTA ─── */}
+        <section className="lp-section">
+          <div className="lp-shell lp-shell--narrow">
+            <div className="lp-card lp-cta-band">
+              <h2 className="lp-h2">Klaar om je wereld te openen?</h2>
+              <p className="lp-lead mt-3">Verzamel je groep aan de digitale tafel — vanavond nog.</p>
+              <div className="mt-6 flex justify-center">
+                <button type="button" className="lp-btn lp-btn--primary lp-btn--lg" onClick={() => scrollToSection('inloggen')}>
+                  {LANDING_HERO.primaryCta}
                   <ArrowRight className="h-4 w-4" />
                 </button>
               </div>
             </div>
+          </div>
+        </section>
 
-            <div className="tv-landing-showcase-stage landing-grid flex items-center justify-center px-4 py-6 md:px-6 lg:px-8">
-              <div className="tv-landing-showcase-card">
-                <div className="tv-landing-showcase-fragment landing-preview-fragment md:min-h-[15rem]">
-                  <div className="flex flex-col items-center gap-4 text-center">
-                    <div className="tv-showcase-glow flex h-16 w-16 items-center justify-center rounded-full border border-[color-mix(in_srgb,var(--tv-accent),transparent_55%)] tv-entry-feature-icon">
-                      <Eye className="h-9 w-9 tv-accent" />
-                    </div>
-                    <div className="text-sm font-fantasy uppercase tracking-[0.26em] tv-text md:text-base">
-                      Open de verzegelde rol
-                    </div>
-                  </div>
-                </div>
-              </div>
+        {/* ─── Footer ─── */}
+        <footer className="lp-footer">
+          <div className="lp-footer-inner">
+            <div className="lp-brand">
+              <img src={TOMEVAULT_LOGO_SRC} alt="TomeVault logo" className="lp-brand-mark" />
+              <span className="lp-brand-word">TomeVault</span>
             </div>
+            <div className="lp-footer-links">
+              <button type="button" className="lp-footer-link" onClick={() => scrollToSection('functies')}>Functies</button>
+              <button type="button" className="lp-footer-link" onClick={() => scrollToSection('prijzen')}>Prijzen</button>
+              <button type="button" className="lp-footer-link" onClick={() => scrollToSection('over')}>Over</button>
+              <button type="button" className="lp-footer-link" onClick={() => scrollToSection('inloggen')}>Inloggen</button>
+            </div>
+            <div className="lp-footer-legal">
+              © {new Date().getFullYear()} TomeVault — Jouw magische tafel aan de taverne.
+            </div>
+          </div>
+        </footer>
+
+        {/* ─── Ambience dock ─── */}
+        <div className="fixed bottom-4 right-4 z-40 max-w-[calc(100vw-2rem)]">
+          <div className="tv-ambience-dock">
+            <button
+              type="button"
+              onClick={handleToggleLandingAmbience}
+              title="De achtergrondvideo speelt altijd. Geluid blijft zacht en start pas na een tik."
+              className={`tv-entry-action ${landingAmbienceEnabled ? 'tv-button-accent-muted' : ''}`}
+            >
+              {landingAmbienceEnabled ? <Volume2 className="h-4 w-4" /> : <VolumeX className="h-4 w-4" />}
+              <span className="hidden sm:inline">{landingAmbienceLabel}</span>
+            </button>
+            {landingAmbienceEnabled ? (
+              <div className="flex min-w-[8.75rem] items-center gap-3">
+                <span className="text-[10px] uppercase tracking-[0.22em] tv-muted">Volume</span>
+                <input
+                  type="range"
+                  min="0"
+                  max="24"
+                  step="1"
+                  value={landingAmbienceVolume}
+                  onChange={handleLandingAmbienceVolumeChange}
+                  className="ambience-slider w-24 sm:w-28"
+                  aria-label="Volume van sfeergeluid"
+                />
+              </div>
+            ) : null}
           </div>
         </div>
       </div>
-    </section>
-  ) : null;
+    );
+  }
 
+  // ─────────────────────────────────────────────────────────────
+  // LOGGED-IN SESSION EXPERIENCE
+  // ─────────────────────────────────────────────────────────────
   return (
-    <div data-theme={resolvedLandingTheme} data-landing-theme={resolvedLandingTheme} className="tv-entry-root landing-root relative min-h-screen overflow-x-hidden bg-texture">
+    <div
+      data-theme={resolvedLandingTheme}
+      data-landing-theme={resolvedLandingTheme}
+      className="lp-root tv-entry-root bg-texture"
+    >
       <div className="landing-video-backdrop" aria-hidden="true">
         <video
           ref={landingVideoRef}
@@ -727,18 +1121,17 @@ export default function LandingScreen({
           preload="auto"
           disablePictureInPicture
         />
-        <div className="landing-video-darkener" />
-        <div className="landing-video-vignette" />
       </div>
+      <div className="lp-scrim" aria-hidden="true" />
 
       {runtimeBadge ? (
-        <div className="absolute right-4 top-4 z-20">
+        <div className="absolute right-4 top-4 z-30">
           <RuntimeBadge runtimeBadge={runtimeBadge} />
         </div>
       ) : null}
 
       {appUpdateNotice ? (
-        <div className="tv-alert-warning absolute left-4 right-4 top-4 z-20 mx-auto max-w-4xl rounded-xl px-4 py-3 shadow-lg backdrop-blur">
+        <div className="tv-alert-warning absolute left-4 right-4 top-4 z-30 mx-auto max-w-4xl rounded-xl px-4 py-3 shadow-lg backdrop-blur">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <p className="text-sm font-medium">{appUpdateNotice}</p>
             <button
@@ -752,259 +1145,176 @@ export default function LandingScreen({
         </div>
       ) : null}
 
-      <div className="fixed bottom-4 right-4 z-30 max-w-[calc(100vw-2rem)]">
-        <div className="tv-ambience-dock">
+      {/* Session top bar */}
+      <div className="lp-session-topbar">
+        <div className="lp-brand">
+          <img src={TOMEVAULT_LOGO_SRC} alt="TomeVault logo" className="lp-brand-mark" />
+          <span className="lp-brand-word">TomeVault</span>
+        </div>
+        {showSessionHub ? (
           <button
             type="button"
-            onClick={handleToggleLandingAmbience}
-            title="De achtergrondvideo speelt altijd. Geluid blijft zacht en start pas na een tik."
-            className={`tv-entry-action ${landingAmbienceEnabled ? 'tv-button-accent-muted' : ''}`}
+            onClick={() => onSignOut?.()}
+            className="tv-entry-action tv-tone-enemy-button"
           >
-            {landingAmbienceEnabled ? <Volume2 className="h-4 w-4" /> : <VolumeX className="h-4 w-4" />}
-            <span className="hidden sm:inline">{landingAmbienceLabel}</span>
+            <LogOut className="mr-2 h-4 w-4" />
+            Log uit
           </button>
-          {landingAmbienceEnabled ? (
-            <div className="flex min-w-[8.75rem] items-center gap-3">
-              <span className="text-[10px] uppercase tracking-[0.22em] tv-muted">Volume</span>
-              <input
-                type="range"
-                min="0"
-                max="24"
-                step="1"
-                value={landingAmbienceVolume}
-                onChange={handleLandingAmbienceVolumeChange}
-                className="ambience-slider w-24 sm:w-28"
-                aria-label="Volume van sfeergeluid"
-              />
-            </div>
-          ) : null}
-        </div>
+        ) : null}
       </div>
 
-      <div className="landing-content-rail relative z-10 mx-auto flex w-full max-w-6xl flex-col gap-5 px-4 pb-14 pt-12 sm:px-6 md:gap-6 md:pt-20">
-        <section className="landing-hero mx-auto w-full max-w-5xl px-5 py-6 md:px-7 md:py-8 lg:px-8 lg:py-10">
-          <div className="relative z-10 mx-auto flex w-full max-w-5xl flex-col items-center gap-7 text-center">
-            <div className="max-w-3xl space-y-5">
-              <div className="space-y-3">
-                {!uid ? (
-                  <>
-                    <div className="flex justify-center">
-                      <div className="landing-logo-shell tv-logo-breathe h-24 w-24 md:h-28 md:w-28 lg:h-32 lg:w-32">
-                        <img src={TOMEVAULT_LOGO_SRC} alt="TomeVault logo" className="landing-logo" />
-                      </div>
-                    </div>
-                    <h1 className="max-w-4xl text-5xl leading-[0.9] font-fantasy tracking-[0.08em] tv-text sm:text-6xl lg:text-7xl xl:text-[5.15rem]">
-                      TOME<span className="tv-accent">VAULT</span>
-                    </h1>
-                    <p className="max-w-2xl text-base md:text-lg tv-text-sub font-story leading-relaxed">
-                      Jouw magische tafel aan de taverne.
-                    </p>
-                  </>
-                ) : showSessionHub ? (
-                  <>
-                    <div className="flex justify-center">
-                      <div className="landing-logo-shell h-18 w-18 md:h-20 md:w-20">
-                        <img src={TOMEVAULT_LOGO_SRC} alt="TomeVault logo" className="landing-logo" />
-                      </div>
-                    </div>
-                    <h1 className="max-w-4xl text-4xl leading-[0.96] font-fantasy tracking-[0.08em] tv-text sm:text-5xl lg:text-6xl">
-                      Kies je volgende stap.
-                    </h1>
-                    <p className="max-w-2xl text-base md:text-lg tv-text font-story leading-relaxed">
-                      Hervat een wereld of open meteen een nieuwe sessie.
-                    </p>
-                  </>
-                ) : (
-                  <>
-                    <div className="flex justify-center">
-                      <div className="landing-logo-shell h-18 w-18 md:h-20 md:w-20">
-                        <img src={TOMEVAULT_LOGO_SRC} alt="TomeVault logo" className="landing-logo" />
-                      </div>
-                    </div>
-                    <h1 className="max-w-4xl text-4xl leading-[0.96] font-fantasy tracking-[0.08em] tv-text sm:text-5xl lg:text-6xl">
-                      Even geduld.
-                    </h1>
-                    <p className="max-w-2xl text-base md:text-lg tv-text font-story leading-relaxed">
-                      We zoeken je laatste sessie erbij.
-                    </p>
-                    {uid && (
-                      <div className="mt-4">
-                        <BackfillButton onBackfillMemberships={onBackfillMemberships} />
-                      </div>
-                    )}
-                  </>
-                )}
-              </div>
-
-              {showHeroHighlights ? (
-                <div className="flex flex-wrap justify-center gap-2">
-                  {compactFeatureHighlights.map((feature) => {
-                    const Icon = feature.icon;
-                    return (
-                      <span key={feature.label} className="tv-entry-chip border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] tv-panel-inset tv-text">
-                        <Icon className="h-3.5 w-3.5 tv-accent" />
-                        {feature.label}
-                      </span>
-                    );
-                  })}
-                </div>
-              ) : null}
+      <div className="relative z-10 mx-auto flex w-full max-w-5xl flex-col gap-5 px-4 pb-14 pt-4 sm:px-6 md:gap-6">
+        {/* Hero */}
+        <section className="text-center">
+          <div className="flex justify-center">
+            <div className="landing-logo-shell h-16 w-16 md:h-20 md:w-20">
+              <img src={TOMEVAULT_LOGO_SRC} alt="TomeVault logo" className="landing-logo" />
             </div>
-
-            {!uid ? (
-              <div className="tv-entry-hero-card tv-entry-rail w-full rounded-[22px] p-5 text-left md:p-6">
-                <div className="tv-label text-center">Inloggen</div>
-                <div className="mt-4 space-y-3">
-                  <button
-                    type="button"
-                    onClick={onSignInGoogle}
-                    disabled={authLoading || sessionBusy}
-                    className="tv-button-primary h-11 w-full rounded-xl font-fantasy text-sm uppercase tracking-[0.16em] disabled:opacity-60"
-                  >
-                    Google
-                  </button>
-                </div>
-
-                {inviteCode || isJoinPath ? (
-                  <div className="mt-4 tv-alert-info rounded-[20px] px-4 py-3 text-sm font-story leading-relaxed">
-                    Uitnodiging herkend{inviteCode ? ` voor ${inviteCode.toUpperCase()}` : ''}. Meld je aan en we houden deze code voor je vast.
-                  </div>
-                ) : null}
-
-                <div className="mt-4 flex flex-wrap gap-2">
-                  <button
-                    type="button"
-                    onClick={() => setShowEmailAuthForm((value) => !value)}
-                    className="tv-entry-action border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] tv-panel-inset tv-text hover:border-[color-mix(in_srgb,var(--tv-accent),transparent_58%)] hover:tv-text"
-                  >
-                    {showEmailAuthForm ? 'Verberg e-mail' : 'Gebruik e-mail'}
-                  </button>
-                </div>
-
-                {showEmailAuthForm ? (
-                  <form onSubmit={handleEmailAuth} className="mt-4 border-t border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] pt-4">
-                    <div className="flex rounded-2xl border border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] tv-panel-inset p-1">
-                      <button
-                        type="button"
-                        onClick={() => setEmailMode('login')}
-                        className={`flex-1 rounded-xl px-3 py-2 text-xs uppercase tracking-[0.18em] transition-colors ${emailMode === 'login' ? 'tv-panel-inset tv-text' : 'tv-text-sub hover:tv-text'}`}
-                      >
-                        Inloggen
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setEmailMode('signup')}
-                        className={`flex-1 rounded-xl px-3 py-2 text-xs uppercase tracking-[0.18em] transition-colors ${emailMode === 'signup' ? 'tv-panel-inset tv-text' : 'tv-text-sub hover:tv-text'}`}
-                      >
-                        Aanmaken
-                      </button>
-                    </div>
-
-                    <div className="mt-4 space-y-3">
-                      {emailMode === 'signup' ? (
-                        <input
-                          type="text"
-                          placeholder="Weergavenaam"
-                          value={authName}
-                          onChange={(e) => setAuthName(e.target.value)}
-                          className="tv-field"
-                        />
-                      ) : null}
-                      <input
-                        type="email"
-                        placeholder="jij@email.com"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        className="tv-field"
-                      />
-                      <input
-                        type="password"
-                        placeholder="Wachtwoord"
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        className="tv-field"
-                      />
-                      {emailMode === 'signup' ? (
-                        <input
-                          type="password"
-                          placeholder="Bevestig wachtwoord"
-                          value={confirmPassword}
-                          onChange={(e) => setConfirmPassword(e.target.value)}
-                          className="tv-field"
-                        />
-                      ) : null}
-                      <button
-                        type="submit"
-                        disabled={authLoading || sessionBusy}
-                        className="tv-button-secondary w-full disabled:opacity-60"
-                      >
-                        {emailMode === 'signup' ? 'Account Aanmaken' : 'Inloggen met E-mail'}
-                      </button>
-                    </div>
-                  </form>
-                ) : null}
-
-                {(authError || localAuthError) ? (
-                  <div className="mt-4 rounded-2xl tv-tone-enemy-surface px-4 py-3 text-sm">
-                    {localAuthError || authError}
-                  </div>
-                ) : null}
-              </div>
-            ) : showSessionHub ? (
-              <div className="flex flex-col items-center gap-4">
-                <button
-                  type="button"
-                  onClick={() => onSignOut?.()}
-                  className="tv-entry-action tv-tone-enemy-button"
-                >
-                  <LogOut className="mr-2 h-4 w-4" />
-                  Log uit
-                </button>
-              </div>
-            ) : (
-              <p className="max-w-xl text-sm md:text-base tv-text-sub font-story leading-relaxed">
+          </div>
+          {showSessionHub ? (
+            <>
+              <h1 className="mt-5 text-4xl font-fantasy tracking-[0.08em] tv-text sm:text-5xl">
+                Kies je volgende stap.
+              </h1>
+              <p className="mx-auto mt-3 max-w-2xl text-base md:text-lg tv-text-sub font-story leading-relaxed">
+                Hervat een wereld of open meteen een nieuwe sessie.
+              </p>
+            </>
+          ) : (
+            <>
+              <h1 className="mt-5 text-4xl font-fantasy tracking-[0.08em] tv-text sm:text-5xl">
+                Even geduld.
+              </h1>
+              <p className="mx-auto mt-3 max-w-2xl text-base md:text-lg tv-text-sub font-story leading-relaxed">
                 {sessionBusy
                   ? 'We proberen je meest recente sessie direct te openen.'
                   : 'We laden je sessies om te bepalen of je direct terug de wereld in kunt.'}
               </p>
-            )}
-          </div>
+              <div className="mt-5 flex justify-center">
+                <BackfillButton onBackfillMemberships={onBackfillMemberships} />
+              </div>
+            </>
+          )}
         </section>
 
-        {showMarketing ? landingAboutSection : null}
-
-        {showMarketing ? landingFeatureSection : null}
-
-        {showMarketing ? landingShowcaseSection : null}
-
-        {!uid ? (
-          <div className="mx-auto w-full max-w-5xl text-center">
-            <button
-              type="button"
-              onClick={() => setShowMarketing((value) => !value)}
-              className="tv-button-secondary rounded-xl px-4 py-2 text-xs font-fantasy uppercase tracking-[0.16em]"
-            >
-              {showMarketing ? 'Minder' : 'Over TomeVault'}
-            </button>
-          </div>
-        ) : null}
-
         {sessionError ? (
-          <div className="mx-auto w-full max-w-5xl tv-alert-danger rounded-2xl px-4 py-3 text-sm">
+          <div className="mx-auto w-full max-w-3xl tv-alert-danger rounded-xl px-4 py-3 text-sm">
             {sessionError}
           </div>
         ) : null}
 
         {sessionInfo ? (
-          <div className="mx-auto w-full max-w-5xl tv-alert-warning rounded-2xl px-4 py-3 text-sm">
+          <div className="mx-auto w-full max-w-3xl tv-alert-warning rounded-xl px-4 py-3 text-sm">
             {sessionInfo}
           </div>
         ) : null}
 
-        {recentSessionsSection}
-
+        {/* Recent sessions */}
         {showSessionHub ? (
-          <section className={`tv-entry-rail tv-entry-hero-card tv-entry-sheet mx-auto w-full max-w-5xl p-4 md:p-5 lg:p-6`}>
+          <section className="mx-auto w-full max-w-3xl">
+            <div className="lp-card p-4 md:p-5 lg:p-6">
+              <div className="flex items-center justify-center gap-3 text-center">
+                <h2 className="text-xl md:text-2xl font-fantasy tracking-[0.12em] tv-text">Recente sessies</h2>
+              </div>
+
+              <div className="mt-4 flex flex-wrap justify-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => onBackfillMemberships?.()}
+                  disabled={sessionBusy}
+                  className="tv-entry-action border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] tv-panel-inset tv-text hover:border-[color-mix(in_srgb,var(--tv-accent),transparent_58%)] hover:tv-text disabled:opacity-50"
+                  title="Herstel oude sessies waar je GM of speler bent"
+                >
+                  Herstel oud
+                </button>
+                {hiddenRecentCount > 0 ? (
+                  <button
+                    type="button"
+                    onClick={() => setShowHiddenSessions((value) => !value)}
+                    className="tv-entry-action border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] tv-panel-inset tv-text hover:border-[color-mix(in_srgb,var(--tv-accent),transparent_58%)] hover:tv-text"
+                  >
+                    {showHiddenSessions ? 'Verberg verborgen' : `Toon verborgen (${hiddenRecentCount})`}
+                  </button>
+                ) : null}
+              </div>
+
+              {displayedRecentSessions.length === 0 ? (
+                <div className="mt-4 rounded-xl border border-dashed border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] tv-panel-inset px-4 py-6 text-center">
+                  <p className="text-sm tv-text font-story italic">Nog geen recente sessies.</p>
+                </div>
+              ) : (
+                <div className="mt-4 grid gap-3">
+                  {displayedRecentSessions.map((session) => {
+                    const displayCode = session.joinTag || session.sessionId;
+                    const roleLabel = session.role === 'dm' ? 'GM' : 'Speler';
+                    const defaultAsRole = session.role === 'dm' ? 'gm' : 'player';
+                    const isHidden = session.status === 'hidden';
+                    const roleChipClass = session.role === 'dm' ? 'tv-role-chip--gm' : 'tv-role-chip--player';
+                    const sessionCardClass = session.role === 'dm' ? 'tv-session-card--gm' : 'tv-session-card--player';
+                    const sessionActionClass = session.role === 'dm' ? 'tv-session-action--gm' : 'tv-session-action--player';
+
+                    return (
+                      <article
+                        key={session.sessionId}
+                        className={`tv-session-card ${sessionCardClass} ${isHidden ? 'opacity-70' : ''}`}
+                      >
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="min-w-0">
+                            <div className="truncate text-lg font-fantasy tv-text">{session.sessionName || 'Naamloze Sessie'}</div>
+                            <div className="mt-2 flex flex-wrap items-center gap-2 text-[11px] uppercase tracking-[0.18em] tv-muted">
+                              <span>Code {displayCode}</span>
+                              <span className="tv-muted">•</span>
+                              <span>{session.updatedAtLabel}</span>
+                            </div>
+                          </div>
+                          <span className={`tv-entry-chip ${roleChipClass}`}>{roleLabel}</span>
+                        </div>
+
+                        <div className="mt-4 flex flex-wrap gap-2">
+                          <button
+                            type="button"
+                            onClick={(event) => {
+                              playFeedback({ sound: 'success', element: event.currentTarget, variant: 'gold' });
+                              onResumeRecentSession?.(session, defaultAsRole);
+                            }}
+                            disabled={sessionBusy}
+                            className={`tv-satisfy-pop inline-flex min-h-11 flex-1 items-center justify-center gap-2 rounded-xl border px-4 py-3 text-sm font-fantasy tracking-[0.16em] transition-all disabled:opacity-50 ${sessionActionClass}`}
+                          >
+                            <DoorOpen className="h-4 w-4" />
+                            Hervat
+                            <ArrowRight className="h-4 w-4" />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => (isHidden ? onRestoreRecentSession?.(session.sessionId) : onHideRecentSession?.(session.sessionId))}
+                            disabled={sessionBusy}
+                            className={`tv-entry-action border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] ${isHidden ? 'tv-alert-warning' : 'tv-panel-inset tv-text hover:border-[color-mix(in_srgb,var(--tv-accent),transparent_58%)] hover:tv-text'}`}
+                            title={isHidden ? 'Zet terug in recente lijst' : 'Verberg uit deze lijst'}
+                          >
+                            {isHidden ? 'Herstel' : 'Verberg'}
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleOpenDeleteFlow(session)}
+                            disabled={sessionBusy}
+                            className="tv-alert-danger flex h-11 w-11 items-center justify-center rounded-xl transition-colors hover:brightness-110 disabled:opacity-50"
+                            title="Verlaat en wis deze sessie permanent"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </button>
+                        </div>
+                      </article>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          </section>
+        ) : null}
+
+        {/* Join / create hub */}
+        {showSessionHub ? (
+          <section className="lp-card mx-auto w-full max-w-3xl p-4 md:p-5 lg:p-6">
             <div className="text-center">
               <h2 className="text-xl md:text-2xl font-fantasy tracking-[0.12em] tv-text">
                 {activeRoleTab === 'gm' ? 'Nieuwe sessie' : 'Meedoen'}
@@ -1054,10 +1364,11 @@ export default function LandingScreen({
                       disabled={!uid || sessionBusy}
                       className="tv-button-primary h-11 w-full rounded-xl font-fantasy text-sm uppercase tracking-[0.16em] disabled:opacity-60"
                     >
-                      Start
+                      <Plus className="mr-2 h-4 w-4" />
+                      Start sessie
                     </button>
                     {localGmError ? (
-                      <div className="tv-alert-danger rounded-2xl px-4 py-3 text-sm">
+                      <div className="tv-alert-danger rounded-xl px-4 py-3 text-sm">
                         {localGmError}
                       </div>
                     ) : null}
@@ -1086,7 +1397,7 @@ export default function LandingScreen({
                       className="tv-field"
                     />
                     {canJoinWithoutPin ? (
-                      <div className="tv-alert-warning rounded-2xl px-4 py-3 text-sm font-story">
+                      <div className="tv-alert-warning rounded-xl px-4 py-3 text-sm font-story">
                         Bekende sessie gevonden. Je kunt direct zonder PIN verder.
                       </div>
                     ) : null}
@@ -1096,10 +1407,11 @@ export default function LandingScreen({
                       disabled={!uid || sessionBusy}
                       className="tv-button-primary h-11 w-full rounded-xl font-fantasy text-sm uppercase tracking-[0.16em] disabled:opacity-60"
                     >
-                      Join
+                      <DoorOpen className="mr-2 h-4 w-4" />
+                      Meedoen
                     </button>
                     {localPlayerError ? (
-                      <div className="tv-alert-danger rounded-2xl px-4 py-3 text-sm">
+                      <div className="tv-alert-danger rounded-xl px-4 py-3 text-sm">
                         {localPlayerError}
                       </div>
                     ) : null}
@@ -1110,52 +1422,7 @@ export default function LandingScreen({
           </section>
         ) : null}
 
-        <section className="mx-auto w-full max-w-xl pt-1 text-center">
-          <div className="flex justify-center">
-            <button
-              type="button"
-              onClick={() => setShowContactForm((value) => !value)}
-              className="tv-entry-action border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] tv-panel-inset tv-text hover:border-[color-mix(in_srgb,var(--tv-accent),transparent_58%)] hover:tv-text"
-            >
-              <Mail className="mr-2 h-4 w-4" />
-              {showContactForm ? 'Verberg feedback' : 'Feedback'}
-            </button>
-          </div>
-
-          {showContactForm ? (
-            <div className="tv-entry-hero-card mt-4 rounded-[24px] p-4 md:p-5">
-              <form onSubmit={handleContactSubmit} className="grid gap-3 md:grid-cols-2 text-left">
-                <input
-                  type="text"
-                  value={contactName}
-                  onChange={(e) => setContactName(e.target.value)}
-                  placeholder="Je naam"
-                  className="tv-field"
-                />
-                <input
-                  type="email"
-                  value={contactEmail}
-                  onChange={(e) => setContactEmail(e.target.value)}
-                  placeholder="E-mail"
-                  className="tv-field"
-                />
-                <textarea
-                  value={contactMessage}
-                  onChange={(e) => setContactMessage(e.target.value)}
-                  rows={4}
-                  placeholder="Bericht"
-                  className="tv-field md:col-span-2 resize-none"
-                />
-                <button
-                  type="submit"
-                  className="tv-button-primary md:col-span-2"
-                >
-                  Verstuur via E-mail
-                </button>
-              </form>
-            </div>
-          ) : null}
-        </section>
+        {contactSection}
       </div>
 
       {deleteTarget && (
@@ -1223,6 +1490,35 @@ export default function LandingScreen({
         </div>
       )}
 
+      {/* Ambience dock */}
+      <div className="fixed bottom-4 right-4 z-30 max-w-[calc(100vw-2rem)]">
+        <div className="tv-ambience-dock">
+          <button
+            type="button"
+            onClick={handleToggleLandingAmbience}
+            title="De achtergrondvideo speelt altijd. Geluid blijft zacht en start pas na een tik."
+            className={`tv-entry-action ${landingAmbienceEnabled ? 'tv-button-accent-muted' : ''}`}
+          >
+            {landingAmbienceEnabled ? <Volume2 className="h-4 w-4" /> : <VolumeX className="h-4 w-4" />}
+            <span className="hidden sm:inline">{landingAmbienceLabel}</span>
+          </button>
+          {landingAmbienceEnabled ? (
+            <div className="flex min-w-[8.75rem] items-center gap-3">
+              <span className="text-[10px] uppercase tracking-[0.22em] tv-muted">Volume</span>
+              <input
+                type="range"
+                min="0"
+                max="24"
+                step="1"
+                value={landingAmbienceVolume}
+                onChange={handleLandingAmbienceVolumeChange}
+                className="ambience-slider w-24 sm:w-28"
+                aria-label="Volume van sfeergeluid"
+              />
+            </div>
+          ) : null}
+        </div>
+      </div>
     </div>
   );
 }

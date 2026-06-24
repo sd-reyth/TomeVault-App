@@ -1,45 +1,95 @@
 import React, { useMemo, useState } from 'react';
-import { Hand, Plus, Package, Search, Trash2 } from 'lucide-react';
+import { ChevronDown, Coins, Hand, Package, Plus, Scroll, Search, Trash2 } from 'lucide-react';
+import TreasureIcon from '../ui/TreasureIcon';
 import { resolveDisplayAvatar } from '../lib/placeholders';
+import { formatWalletTotal, normalizeWalletShape } from '../lib/walletUtils';
+import SegmentedControl from '../ui/SegmentedControl';
 import TvImage from './TvImage';
-import { getHandoutIcon } from '../lib/handoutUtils';
+import { getHandoutIcon, getHandoutTypeLabel } from '../lib/handoutUtils';
 import WalletSection from './WalletSection';
+import {
+  getItemCategoryChipClass,
+  getItemCategoryLabel,
+  ITEM_CATEGORY_FILTER_OPTIONS,
+  normalizeItemCategory,
+} from '../lib/itemCategories';
 
-function ItemCard({ item, role, currentPlayerId, canManageInventory, onUpdateItemAmount, onDeleteItem }) {
-  const description = String(item.desc || '').replace(/\s+/g, ' ').trim();
-  const [imageFailed, setImageFailed] = useState(false);
+function TreasureEmptyState({ variant }) {
+  const isSearch = variant === 'search';
 
   return (
-    <div className="flex items-start gap-3 rounded-xl border border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] tv-panel-inset p-3 shadow-sm transition-all duration-200 ease-out tv-hover-surface hover:border-[color-mix(in_srgb,var(--tv-border),transparent_28%)]">
-      <div className="tv-image-frame h-10 w-10 shrink-0 overflow-hidden rounded-lg border border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] tv-input-surface shadow-inner flex items-center justify-center">
+    <div className="tv-treasure-empty">
+      <div className="tv-treasure-empty__glow" aria-hidden />
+      <div className="tv-treasure-empty__icon" aria-hidden>
+        {isSearch ? <Search className="h-6 w-6" /> : <TreasureIcon className="h-6 w-6" />}
+      </div>
+      <p className="tv-treasure-empty__title font-story">
+        {isSearch ? 'Geen match' : 'Nog leeg'}
+      </p>
+    </div>
+  );
+}
+
+function resolveOwnerLabel(ownerId, party) {
+  if (ownerId === 'party') return 'Groep';
+  const member = party.find((p) => p.id === ownerId);
+  if (member) return member.name;
+  return '—';
+}
+
+function ItemCard({
+  item,
+  role,
+  currentPlayerId,
+  ownerLabel,
+  showOwner,
+  onUpdateItemAmount,
+  onDeleteItem,
+}) {
+  const description = String(item.desc || '').replace(/\s+/g, ' ').trim();
+  const [imageFailed, setImageFailed] = useState(false);
+  const category = getItemCategoryLabel(item.category);
+  const categoryKey = normalizeItemCategory(item.category);
+
+  return (
+    <article className="tv-inventory-item" data-category={categoryKey}>
+      <div className="tv-image-frame tv-inventory-item__thumb tv-inventory-item__thumb--item">
         {item.imageUrl && !imageFailed ? (
           <TvImage src={item.imageUrl} alt="" onError={() => setImageFailed(true)} />
         ) : (
-          <Package className="w-5 h-5 tv-muted" />
+          <Package className="h-5 w-5 tv-muted" aria-hidden />
         )}
       </div>
 
-      <div className="flex-1 min-w-0">
-        <div className="flex justify-between items-start gap-2 mb-1">
-          <span className="pr-2 text-sm font-medium leading-tight tracking-[0.08em] tv-text">{item.name}</span>
-          <div className="flex items-center gap-1.5 md:gap-2 shrink-0">
-            <span className="rounded border border-[var(--tv-accent)]/25 bg-[color-mix(in_srgb,var(--tv-accent),transparent_90%)] px-1.5 py-0.5 text-[10px] font-semibold text-[var(--tv-accent)] shadow-sm">x{item.amount}</span>
+      <div className="tv-inventory-item__body">
+        <div className="tv-inventory-item__head">
+          <div className="min-w-0">
+            <div className="flex flex-wrap items-center gap-1.5">
+              <h4 className="truncate font-story text-sm font-medium tv-text">{item.name}</h4>
+              <span className="tv-inventory-item__category">{category}</span>
+              {showOwner && ownerLabel ? (
+                <span className="tv-inventory-item__owner">{ownerLabel}</span>
+              ) : null}
+            </div>
+          </div>
+          <div className="flex shrink-0 items-center gap-1.5">
+            <span className="tv-inventory-item__amount">×{item.amount}</span>
             {(role === 'gm' || item.ownerId === currentPlayerId) && (
-              <div className="flex items-center gap-1 rounded border border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] tv-input-surface px-1 py-0.5">
+              <div className="tv-inventory-item__actions">
                 {role === 'gm' && (
                   <>
                     <button
                       type="button"
                       onClick={() => onUpdateItemAmount?.(item.id, Math.max(1, Number(item.amount || 1) - 1))}
-                      className="h-4 w-4 rounded border border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] text-[10px] leading-none tv-text-sub transition-colors tv-hover-danger md:h-5 md:w-5 md:text-xs"
+                      className="tv-inventory-item__action"
                       title="Verlaag aantal"
                     >
-                      -
+                      −
                     </button>
                     <button
                       type="button"
                       onClick={() => onUpdateItemAmount?.(item.id, Number(item.amount || 0) + 1)}
-                      className="h-4 w-4 rounded border border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] text-[10px] leading-none tv-text-sub transition-colors hover:border-[var(--tv-accent)]/35 hover:text-[var(--tv-accent)] md:h-5 md:w-5 md:text-xs"
+                      className="tv-inventory-item__action"
                       title="Verhoog aantal"
                     >
                       +
@@ -49,237 +99,328 @@ function ItemCard({ item, role, currentPlayerId, canManageInventory, onUpdateIte
                 <button
                   type="button"
                   onClick={() => onDeleteItem?.(item.id)}
-                  className="rounded p-0.5 tv-muted transition-colors tv-hover-danger md:p-1"
+                  className="tv-inventory-item__action tv-inventory-item__action--danger"
                   title="Verwijder item"
                 >
-                  <Trash2 className="w-3 h-3 md:w-3.5 md:h-3.5" />
+                  <Trash2 className="h-3.5 w-3.5" />
                 </button>
               </div>
             )}
           </div>
         </div>
 
-        {description && (
-          <p className="max-w-[44ch] pr-1 text-left text-[12px] leading-[1.7] tv-text/90 line-clamp-3 md:text-[13px]">
-            {description}
-          </p>
-        )}
+        {description ? (
+          <p className="tv-inventory-item__desc">{description}</p>
+        ) : null}
       </div>
-    </div>
+    </article>
   );
 }
 
-function InventoryView({ role, inventory, wallets, party, currentPlayerId, handouts, onUnclaim, onOpenHandout, onOpenAddItem, onUpdateItemAmount, onDeleteItem, onAdjustWallet }) {
-  const [searchByPlayer, setSearchByPlayer] = useState({});
-  const [filterByPlayer, setFilterByPlayer] = useState({});
-  const partyWallet = wallets.party || { platinum: 0, gold: 0, silver: 0, bronze: 0 };
-  const totalBronze =
-    Number(partyWallet.platinum || 0) * 1000000 +
-    Number(partyWallet.gold || 0) * 10000 +
-    Number(partyWallet.silver || 0) * 100 +
-    Number(partyWallet.bronze || 0);
-  const totalGoldEquivalent = totalBronze / 10000;
+function InventoryView({
+  role,
+  inventory,
+  wallets,
+  party,
+  currentPlayerId,
+  handouts,
+  onUnclaim,
+  onOpenHandout,
+  onOpenAddItem,
+  onUpdateItemAmount,
+  onDeleteItem,
+  onAdjustWallet,
+}) {
+  const humanPlayers = useMemo(
+    () => party.filter((p) => !p.isNpc),
+    [party]
+  );
 
-  const playersToShow = role === 'gm'
-    ? party.filter((p) => !p.isNpc)
-    : party.filter((p) => p.id === currentPlayerId);
+  const [gmScope, setGmScope] = useState('all');
+  const [walletOpen, setWalletOpen] = useState(false);
+  const [search, setSearch] = useState('');
+  const [filter, setFilter] = useState('all');
 
-  const categoryOptions = useMemo(() => [
-    { value: 'all', label: 'Alles' },
-    { value: 'wapen', label: 'Wapen' },
-    { value: 'pantser', label: 'Pantser' },
-    { value: 'verbruikbaar', label: 'Verbruikbaar' },
-    { value: 'magisch', label: 'Magisch' },
-    { value: 'grondstof', label: 'Grondstof' },
-    { value: 'quest', label: 'Quest' },
-    { value: 'overig', label: 'Overig' },
-  ], []);
+  const categoryOptions = ITEM_CATEGORY_FILTER_OPTIONS;
 
-  const formatGoldEquivalent = (value) => {
-    if (value === 0) return '0';
-    return Number(value.toFixed(2)).toLocaleString('nl-NL', {
-      minimumFractionDigits: value < 1 ? 2 : 0,
-      maximumFractionDigits: 2,
+  const scopeCounts = useMemo(() => {
+    const counts = {
+      all: inventory.length,
+      party: inventory.filter((item) => item.ownerId === 'party').length,
+    };
+    humanPlayers.forEach((player) => {
+      counts[player.id] = inventory.filter((item) => item.ownerId === player.id).length;
     });
-  };
+    return counts;
+  }, [humanPlayers, inventory]);
+
+  const gmScopeOptions = useMemo(() => {
+    const withCount = (value, label) => {
+      const count = scopeCounts[value] || 0;
+      return { value, label: count > 0 ? `${label} · ${count}` : label };
+    };
+
+    const options = [
+      withCount('all', 'Alles'),
+      withCount('party', 'Groep'),
+    ];
+    humanPlayers.forEach((player) => {
+      options.push(withCount(player.id, player.name));
+    });
+    return options;
+  }, [humanPlayers, scopeCounts]);
+
+  const scopedItems = useMemo(() => {
+    if (role !== 'gm') {
+      return inventory.filter((item) => item.ownerId === currentPlayerId);
+    }
+    if (gmScope === 'all') return inventory;
+    if (gmScope === 'party') return inventory.filter((item) => item.ownerId === 'party');
+    return inventory.filter((item) => item.ownerId === gmScope);
+  }, [currentPlayerId, gmScope, inventory, role]);
+
+  const filteredItems = useMemo(() => {
+    const query = search.trim().toLowerCase();
+    const category = filter.toLowerCase();
+
+    return scopedItems.filter((item) => {
+      const text = `${item.name || ''} ${item.desc || ''}`.toLowerCase();
+      const matchesSearch = !query || text.includes(query);
+      const matchesFilter = category === 'all' || normalizeItemCategory(item.category) === category;
+      return matchesSearch && matchesFilter;
+    });
+  }, [filter, scopedItems, search]);
+
+  const scopedClaimedHandouts = useMemo(() => {
+    if (role !== 'gm') {
+      return (handouts || []).filter((h) => h.claimedBy === currentPlayerId);
+    }
+    if (gmScope === 'all') {
+      return (handouts || []).filter((h) => Boolean(h.claimedBy));
+    }
+    if (gmScope === 'party') return [];
+    return (handouts || []).filter((h) => h.claimedBy === gmScope);
+  }, [currentPlayerId, gmScope, handouts, role]);
+
+  const activeWallet = useMemo(() => {
+    if (role !== 'gm') return normalizeWalletShape(wallets[currentPlayerId]);
+    if (gmScope === 'party' || gmScope === 'all') return normalizeWalletShape(wallets.party);
+    return normalizeWalletShape(wallets[gmScope]);
+  }, [currentPlayerId, gmScope, role, wallets]);
+
+  const headerWallet = role === 'gm'
+    ? normalizeWalletShape(wallets.party)
+    : normalizeWalletShape(wallets[currentPlayerId]);
+
+  const walletOwnerId = role === 'gm'
+    ? (gmScope === 'all' || gmScope === 'party' ? 'party' : gmScope)
+    : currentPlayerId;
+
+  const showOwnerOnItems = role === 'gm' && gmScope === 'all';
+
+  const walletTitle = role === 'gm'
+    ? (walletOwnerId === 'party' ? 'Groepskas' : resolveOwnerLabel(walletOwnerId, party))
+    : 'Buidel';
+
+  const preferredOwnerForAdd = role === 'gm'
+    ? (gmScope === 'all' ? 'party' : gmScope)
+    : currentPlayerId;
+
+  const resultLabel = filteredItems.length === scopedItems.length
+    ? `${scopedItems.length}`
+    : `${filteredItems.length}/${scopedItems.length}`;
 
   return (
-    <div className="tv-view-shell relative z-10 h-full">
-      <div className="tv-view-shell-header flex shrink-0 flex-col gap-4 p-3 sm:flex-row sm:items-center sm:justify-between sm:gap-3 md:p-4">
-          <div>
-            <h2 className="font-fantasy text-2xl font-bold tracking-[0.1em] tv-heading-shimmer md:text-3xl">De Schatkamer</h2>
-            <p className="mt-1 text-xs italic tv-text-sub md:text-sm">Goudstukken, uitrusting en magische artefacten.</p>
+    <div className="tv-view-shell tv-inventory-view relative z-10 h-full">
+      <div className="tv-view-shell-header flex shrink-0 flex-col gap-2 p-3 sm:flex-row sm:items-center sm:justify-between md:p-4">
+        <h2 className="flex items-center gap-2 font-fantasy text-xs font-medium uppercase tracking-[0.18em] tv-text md:text-sm">
+          <TreasureIcon className="tv-view-title-icon" aria-hidden />
+          Schatkamer
+        </h2>
+
+        <div className="tv-toolbar w-full sm:w-auto">
+          <button
+            type="button"
+            onClick={() => setWalletOpen((open) => !open)}
+            className="tv-toolbar__stat tv-inventory-wallet-pill"
+            aria-expanded={walletOpen}
+            title="Munten"
+          >
+            <Coins className="h-3.5 w-3.5 shrink-0 tv-inventory-wallet-pill__icon" aria-hidden />
+            <span className="tv-toolbar__stat-value">{formatWalletTotal(headerWallet)}</span>
+            <ChevronDown className={`tv-inventory-wallet-pill__chevron ${walletOpen ? 'is-open' : ''}`} aria-hidden />
+          </button>
+          <button
+            type="button"
+            onClick={() => onOpenAddItem?.(preferredOwnerForAdd)}
+            title="Nieuw item"
+            aria-label="Nieuw item"
+            className="tv-toolbar__btn tv-toolbar__btn--square tv-button-primary"
+          >
+            <Plus className="h-4 w-4 shrink-0" />
+          </button>
+        </div>
+      </div>
+
+      {walletOpen ? (
+        <div className="tv-inventory-wallet-drawer shrink-0 border-b border-[color-mix(in_srgb,var(--tv-border),transparent_55%)] px-3 py-3 md:px-4">
+          {role === 'gm' && walletOwnerId !== 'party' ? (
+            <div className="mb-2 flex items-center gap-2">
+              <div className="tv-image-frame flex h-7 w-7 items-center justify-center overflow-hidden rounded-lg border border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] tv-input-surface shadow-inner">
+                <TvImage
+                  src={resolveDisplayAvatar(
+                    humanPlayers.find((p) => p.id === walletOwnerId)?.avatar,
+                    walletOwnerId
+                  )}
+                  alt=""
+                />
+              </div>
+              <span className="text-xs font-medium text-[var(--tv-accent)]">
+                {walletTitle}
+              </span>
+            </div>
+          ) : (
+            <p className="mb-2 text-[10px] font-semibold uppercase tracking-[0.14em] tv-muted">
+              {walletTitle}
+            </p>
+          )}
+          <WalletSection
+            wallet={activeWallet}
+            editable={role === 'gm'}
+            onAdjust={(coinKey, delta) => onAdjustWallet?.(walletOwnerId, coinKey, delta)}
+          />
+        </div>
+      ) : null}
+
+      <div className="tv-view-shell-body relative z-10 flex min-h-0 flex-1 flex-col overflow-hidden">
+        {role === 'gm' ? (
+          <div className="shrink-0 border-b border-[color-mix(in_srgb,var(--tv-border),transparent_55%)] px-3 py-2 md:px-4">
+            <SegmentedControl
+              block
+              value={gmScope}
+              options={gmScopeOptions}
+              onChange={setGmScope}
+              aria-label="Schatkamer weergave"
+            />
+          </div>
+        ) : null}
+
+        <div className="tv-inventory-sticky-tools shrink-0 space-y-2 border-b border-[color-mix(in_srgb,var(--tv-border),transparent_55%)] px-3 py-2.5 backdrop-blur-md md:px-4">
+          <div className="flex items-center gap-2">
+            <span className="tv-inventory-count" aria-label={`${scopedItems.length} items`}>
+              {resultLabel}
+            </span>
+            <div className="tv-inventory-search-wrap min-w-0 flex-1">
+              <Search className="tv-inventory-search__icon" aria-hidden />
+              <input
+                type="search"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder="Zoeken…"
+                className="tv-inventory-search"
+              />
+            </div>
           </div>
 
-          <div className="flex w-full items-stretch sm:w-auto">
-            <div className="flex min-w-0 flex-1 flex-col justify-center rounded-l-xl border px-3 py-2.5 tv-chip-surface sm:min-w-[190px]">
-              <span className="text-[10px] uppercase tracking-[0.18em] tv-muted">Totale waarde</span>
-              <span className="mt-1 truncate text-lg font-semibold tabular-nums tv-text md:text-xl">{formatGoldEquivalent(totalGoldEquivalent)} goud</span>
-            </div>
-            <button
-              onClick={onOpenAddItem}
-              title="Nieuw item"
-              aria-label="Nieuw item"
-              className="inline-flex min-w-13 items-center justify-center rounded-l-none rounded-r-xl border border-l-0 border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] px-0 transition-all duration-200 active:scale-[0.985] tv-button-primary"
-            >
-              <Plus className="h-6 w-6 shrink-0 md:h-7 md:w-7" />
-            </button>
+          <div className="tv-inventory-filter-chips-wrap">
+          <div className="tv-inventory-filter-chips no-scrollbar" role="group" aria-label="Filter op soort">
+            {categoryOptions.map((opt) => (
+              <button
+                key={opt.value}
+                type="button"
+                onClick={() => setFilter(opt.value)}
+                className={[
+                  'tv-inventory-filter-chip',
+                  getItemCategoryChipClass(opt.value),
+                  filter === opt.value ? 'is-active' : '',
+                ].filter(Boolean).join(' ')}
+              >
+                {opt.label}
+              </button>
+            ))}
+          </div>
           </div>
         </div>
 
-      <div className="relative z-10 flex-1 overflow-y-auto space-y-6 p-3 pb-10 no-scrollbar md:space-y-8 md:p-4">
-        {role === 'gm' && wallets.party && (
-          <div className="relative overflow-visible py-2 md:py-3">
-            <WalletSection
-              title="Gezamenlijke Kas (GM)"
-              description="Hier bewaren jullie samen de buit van de groep. Verdeel slim en houd de balans in het oog."
-              wallet={wallets.party}
-              isGm={true}
-              editable={true}
-              onAdjust={(coinKey, delta) => onAdjustWallet?.('party', coinKey, delta)}
-              onPrimaryAction={onOpenAddItem}
-              primaryActionLabel="Nieuw item"
-              hideSummaryCard={true}
-            />
-          </div>
-        )}
+        <div className="min-h-0 flex-1 overflow-y-auto p-3 pb-6 no-scrollbar md:p-4">
+          {filteredItems.length > 0 ? (
+            <div className="tv-inventory-list tv-inventory-list--grid">
+              {filteredItems.map((item) => (
+                <ItemCard
+                  key={item.id}
+                  item={item}
+                  role={role}
+                  currentPlayerId={currentPlayerId}
+                  showOwner={showOwnerOnItems}
+                  ownerLabel={resolveOwnerLabel(item.ownerId, party)}
+                  onUpdateItemAmount={onUpdateItemAmount}
+                  onDeleteItem={onDeleteItem}
+                />
+              ))}
+            </div>
+          ) : (
+            <TreasureEmptyState variant={scopedItems.length > 0 ? 'search' : 'empty'} />
+          )}
 
-        {playersToShow.map((player) => {
-          const playerItems = inventory.filter((i) => i.ownerId === player.id);
-          const playerWallet = wallets[player.id] || { platinum: 0, gold: 0, silver: 0, bronze: 0 };
-          const playerClaimedHandouts = (handouts || []).filter((h) => h.claimedBy === player.id);
-          const canManageInventory = role === 'gm' || player.id === currentPlayerId;
-
-          const search = String(searchByPlayer[player.id] || '').toLowerCase();
-          const filter = String(filterByPlayer[player.id] || 'all').toLowerCase();
-
-          const filteredItems = playerItems.filter((item) => {
-            const text = `${item.name || ''} ${item.desc || ''}`.toLowerCase();
-            const matchesSearch = !search || text.includes(search);
-            const matchesFilter = filter === 'all' || String(item.category || 'overig').toLowerCase() === filter;
-            return matchesSearch && matchesFilter;
-          });
-
-          return (
-            <div key={player.id} className="relative rounded-2xl border border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] tv-panel-inset p-4 shadow-md backdrop-blur-sm md:p-6">
-              <div className="mb-5 flex items-center gap-3">
-                <div className="tv-image-frame flex h-8 w-8 items-center justify-center overflow-hidden rounded-lg border border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] tv-input-surface tv-accent shadow-inner">
-                  <TvImage src={resolveDisplayAvatar(player.avatar, player.id)} alt="Avatar" />
-                </div>
-                <h3 className="text-lg font-semibold tracking-[0.12em] text-[var(--tv-accent)] md:text-xl">{player.name}</h3>
+          {scopedClaimedHandouts.length > 0 ? (
+            <div className="tv-inventory-claimed-block">
+              <div className="tv-inventory-claimed-block__head">
+                <Scroll className="h-3.5 w-3.5 shrink-0 tv-accent" aria-hidden />
+                <h4 className="text-[10px] font-semibold uppercase tracking-[0.16em] tv-text">
+                  Handouts
+                </h4>
+                <span className="tv-inventory-count tv-inventory-count--inline">
+                  {scopedClaimedHandouts.length}
+                </span>
               </div>
-
-              <WalletSection
-                title="Buidel"
-                wallet={playerWallet}
-                isGm={false}
-                editable={role === 'gm'}
-                onAdjust={(coinKey, delta) => onAdjustWallet?.(player.id, coinKey, delta)}
-              />
-
-              <div className="mt-6 border-t border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] pt-6 md:mt-8">
-                <div className="mb-4 flex flex-col gap-2">
-                  <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
-                    <div className="relative min-w-0 flex-1">
-                      <Search className="absolute left-2 top-1/2 h-3.5 w-3.5 -translate-y-1/2 tv-muted" />
-                      <input
-                        type="text"
-                        value={searchByPlayer[player.id] || ''}
-                        onChange={(e) => setSearchByPlayer((prev) => ({ ...prev, [player.id]: e.target.value }))}
-                        placeholder="Zoek item..."
-                        className="h-10 w-full rounded-xl border border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] tv-panel-inset pl-7 pr-2 text-xs tv-text transition-colors focus:border-[var(--tv-accent)]/50 tv-focus-surface focus:outline-none sm:w-full"
-                      />
-                    </div>
-                    <select
-                      value={filterByPlayer[player.id] || 'all'}
-                      onChange={(e) => setFilterByPlayer((prev) => ({ ...prev, [player.id]: e.target.value }))}
-                      className="h-10 w-full rounded-xl border border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] tv-panel-inset px-2 text-xs tv-text transition-colors focus:border-[var(--tv-accent)]/50 tv-focus-surface focus:outline-none sm:w-auto sm:min-w-[140px]"
+              <div className="tv-inventory-list">
+                {scopedClaimedHandouts.map((handout) => {
+                  const Icon = getHandoutIcon(handout.type);
+                  const typeLabel = getHandoutTypeLabel(handout.type);
+                  const ownerLabel = resolveOwnerLabel(handout.claimedBy, party);
+                  return (
+                    <div
+                      key={handout.id}
+                      className="tv-inventory-item tv-inventory-item--handout tv-inventory-item--clickable"
+                      onClick={() => onOpenHandout(handout)}
                     >
-                      {categoryOptions.map((opt) => (
-                        <option key={opt.value} value={opt.value}>{opt.label}</option>
-                      ))}
-                    </select>
-                  </div>
-                </div>
-
-                {playerItems.length > 0 && filteredItems.length === 0 && (
-                  <div className="mb-4 rounded-xl border border-dashed border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] tv-panel-inset px-3 py-2 text-xs italic tv-muted">
-                    Geen items gevonden voor deze filters.
-                  </div>
-                )}
-
-                <div className="mb-4 rounded-xl border border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] tv-panel-inset p-3">
-                  <div className="mb-2 flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
-                    <span className="text-[10px] font-semibold uppercase tracking-widest tv-muted">Items</span>
-                    <span className="text-[10px] tv-muted">{filteredItems.length} items</span>
-                  </div>
-
-                  {filteredItems.length > 0 ? (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4">
-                      {filteredItems.map((item) => (
-                        <ItemCard
-                          key={item.id}
-                          item={item}
-                          role={role}
-                          currentPlayerId={currentPlayerId}
-                          canManageInventory={canManageInventory}
-                          onUpdateItemAmount={onUpdateItemAmount}
-                          onDeleteItem={onDeleteItem}
-                        />
-                      ))}
-                    </div>
-                  ) : (
-                    <div className="rounded-xl border border-dashed border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] tv-panel-inset py-4 text-center">
-                      <p className="text-xs italic tv-muted">
-                        {playerItems.length > 0 ? 'Geen items gevonden voor deze filters.' : 'Nog geen items in deze inventaris.'}
-                      </p>
-                    </div>
-                  )}
-                </div>
-
-                {playerClaimedHandouts.length > 0 && (
-                  <div className="mt-4 border-t border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] pt-4">
-                    <h4 className="mb-3 text-[10px] font-semibold uppercase tracking-widest tv-muted">Geclaimde Handouts</h4>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4">
-                      {playerClaimedHandouts.map((handout) => {
-                        const Icon = getHandoutIcon(handout.type);
-                        return (
-                          <div
-                            key={handout.id}
-                            className="group flex cursor-pointer items-start gap-3 rounded-xl border border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] tv-panel-inset p-3 shadow-sm transition-all duration-200 ease-out hover:border-[var(--tv-accent)]/25 tv-hover-surface"
-                            onClick={() => onOpenHandout(handout)}
-                          >
-                            <div className="tv-image-frame relative flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] tv-input-surface shadow-inner">
-                              {handout.imageUrl ? (
-                                <TvImage src={handout.imageUrl} alt="" />
-                              ) : (
-                                <Icon className="w-5 h-5 tv-muted" />
-                              )}
+                      <div className="tv-inventory-item__thumb">
+                        {handout.imageUrl ? (
+                          <TvImage src={handout.imageUrl} alt="" />
+                        ) : (
+                          <Icon className="h-5 w-5 tv-muted" />
+                        )}
+                      </div>
+                      <div className="tv-inventory-item__body">
+                        <div className="tv-inventory-item__head">
+                          <div className="min-w-0">
+                            <div className="flex flex-wrap items-center gap-1.5">
+                              <h4 className="truncate text-sm font-medium tv-text">{handout.title}</h4>
+                              <span className="tv-inventory-item__category">{typeLabel}</span>
+                              {showOwnerOnItems ? (
+                                <span className="tv-inventory-item__owner">{ownerLabel}</span>
+                              ) : null}
                             </div>
-                            <div className="flex-1 min-w-0 flex flex-col justify-center">
-                              <span className="truncate text-sm font-medium tracking-[0.08em] tv-text">{handout.title}</span>
-                              <span className="mt-1 text-[9px] font-semibold uppercase tracking-widest text-[var(--tv-accent)]">{handout.type}</span>
-                            </div>
-
-                            {(role === 'gm' || player.id === currentPlayerId) && (
-                              <button
-                                onClick={(e) => { e.stopPropagation(); onUnclaim(handout.id); }}
-                                className="rounded p-1.5 tv-muted transition-colors tv-hover-danger"
-                                title="Leg terug"
-                              >
-                                <Hand className="w-3.5 h-3.5" />
-                              </button>
-                            )}
                           </div>
-                        );
-                      })}
+                          {(role === 'gm' || handout.claimedBy === currentPlayerId) && (
+                            <button
+                              type="button"
+                              onClick={(e) => { e.stopPropagation(); onUnclaim(handout.id); }}
+                              className="tv-inventory-item__action tv-inventory-item__action--danger"
+                              title="Terugleggen"
+                            >
+                              <Hand className="h-3.5 w-3.5" />
+                            </button>
+                          )}
+                        </div>
+                      </div>
                     </div>
-                  </div>
-                )}
+                  );
+                })}
               </div>
             </div>
-          );
-        })}
+          ) : null}
+        </div>
       </div>
     </div>
   );

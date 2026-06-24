@@ -5,6 +5,35 @@
   --font-fantasy: 'Cinzel', serif;        /* screen + section titles only */
   --font-story: 'Lora', serif;            /* narrative / reading content */
   --font-ui: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; /* all UI chrome */
+
+  /* ====== RADIUS (one curve, two intents) ======
+     radius — every card, button, input, panel, shell
+     pill   — toggles, badges, avatars, slider thumbs */
+  --tv-radius: 0.75rem;
+  --tv-radius-pill: 9999px;
+  --tv-control-height: 2.5rem;
+
+  /* Legacy aliases → same curve everywhere */
+  --tv-radius-xs: var(--tv-radius);
+  --tv-radius-sm: var(--tv-radius);
+  --tv-radius-md: var(--tv-radius);
+  --tv-radius-lg: var(--tv-radius);
+  --tv-radius-xl: var(--tv-radius);
+  --tv-radius-2xl: var(--tv-radius);
+  --tv-radius-shell: var(--tv-radius);
+}
+
+/* Tailwind rounded-* → same single radius (full = pill only) */
+@theme {
+  --radius-xs: var(--tv-radius);
+  --radius-sm: var(--tv-radius);
+  --radius-md: var(--tv-radius);
+  --radius-lg: var(--tv-radius);
+  --radius-xl: var(--tv-radius);
+  --radius-2xl: var(--tv-radius);
+  --radius-3xl: var(--tv-radius);
+  --radius-4xl: var(--tv-radius);
+  --radius-full: var(--tv-radius-pill);
 }
 
 /* Custom font utilities (used as className="font-fantasy" / className="font-story") */

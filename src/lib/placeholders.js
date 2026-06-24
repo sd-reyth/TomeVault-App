@@ -66,6 +66,7 @@ export const PROFILE_PLACEHOLDERS = [
 
 export const PLACEHOLDER_IMAGE_ZOOM = 1.34;
 export const DEFAULT_IMAGE_ZOOM = 1.22;
+export const DEFAULT_AVATAR_POSITION = { x: 50, y: 50 };
 
 export function getImageCoverZoom(url) {
   const normalized = normalizeAvatarUrl(url) || String(url || '').trim();
@@ -120,6 +121,20 @@ export function resolveDisplayAvatar(url, id) {
   if (normalizedUrl && !isLegacyEmptyProfilePlaceholder(normalizedUrl)) return normalizedUrl;
   const hash = String(id || '').split('').reduce((acc, c) => acc + c.charCodeAt(0), 0);
   return PROFILE_RANDOM_PLACEHOLDERS[hash % PROFILE_RANDOM_PLACEHOLDERS.length];
+}
+
+export function normalizeAvatarPosition(position) {
+  const x = Number(position?.x);
+  const y = Number(position?.y);
+  return {
+    x: Number.isFinite(x) ? Math.min(100, Math.max(0, x)) : DEFAULT_AVATAR_POSITION.x,
+    y: Number.isFinite(y) ? Math.min(100, Math.max(0, y)) : DEFAULT_AVATAR_POSITION.y,
+  };
+}
+
+export function getAvatarObjectPosition(position) {
+  const normalized = normalizeAvatarPosition(position);
+  return `${normalized.x}% ${normalized.y}%`;
 }
 
 export function suggestHandoutImages(title, content, type, count = 6) {

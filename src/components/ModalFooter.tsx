@@ -52,7 +52,7 @@ export default function ModalFooter({
       {/* Cancel Button (Secondary) */}
       <button
         onClick={onCancel}
-        className="tv-button-secondary order-2 sm:order-1 inline-flex h-10 items-center justify-center rounded-xl px-4 text-sm font-medium"
+        className="tv-btn tv-button-secondary order-2 sm:order-1 px-4 text-sm font-medium"
       >
         {cancelLabel}
       </button>
@@ -61,7 +61,7 @@ export default function ModalFooter({
       <button
         onClick={onConfirm}
         disabled={confirmDisabled || isLoading}
-        className={`order-1 sm:order-2 inline-flex h-10 items-center justify-center rounded-xl px-4 text-sm font-medium transition-all duration-200 ease-out ${
+        className={`tv-btn order-1 sm:order-2 px-4 text-sm font-medium transition-all duration-200 ease-out ${
           isDestructive
             ? 'tv-button-destructive'
             : 'tv-button-primary'

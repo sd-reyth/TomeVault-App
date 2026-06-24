@@ -1,21 +1,22 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { MessageSquare, Palette, Pencil, Trash2, X, Check, CornerUpLeft, SendHorizontal, Dice5 } from 'lucide-react';
-import DiceRollerSheet, { getDiceThemeChrome } from './DiceRollerSheet';
+import DiceRollerSheet from './DiceRollerSheet';
 import { safeLocalStorageGet, safeLocalStorageSet } from '../lib/browserStorage';
+import { diceMessageHasNat20 } from '../lib/uiFeedback';
 import DiceIcon, { DiceMultipleIcon } from '../ui/DiceIcon';
 
 const CHAT_COLORS = [
-  { id: 'indigo',   bg: '#1e1b4b', border: '#4338ca', text: '#e0e7ff', swatch: '#6366f1', name: 'Indigo'   },
-  { id: 'violet',   bg: '#1e0a3c', border: '#7c3aed', text: '#ede9fe', swatch: '#8b5cf6', name: 'Violet'   },
-  { id: 'sky',      bg: '#082f49', border: '#0284c7', text: '#e0f2fe', swatch: '#0ea5e9', name: 'Hemel'    },
-  { id: 'emerald',  bg: '#052e16', border: '#10b981', text: '#d1fae5', swatch: '#10b981', name: 'Smaragd'  },
-  { id: 'lime',     bg: '#1a2e05', border: '#65a30d', text: '#ecfccb', swatch: '#84cc16', name: 'Limoen'   },
-  { id: 'amber',    bg: '#451a03', border: '#d97706', text: '#fef3c7', swatch: '#f59e0b', name: 'Amber'    },
-  { id: 'orange',   bg: '#431407', border: '#ea580c', text: '#ffedd5', swatch: '#f97316', name: 'Oranje'   },
-  { id: 'rose',     bg: '#4c0519', border: '#e11d48', text: '#ffe4e6', swatch: '#f43f5e', name: 'Roos'     },
-  { id: 'pink',     bg: '#500724', border: '#db2777', text: '#fce7f3', swatch: '#ec4899', name: 'Roze'     },
-  { id: 'fuchsia',  bg: '#4a044e', border: '#c026d3', text: '#fae8ff', swatch: '#d946ef', name: 'Fuchsia'  },
-  { id: 'cyan',     bg: '#083344', border: '#06b6d4', text: '#cffafe', swatch: '#22d3ee', name: 'Cyaan'    },
+  { id: 'indigo',   bg: '#2d285f', border: '#6366f1', text: '#f1f5ff', swatch: '#818cf8', name: 'Indigo'   },
+  { id: 'violet',   bg: '#3a1f63', border: '#8b5cf6', text: '#f5f3ff', swatch: '#a78bfa', name: 'Violet'   },
+  { id: 'sky',      bg: '#114169', border: '#0ea5e9', text: '#f0f9ff', swatch: '#38bdf8', name: 'Hemel'    },
+  { id: 'emerald',  bg: '#0e4a2b', border: '#10b981', text: '#ecfdf5', swatch: '#34d399', name: 'Smaragd'  },
+  { id: 'lime',     bg: '#2e4a0b', border: '#84cc16', text: '#f7fee7', swatch: '#a3e635', name: 'Limoen'   },
+  { id: 'amber',    bg: '#5a2e08', border: '#f59e0b', text: '#fff7ed', swatch: '#fbbf24', name: 'Amber'    },
+  { id: 'orange',   bg: '#5a220b', border: '#f97316', text: '#fff7ed', swatch: '#fb923c', name: 'Oranje'   },
+  { id: 'rose',     bg: '#63122d', border: '#f43f5e', text: '#fff1f2', swatch: '#fb7185', name: 'Roos'     },
+  { id: 'pink',     bg: '#68163b', border: '#ec4899', text: '#fdf2f8', swatch: '#f472b6', name: 'Roze'     },
+  { id: 'fuchsia',  bg: '#5e1366', border: '#d946ef', text: '#fdf4ff', swatch: '#e879f9', name: 'Fuchsia'  },
+  { id: 'cyan',     bg: '#0f4a5f', border: '#22d3ee', text: '#ecfeff', swatch: '#67e8f9', name: 'Cyaan'    },
 ];
 
 function getColor(colorId) {
@@ -103,7 +104,6 @@ function parseDiceMessage(text) {
 }
 
 function ChatView({ chat, setChat, role, uid, playerName, preferredChatColor, theme, onSendMessageRemote, onEditMessage, onDeleteMessage, onChangeColor }) {
-  const diceThemeChrome = getDiceThemeChrome();
   const [msg, setMsg] = useState('');
   const [isSending, setIsSending] = useState(false);
   const [chatColor, setChatColor] = useState(() => getStoredChatColor(preferredChatColor));
@@ -298,7 +298,7 @@ function ChatView({ chat, setChat, role, uid, playerName, preferredChatColor, th
     <div className="tv-view-shell relative z-10 h-full">
       <div className="tv-view-shell-header flex shrink-0 flex-col gap-2 p-3 sm:flex-row sm:items-center sm:justify-between md:p-4">
         <h2 className="flex items-center gap-2 text-xs font-medium font-fantasy uppercase tracking-[0.18em] tv-text md:text-sm">
-          <MessageSquare className="h-4 w-4 text-[var(--tv-accent)]" /> Fluisteringen
+          <MessageSquare className="tv-view-title-icon" /> Fluisteringen
         </h2>
         <button
           onClick={() => setShowColorPicker(true)}
@@ -369,7 +369,7 @@ function ChatView({ chat, setChat, role, uid, playerName, preferredChatColor, th
       )}
 
       {/* Messages */}
-      <div ref={messagesContainerRef} className="relative z-10 flex-1 overflow-y-auto px-3 py-4 no-scrollbar md:px-5">
+      <div ref={messagesContainerRef} className="tv-view-shell-body relative z-10 flex-1 overflow-y-auto px-3 py-4 no-scrollbar md:px-5">
         {chat.length === 0 && (
           <div className="tv-empty-state mx-auto my-8 max-w-md">
             <p className="tv-empty-state-title">Nog geen berichten</p>
@@ -417,14 +417,14 @@ function ChatView({ chat, setChat, role, uid, playerName, preferredChatColor, th
                   style={{
                     backgroundColor: cs.bg,
                     color: cs.text,
-                    border: `1px solid ${cs.border}55`,
+                    border: `1px solid ${cs.border}88`,
                   }}
                 >
                   {/* Reply quote */}
                   {c.replyTo && (
                     <div
-                      className="mb-2 rounded-lg px-2 py-1 text-[11px] italic opacity-80"
-                      style={{ borderLeft: `2px solid ${cs.swatch}`, backgroundColor: 'rgba(0,0,0,0.25)' }}
+                      className="mb-2 rounded-lg px-2 py-1 text-[11px] italic opacity-90"
+                      style={{ borderLeft: `2px solid ${cs.swatch}`, backgroundColor: 'rgba(255,255,255,0.12)' }}
                     >
                       <span className="font-bold not-italic text-[10px] block mb-0.5" style={{ color: cs.swatch }}>{c.replyTo.author}</span>
                       <span className="line-clamp-2">{c.replyTo.text}</span>
@@ -441,16 +441,23 @@ function ChatView({ chat, setChat, role, uid, playerName, preferredChatColor, th
                         || parsedDiceMessage.lines.some((line) => (Array.isArray(line.rolls) ? line.rolls.length : 0) > maxCollapsedRollsPerLine)
                         || parsedDiceMessage.lines.some((line) => String(line.raw || '').length > 20);
                       const visibleLines = isExpanded ? parsedDiceMessage.lines : parsedDiceMessage.lines.slice(0, 2);
+                      const isNat20 = diceMessageHasNat20(parsedDiceMessage);
 
                       return (
-                        <div className="mx-auto w-[262px] max-w-full rounded-2xl border border-[var(--tv-accent)]/20 bg-black/25 p-2.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] md:w-[286px] md:p-3">
+                        <div className={`mx-auto w-[262px] max-w-full rounded-2xl border border-[var(--tv-accent)]/20 bg-black/15 p-2.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.06)] md:w-[286px] md:p-3 ${isNat20 ? 'tv-dice-card--nat20' : ''}`}>
                           <div className="grid grid-cols-[86px_minmax(0,1fr)] items-stretch gap-2">
                             <div className="flex min-h-[84px] shrink-0 flex-col justify-center rounded-xl border border-[var(--tv-accent)]/25 bg-[radial-gradient(circle_at_top,color-mix(in_srgb,var(--tv-accent),transparent 75%),color-mix(in_srgb,var(--tv-accent),transparent 80%_58%,rgba(0,0,0,0)_100%)] px-2 py-2 text-center">
-                              <div className="mb-1 inline-flex items-center gap-1 text-[8px] font-semibold uppercase tracking-[0.16em] text-[var(--tv-accent)]/90">
+                              <div
+                                className="mb-1 inline-flex items-center gap-1 text-[8px] font-semibold uppercase tracking-[0.16em]"
+                                style={{ color: cs.text }}
+                              >
                                 <DiceMultipleIcon className="h-3 w-3" style={{ color: '#fde68a' }} />
-                                Totaal
+                                {isNat20 ? 'Kritiek!' : 'Totaal'}
                               </div>
-                              <div className="font-fantasy text-4xl leading-none tracking-[0.08em] text-[var(--tv-accent)] drop-shadow-[0_0_10px_var(--tv-accent-shadow)] md:text-[2.65rem]">
+                              <div
+                                className={`font-ui text-4xl font-semibold leading-none tracking-[0.02em] tabular-nums md:text-[2.65rem] ${isNat20 ? 'tv-dice-total--nat20' : ''}`}
+                                style={{ color: cs.text, textShadow: isNat20 ? undefined : `0 0 12px ${cs.border}55` }}
+                              >
                                 {parsedDiceMessage.total}
                               </div>
                             </div>
@@ -462,7 +469,7 @@ function ChatView({ chat, setChat, role, uid, playerName, preferredChatColor, th
                                 const hasHiddenRolls = !isExpanded && rolls.length > maxCollapsedRollsPerLine;
 
                                 return (
-                                  <div key={`${entry.raw}-${index}`} className="rounded-lg border border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] bg-black/10 px-2 py-1.5">
+                                  <div key={`${entry.raw}-${index}`} className="rounded-lg border border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] bg-black/5 px-2 py-1.5">
                                     <div className="flex items-center gap-1.5 text-[11px] font-semibold tv-text">
                                       {entry.sides ? <ChatDiceIcon sides={entry.sides} className="h-3.5 w-3.5 shrink-0" /> : null}
                                       <span>Werpt {entry.raw}</span>
@@ -574,16 +581,16 @@ function ChatView({ chat, setChat, role, uid, playerName, preferredChatColor, th
             onChange={e => setMsg(e.target.value)}
             onClick={() => { if (!chatColor) setShowColorPicker(true); }}
             placeholder={chatColor ? (editingMsg ? 'Pas je bericht aan...' : 'Spreek in de schaduwen...') : 'Kies eerst een kleur...'}
-            className="tv-input-surface h-10 min-w-0 w-full flex-[1_1_100%] rounded-xl px-3 text-sm italic transition-colors focus:outline-none md:px-4 sm:flex-[1_1_auto]"
+            className="tv-input-surface tv-chat-compose-input min-w-0 w-full flex-[1_1_100%] px-3 text-sm italic transition-colors focus:outline-none md:px-4 sm:flex-[1_1_auto]"
           />
-          <div className={`flex items-center gap-2 ${editingMsg ? 'w-full sm:w-auto' : 'ml-auto sm:ml-0'}`}>
+          <div className={`tv-chat-compose-controls flex items-center gap-2 ${editingMsg ? 'w-full sm:w-auto' : 'ml-auto sm:ml-0'}`}>
             {!editingMsg && (
               <button
                 type="button"
                 onClick={() => setShowDicePopover((prev) => !prev)}
                 title="Dobbelstenen rollen"
                 aria-label="Dobbelstenen rollen"
-                className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border transition-all duration-200 ease-out disabled:opacity-50 active:scale-[0.985] ${showDicePopover ? diceThemeChrome.triggerActive : diceThemeChrome.triggerIdle}`}
+                className={`tv-toolbar-icon-btn tv-chat-dice-btn transition-all duration-200 ease-out disabled:opacity-50 active:scale-[0.985] ${showDicePopover ? 'tv-chat-dice-btn--active' : ''}`}
                 disabled={isSending}
               >
                 <Dice5 className="w-5 h-5" />
@@ -594,7 +601,7 @@ function ChatView({ chat, setChat, role, uid, playerName, preferredChatColor, th
               disabled={isSending}
               title={editingMsg ? 'Bewerking opslaan' : 'Bericht versturen'}
               aria-label={editingMsg ? 'Bewerking opslaan' : 'Bericht versturen'}
-              className={`inline-flex h-10 items-center justify-center gap-2 rounded-xl border border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] tv-surface-raised px-3.5 text-sm font-medium uppercase tracking-[0.16em] tv-text transition-all duration-200 ease-out tv-hover-surface hover:tv-text disabled:opacity-50 active:scale-[0.985] md:px-4 ${editingMsg ? 'flex-1 sm:flex-none' : 'shrink-0'}`}
+              className={`tv-chat-send-btn inline-flex items-center justify-center gap-2 border px-3.5 text-sm font-medium uppercase tracking-[0.16em] transition-all duration-200 ease-out disabled:opacity-50 active:scale-[0.985] md:px-4 ${msg.trim() && !isSending ? 'tv-chat-send-btn--ready' : ''} ${editingMsg ? 'flex-1 sm:flex-none' : 'shrink-0'}`}
             >
               {editingMsg ? <Check className="w-4 h-4" /> : <SendHorizontal className="w-4 h-4" />}
             </button>
@@ -604,7 +611,6 @@ function ChatView({ chat, setChat, role, uid, playerName, preferredChatColor, th
 
       <DiceRollerSheet
         isOpen={showDicePopover}
-        theme={theme}
         title="Rol naar de chat"
         subtitle="Werp je stenen vanuit dezelfde roller en stuur het resultaat direct als chatbericht."
         onClose={() => setShowDicePopover(false)}

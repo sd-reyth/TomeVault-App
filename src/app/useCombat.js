@@ -171,6 +171,7 @@ export function useCombat({ sessionDocId, party, setParty, role, uid, setSession
   };
 
   const handleBatchUpdateInitiatives = async (initiativeUpdates = []) => {
+    if (role !== 'gm') return party;
     if (!Array.isArray(initiativeUpdates) || initiativeUpdates.length === 0) return party;
 
     const previousParty = party;
@@ -211,6 +212,7 @@ export function useCombat({ sessionDocId, party, setParty, role, uid, setSession
   };
 
   const handleInitiativeSwap = async (sourceId, targetId) => {
+    if (role !== 'gm') return;
     if (!sourceId || !targetId || sourceId === targetId) return;
 
     const sourceMember = party.find((p) => p.id === sourceId);
@@ -251,6 +253,7 @@ export function useCombat({ sessionDocId, party, setParty, role, uid, setSession
   };
 
   const handleStartCombat = async ({ initiativeUpdates = [], nextInitiativeOrder = [] } = {}) => {
+    if (role !== 'gm') return;
     const previousParty = party;
     const previousCombatState = getCurrentCombatState();
     const updateMap = new Map(
@@ -314,12 +317,16 @@ export function useCombat({ sessionDocId, party, setParty, role, uid, setSession
     return { nextParty, nextCombatState };
   };
 
-  const handlePauseCombat = async () => persistCombatState({
-    ...getCurrentCombatState(),
-    status: COMBAT_STATUS.PAUSED,
-  });
+  const handlePauseCombat = async () => {
+    if (role !== 'gm') return;
+    return persistCombatState({
+      ...getCurrentCombatState(),
+      status: COMBAT_STATUS.PAUSED,
+    });
+  };
 
   const handleResumeCombat = async ({ nextInitiativeOrder = initiativeOrder, initiativeUpdates = [] } = {}) => {
+    if (role !== 'gm') return;
     const previousParty = party;
     const previousCombatState = getCurrentCombatState();
     const updateMap = new Map(
@@ -383,14 +390,18 @@ export function useCombat({ sessionDocId, party, setParty, role, uid, setSession
     return nextCombatState;
   };
 
-  const handleEndCombat = async () => persistCombatState({
-    status: COMBAT_STATUS.IDLE,
-    currentTurnId: null,
-    turnRound: 1,
-    initiativeOrder,
-  });
+  const handleEndCombat = async () => {
+    if (role !== 'gm') return;
+    return persistCombatState({
+      status: COMBAT_STATUS.IDLE,
+      currentTurnId: null,
+      turnRound: 1,
+      initiativeOrder,
+    });
+  };
 
   const handleAdvanceTurn = async () => {
+    if (role !== 'gm') return null;
     const activeMembers = sortPartyByInitiative(filterCombatParticipants(party), initiativeOrder)
       .filter((member) => Number.isFinite(Number(member.init)));
 
@@ -409,6 +420,7 @@ export function useCombat({ sessionDocId, party, setParty, role, uid, setSession
   };
 
   const handleDeleteNpc = async (npcId) => {
+    if (role !== 'gm') return;
     const previousParty = party;
     const previousCombatState = getCurrentCombatState();
     const nextParty = party.filter((member) => member.id !== npcId);

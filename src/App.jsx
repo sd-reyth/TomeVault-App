@@ -68,7 +68,9 @@ import {
   getVerifiedAmbienceTracks,
   normalizeAmbienceState,
 } from './lib/ambienceLibrary';
-import { normalizeAvatarUrl } from './lib/placeholders';
+import { DEFAULT_AVATAR_POSITION, normalizeAvatarPosition, normalizeAvatarUrl } from './lib/placeholders';
+import { normalizeItemCategory } from './lib/itemCategories';
+import { handoutHasSecret, resolveHandoutSecret } from './lib/handoutUtils';
 import { downloadPlayerArchivePdf } from './lib/playerArchivePdf';
 import { sendChatMessage } from './lib/chatUtils';
 import LandingScreen from './components/LandingScreen';
@@ -259,6 +261,7 @@ function normalizePreparationDoc(docSnap) {
     sourceType: String(data.sourceType || '').trim() || 'manual',
     createdByUid: String(data.createdByUid || '').trim() || null,
     assignedToUid: String(data.assignedToUid || '').trim() || null,
+    preparedForUid: String(data.preparedForUid || '').trim() || null,
     assignmentStatus: String(data.assignmentStatus || 'unassigned').trim() || 'unassigned',
     createdAtMs: data.createdAt?.toMillis ? data.createdAt.toMillis() : 0,
     updatedAtMs: updatedAt?.toMillis ? updatedAt.toMillis() : 0,
@@ -442,6 +445,8 @@ export default function TomeVaultApp() {
   const brightnessOverlayOpacity = brightnessOverlayOpacities[brightness] ?? 0.35;
   
   const [handouts, setHandouts] = useState(MOCK_HANDOUTS);
+  const handoutsRef = useRef(handouts);
+  const subscribedSessionRef = useRef(null);
   const [party, setParty] = useState(MOCK_PARTY);
   const [chat, setChat] = useState(MOCK_CHAT);
   const [preferredChatColor, setPreferredChatColor] = useState(() => {
@@ -541,8 +546,12 @@ export default function TomeVaultApp() {
     return window.matchMedia('(min-width: 1024px)').matches;
   });
   const [isSidebarPinned, setIsSidebarPinned] = useState(false);
+  const [isMobileViewport, setIsMobileViewport] = useState(() => (
+    typeof window !== 'undefined' && window.matchMedia('(max-width: 767px)').matches
+  ));
   const [isNpcModalOpen, setIsNpcModalOpen] = useState(false);
   const [isAddItemModalOpen, setIsAddItemModalOpen] = useState(false);
+  const [addItemPreferredOwner, setAddItemPreferredOwner] = useState(null);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isOwnerPanelOpen, setIsOwnerPanelOpen] = useState(false);
   const [isSessionPanelOpen, setIsSessionPanelOpen] = useState(false);
@@ -552,8 +561,21 @@ export default function TomeVaultApp() {
   const [damageTarget, setDamageTarget] = useState(null);
   const [profileTarget, setProfileTarget] = useState(null);
   const [selectedHandout, setSelectedHandout] = useState(null);
+
+  useEffect(() => {
+    handoutsRef.current = handouts;
+  }, [handouts]);
+
+  useEffect(() => {
+    setSelectedHandout((current) => {
+      if (!current || current === 'new') return current;
+      const fresh = handouts.find((entry) => String(entry.id) === String(current.id));
+      return fresh ? fresh : current;
+    });
+  }, [handouts]);
   const [selectedPreparation, setSelectedPreparation] = useState(null);
   const [assigningPreparation, setAssigningPreparation] = useState(null);
+  const [importingPreparationPlayer, setImportingPreparationPlayer] = useState(false);
   const [pendingPreparationOffer, setPendingPreparationOffer] = useState(null);
   const [campaignSessionNumber, setCampaignSessionNumber] = useState(1);
   const localDevBootstrap = useMemo(() => getLocalDevBootstrapConfig(), []);
@@ -574,6 +596,17 @@ export default function TomeVaultApp() {
     const listenerVolume = clampAmbienceVolume(listenerAmbienceVolume, 82) / 100;
     return Math.max(0, Math.min(1, sessionVolume * listenerVolume));
   }, [listenerAmbienceVolume, sessionAmbience.masterVolume]);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return undefined;
+    const mediaQuery = window.matchMedia('(max-width: 767px)');
+    const syncMobileViewport = () => setIsMobileViewport(mediaQuery.matches);
+    syncMobileViewport();
+    mediaQuery.addEventListener('change', syncMobileViewport);
+    return () => mediaQuery.removeEventListener('change', syncMobileViewport);
+  }, []);
+
+  const isMobilePartyOverlay = isMobileViewport && isPartyOpen && !isSidebarPinned;
 
   useEffect(() => {
     const stored = String(safeLocalStorageGet('tv_chatcolor', '') || '').trim();
@@ -1678,26 +1711,33 @@ export default function TomeVaultApp() {
   }, [view]);
 
   useEffect(() => {
-    if (!sessionDocId || view !== 'dashboard') return undefined;
+    if (!sessionDocId || view !== 'dashboard') {
+      subscribedSessionRef.current = null;
+      return undefined;
+    }
 
     const unsubs = [];
     const sid = sessionDocId;
+    const sessionChanged = subscribedSessionRef.current !== sid;
+    subscribedSessionRef.current = sid;
 
-    setHandouts([]);
-    setParty([]);
-    setChat([]);
-    setInventory([]);
-    setInventoryLoaded(false);
-    setWallets({});
-    setNotes([]);
-    setPreparations([]);
-    setPreparationBackups([]);
-    setPendingPreparationOffer(null);
-    resetAmbienceState();
-    lastInventorySectionCleanupSignatureRef.current = '';
-    isClearingInventorySectionsRef.current = false;
-    lastInventoryDescriptionBackfillSignatureRef.current = '';
-    isBackfillingInventoryDescriptionsRef.current = false;
+    if (sessionChanged) {
+      setHandouts([]);
+      setParty([]);
+      setChat([]);
+      setInventory([]);
+      setInventoryLoaded(false);
+      setWallets({});
+      setNotes([]);
+      setPreparations([]);
+      setPreparationBackups([]);
+      setPendingPreparationOffer(null);
+      resetAmbienceState();
+      lastInventorySectionCleanupSignatureRef.current = '';
+      isClearingInventorySectionsRef.current = false;
+      lastInventoryDescriptionBackfillSignatureRef.current = '';
+      isBackfillingInventoryDescriptionsRef.current = false;
+    }
 
     const toIsoTime = (ts) => {
       const ms = ts?.toMillis ? ts.toMillis() : Date.now();
@@ -1716,6 +1756,15 @@ export default function TomeVaultApp() {
 
         setCampaignSessionNumber(Number(s.campaignSessionNumber || 1));
         setSessionAmbience(normalizeAmbienceState(s.ambience));
+
+        if (s.gmUid && uid) {
+          const shouldBeGm = s.gmUid === uid;
+          setRole((current) => {
+            const next = shouldBeGm ? 'gm' : 'player';
+            return current === next ? current : next;
+          });
+        }
+
         if (skipCombatUpdate) return;
       })
     );
@@ -1738,8 +1787,12 @@ export default function TomeVaultApp() {
             claimedBy: h.claimedByUid || h.claimedBy || null,
             assignedToUid: String(h.assignedToUid || '').trim() || null,
             assignedToNick: String(h.assignedToNick || '').trim() || null,
-            secretRevealed: h.secretRevealed === true || (Array.isArray(h.secretVisibleToUids) && h.secretVisibleToUids.length > 0),
+            secretRevealed: h.secretRevealed === true
+              || (h.secretRevealed !== false
+                && Array.isArray(h.secretVisibleToUids)
+                && h.secretVisibleToUids.length > 0),
             imageUrl: h.imageUrl || null,
+            imagePosition: normalizeAvatarPosition(h.imagePosition),
             npcSubtitle: h.npcSubtitle || 'Vijand',
             npcHp: Number(h.npcHp ?? 15),
             npcAc: Number(h.npcAc ?? 12),
@@ -1776,6 +1829,7 @@ export default function TomeVaultApp() {
             isNpc: p.isNpc === true,
             isRevealed: p.isRevealed === false || p.revealed === false ? false : true,
             avatar: p.avatarUrl || p.avatar || null,
+            avatarPosition: normalizeAvatarPosition(p.avatarPosition),
             bio: p.bio || '',
             customStats: Array.isArray(p.customStats) ? p.customStats : [],
             conditions: normalizedConditions,
@@ -1831,7 +1885,7 @@ export default function TomeVaultApp() {
             needsDescriptionBackfill: !hasNonEmptyText(desc) && hasNonEmptyText(legacyDescription),
             amount: Number(i.amount ?? 1),
             imageUrl: i.imageUrl || i.avatarUrl || null,
-            category: String(i.category || 'overig').toLowerCase(),
+            category: normalizeItemCategory(i.category),
             section: normalizeInventorySectionName(i.section),
           };
         });
@@ -1850,7 +1904,7 @@ export default function TomeVaultApp() {
             platinum: Number(w.platinum ?? 0),
             gold: Number(w.gold ?? 0),
             silver: Number(w.silver ?? 0),
-            bronze: Number(w.bronze ?? 0),
+            bronze: Number(w.bronze ?? w.copper ?? 0),
           };
         });
         setWallets(nextWallets);
@@ -2375,23 +2429,35 @@ export default function TomeVaultApp() {
     }
 
     const payload = buildPreparationPayload({ ...draft, imageUrl });
+    const targetPlayerUid = String(draft?.targetPlayerUid || draft?.preparedForUid || '').trim() || null;
+    const offerOnSave = Boolean(draft?.offerOnSave && targetPlayerUid);
+    const isUnassigned = !draft?.id || (draft?.assignmentStatus || 'unassigned') === 'unassigned';
+    let preparationId = draft?.id || null;
 
     if (draft?.id) {
-      await updateDoc(doc(db, 'sessions', sessionDocId, 'characterTemplates', draft.id), payload);
-      return draft.id;
+      await updateDoc(doc(db, 'sessions', sessionDocId, 'characterTemplates', draft.id), {
+        ...payload,
+        ...(isUnassigned ? { preparedForUid: offerOnSave ? null : targetPlayerUid } : {}),
+      });
+    } else {
+      const created = await addDoc(collection(db, 'sessions', sessionDocId, 'characterTemplates'), {
+        ...payload,
+        createdAt: serverTimestamp(),
+        createdByUid: uid,
+        assignedToUid: null,
+        preparedForUid: offerOnSave ? null : targetPlayerUid,
+        assignmentStatus: 'unassigned',
+        offeredAt: null,
+        respondedAt: null,
+      });
+      preparationId = created.id;
     }
 
-    const created = await addDoc(collection(db, 'sessions', sessionDocId, 'characterTemplates'), {
-      ...payload,
-      createdAt: serverTimestamp(),
-      createdByUid: uid,
-      assignedToUid: null,
-      assignmentStatus: 'unassigned',
-      offeredAt: null,
-      respondedAt: null,
-    });
+    if (offerOnSave && targetPlayerUid && preparationId) {
+      await handleAssignPreparationRemote(preparationId, targetPlayerUid);
+    }
 
-    return created.id;
+    return preparationId;
   };
 
   const handleDeletePreparationRemote = async (preparationOrId) => {
@@ -2500,20 +2566,22 @@ export default function TomeVaultApp() {
     const normalizedType = String(handout.type || 'clue').toLowerCase();
     const assignedToUid = String(handout.assignedToUid || '').trim() || null;
     const assignedPlayer = party.find((member) => member.id === assignedToUid && member.isNpc !== true);
-    const hasSecretContent = String(handout.secret || '').trim().length > 0;
+    const hasSecretContent = handoutHasSecret(handout);
 
     return {
       title: handout.title || 'Naamloze handout',
       type: normalizedType,
       publicContent: handout.content || '',
-      secretContent: handout.secret || '',
+      secretContent: resolveHandoutSecret(handout),
       revealed: handout.isRevealed === true,
       claimable: normalizedType === 'loot' ? handout.claimable === true : false,
       claimedByUid: handout.claimedBy || null,
       assignedToUid,
       assignedToNick: assignedPlayer?.name || null,
       secretRevealed: hasSecretContent ? handout.secretRevealed === true : false,
+      secretVisibleToUids: [],
       imageUrl: handout.imageUrl || null,
+      imagePosition: normalizeAvatarPosition(handout.imagePosition || DEFAULT_AVATAR_POSITION),
       npcSubtitle: String(handout.npcSubtitle || 'Vijand').trim() || 'Vijand',
       npcHp: Math.max(0, Number(handout.npcHp) || 0),
       npcAc: Math.max(0, Number(handout.npcAc) || 10),
@@ -2523,6 +2591,9 @@ export default function TomeVaultApp() {
   };
 
   const handleCreateHandoutRemote = async (handout) => {
+    if (role !== 'gm') {
+      throw new Error('Alleen de GM kan handouts aanmaken.');
+    }
     if (!sessionDocId || !uid) {
       throw new Error('Geen actieve sessie voor handouts.');
     }
@@ -2537,6 +2608,9 @@ export default function TomeVaultApp() {
   };
 
   const handleUpdateHandoutRemote = async (handout) => {
+    if (role !== 'gm') {
+      throw new Error('Alleen de GM kan handouts bewerken.');
+    }
     if (!sessionDocId || !handout?.id) {
       throw new Error('Kan handout niet bijwerken zonder actieve sessie en id.');
     }
@@ -2547,6 +2621,9 @@ export default function TomeVaultApp() {
   };
 
   const handleDeleteHandoutRemote = async (handoutId) => {
+    if (role !== 'gm') {
+      throw new Error('Alleen de GM kan handouts verwijderen.');
+    }
     if (!sessionDocId || !handoutId) {
       throw new Error('Kan handout niet verwijderen zonder actieve sessie en id.');
     }
@@ -2556,41 +2633,81 @@ export default function TomeVaultApp() {
 
   const handleToggleVisibility = async (id) => {
     if (role !== 'gm') return;
-    const handout = handouts.find(h => h.id === id);
-    if (!handout) return;
-    const next = !handout.isRevealed;
-    setHandouts(handouts.map(h => h.id === id ? { ...h, isRevealed: next } : h));
-    if (sessionDocId) {
-      try {
-        await updateDoc(doc(db, 'sessions', sessionDocId, 'handouts', id), {
-          revealed: next,
-          updatedAt: serverTimestamp(),
-        });
-      } catch (err) {
-        console.error('Visibility toggle fout:', err);
-        setHandouts(handouts.map(h => h.id === id ? { ...h, isRevealed: !next } : h));
-      }
+
+    const normalizedId = String(id ?? '').trim();
+    if (!normalizedId) return;
+
+    let next;
+    setHandouts((prev) => {
+      const handout = prev.find((entry) => String(entry.id) === normalizedId);
+      if (!handout) return prev;
+      next = !handout.isRevealed;
+      return prev.map((entry) => (String(entry.id) === normalizedId ? { ...entry, isRevealed: next } : entry));
+    });
+
+    if (next === undefined || !sessionDocId) return;
+
+    try {
+      await updateDoc(doc(db, 'sessions', sessionDocId, 'handouts', normalizedId), {
+        revealed: next,
+        updatedAt: serverTimestamp(),
+      });
+    } catch (err) {
+      console.error('Visibility toggle fout:', err);
+      setHandouts((prev) => prev.map((entry) => (String(entry.id) === normalizedId ? { ...entry, isRevealed: !next } : entry)));
     }
   };
 
   const handleToggleSecretVisibility = async (id) => {
-    if (role !== 'gm') return;
-    const handout = handouts.find((entry) => entry.id === id);
-    if (!handout || !String(handout.secret || '').trim()) return;
+    if (role !== 'gm') {
+      return { ok: false, reason: 'no-gm' };
+    }
+
+    const normalizedId = String(id ?? '').trim();
+    if (!normalizedId) {
+      return { ok: false, reason: 'missing' };
+    }
+
+    const handout = handoutsRef.current.find((entry) => String(entry.id) === normalizedId);
+    if (!handout) {
+      return { ok: false, reason: 'missing' };
+    }
+    if (!handoutHasSecret(handout)) {
+      return { ok: false, reason: 'no-secret' };
+    }
 
     const next = handout.secretRevealed !== true;
-    setHandouts(handouts.map((entry) => (entry.id === id ? { ...entry, secretRevealed: next } : entry)));
 
-    if (sessionDocId) {
-      try {
-        await updateDoc(doc(db, 'sessions', sessionDocId, 'handouts', id), {
-          secretRevealed: next,
-          updatedAt: serverTimestamp(),
-        });
-      } catch (err) {
-        console.error('Secret toggle fout:', err);
-        setHandouts(handouts.map((entry) => (entry.id === id ? { ...entry, secretRevealed: !next } : entry)));
-      }
+    setHandouts((prev) => prev.map((entry) => (
+      String(entry.id) === normalizedId ? { ...entry, secretRevealed: next } : entry
+    )));
+
+    setSelectedHandout((current) => {
+      if (!current || current === 'new' || String(current.id) !== normalizedId) return current;
+      return { ...current, secretRevealed: next };
+    });
+
+    if (!sessionDocId) {
+      return { ok: true, revealed: next, persisted: false, reason: 'no-session' };
+    }
+
+    try {
+      await updateDoc(doc(db, 'sessions', sessionDocId, 'handouts', normalizedId), {
+        secretRevealed: next,
+        secretVisibleToUids: [],
+        updatedAt: serverTimestamp(),
+      });
+      return { ok: true, revealed: next, persisted: true };
+    } catch (err) {
+      console.error('Secret toggle fout:', err);
+      setHandouts((prev) => prev.map((entry) => (
+        String(entry.id) === normalizedId ? { ...entry, secretRevealed: !next } : entry
+      )));
+      setSelectedHandout((current) => {
+        if (!current || current === 'new' || String(current.id) !== normalizedId) return current;
+        return { ...current, secretRevealed: !next };
+      });
+      return { ok: false, reason: 'firestore' };
     }
   };
 
@@ -2645,6 +2762,7 @@ export default function TomeVaultApp() {
   };
 
   const handleDamageModalSave = async (memberId, newHp) => {
+    if (role !== 'gm') return;
     setParty(party.map(p => p.id === memberId ? { ...p, hp: newHp } : p));
     setDamageTarget(null);
     if (sessionDocId) {
@@ -2676,6 +2794,7 @@ export default function TomeVaultApp() {
     finalChar = {
       ...finalChar,
       avatar: normalizeAvatarUrl(finalChar.avatar),
+      avatarPosition: normalizeAvatarPosition(finalChar.avatarPosition || DEFAULT_AVATAR_POSITION),
     };
 
     setParty(party.map(p => p.id === finalChar.id ? finalChar : p));
@@ -2694,6 +2813,7 @@ export default function TomeVaultApp() {
           bio: finalChar.bio || '',
           customStats: finalChar.customStats || [],
           avatarUrl: finalChar.avatar || null,
+          avatarPosition: normalizeAvatarPosition(finalChar.avatarPosition || DEFAULT_AVATAR_POSITION),
           updatedAt: serverTimestamp(),
         });
       } catch (err) {
@@ -2737,6 +2857,7 @@ export default function TomeVaultApp() {
   };
 
   const handleAddNpcSave = async (npcData, pendingAvatarFile) => {
+    if (role !== 'gm') return;
     const tempId = 'n' + Date.now();
     let avatarUrl = npcData.avatar || null;
 
@@ -2750,7 +2871,18 @@ export default function TomeVaultApp() {
       }
     }
 
-    setParty([...party, { ...npcData, id: tempId, isNpc: true, init: null, bio: npcData.bio || '', avatar: avatarUrl }]);
+    setParty([
+      ...party,
+      {
+        ...npcData,
+        id: tempId,
+        isNpc: true,
+        init: null,
+        bio: npcData.bio || '',
+        avatar: avatarUrl,
+        avatarPosition: normalizeAvatarPosition(npcData.avatarPosition || DEFAULT_AVATAR_POSITION),
+      },
+    ]);
     setIsNpcModalOpen(false);
     if (sessionDocId) {
       try {
@@ -2767,6 +2899,7 @@ export default function TomeVaultApp() {
           combatJoinRequestStatus: COMBAT_JOIN_REQUEST_STATUS.NONE,
           isRevealed: true,
           avatarUrl,
+          avatarPosition: normalizeAvatarPosition(npcData.avatarPosition || DEFAULT_AVATAR_POSITION),
           bio: npcData.bio || '',
           createdAt: serverTimestamp(),
           updatedAt: serverTimestamp(),
@@ -2805,7 +2938,7 @@ export default function TomeVaultApp() {
           desc: newItem.desc || '',
           amount: Number(newItem.amount) || 1,
           imageUrl: finalItem.imageUrl || null,
-          category: String(newItem.category || 'overig').toLowerCase(),
+          category: normalizeItemCategory(newItem.category),
           section: '',
           createdAt: serverTimestamp(),
           updatedAt: serverTimestamp(),
@@ -2889,7 +3022,7 @@ export default function TomeVaultApp() {
       .map((item) => ({
         name: item.name,
         amount: item.amount,
-        category: item.category,
+        category: normalizeItemCategory(item.category),
         desc: item.desc,
         ownerId: item.ownerId,
         ownerName: party.find((member) => member.id === item.ownerId)?.name || null,
@@ -3140,7 +3273,7 @@ export default function TomeVaultApp() {
   };
 
   return (
-    <div className="tv-app tv-app-shell relative flex h-screen w-full flex-col overflow-hidden font-sans tv-text" data-theme={theme} data-brightness-step={brightness}>
+    <div className={`tv-app tv-app-shell relative flex h-screen w-full flex-col overflow-hidden font-sans tv-text${isMobilePartyOverlay ? ' tv-app-shell--party-overlay' : ''}`} data-theme={theme} data-brightness-step={brightness}>
       {appUpdateNotice ? (
         <div className="absolute inset-x-4 top-3 z-50 mx-auto max-w-3xl rounded-xl px-4 py-3 tv-update-banner">
           <div className="flex flex-wrap items-center justify-between gap-3">
@@ -3201,7 +3334,15 @@ export default function TomeVaultApp() {
         />
         
         <div className="relative flex flex-1 overflow-hidden">
-          <Sidebar activeTab={activeTab} setActiveTab={setActiveTab} onOpenSettings={() => setIsSettingsOpen(true)} role={role} />
+          <Sidebar
+            activeTab={activeTab}
+            setActiveTab={setActiveTab}
+            onOpenSettings={() => setIsSettingsOpen(true)}
+            role={role}
+            sessionNumber={campaignSessionNumber}
+            combatStatus={combatStatus}
+            hideMobileNav={isMobilePartyOverlay}
+          />
           
           <main className="app-shell-main relative flex-1 min-h-0 min-w-0 overflow-hidden p-3 transition-opacity duration-300 md:p-5">
             <div className="pointer-events-none absolute left-1/2 top-0 h-96 w-full -translate-x-1/2 bg-[color-mix(in_srgb,var(--tv-accent),transparent_90%)] blur-[120px]" />
@@ -3249,7 +3390,10 @@ export default function TomeVaultApp() {
                     handouts={handouts}
                     onUnclaim={handleUnclaimHandout}
                     onOpenHandout={(h) => setSelectedHandout(h)}
-                    onOpenAddItem={() => setIsAddItemModalOpen(true)}
+                    onOpenAddItem={(ownerId) => {
+                      setAddItemPreferredOwner(ownerId || null);
+                      setIsAddItemModalOpen(true);
+                    }}
                     onUpdateItemAmount={handleUpdateItemAmount}
                     onDeleteItem={handleDeleteItem}
                     onAdjustWallet={handleAdjustWallet}
@@ -3263,6 +3407,7 @@ export default function TomeVaultApp() {
                     backups={preparationBackups}
                     party={party}
                     onCreatePreparation={() => setSelectedPreparation('new')}
+                    onCreateFromPlayer={() => setImportingPreparationPlayer(true)}
                     onEditPreparation={(preparation) => setSelectedPreparation(preparation)}
                     onDeletePreparation={(preparation) => handleDeletePreparationRemote(preparation)}
                     onAssignPreparation={(preparation) => setAssigningPreparation(preparation)}
@@ -3310,7 +3455,6 @@ export default function TomeVaultApp() {
             onUpdateStat={handleUpdatePlayerStat}
             isPinned={isSidebarPinned}
             setIsPinned={setIsSidebarPinned}
-            onRemoveNpc={handleDeleteNpc}
             theme={theme}
           />
         </div>
@@ -3367,6 +3511,7 @@ export default function TomeVaultApp() {
         <PreparationModal
           isOpen={selectedPreparation !== null}
           preparation={selectedPreparation === 'new' ? null : selectedPreparation}
+          players={party.filter((member) => member.isNpc !== true)}
           theme={theme}
           onClose={() => setSelectedPreparation(null)}
           onSave={async (draft, pendingFile) => {
@@ -3377,6 +3522,32 @@ export default function TomeVaultApp() {
             if (!window.confirm('Verwijder deze voorbereiding definitief?')) return;
             await handleDeletePreparationRemote(preparationId);
             setSelectedPreparation(null);
+          }}
+        />
+
+        <PlayerPickerModal
+          isOpen={importingPreparationPlayer}
+          mode="import"
+          players={party.filter((member) => member.isNpc !== true)}
+          onClose={() => setImportingPreparationPlayer(false)}
+          onSelect={(player) => {
+            setSelectedPreparation({
+              ...snapshotPreparationFromCharacter({
+                id: player.id,
+                name: player.name,
+                subtitle: player.subtitle,
+                bio: player.bio,
+                avatar: player.avatar,
+                hp: player.hp,
+                maxHp: player.maxHp,
+                ac: player.ac,
+                initMod: player.initMod,
+                customStats: player.customStats,
+              }),
+              preparedForUid: player.id,
+              assignmentStatus: 'unassigned',
+            });
+            setImportingPreparationPlayer(false);
           }}
         />
 
@@ -3400,7 +3571,11 @@ export default function TomeVaultApp() {
 
         <AddItemModal
           isOpen={isAddItemModalOpen}
-          onClose={() => setIsAddItemModalOpen(false)}
+          onClose={() => {
+            setIsAddItemModalOpen(false);
+            setAddItemPreferredOwner(null);
+          }}
+          preferredOwnerId={addItemPreferredOwner}
           role={role}
           party={party}
           currentPlayerId={CURRENT_PLAYER_ID}
@@ -3436,17 +3611,17 @@ export default function TomeVaultApp() {
             try {
               if (selectedHandout === 'new') {
                 const newId = await handleCreateHandoutRemote(finalHandout);
-                setHandouts([{ ...finalHandout, id: newId }, ...handouts]);
+                setHandouts((prev) => [{ ...finalHandout, id: newId }, ...prev]);
               } else {
                 await handleUpdateHandoutRemote(finalHandout);
-                setHandouts(handouts.map(h => h.id === finalHandout.id ? finalHandout : h));
+                setHandouts((prev) => prev.map((h) => (String(h.id) === String(finalHandout.id) ? finalHandout : h)));
               }
             } catch (err) {
               console.error('Handout opslaan fout:', err);
               if (selectedHandout === 'new') {
-                setHandouts([{ ...finalHandout, id: Date.now().toString() }, ...handouts]);
+                setHandouts((prev) => [{ ...finalHandout, id: Date.now().toString() }, ...prev]);
               } else {
-                setHandouts(handouts.map(h => h.id === finalHandout.id ? finalHandout : h));
+                setHandouts((prev) => prev.map((h) => (String(h.id) === String(finalHandout.id) ? finalHandout : h)));
               }
             }
 
@@ -3458,7 +3633,7 @@ export default function TomeVaultApp() {
             } catch (err) {
               console.error('Handout verwijderen fout:', err);
             }
-            setHandouts(handouts.filter(h => h.id !== id));
+            setHandouts((prev) => prev.filter((h) => String(h.id) !== String(id)));
             setSelectedHandout(null);
           }}
         />
@@ -3491,6 +3666,7 @@ export default function TomeVaultApp() {
         <SessionManageModal
           isOpen={isSessionPanelOpen}
           onClose={() => setIsSessionPanelOpen(false)}
+          role={role}
           sessionId={sessionId}
           sessionNumber={campaignSessionNumber}
           theme={theme}

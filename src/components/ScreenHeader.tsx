@@ -81,7 +81,7 @@ export default function ScreenHeader({
               <button
                 key={i}
                 onClick={action.onClick}
-                className="inline-flex items-center gap-1.5 h-9 px-3 rounded-lg border border-[color:var(--tv-border)] bg-transparent text-[color:var(--tv-text-secondary)] hover:bg-[color:var(--tv-bg-surface)] hover:text-[color:var(--tv-text-primary)] transition-all duration-200 ease-out text-sm"
+                className="tv-btn tv-button-secondary tv-btn--sm gap-1.5 px-3 text-sm font-normal normal-case tracking-normal"
                 title={action.label}
               >
                 {action.icon}
@@ -94,7 +94,7 @@ export default function ScreenHeader({
             <button
               onClick={primaryAction.onClick}
               disabled={primaryAction.disabled}
-              className="tv-button-primary inline-flex h-10 items-center justify-center gap-2 px-4 text-sm font-semibold"
+              className="tv-btn tv-button-primary gap-2 px-4 text-sm font-semibold"
             >
               {primaryAction.icon}
               <span>{primaryAction.label}</span>

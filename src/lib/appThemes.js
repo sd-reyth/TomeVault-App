@@ -21,7 +21,7 @@ export const APP_THEMES = [
     label: 'Midnight Tome',
     shortLabel: 'Night',
     swatch: '#9f7dff',
-    premium: false,
+    premium: true,
     qr: { dot: '#9f7dff', corner: '#7c3aed', bg: '#171320' },
   },
   {
@@ -29,7 +29,7 @@ export const APP_THEMES = [
     label: 'Forest Scroll',
     shortLabel: 'Forest',
     swatch: '#6bc66b',
-    premium: false,
+    premium: true,
     qr: { dot: '#6bc66b', corner: '#2f8f4d', bg: '#162019' },
   },
   {

@@ -1,10 +1,11 @@
-import React, { useState, useEffect } from 'react';
-import { ImagePlus, Eye, EyeOff, Hand, Trash2, UserPlus } from 'lucide-react';
-import { getHandoutIcon } from '../lib/handoutUtils';
-import { getAllPlaceholderImages, suggestHandoutImages } from '../lib/placeholders';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
+import { ChevronDown, ChevronLeft, ChevronRight, ChevronUp, Eye, EyeOff, KeyRound, Pencil, Plus, Save, Scroll, Trash2, UserPlus } from 'lucide-react';
+import { getHandoutIcon, getHandoutTypeLabel, HANDOUT_TYPE_OPTIONS } from '../lib/handoutUtils';
+import { DEFAULT_AVATAR_POSITION, getAllPlaceholderImages, getAvatarObjectPosition, normalizeAvatarPosition, suggestHandoutImages } from '../lib/placeholders';
 import ModalFrame from './ModalFrame';
 import TvImage from './TvImage';
 import Button from './Button';
+import { CreateFormPlaceholderGrid } from '../ui/CreateFormPrimitives';
 
 function HandoutModal({ isOpen, onClose, handout, role, players = [], currentPlayerId, onSave, onDelete, onAddToInitiative, canAddToInitiative }) {
   const [isEditing, setIsEditing] = useState(false);
@@ -15,6 +16,7 @@ function HandoutModal({ isOpen, onClose, handout, role, players = [], currentPla
     secret: '',
     isRevealed: false,
     imageUrl: null,
+    imagePosition: { ...DEFAULT_AVATAR_POSITION },
     claimable: false,
     claimedBy: null,
     assignedToUid: null,
@@ -29,31 +31,49 @@ function HandoutModal({ isOpen, onClose, handout, role, players = [], currentPla
     ...EMPTY_FORM,
   });
   const [pendingFile, setPendingFile] = useState(null);
+  const [showPlaceholderPicker, setShowPlaceholderPicker] = useState(false);
   const [showAllPlaceholders, setShowAllPlaceholders] = useState(false);
+  const fileInputRef = useRef(null);
 
   useEffect(() => {
     if (isOpen) {
       setPendingFile(null);
+      setShowPlaceholderPicker(false);
       setShowAllPlaceholders(false);
       if (handout) {
         setFormData({
           ...EMPTY_FORM,
           ...handout,
+          imagePosition: normalizeAvatarPosition(handout.imagePosition),
           secretRevealed: handout.secretRevealed === true,
         });
-        setIsEditing(false); 
+        setIsEditing(false);
       } else {
-        setFormData({ ...EMPTY_FORM });
-        setIsEditing(true); 
+        setFormData({ ...EMPTY_FORM, imagePosition: { ...DEFAULT_AVATAR_POSITION } });
+        setIsEditing(true);
       }
     }
   }, [isOpen, handout]);
+
+  useEffect(() => {
+    if (!isOpen || !handout || isEditing) return;
+    setFormData((prev) => ({
+      ...prev,
+      ...handout,
+      imagePosition: normalizeAvatarPosition(handout.imagePosition),
+      secretRevealed: handout.secretRevealed === true,
+    }));
+  }, [handout?.id, handout?.updatedAtMs, handout?.secretRevealed, handout?.isRevealed, isEditing, isOpen]);
+
+  const placeholderImages = useMemo(() => {
+    if (showAllPlaceholders) return getAllPlaceholderImages();
+    return suggestHandoutImages(formData.title, formData.content, formData.type, 12);
+  }, [showAllPlaceholders, formData.title, formData.content, formData.type]);
 
   if (!isOpen) return null;
 
   const isGM = role === 'gm';
   const Icon = getHandoutIcon(formData.type);
-  const assignedPlayer = players.find((player) => player.id === formData.assignedToUid) || null;
   const playerCanSeeSecret = !isGM && formData.secretRevealed === true;
   const normalizeParagraph = (text) => String(text || '')
     .replace(/\r/g, '')
@@ -74,467 +94,548 @@ function HandoutModal({ isOpen, onClose, handout, role, players = [], currentPla
   };
 
   const handleImageChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      setPendingFile(file);
-      setFormData(prev => ({ ...prev, imageUrl: URL.createObjectURL(file) }));
-    }
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setPendingFile(file);
+    setFormData((prev) => ({
+      ...prev,
+      imageUrl: URL.createObjectURL(file),
+      imagePosition: { ...DEFAULT_AVATAR_POSITION },
+    }));
+    setShowPlaceholderPicker(false);
+    e.target.value = '';
   };
+
+  const shiftImagePosition = (axis, delta) => {
+    setFormData((prev) => {
+      const current = normalizeAvatarPosition(prev.imagePosition);
+      return {
+        ...prev,
+        imagePosition: normalizeAvatarPosition({
+          ...current,
+          [axis]: current[axis] + delta,
+        }),
+      };
+    });
+  };
+
+  const resetImagePosition = () => {
+    setFormData((prev) => ({ ...prev, imagePosition: { ...DEFAULT_AVATAR_POSITION } }));
+  };
+
+  const openFilePicker = () => fileInputRef.current?.click();
 
   const handlePickPlaceholder = (url) => {
     setPendingFile(null);
-    setFormData(prev => ({ ...prev, imageUrl: url }));
+    setFormData((prev) => ({
+      ...prev,
+      imageUrl: url,
+      imagePosition: { ...DEFAULT_AVATAR_POSITION },
+    }));
+    setShowPlaceholderPicker(false);
   };
+
+  const clearImage = () => {
+    setPendingFile(null);
+    setFormData((prev) => ({
+      ...prev,
+      imageUrl: null,
+      imagePosition: { ...DEFAULT_AVATAR_POSITION },
+    }));
+    setShowPlaceholderPicker(false);
+  };
+
+  const handleTypeChange = (type) => {
+    setFormData((prev) => ({
+      ...prev,
+      type,
+      claimable: type === 'loot' ? prev.claimable : false,
+      assignedToUid: type === 'npc' ? null : prev.assignedToUid,
+      assignedToNick: type === 'npc' ? null : prev.assignedToNick,
+    }));
+  };
+
+  const trimmedTitle = formData.title.trim();
+  const typeLabel = getHandoutTypeLabel(formData.type);
+  const imagePosition = normalizeAvatarPosition(formData.imagePosition);
+  const imageObjectPosition = getAvatarObjectPosition(imagePosition);
+  const modalTitle = handout
+    ? (isEditing ? 'Handout bewerken' : 'Handout')
+    : 'Nieuw handout';
+  const modalSubtitle = isEditing
+    ? undefined
+    : `${formData.title || 'Naamloze handout'} · ${typeLabel}${formData.isRevealed ? '' : ' · verborgen'}`;
 
   return (
     <ModalFrame
       isOpen={isOpen}
       onClose={onClose}
-      title={handout ? 'Handout' : 'Nieuw'}
-      subtitle={formData.title || (formData.type === 'npc' ? 'NPC' : 'Document')}
+      title={modalTitle}
+      subtitle={modalSubtitle}
       icon={Icon}
-      maxWidthClassName="max-w-2xl"
-      bodyClassName="px-0 py-0 overflow-y-hidden sm:px-0 sm:py-0"
-    >
-        <div className="flex-1 overflow-y-auto no-scrollbar p-5 md:p-8">
-          {isEditing && isGM ? (
-            <form id="handout-form" onSubmit={handleSave} className="flex flex-col gap-5">
-              
-              <div className="flex justify-center w-full">
-                <label className="relative group cursor-pointer w-full h-32 md:h-40 rounded-xl border-2 border-dashed border-[color-mix(in_srgb,var(--tv-accent),transparent_58%)] tv-panel-inset hover:color-mix(in srgb, var(--tv-bg-surface), transparent 6%) hover:border-[var(--tv-accent)]/50 flex items-center justify-center overflow-hidden transition-all shadow-inner">
-                  <input type="file" accept="image/*" className="hidden" onChange={handleImageChange} />
-                  {formData.imageUrl ? (
-                    <>
-                      <TvImage src={formData.imageUrl} alt="Handout preview" contain className="p-2 tv-input-surface" />
-                      <div className="absolute left-2 top-2 rounded tv-tone-ally-surface px-2 py-1 text-[9px] font-bold uppercase tracking-[0.16em] tv-tone-ally-text">
-                        Volledige upload
-                      </div>
-                      <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity tv-panel-inset">
-                        <ImagePlus className="w-8 h-8 tv-text drop-shadow-md" />
-                      </div>
-                    </>
-                  ) : (
-                    <div className="flex flex-col items-center gap-2 tv-muted group-hover:text-[var(--tv-accent)] transition-colors">
-                      <ImagePlus className="w-6 h-6 md:w-8 md:h-8" />
-                      <span className="text-[10px] md:text-xs font-bold uppercase tracking-widest">Eigen afbeelding uploaden</span>
-                    </div>
-                  )}
-                </label>
-              </div>
-
-              {formData.imageUrl ? (
-                <p className="-mt-2 text-[11px] leading-5 tv-muted">
-                  De volledige afbeelding wordt geupload. In het overzicht kan een uitsnede worden gebruikt om de kaart netjes te tonen.
-                </p>
-              ) : null}
-
-              {(() => {
-                const suggestions = suggestHandoutImages(formData.title, formData.content, formData.type, 5);
-                const allImages = getAllPlaceholderImages();
-                return (
-                  <div>
-                    <div className="text-[10px] font-bold tv-muted uppercase tracking-widest mb-2">Of kies een suggestie</div>
-                    <div className="grid grid-cols-6 gap-1.5">
-                      {suggestions.map((url) => (
-                        <button
-                          key={url}
-                          type="button"
-                          onClick={() => handlePickPlaceholder(url)}
-                          className={`aspect-square rounded-lg overflow-hidden border-2 transition-all ${
-                            formData.imageUrl === url
-                              ? 'border-[var(--tv-accent)] shadow-[0_0_8px_var(--tv-accent-shadow)]'
-                              : 'border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] hover:border-[var(--tv-accent)]/50'
-                          }`}
-                        >
-                          <TvImage src={url} alt="" loading="lazy" />
-                        </button>
-                      ))}
-                      <button
-                        type="button"
-                        onClick={() => setShowAllPlaceholders((v) => !v)}
-                        className={`aspect-square rounded-lg border-2 transition-all tv-text font-fantasy text-lg ${showAllPlaceholders ? 'border-[var(--tv-accent)] bg-[color-mix(in_srgb,var(--tv-accent),transparent_85%)]' : 'border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] hover:border-[var(--tv-accent)]/50 tv-panel-inset'}`}
-                        title="Toon alle placeholders"
-                      >
-                        ...
-                      </button>
-                    </div>
-
-                    {showAllPlaceholders && (
-                      <div className="mt-3 max-h-52 overflow-y-auto no-scrollbar rounded-lg border border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] tv-panel-inset p-2">
-                        <div className="grid grid-cols-8 gap-1.5">
-                          {allImages.map((url) => (
-                            <button
-                              key={`all-${url}`}
-                              type="button"
-                              onClick={() => handlePickPlaceholder(url)}
-                              className={`aspect-square rounded-md overflow-hidden border transition-all ${formData.imageUrl === url ? 'border-[var(--tv-accent)] shadow-[0_0_6px_var(--tv-accent-shadow-sm)]' : 'border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] hover:border-[var(--tv-accent)]/50'}`}
-                            >
-                              <TvImage src={url} alt="" loading="lazy" />
-                            </button>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                );
-              })()}
-
-              <div className="flex flex-col md:flex-row gap-4">
-                <div className="flex-1">
-                  <label className="block text-[10px] font-bold tv-muted uppercase tracking-widest mb-1.5">Titel</label>
-                  <input 
-                    autoFocus
-                    required
-                    type="text" 
-                    value={formData.title} 
-                    onChange={e => setFormData({...formData, title: e.target.value})}
-                    placeholder="Bijv. Geheime Brief van de Koning"
-                    className="w-full tv-panel-inset border border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] rounded-lg px-4 py-3 text-lg font-fantasy font-bold tv-text placeholder:tv-muted focus:outline-none focus:border-[var(--tv-accent)]/70 focus:color-mix(in srgb, var(--tv-bg-surface), transparent 6%) transition-all duration-200"
-                  />
-                </div>
-                <div className="w-full md:w-1/3">
-                  <label className="block text-[10px] font-bold tv-muted uppercase tracking-widest mb-1.5">Type</label>
-                  <select 
-                    value={formData.type} 
-                    onChange={e => setFormData((prev) => ({
-                      ...prev,
-                      type: e.target.value,
-                      claimable: e.target.value === 'loot' ? prev.claimable : false,
-                      assignedToUid: e.target.value === 'npc' ? null : prev.assignedToUid,
-                      assignedToNick: e.target.value === 'npc' ? null : prev.assignedToNick,
-                    }))}
-                    className="w-full appearance-none rounded-lg border border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] tv-panel-inset px-4 py-3 text-sm font-fantasy tracking-wider tv-text transition-colors focus:outline-none focus:border-[var(--tv-accent)]/60 focus:color-mix(in srgb, var(--tv-bg-surface), transparent 6%)"
-                  >
-                    <option value="clue">Clue / Document</option>
-                    <option value="loot">Loot / Voorwerp</option>
-                    <option value="map">Kaart / Omgeving</option>
-                    <option value="npc">NPC / Persoon</option>
-                  </select>
-                </div>
-              </div>
-
-              {formData.type === 'npc' && (
-                <div className="rounded-xl tv-tone-enemy-surface p-4">
-                  <div className="mb-3 flex items-center justify-between gap-3">
-                    <div>
-                      <div className="text-[10px] font-bold uppercase tracking-widest tv-tone-enemy-text">NPC Gevechtsprofiel</div>
-                      <p className="mt-1 text-xs leading-5 tv-muted">Deze gegevens worden gebruikt wanneer je deze handout als NPC aan de initiative order toevoegt.</p>
-                    </div>
-                  </div>
-                  <div className="mb-3">
-                    <label className="block text-[10px] font-bold tv-muted uppercase tracking-widest mb-1.5">Label</label>
-                    <input
-                      type="text"
-                      value={formData.npcSubtitle || ''}
-                      onChange={e => setFormData({ ...formData, npcSubtitle: e.target.value })}
-                      placeholder="Bijv. Aartsvijand"
-                      className="w-full rounded-lg border border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] tv-panel-inset px-4 py-2.5 text-sm font-story tv-text placeholder:tv-muted transition-colors focus:outline-none focus:border-[color-mix(in_srgb,var(--tv-tone-enemy),transparent_40%)]"
-                    />
-                  </div>
-                  <div className="grid grid-cols-3 gap-3">
-                    <div>
-                      <label className="block text-[10px] font-bold tv-muted uppercase tracking-widest mb-1.5">HP</label>
-                      <input
-                        type="number"
-                        min="0"
-                        value={formData.npcHp ?? 15}
-                        onChange={e => setFormData({ ...formData, npcHp: e.target.value })}
-                        className="hide-arrows w-full rounded-lg border border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] tv-panel-inset px-3 py-2.5 text-center text-sm tv-text transition-colors focus:outline-none focus:border-[color-mix(in_srgb,var(--tv-tone-enemy),transparent_40%)]"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-[10px] font-bold tv-muted uppercase tracking-widest mb-1.5">AC</label>
-                      <input
-                        type="number"
-                        min="0"
-                        value={formData.npcAc ?? 12}
-                        onChange={e => setFormData({ ...formData, npcAc: e.target.value })}
-                        className="hide-arrows w-full rounded-lg border border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] tv-panel-inset px-3 py-2.5 text-center text-sm tv-text transition-colors focus:outline-none focus:border-[color-mix(in_srgb,var(--tv-tone-enemy),transparent_40%)]"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-[10px] font-bold tv-muted uppercase tracking-widest mb-1.5">Init Mod</label>
-                      <input
-                        type="number"
-                        value={formData.npcInitMod ?? 2}
-                        onChange={e => setFormData({ ...formData, npcInitMod: e.target.value })}
-                        className="hide-arrows w-full rounded-lg border border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] tv-panel-inset px-3 py-2.5 text-center text-sm tv-text transition-colors focus:outline-none focus:border-[color-mix(in_srgb,var(--tv-tone-enemy),transparent_40%)]"
-                      />
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              <div>
-                <label className="block text-[10px] font-bold tv-muted uppercase tracking-widest mb-1.5 flex justify-between">
-                  <span>Publieke Inhoud</span>
-                  <span className="tv-muted font-normal normal-case">Zichtbaar voor spelers</span>
-                </label>
-                <textarea 
-                  required
-                  rows={4}
-                  value={formData.content} 
-                  onChange={e => setFormData({...formData, content: e.target.value})}
-                  placeholder="Wat zien of lezen de spelers als ze dit bekijken?"
-                  className="w-full resize-none rounded-lg border border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] tv-panel-inset px-4 py-3 text-sm font-story leading-relaxed tv-text placeholder:tv-muted transition-colors focus:outline-none focus:border-[var(--tv-accent)]/60"
-                />
-              </div>
-
-              <div>
-                <label className="block text-[10px] font-bold tv-tone-secret-label uppercase tracking-widest mb-1.5 flex justify-between">
-                  <span>Secret</span>
-                  <span className="tv-muted font-normal normal-case">Alleen voor de GM</span>
-                </label>
-                <textarea 
-                  rows={3}
-                  value={formData.secret || ''} 
-                  onChange={e => setFormData({...formData, secret: e.target.value})}
-                  placeholder="Zijn er vallen? Bevat het valse informatie? Wat is de ware aard?"
-                  className="tv-secret-input w-full resize-none rounded-lg px-4 py-3 text-sm font-story leading-relaxed transition-colors"
-                />
-              </div>
-
-              {String(formData.type || '').toLowerCase() !== 'npc' ? (
-                <div className="rounded-xl tv-tone-ally-surface p-4">
-                  <label className="block text-[10px] font-bold tv-tone-ally-text uppercase tracking-widest mb-1.5">Toewijzen aan speler</label>
-                  <select
-                    value={formData.assignedToUid || ''}
-                    onChange={(event) => {
-                      const nextUid = event.target.value || null;
-                      const nextPlayer = players.find((player) => player.id === nextUid) || null;
-                      setFormData((prev) => ({
-                        ...prev,
-                        assignedToUid: nextUid,
-                        assignedToNick: nextPlayer?.name || null,
-                      }));
-                    }}
-                    className="w-full tv-panel-inset border border-[color-mix(in_srgb,var(--tv-border),transparent_28%)] rounded-lg px-4 py-2.5 text-sm font-story tv-text focus:outline-none focus:border-[color-mix(in_srgb,var(--tv-tone-ally),transparent_45%)] transition-colors"
-                  >
-                    <option value="">Iedereen in de party</option>
-                    {players.map((player) => (
-                      <option key={player.id} value={player.id}>{player.name}</option>
-                    ))}
-                  </select>
-                  <p className="mt-2 text-[11px] leading-5 tv-muted">
-                    {formData.assignedToUid ? `Alleen ${assignedPlayer?.name || 'de geselecteerde speler'} ziet deze handout in de lijst.` : 'Iedere speler met zichtbaarheid aan kan deze handout zien.'}
-                  </p>
-                </div>
-              ) : null}
-
-              {String(formData.secret || '').trim() ? (
-                <div className="rounded-xl tv-tone-secret-surface p-4">
-                  <label className="block text-[10px] font-bold tv-tone-secret-label uppercase tracking-widest mb-2">Secret zichtbaar voor spelers</label>
-                  <button
-                    type="button"
-                    onClick={() => setFormData((prev) => ({ ...prev, secretRevealed: !prev.secretRevealed }))}
-                    className={`w-full rounded-lg border px-3 py-2 text-sm font-fantasy tracking-[0.12em] transition-colors ${formData.secretRevealed ? 'tv-tone-ally-button' : 'border-[color-mix(in_srgb,var(--tv-border),transparent_20%)] tv-chip-surface tv-text tv-hover-surface'}`}
-                  >
-                    {formData.secretRevealed ? 'Nu zichtbaar voor alle spelers' : 'Nu verborgen voor spelers'}
-                  </button>
-                  <p className="mt-2 text-[11px] leading-5 tv-muted">
-                    Dit geldt voor iedereen: of alle spelers zien de Secret, of niemand.
-                  </p>
-                </div>
-              ) : null}
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-2">
-                <div className="flex items-center gap-3 tv-panel-inset border border-[color-mix(in_srgb,var(--tv-border),transparent_28%)]/50 p-3 rounded-lg">
-                  <button 
-                    type="button"
-                    onClick={() => setFormData({...formData, isRevealed: !formData.isRevealed})}
-                    className={`p-2 rounded transition-colors shrink-0 ${formData.isRevealed ? 'tv-toggle-active' : 'tv-chip-surface tv-muted hover:tv-text'}`}
-                  >
-                    {formData.isRevealed ? <Eye className="w-5 h-5" /> : <EyeOff className="w-5 h-5" />}
-                  </button>
-                  <div className="flex flex-col min-w-0">
-                    <span className="text-sm font-fantasy tracking-wider tv-text">Zichtbaarheid</span>
-                    <span className="text-[10px] tv-muted font-story truncate" title={formData.isRevealed ? 'Spelers kunnen dit nu in hun lijst zien.' : 'Verborgen in de schaduwen. Spelers zien dit (nog) niet.'}>
-                      {formData.isRevealed ? 'Spelers zien dit.' : 'Verborgen voor spelers.'}
-                    </span>
-                  </div>
-                </div>
-
-                {formData.type === 'loot' ? (
-                  <div className="flex items-center gap-3 tv-panel-inset border border-[color-mix(in_srgb,var(--tv-border),transparent_28%)]/50 p-3 rounded-lg">
-                    <button 
-                      type="button"
-                      onClick={() => setFormData({...formData, claimable: !formData.claimable})}
-                      className={`p-2 rounded transition-colors shrink-0 ${formData.claimable ? 'tv-toggle-active' : 'tv-chip-surface tv-muted hover:tv-text'}`}
-                    >
-                      <Hand className="w-5 h-5" />
-                    </button>
-                    <div className="flex flex-col min-w-0">
-                      <span className="text-sm font-fantasy tracking-wider tv-text">Claimbaar</span>
-                      <span className="text-[10px] tv-muted font-story truncate" title={formData.claimable ? 'Spelers kunnen dit object claimen naar hun schatkamer.' : 'Dit object kan niet geclaimd worden.'}>
-                        {formData.claimable ? 'Kan geclaimd worden.' : 'Kan niet geclaimd worden.'}
-                      </span>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="flex items-center gap-3 tv-panel-inset border border-[color-mix(in_srgb,var(--tv-border),transparent_28%)]/50 p-3 rounded-lg opacity-80">
-                    <div className="p-2 rounded shrink-0 tv-chip-surface tv-muted">
-                      <Hand className="w-5 h-5" />
-                    </div>
-                    <div className="flex flex-col min-w-0">
-                      <span className="text-sm font-fantasy tracking-wider tv-text">Claimbaar</span>
-                      <span className="text-[10px] tv-muted font-story truncate">
-                        {formData.type === 'npc' ? 'NPC-handouts zijn altijd niet-claimable.' : 'Alleen loot-handouts kunnen geclaimd worden.'}
-                      </span>
-                    </div>
-                  </div>
-                )}
-              </div>
-
-            </form>
-          ) : (
-            <div className="flex flex-col gap-6">
-              <div className="relative border-b border-[color-mix(in_srgb,var(--tv-border),transparent_28%)]/50 pb-6 text-center">
-                {isGM && handout ? (
-                  <div className="absolute right-0 top-0">
-                    <button onClick={() => setIsEditing(true)} className="rounded-lg border border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] tv-panel-inset px-3 py-1.5 text-xs font-fantasy uppercase tracking-wider tv-text transition-colors hover:color-mix(in srgb, var(--tv-bg-surface), transparent 6%) hover:tv-text">
-                      Bewerken
-                    </button>
-                  </div>
-                ) : null}
-                <div className="inline-block text-[10px] font-bold uppercase tracking-widest tv-tone-secret-surface px-3 py-1 rounded-full mb-4">
-                  {formData.type}
-                </div>
-                <h2 className="text-3xl md:text-4xl font-fantasy font-bold tv-text leading-tight">
-                  {formData.title}
-                </h2>
-                {formData.imageUrl && (
-                  <div className="tv-image-frame relative isolate w-full h-48 md:h-64 rounded-xl border border-[color-mix(in_srgb,var(--tv-border),transparent_28%)] overflow-hidden shadow-lg mt-6 tv-input-surface">
-                    <TvImage
-                      src={formData.imageUrl}
-                      alt=""
-                      aria-hidden="true"
-                      zoom={1.65}
-                      className="absolute inset-0 blur-2xl opacity-70 saturate-125"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-b color-mix(in srgb, var(--tv-bg-canvas), transparent 90%) via-transparent color-mix(in srgb, var(--tv-bg-canvas), transparent 75%)" />
-                    <TvImage src={formData.imageUrl} alt={formData.title} className="relative z-10" />
-                  </div>
-                )}
-              </div>
-              
-              <div className="w-full max-w-[70ch] mx-auto text-left font-story tv-text/95 text-[15px] md:text-[17px] leading-[1.9] tracking-[0.01em]">
-                <div className="space-y-4 md:space-y-5 break-words border-t border-[color-mix(in_srgb,var(--tv-border),transparent_28%)]/70 pt-6 md:pt-7">
-                  {(paragraphs.length ? paragraphs : [normalizeParagraph(formData.content || '')]).map((paragraph, index) => (
-                    <p key={`${index}-${paragraph.slice(0, 24)}`} className="tv-text/95">
-                      {paragraph}
-                    </p>
-                  ))}
-                </div>
-              </div>
-
-              {formData.assignedToUid ? (
-                <div className="mx-auto w-full max-w-[70ch] rounded-xl tv-tone-ally-surface p-4">
-                  <div className="text-[10px] font-bold uppercase tracking-[0.18em] tv-tone-ally-text">Toegewezen</div>
-                  <p className="mt-2 text-sm leading-6 tv-text">
-                    Deze handout is gericht aan <span className="font-fantasy tracking-[0.08em] tv-text">{formData.assignedToNick || 'een speler'}</span>.
-                  </p>
-                </div>
-              ) : null}
-
-              {isGM && formData.type === 'npc' && (
-                <div className="mx-auto w-full max-w-[70ch] rounded-xl tv-tone-enemy-surface p-4">
-                  <div className="mb-3 text-[10px] font-bold uppercase tracking-[0.18em] tv-tone-enemy-text">NPC Gevechtsprofiel</div>
-                  <div className="grid grid-cols-3 gap-3 text-center">
-                    <div className="rounded-lg border border-[color-mix(in_srgb,var(--tv-border),transparent_28%)] tv-chip-surface px-3 py-2.5">
-                      <div className="text-[10px] uppercase tracking-[0.18em] tv-muted">HP</div>
-                      <div className="mt-1 font-fantasy text-lg tracking-[0.14em] tv-text">{Number(formData.npcHp ?? 15) || 15}</div>
-                    </div>
-                    <div className="rounded-lg border border-[color-mix(in_srgb,var(--tv-border),transparent_28%)] tv-chip-surface px-3 py-2.5">
-                      <div className="text-[10px] uppercase tracking-[0.18em] tv-muted">AC</div>
-                      <div className="mt-1 font-fantasy text-lg tracking-[0.14em] tv-text">{Number(formData.npcAc ?? 12) || 12}</div>
-                    </div>
-                    <div className="rounded-lg border border-[color-mix(in_srgb,var(--tv-border),transparent_28%)] tv-chip-surface px-3 py-2.5">
-                      <div className="text-[10px] uppercase tracking-[0.18em] tv-muted">Init Mod</div>
-                      <div className="mt-1 font-fantasy text-lg tracking-[0.14em] tv-text">{(Number(formData.npcInitMod ?? 2) || 0) >= 0 ? `+${Number(formData.npcInitMod ?? 2) || 0}` : Number(formData.npcInitMod ?? 2) || 0}</div>
-                    </div>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => onAddToInitiative?.(formData)}
-                    disabled={!canAddToInitiative}
-                    className={`mt-4 flex w-full items-center justify-center gap-2 rounded-lg border px-4 py-3 text-sm font-fantasy tracking-[0.14em] transition-colors ${canAddToInitiative ? 'tv-tone-enemy-button' : 'cursor-not-allowed border-[color-mix(in_srgb,var(--tv-border),transparent_28%)] tv-panel-inset tv-muted'}`}
-                  >
-                    <UserPlus className="w-4 h-4" /> {canAddToInitiative ? 'Voeg toe aan slagorde' : 'Pauzeer gevecht om toe te voegen'}
-                  </button>
-                </div>
-              )}
-
-              {isGM && formData.secret && (
-                <div className="tv-secret-block mt-4 rounded-xl p-5 shadow-[inset_0_0_20px_rgba(0,0,0,0.3)]">
-                  <h4 className="text-[10px] font-bold tv-tone-secret-label uppercase tracking-widest mb-2 flex items-center gap-2">
-                    <EyeOff className="w-3 h-3" /> Secret (alleen GM)
-                  </h4>
-                  <p className="font-story italic text-sm leading-relaxed whitespace-pre-line">
-                    {String(formData.secret || '')
-                      .replace(/\r/g, '')
-                      .split(/\n{2,}/)
-                      .map((paragraph) => normalizeParagraph(paragraph))
-                      .filter(Boolean)
-                      .join('\n\n')}
-                  </p>
-                </div>
-              )}
-
-              {!isGM && formData.secret && playerCanSeeSecret ? (
-                <div className="tv-tone-ally-surface mt-4 rounded-xl p-5 shadow-[inset_0_0_20px_rgba(0,0,0,0.3)] relative overflow-hidden">
-                  <h4 className="text-[10px] font-bold tv-tone-ally-text uppercase tracking-widest mb-2 flex items-center gap-2">
-                    <Eye className="w-3 h-3" /> Secret
-                  </h4>
-                  <p className="font-story tv-text text-sm leading-relaxed whitespace-pre-line">
-                    {String(formData.secret || '')
-                      .replace(/\r/g, '')
-                      .split(/\n{2,}/)
-                      .map((paragraph) => normalizeParagraph(paragraph))
-                      .filter(Boolean)
-                      .join('\n\n')}
-                  </p>
-                </div>
-              ) : null}
-            </div>
-          )}
+      maxWidthClassName="max-w-xl"
+      footer={isGM && handout && !isEditing ? (
+        <Button variant="primary" block icon={Pencil} onClick={() => setIsEditing(true)}>
+          Bewerken
+        </Button>
+      ) : isGM && isEditing ? (
+        <div className="flex w-full items-center gap-2">
+          {handout ? (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => onDelete(handout.id)}
+              className="tv-hover-danger shrink-0 px-2"
+              title="Verwijder handout"
+              aria-label="Verwijder handout"
+            >
+              <Trash2 className="h-4 w-4" />
+            </Button>
+          ) : null}
+          <div className="grid min-w-0 flex-1 grid-cols-[1fr_1.15fr] gap-2">
+            <Button
+              variant="ghost"
+              block
+              onClick={() => {
+                if (!handout) onClose();
+                else setIsEditing(false);
+              }}
+            >
+              Annuleren
+            </Button>
+            <Button
+              form="handout-form"
+              type="submit"
+              variant="primary"
+              block
+              icon={handout ? Save : Plus}
+              disabled={!trimmedTitle || !String(formData.content || '').trim()}
+            >
+              {handout ? 'Opslaan' : 'Toevoegen'}
+            </Button>
+          </div>
         </div>
+      ) : null}
+    >
+      {isEditing && isGM ? (
+        <form id="handout-form" onSubmit={handleSave} className="tv-handout-form">
+          <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleImageChange} />
 
-        {isGM && isEditing && (
-          <div className="tv-modal-footer p-4 backdrop-blur-md flex justify-between items-center shrink-0 sm:px-5">
-            {handout ? (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => onDelete(handout.id)}
-                className="tv-hover-danger px-2"
-                title="Verwijder handout"
-                aria-label="Verwijder handout"
-              >
-                <Trash2 className="h-4 w-4" />
-              </Button>
-            ) : (
-              <div />
-            )}
-            <div className="flex gap-2.5">
-              <Button
-                variant="ghost"
-                onClick={() => {
-                  if (!handout) onClose();
-                  else setIsEditing(false);
-                }}
-              >
-                Annuleren
-              </Button>
-              <Button
-                form="handout-form"
-                type="submit"
-                variant="primary"
-              >
-                {handout ? 'Opslaan' : 'Nieuw'}
-              </Button>
+          <div className="-mx-5 -mt-5 sm:-mx-6 sm:-mt-6">
+            <div className="tv-handout-form-cover group">
+              <button
+                type="button"
+                onClick={openFilePicker}
+                className="tv-handout-form-cover__hit"
+                title="Afbeelding kiezen"
+                aria-label="Afbeelding kiezen"
+              />
+              {formData.imageUrl ? (
+                <>
+                  <TvImage
+                    src={formData.imageUrl}
+                    alt=""
+                    className="absolute inset-0 opacity-90"
+                    style={{ objectPosition: imageObjectPosition }}
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-[color-mix(in_srgb,var(--tv-bg-canvas),transparent_8%)] via-transparent to-transparent pointer-events-none" />
+                </>
+              ) : (
+                <div className="tv-handout-form-cover__empty">
+                  <Scroll className="h-6 w-6 opacity-60" aria-hidden />
+                  <span className="tv-handout-form-cover__empty-label">Afbeelding toevoegen</span>
+                </div>
+              )}
+              {formData.imageUrl ? (
+                <div className="tv-handout-cover-pan" onClick={(event) => event.stopPropagation()}>
+                  <button type="button" className="tv-handout-cover-pan__btn" onClick={() => shiftImagePosition('y', -5)} aria-label="Afbeelding omhoog">
+                    <ChevronUp className="h-3 w-3" />
+                  </button>
+                  <div className="tv-handout-cover-pan__row">
+                    <button type="button" className="tv-handout-cover-pan__btn" onClick={() => shiftImagePosition('x', -5)} aria-label="Afbeelding naar links">
+                      <ChevronLeft className="h-3 w-3" />
+                    </button>
+                    <button type="button" className="tv-handout-cover-pan__btn tv-handout-cover-pan__btn--reset" onClick={resetImagePosition} aria-label="Afbeelding centreren" title="Centreren">
+                      ·
+                    </button>
+                    <button type="button" className="tv-handout-cover-pan__btn" onClick={() => shiftImagePosition('x', 5)} aria-label="Afbeelding naar rechts">
+                      <ChevronRight className="h-3 w-3" />
+                    </button>
+                  </div>
+                  <button type="button" className="tv-handout-cover-pan__btn" onClick={() => shiftImagePosition('y', 5)} aria-label="Afbeelding omlaag">
+                    <ChevronDown className="h-3 w-3" />
+                  </button>
+                </div>
+              ) : null}
+              <div className="tv-handout-form-cover__tools">
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="secondary"
+                  onClick={(event) => { event.stopPropagation(); openFilePicker(); }}
+                >
+                  Upload
+                </Button>
+                <Button
+                  type="button"
+                  size="sm"
+                  variant={showPlaceholderPicker ? 'accent' : 'secondary'}
+                  onClick={(event) => { event.stopPropagation(); setShowPlaceholderPicker((current) => !current); }}
+                >
+                  Icoon
+                </Button>
+                {formData.imageUrl ? (
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="ghost"
+                    className="tv-hover-danger"
+                    onClick={(event) => { event.stopPropagation(); clearImage(); }}
+                  >
+                    Wissen
+                  </Button>
+                ) : null}
+              </div>
             </div>
           </div>
-        )}
+
+          {showPlaceholderPicker ? (
+            <div className="tv-handout-form-picker space-y-2">
+              <CreateFormPlaceholderGrid
+                images={placeholderImages}
+                selectedUrl={formData.imageUrl}
+                onPick={handlePickPlaceholder}
+                maxHeightClass="max-h-44"
+                gridClass="grid-cols-6 sm:grid-cols-8"
+              />
+              {!showAllPlaceholders ? (
+                <Button type="button" variant="ghost" size="sm" block onClick={() => setShowAllPlaceholders(true)}>
+                  Toon alle iconen
+                </Button>
+              ) : null}
+            </div>
+          ) : null}
+
+          <div className="tv-handout-form-identity">
+            <input
+              id="handout-title"
+              autoFocus
+              required
+              type="text"
+              value={formData.title}
+              onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+              placeholder="Titel van de handout"
+              className="tv-handout-form-title"
+            />
+
+            <div className="tv-segmented tv-segmented--block" role="group" aria-label="Type handout">
+              {HANDOUT_TYPE_OPTIONS.map(({ value, label }) => (
+                <button
+                  key={value}
+                  type="button"
+                  onClick={() => handleTypeChange(value)}
+                  className={`tv-segmented__option ${formData.type === value ? 'tv-segmented__option--active' : ''}`}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <section className="tv-handout-form-section">
+            <div className="tv-handout-form-section__head">
+              <label htmlFor="handout-content" className="tv-label">Inhoud</label>
+              <span className="tv-handout-form-section__hint">Zichtbaar voor spelers</span>
+            </div>
+            <textarea
+              id="handout-content"
+              required
+              rows={5}
+              value={formData.content}
+              onChange={(e) => setFormData({ ...formData, content: e.target.value })}
+              placeholder="Beschrijf wat de party ontdekt, leest of ziet…"
+              className="tv-field w-full resize-y font-story leading-relaxed"
+            />
+          </section>
+
+          <section className="tv-handout-gm-panel">
+            <div className="tv-handout-gm-panel__head">
+              <div className="tv-handout-gm-panel__title">
+                <KeyRound className="h-3.5 w-3.5 tv-tone-secret-text" aria-hidden />
+                <label htmlFor="handout-secret" className="tv-label">GM secret</label>
+              </div>
+              {String(formData.secret || '').trim() ? (
+                <div className="tv-segmented tv-handout-gm-panel__toggle tv-handout-gm-panel__toggle--icons" role="group" aria-label="Secret zichtbaarheid">
+                  <button
+                    type="button"
+                    onClick={() => setFormData((prev) => ({ ...prev, secretRevealed: false }))}
+                    className={`tv-segmented__option ${!formData.secretRevealed ? 'tv-segmented__option--active' : ''}`}
+                    title="Alleen jij ziet het GM secret"
+                    aria-label="Alleen GM"
+                    aria-pressed={!formData.secretRevealed}
+                  >
+                    <EyeOff className="h-4 w-4" aria-hidden />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setFormData((prev) => ({ ...prev, secretRevealed: true }))}
+                    className={`tv-segmented__option ${formData.secretRevealed ? 'tv-segmented__option--active' : ''}`}
+                    title="Spelers zien het GM secret ook"
+                    aria-label="Party ziet het"
+                    aria-pressed={Boolean(formData.secretRevealed)}
+                  >
+                    <Eye className="h-4 w-4" aria-hidden />
+                  </button>
+                </div>
+              ) : (
+                <span className="tv-handout-form-section__hint">Alleen jij ziet dit</span>
+              )}
+            </div>
+            <textarea
+              id="handout-secret"
+              rows={3}
+              value={formData.secret || ''}
+              onChange={(e) => setFormData({ ...formData, secret: e.target.value })}
+              placeholder="Vallen, valse info, ware aard…"
+              className="tv-field w-full resize-y font-story leading-relaxed"
+            />
+          </section>
+
+          {formData.type === 'npc' ? (
+            <section className="tv-handout-form-section gap-3 rounded-[var(--tv-radius)] tv-tone-enemy-surface border border-[color-mix(in_srgb,var(--tv-tone-enemy),transparent_55%)] p-4">
+              <label htmlFor="handout-npc-label" className="tv-label block">NPC-profiel</label>
+              <input
+                id="handout-npc-label"
+                type="text"
+                value={formData.npcSubtitle || ''}
+                onChange={(e) => setFormData({ ...formData, npcSubtitle: e.target.value })}
+                placeholder="Bijv. Aartsvijand"
+                className="tv-field w-full"
+              />
+              <div className="grid grid-cols-3 gap-2">
+                <div>
+                  <label htmlFor="handout-npc-hp" className="tv-label mb-1.5 block">HP</label>
+                  <input id="handout-npc-hp" type="number" min="0" value={formData.npcHp ?? 15} onChange={(e) => setFormData({ ...formData, npcHp: e.target.value })} className="tv-field hide-arrows w-full text-center" />
+                </div>
+                <div>
+                  <label htmlFor="handout-npc-ac" className="tv-label mb-1.5 block">AC</label>
+                  <input id="handout-npc-ac" type="number" min="0" value={formData.npcAc ?? 12} onChange={(e) => setFormData({ ...formData, npcAc: e.target.value })} className="tv-field hide-arrows w-full text-center" />
+                </div>
+                <div>
+                  <label htmlFor="handout-npc-init" className="tv-label mb-1.5 block">Init</label>
+                  <input id="handout-npc-init" type="number" value={formData.npcInitMod ?? 2} onChange={(e) => setFormData({ ...formData, npcInitMod: e.target.value })} className="tv-field hide-arrows w-full text-center" />
+                </div>
+              </div>
+            </section>
+          ) : null}
+
+          <section className="tv-handout-form-section tv-handout-form-options">
+            <p className="tv-label">Opties</p>
+
+            {formData.type !== 'npc' ? (
+              <div className="tv-handout-form-assign">
+                <UserPlus className="tv-handout-form-assign__icon h-3.5 w-3.5" aria-hidden />
+                <select
+                  value={formData.assignedToUid || ''}
+                  onChange={(event) => {
+                    const nextUid = event.target.value || null;
+                    const nextPlayer = players.find((player) => player.id === nextUid) || null;
+                    setFormData((prev) => ({
+                      ...prev,
+                      assignedToUid: nextUid,
+                      assignedToNick: nextPlayer?.name || null,
+                    }));
+                  }}
+                  className="tv-select tv-handout-form-assign__select"
+                  aria-label="Toewijzen aan speler"
+                >
+                  <option value="">Iedereen in de party</option>
+                  {players.map((player) => (
+                    <option key={player.id} value={player.id}>{player.name}</option>
+                  ))}
+                </select>
+              </div>
+            ) : null}
+
+            <div className="tv-handout-form-option-rows">
+              <div className="tv-handout-form-option-row">
+                <span className="tv-handout-form-option-label">Handout</span>
+                <div className="tv-segmented tv-segmented--block" role="group" aria-label="Zichtbaarheid handout">
+                  <button
+                    type="button"
+                    onClick={() => setFormData({ ...formData, isRevealed: true })}
+                    className={`tv-segmented__option ${formData.isRevealed ? 'tv-segmented__option--active' : ''}`}
+                  >
+                    Zichtbaar
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setFormData({ ...formData, isRevealed: false })}
+                    className={`tv-segmented__option ${!formData.isRevealed ? 'tv-segmented__option--active' : ''}`}
+                  >
+                    Verborgen
+                  </button>
+                </div>
+              </div>
+
+              {formData.type === 'loot' ? (
+                <div className="tv-handout-form-option-row">
+                  <span className="tv-handout-form-option-label">Loot</span>
+                  <div className="tv-segmented tv-segmented--block" role="group" aria-label="Claimbaarheid">
+                    <button
+                      type="button"
+                      onClick={() => setFormData({ ...formData, claimable: true })}
+                      className={`tv-segmented__option ${formData.claimable ? 'tv-segmented__option--active' : ''}`}
+                    >
+                      Claimbaar
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setFormData({ ...formData, claimable: false })}
+                      className={`tv-segmented__option ${!formData.claimable ? 'tv-segmented__option--active' : ''}`}
+                    >
+                      Niet claimbaar
+                    </button>
+                  </div>
+                </div>
+              ) : null}
+            </div>
+          </section>
+        </form>
+      ) : (
+        <div className="tv-handout-form tv-handout-view">
+          <div className="-mx-5 -mt-5 sm:-mx-6 sm:-mt-6">
+            {formData.imageUrl ? (
+              <div className="tv-handout-view-cover">
+                <TvImage
+                  src={formData.imageUrl}
+                  alt={formData.title}
+                  className="absolute inset-0"
+                  style={{ objectPosition: imageObjectPosition }}
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-[color-mix(in_srgb,var(--tv-bg-canvas),transparent_4%)] via-transparent to-[color-mix(in_srgb,var(--tv-bg-canvas),transparent_18%)] pointer-events-none" />
+              </div>
+            ) : (
+              <div className="tv-handout-view-cover tv-handout-view-cover--empty">
+                <Scroll className="h-7 w-7 opacity-45" aria-hidden />
+              </div>
+            )}
+          </div>
+
+          <div className="tv-handout-view-head">
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="tv-tag">{typeLabel}</span>
+              {isGM && formData.secret && formData.secretRevealed ? (
+                <span className="tv-tag tv-handout-meta-tag tv-handout-meta-tag--secret">Secret open</span>
+              ) : null}
+              {isGM && !formData.isRevealed ? (
+                <span className="tv-tag tv-handout-meta-tag tv-handout-meta-tag--muted">Verborgen</span>
+              ) : null}
+              {formData.assignedToUid && isGM ? (
+                <span className="tv-tag tv-tone-ally-text">Toegewezen</span>
+              ) : null}
+            </div>
+            <h2 className="tv-handout-view-title">{formData.title}</h2>
+          </div>
+
+          <section className="tv-handout-form-section">
+            <div className="tv-handout-form-section__head">
+              <span className="tv-label">Inhoud</span>
+              {!isGM || formData.isRevealed ? (
+                <span className="tv-handout-form-section__hint">Zichtbaar voor spelers</span>
+              ) : (
+                <span className="tv-handout-form-section__hint">Nog niet onthuld</span>
+              )}
+            </div>
+            <div className="tv-panel-inset px-4 py-3">
+              <div className="tv-handout-view-body font-story">
+                {(paragraphs.length ? paragraphs : [normalizeParagraph(formData.content || '')]).map((paragraph, index) => (
+                  <p key={`${index}-${paragraph.slice(0, 24)}`}>{paragraph}</p>
+                ))}
+              </div>
+            </div>
+          </section>
+
+          {formData.assignedToUid ? (
+            <section className="tv-handout-form-section rounded-[var(--tv-radius)] tv-tone-ally-surface border border-[color-mix(in_srgb,var(--tv-tone-ally),transparent_55%)] p-4">
+              <span className="tv-label tv-tone-ally-text">Toegewezen aan</span>
+              <p className="mt-2 text-sm leading-6 tv-text">
+                {formData.assignedToNick || 'een speler'}
+              </p>
+            </section>
+          ) : null}
+
+          {isGM && formData.type === 'npc' ? (
+            <section className="tv-handout-form-section gap-3 rounded-[var(--tv-radius)] tv-tone-enemy-surface border border-[color-mix(in_srgb,var(--tv-tone-enemy),transparent_55%)] p-4">
+              <span className="tv-label tv-tone-enemy-text">NPC gevechtsprofiel</span>
+              <p className="text-sm tv-muted">{formData.npcSubtitle || 'Vijand'}</p>
+              <div className="grid grid-cols-3 gap-2">
+                <div className="rounded-[var(--tv-radius)] border border-[color-mix(in_srgb,var(--tv-border),transparent_28%)] tv-chip-surface px-3 py-2.5 text-center">
+                  <div className="text-[10px] uppercase tracking-[0.14em] tv-muted">HP</div>
+                  <div className="mt-1 font-fantasy text-lg tracking-[0.1em] tv-text">{Number(formData.npcHp ?? 15) || 15}</div>
+                </div>
+                <div className="rounded-[var(--tv-radius)] border border-[color-mix(in_srgb,var(--tv-border),transparent_28%)] tv-chip-surface px-3 py-2.5 text-center">
+                  <div className="text-[10px] uppercase tracking-[0.14em] tv-muted">AC</div>
+                  <div className="mt-1 font-fantasy text-lg tracking-[0.1em] tv-text">{Number(formData.npcAc ?? 12) || 12}</div>
+                </div>
+                <div className="rounded-[var(--tv-radius)] border border-[color-mix(in_srgb,var(--tv-border),transparent_28%)] tv-chip-surface px-3 py-2.5 text-center">
+                  <div className="text-[10px] uppercase tracking-[0.14em] tv-muted">Init</div>
+                  <div className="mt-1 font-fantasy text-lg tracking-[0.1em] tv-text">{(Number(formData.npcInitMod ?? 2) || 0) >= 0 ? `+${Number(formData.npcInitMod ?? 2) || 0}` : Number(formData.npcInitMod ?? 2) || 0}</div>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => onAddToInitiative?.(formData)}
+                disabled={!canAddToInitiative}
+                className={`tv-btn tv-btn--block mt-1 ${canAddToInitiative ? 'tv-tone-enemy-button' : 'cursor-not-allowed tv-button-secondary opacity-60'}`}
+              >
+                <UserPlus className="h-4 w-4" /> {canAddToInitiative ? 'Voeg toe aan slagorde' : 'Pauzeer gevecht om toe te voegen'}
+              </button>
+            </section>
+          ) : null}
+
+          {isGM && formData.secret ? (
+            <section className="tv-handout-form-section">
+              <div className="tv-handout-form-section__head">
+                <span className="tv-label">GM secret</span>
+                <span className="tv-handout-form-section__hint">
+                  {formData.secretRevealed ? 'Zichtbaar voor spelers' : 'Alleen jij ziet dit'}
+                </span>
+              </div>
+              <div className="tv-panel-inset px-4 py-3">
+                <p className="font-story text-sm italic leading-relaxed whitespace-pre-line tv-text-sub">
+                  {String(formData.secret || '')
+                    .replace(/\r/g, '')
+                    .split(/\n{2,}/)
+                    .map((paragraph) => normalizeParagraph(paragraph))
+                    .filter(Boolean)
+                    .join('\n\n')}
+                </p>
+              </div>
+            </section>
+          ) : null}
+
+          {!isGM && formData.secret && playerCanSeeSecret ? (
+            <section className="tv-handout-form-section">
+              <div className="tv-handout-form-section__head">
+                <span className="tv-label tv-tone-ally-text">Secret</span>
+                <span className="tv-handout-form-section__hint">Onthuld door de GM</span>
+              </div>
+              <div className="tv-handout-card__secret tv-handout-card__secret--revealed">
+                <KeyRound className="h-3.5 w-3.5 shrink-0 tv-tone-ally-text" aria-hidden />
+                <p className="font-story text-sm leading-relaxed whitespace-pre-line tv-text">
+                  {String(formData.secret || '')
+                    .replace(/\r/g, '')
+                    .split(/\n{2,}/)
+                    .map((paragraph) => normalizeParagraph(paragraph))
+                    .filter(Boolean)
+                    .join('\n\n')}
+                </p>
+              </div>
+            </section>
+          ) : null}
+        </div>
+      )}
     </ModalFrame>
   );
 }

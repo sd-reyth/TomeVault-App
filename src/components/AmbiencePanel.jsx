@@ -1,6 +1,82 @@
-import React, { useState } from 'react';
+import React, { useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { Info, Music2, Pause, Play, Volume2, VolumeX, ExternalLink, X } from 'lucide-react';
+import {
+  Castle,
+  ChevronRight,
+  Music2,
+  Pause,
+  Play,
+  Trees,
+  Volume2,
+  VolumeX,
+  Waves,
+  Wine,
+  X,
+} from 'lucide-react';
+
+const SCENE_ICONS = {
+  warm: Wine,
+  forest: Trees,
+  dungeon: Castle,
+  ocean: Waves,
+};
+
+function AmbienceSlider({ label, value, onChange, icon: Icon, muted = false, ariaLabel }) {
+  return (
+    <label className="tv-ambience-slider-block">
+      <div className="tv-ambience-slider-block__head">
+        <span className="tv-ambience-slider-block__label">
+          {Icon ? <Icon className="h-3.5 w-3.5 shrink-0" aria-hidden /> : null}
+          {label}
+        </span>
+        <span className={`tv-ambience-slider-block__value ${muted ? 'tv-ambience-slider-block__value--muted' : ''}`}>
+          {value}%
+        </span>
+      </div>
+      <input
+        type="range"
+        min="0"
+        max="100"
+        value={value}
+        onChange={(event) => onChange(Number(event.target.value))}
+        className="tv-ambience-slider"
+        aria-label={ariaLabel}
+      />
+    </label>
+  );
+}
+
+function SceneCard({ track, isActive, isPlaying, canControlSession, onSelect }) {
+  const Icon = SCENE_ICONS[track.accentTone] || Music2;
+  const tone = track.accentTone || 'warm';
+
+  return (
+    <button
+      type="button"
+      onClick={() => canControlSession && onSelect(track.id)}
+      disabled={!canControlSession}
+      className={`tv-ambience-scene-card tv-ambience-scene-card--${tone} ${isActive ? 'tv-ambience-scene-card--active' : ''} ${!canControlSession ? 'tv-ambience-scene-card--readonly' : ''}`}
+      aria-pressed={isActive}
+      aria-label={`Scene ${track.scene}${isActive ? ', actief' : ''}`}
+    >
+      <div className="tv-ambience-scene-card__glow" aria-hidden />
+      <div className="tv-ambience-scene-card__icon-wrap">
+        <Icon className="tv-ambience-scene-card__icon" aria-hidden />
+      </div>
+      <div className="tv-ambience-scene-card__copy">
+        <div className="tv-ambience-scene-card__title-row">
+          <span className="tv-ambience-scene-card__title">{track.scene}</span>
+          {isActive ? (
+            <span className={`tv-ambience-scene-card__live ${isPlaying ? 'tv-ambience-scene-card__live--on' : ''}`}>
+              {isPlaying ? 'Live' : 'Gereed'}
+            </span>
+          ) : null}
+        </div>
+        <p className="tv-ambience-scene-card__subtitle">{track.subtitle}</p>
+      </div>
+    </button>
+  );
+}
 
 export default function AmbiencePanel({
   role,
@@ -11,7 +87,6 @@ export default function AmbiencePanel({
   sessionVolume,
   listenerVolume,
   verifiedTracks,
-  archivedTracks,
   needsAudioUnlock,
   ambienceError,
   onClose,
@@ -22,226 +97,178 @@ export default function AmbiencePanel({
   onUnlockAudio,
   onOpenSourcelist,
 }) {
-  if (!isOpen) return null;
-
   const canControlSession = role === 'gm';
+  const activeTone = currentTrack?.accentTone || 'warm';
 
-  const SceneList = () => {
-    const [expandedId, setExpandedId] = useState(null);
+  useEffect(() => {
+    if (!isOpen) return undefined;
 
-    return (
-      <div className="flex flex-col gap-1">
-        {verifiedTracks.map((track) => {
-          const isActive = currentTrack?.id === track.id;
-          const isExpanded = expandedId === track.id;
+    const handleKeyDown = (event) => {
+      if (event.key === 'Escape') onClose?.();
+    };
 
-          return (
-            <div
-              key={track.id}
-              className={`tv-ambience-track relative overflow-hidden transition-all ${isActive ? 'tv-ambience-track--active' : ''}`}
-            >
-              <div className={`absolute inset-0 pointer-events-none tv-ambience-accent-${track.accentTone || 'warm'}`} />
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, onClose]);
 
-              <div className="relative flex h-11 items-center">
-                <button
-                  type="button"
-                  onClick={() => canControlSession && onSelectTrack(track.id)}
-                  disabled={!canControlSession}
-                  className={`flex h-full min-w-0 flex-1 items-center gap-3 pr-2 pl-3 text-left ${!canControlSession ? 'cursor-default' : ''}`}
-                >
-                  <span
-                    className={`h-1.5 w-1.5 shrink-0 rounded-full ${isActive ? 'tv-magic-glow bg-[color-mix(in_srgb,var(--tv-accent),#fff_40%)]' : 'bg-[color-mix(in_srgb,var(--tv-border),transparent_20%)]'}`}
-                  />
-                  <span className={`truncate font-fantasy text-sm tracking-[0.1em] ${isActive ? 'tv-text' : 'tv-text-sub'}`}>
-                    {track.scene}
-                  </span>
-                  {isActive ? (
-                    <span className="tv-chip-surface shrink-0 rounded-full px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-[0.2em] tv-accent">
-                      {isPlaying ? 'Live' : '·'}
-                    </span>
-                  ) : null}
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => setExpandedId(isExpanded ? null : track.id)}
-                  aria-label={isExpanded ? 'Sluit details' : 'Toon details'}
-                  className={`flex h-11 w-10 shrink-0 items-center justify-center transition-colors ${isExpanded ? 'tv-accent' : 'tv-muted hover:tv-text-sub'}`}
-                >
-                  {isExpanded ? <X className="h-3.5 w-3.5" /> : <Info className="h-3.5 w-3.5" />}
-                </button>
-              </div>
-
-              {isExpanded ? (
-                <div className="tv-ambience-track-expand relative px-4 py-3">
-                  <p className="tv-meta mb-2">{track.subtitle}</p>
-                  <div className="tv-muted mb-3 flex flex-wrap gap-x-4 gap-y-1 text-[10px]">
-                    <span>{track.source.creator} · {track.source.platform}</span>
-                    <span>{track.source.license}</span>
-                  </div>
-                  <a
-                    href={track.source.url}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="tv-text-sub inline-flex items-center gap-1.5 text-[10px] uppercase tracking-[0.14em] transition-colors hover:tv-accent"
-                  >
-                    <ExternalLink className="h-3 w-3" />
-                    Bron
-                  </a>
-                </div>
-              ) : null}
-            </div>
-          );
-        })}
-      </div>
-    );
-  };
+  if (!isOpen) return null;
 
   const panel = (
     <div
       data-ambience-panel-root="true"
       data-theme={theme || 'midnight-tome'}
-      className="tv-ambience-shell fixed inset-0 z-[60] flex flex-col"
+      className="tv-ambience-shell fixed inset-0 z-[60] flex items-end justify-center p-0 sm:items-center sm:p-4"
+      onClick={onClose}
     >
       <div
-        className="pointer-events-none absolute inset-0"
-        style={{
-          backgroundImage:
-            'radial-gradient(circle at 20% 16%, color-mix(in srgb, var(--tv-accent), transparent 84%), transparent 34%), radial-gradient(circle at 82% 10%, color-mix(in srgb, var(--tv-accent), transparent 88%), transparent 30%), radial-gradient(circle at 50% 120%, color-mix(in srgb, var(--tv-accent), transparent 90%), transparent 42%)',
-        }}
-      />
+        className={`tv-ambience-sheet tv-ambience-sheet--${activeTone}`}
+        onClick={(event) => event.stopPropagation()}
+      >
+        <div className="tv-ambience-sheet__glow tv-ambience-sheet__glow--top" aria-hidden />
+        <div className="tv-ambience-sheet__glow tv-ambience-sheet__glow--bottom" aria-hidden />
 
-      <div className="tv-ambience-header relative z-10 shrink-0 px-4 py-4 md:px-8">
-        <div className="flex min-w-0 items-start gap-3">
-          <Music2 className="tv-accent h-4 w-4 shrink-0" />
-          <div className="min-w-0 flex-1">
-            <h1 className="truncate font-fantasy text-base font-bold leading-none tracking-wide tv-text md:text-lg">
-              Ambience
-            </h1>
-            {currentTrack ? (
-              <div className="tv-chip-surface mt-2 inline-flex items-center gap-2 rounded-full px-2.5 py-1 text-[10px] uppercase tracking-[0.14em]">
-                <span className="tv-accent truncate">{currentTrack.scene}</span>
-              </div>
-            ) : null}
+        <header className="tv-ambience-sheet__header">
+          <div className="min-w-0">
+            <span className="tv-ambience-sheet__badge">
+              <Music2 className="h-3.5 w-3.5" aria-hidden />
+              Sfeer
+            </span>
+            <h1 className="tv-ambience-sheet__title">Ambience</h1>
+            <p className="tv-ambience-sheet__subtitle">
+              {canControlSession
+                ? 'Kies een scene en stuur het geluid voor de hele tafel.'
+                : 'Luister mee — volume pas je hieronder aan.'}
+            </p>
           </div>
           <button
             type="button"
             onClick={onClose}
-            className="tv-icon-btn ml-auto shrink-0"
+            className="tv-icon-btn shrink-0"
             title="Sluiten"
             aria-label="Sluiten"
           >
             <X className="h-4 w-4" />
           </button>
-        </div>
-      </div>
+        </header>
 
-      <div className="relative z-10 flex-1 overflow-y-auto">
-        <div className="mx-auto max-w-3xl space-y-6 px-4 py-8 md:px-8">
-          <div className="tv-panel-shell p-5">
-            <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-              <div className="min-w-0">
-                <div className="tv-label">Nu</div>
-                <div className="mt-2 truncate font-fantasy text-xl tracking-[0.08em] tv-text">
-                  {currentTrack?.scene || '—'}
-                </div>
-                {currentTrack?.subtitle ? (
-                  <div className="tv-meta mt-1 truncate">{currentTrack.subtitle}</div>
+        <div className="tv-ambience-sheet__body">
+          <section className={`tv-ambience-hero tv-ambience-hero--${activeTone}`} aria-label="Nu speelt">
+            <div className="tv-ambience-hero__backdrop" aria-hidden>
+              <div className="tv-ambience-hero__waves">
+                {Array.from({ length: 5 }).map((_, index) => (
+                  <span
+                    key={index}
+                    className={`tv-ambience-hero__bar ${isPlaying ? 'tv-ambience-hero__bar--live' : ''}`}
+                    style={{ animationDelay: `${index * 0.12}s` }}
+                  />
+                ))}
+              </div>
+            </div>
+
+            <div className="tv-ambience-hero__content">
+              <div className="tv-ambience-hero__meta">
+                <span className="tv-ambience-hero__eyebrow">Nu speelt</span>
+                {currentTrack ? (
+                  <span className="tv-ambience-hero__scene-chip">{currentTrack.scene}</span>
                 ) : null}
               </div>
-              <button
-                type="button"
-                onClick={canControlSession ? onTogglePlayback : onUnlockAudio}
-                className={`tv-icon-btn h-11 w-11 shrink-0 ${isPlaying ? 'tv-button-accent-muted' : ''}`}
-                title={canControlSession ? (isPlaying ? 'Pauzeer' : 'Start') : 'Activeer audio'}
-                aria-label={canControlSession ? (isPlaying ? 'Pauzeer sfeer' : 'Start sfeer') : 'Activeer audio'}
-              >
-                {isPlaying ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
-              </button>
-            </div>
 
-            <div className={`mt-5 grid gap-3 ${canControlSession ? 'sm:grid-cols-2' : ''}`}>
-              {canControlSession ? (
-                <label className="tv-panel-block px-4 py-3">
-                  <div className="flex items-center justify-between gap-3">
-                    <div className="tv-label" title="Sessievolume">Sessie</div>
-                    <div className="font-fantasy text-sm tracking-[0.12em] tv-accent">{sessionVolume}%</div>
-                  </div>
-                  <input
-                    type="range"
-                    min="0"
-                    max="100"
+              <h2 className="tv-ambience-hero__scene">
+                {currentTrack?.scene || 'Geen scene'}
+              </h2>
+              {currentTrack?.subtitle ? (
+                <p className="tv-ambience-hero__description">{currentTrack.subtitle}</p>
+              ) : (
+                <p className="tv-ambience-hero__description tv-ambience-hero__description--empty">
+                  Selecteer een scene om te beginnen.
+                </p>
+              )}
+
+              <div className="tv-ambience-hero__actions">
+                <button
+                  type="button"
+                  onClick={canControlSession ? onTogglePlayback : onUnlockAudio}
+                  className={`tv-ambience-play-btn ${isPlaying ? 'tv-ambience-play-btn--active' : ''}`}
+                  title={canControlSession ? (isPlaying ? 'Pauzeer' : 'Start') : 'Activeer audio'}
+                  aria-label={canControlSession ? (isPlaying ? 'Pauzeer sfeer' : 'Start sfeer') : 'Activeer audio'}
+                >
+                  {isPlaying ? <Pause className="h-5 w-5" /> : <Play className="h-5 w-5" />}
+                  <span>{isPlaying ? 'Pauzeer' : 'Afspelen'}</span>
+                </button>
+              </div>
+
+              <div className={`tv-ambience-hero__mix ${canControlSession ? 'tv-ambience-hero__mix--dual' : ''}`}>
+                {canControlSession ? (
+                  <AmbienceSlider
+                    label="Sessie"
                     value={sessionVolume}
-                    onChange={(event) => onSessionVolumeChange(Number(event.target.value))}
-                    className="ambience-slider mt-3 w-full"
-                    aria-label="Sessievolume"
+                    onChange={onSessionVolumeChange}
+                    ariaLabel="Sessievolume"
                   />
-                </label>
-              ) : null}
-
-              <label className="tv-panel-block px-4 py-3">
-                <div className="flex items-center justify-between gap-3">
-                  <div className="tv-label" title="Jouw volume">Mix</div>
-                  <div className="flex items-center gap-2 font-fantasy text-sm tracking-[0.12em] tv-text">
-                    {listenerVolume === 0 ? <VolumeX className="h-4 w-4 tv-tone-enemy-text" /> : <Volume2 className="h-4 w-4 tv-text-sub" />}
-                    <span>{listenerVolume}%</span>
-                  </div>
-                </div>
-                <input
-                  type="range"
-                  min="0"
-                  max="100"
+                ) : null}
+                <AmbienceSlider
+                  label="Mix"
                   value={listenerVolume}
-                  onChange={(event) => onListenerVolumeChange(Number(event.target.value))}
-                  className="ambience-slider mt-3 w-full"
-                  aria-label="Jouw volume"
+                  onChange={onListenerVolumeChange}
+                  icon={listenerVolume === 0 ? VolumeX : Volume2}
+                  muted={listenerVolume === 0}
+                  ariaLabel="Jouw volume"
                 />
-              </label>
+              </div>
             </div>
-          </div>
+          </section>
 
           {needsAudioUnlock ? (
-            <div className="rounded-xl tv-tone-enemy-surface px-4 py-3 text-sm">
+            <div className="tv-ambience-alert">
+              <p className="tv-ambience-alert__text">Je browser blokkeert audio tot je het eenmalig toestaat.</p>
               <button
                 type="button"
                 onClick={onUnlockAudio}
-                className="tv-icon-btn h-9 w-full gap-2"
+                className="tv-ambience-alert__action"
                 aria-label="Audio inschakelen"
               >
                 <Music2 className="h-4 w-4" />
-                <span className="text-xs font-semibold uppercase tracking-[0.18em]">Audio aan</span>
+                Audio aan
               </button>
             </div>
           ) : null}
 
           {ambienceError ? (
-            <div className="rounded-xl tv-tone-enemy-surface px-4 py-3 text-sm">
+            <div className="tv-ambience-alert tv-ambience-alert--error" role="alert">
               {ambienceError}
             </div>
           ) : null}
 
-          <section>
-            <div className="mb-3 flex items-center justify-between">
-              <div className="tv-label">Scenes</div>
-              <div className="tv-muted text-[10px]">{verifiedTracks.length}</div>
+          <section className="tv-ambience-scenes" aria-labelledby="ambience-scenes-heading">
+            <div className="tv-ambience-scenes__head">
+              <h2 id="ambience-scenes-heading" className="tv-ambience-scenes__title">Scenes</h2>
+              <span className="tv-ambience-scenes__count">{verifiedTracks.length}</span>
             </div>
-            <SceneList />
+            <div className="tv-ambience-scenes__grid">
+              {verifiedTracks.map((track) => (
+                <SceneCard
+                  key={track.id}
+                  track={track}
+                  isActive={currentTrack?.id === track.id}
+                  isPlaying={isPlaying && currentTrack?.id === track.id}
+                  canControlSession={canControlSession}
+                  onSelect={onSelectTrack}
+                />
+              ))}
+            </div>
           </section>
 
-          <div className="border-t border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] pt-4 pb-2">
+          <footer className="tv-ambience-footer">
             <button
               type="button"
               onClick={onOpenSourcelist}
+              className="tv-ambience-footer__link"
               aria-label="Audiogebruik en credits"
-              className="tv-view-card flex w-full items-center justify-between gap-2 rounded-2xl px-4 py-3 text-left transition-all duration-200"
             >
-              <Info className="tv-muted h-4 w-4 shrink-0" />
-              <span className="tv-text-sub min-w-0 flex-1 truncate text-[11px] uppercase tracking-[0.16em]">
-                Credits
-              </span>
-              <span className="tv-muted whitespace-nowrap text-[10px]">{verifiedTracks.length} →</span>
+              <span>Audiogebruik & credits</span>
+              <ChevronRight className="h-4 w-4 shrink-0" aria-hidden />
             </button>
-          </div>
+          </footer>
         </div>
       </div>
     </div>

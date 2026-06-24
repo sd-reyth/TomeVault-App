@@ -1,16 +1,60 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { getPlanFeatureSummary } from '../lib/accessPlans';
-import { Crown, Download, LogOut, Save, Settings, SunMedium, SwatchBook, UserRound, Volume2 } from 'lucide-react';
+import {
+  ChevronDown,
+  ChevronUp,
+  Crown,
+  Download,
+  Save,
+  Settings,
+  SunMedium,
+  Volume2,
+} from 'lucide-react';
 import ModalFrame from './ModalFrame';
 import Button from './Button';
 import { APP_THEMES } from '../lib/appThemes';
+
+const BRIGHTNESS_LABELS = ['Donker', 'Iets donkerder', 'Normaal', 'Iets lichter', 'Lichter'];
+
+function getInitials(name) {
+  const trimmed = String(name || '').trim();
+  if (!trimmed) return '?';
+  const parts = trimmed.split(/\s+/).filter(Boolean);
+  if (parts.length === 1) return parts[0].slice(0, 1).toUpperCase();
+  return `${parts[0].slice(0, 1)}${parts[parts.length - 1].slice(0, 1)}`.toUpperCase();
+}
+
+function SettingsFold({ title, badge, open, onToggle, children }) {
+  return (
+    <div className="tv-profile-fold">
+      <button
+        type="button"
+        onClick={onToggle}
+        className="tv-profile-fold__trigger"
+        aria-expanded={open}
+      >
+        <span className="tv-profile-fold__title">{title}</span>
+        <span className="inline-flex items-center gap-2">
+          {badge ? <span className="tv-profile-fold__badge">{badge}</span> : null}
+          {open ? <ChevronUp className="h-4 w-4 tv-muted" /> : <ChevronDown className="h-4 w-4 tv-muted" />}
+        </span>
+      </button>
+      {open ? <div className="tv-profile-fold__body">{children}</div> : null}
+    </div>
+  );
+}
+
+const SETTINGS_PANELS = {
+  display: 'display',
+  sound: 'sound',
+  session: 'session',
+};
 
 function SettingsModal({
   isOpen,
   onClose,
   playerName,
   role,
-  onLogout,
   onExportArchive,
   exportBusy = false,
   theme,
@@ -26,7 +70,12 @@ function SettingsModal({
   const [draftTheme, setDraftTheme] = useState(theme || 'midnight-tome');
   const [draftBrightness, setDraftBrightness] = useState(brightness !== undefined ? brightness : 2);
   const [draftUiSounds, setDraftUiSounds] = useState(uiSounds !== false);
+  const [openPanel, setOpenPanel] = useState(null);
   const planFeatures = getPlanFeatureSummary(currentAccessPlan);
+
+  const togglePanel = (panel) => {
+    setOpenPanel((current) => (current === panel ? null : panel));
+  };
 
   useEffect(() => {
     if (!isOpen) return;
@@ -34,9 +83,27 @@ function SettingsModal({
     setDraftTheme(theme || 'midnight-tome');
     setDraftBrightness(brightness !== undefined ? brightness : 2);
     setDraftUiSounds(uiSounds !== false);
+    setOpenPanel(null);
   }, [isOpen, playerName, theme, brightness, uiSounds]);
 
   const themes = APP_THEMES;
+  const activeTheme = themes.find((entry) => entry.value === draftTheme) || themes[2];
+  const roleLabel = role === 'gm' ? 'Game Master' : 'Speler';
+  const roleShort = role === 'gm' ? 'GM' : 'Speler';
+  const initials = useMemo(() => getInitials(draftName || playerName), [draftName, playerName]);
+  const brightnessLabel = BRIGHTNESS_LABELS[draftBrightness] || 'Normaal';
+  const displayBadge = `${activeTheme.shortLabel} · ${brightnessLabel}`;
+  const soundBadge = draftUiSounds ? 'Aan' : 'Uit';
+
+  const persistDraft = (patch) => {
+    onSaveSettings?.({
+      nextPlayerName: draftName,
+      nextTheme: draftTheme,
+      nextBrightness: draftBrightness,
+      nextUiSounds: draftUiSounds,
+      ...patch,
+    });
+  };
 
   const handleSave = async () => {
     await onSaveSettings?.({
@@ -50,22 +117,18 @@ function SettingsModal({
 
   const handleThemeClick = (themeValue) => {
     setDraftTheme(themeValue);
-    onSaveSettings?.({
-      nextPlayerName: draftName,
-      nextTheme: themeValue,
-      nextBrightness: draftBrightness,
-      nextUiSounds: draftUiSounds,
-    });
+    persistDraft({ nextTheme: themeValue });
   };
 
   const handleBrightnessChange = (nextBrightness) => {
     setDraftBrightness(nextBrightness);
-    onSaveSettings?.({
-      nextPlayerName: draftName,
-      nextTheme: draftTheme,
-      nextBrightness,
-      nextUiSounds: draftUiSounds,
-    });
+    persistDraft({ nextBrightness });
+  };
+
+  const handleUiSoundsToggle = () => {
+    const next = !draftUiSounds;
+    setDraftUiSounds(next);
+    persistDraft({ nextUiSounds: next });
   };
 
   return (
@@ -74,170 +137,176 @@ function SettingsModal({
       onClose={onClose}
       title="Configuratie"
       icon={Settings}
-      bodyClassName="gap-5 sm:gap-6"
-    >
-      <div>
-        <label className="mb-1.5 flex items-center gap-2 text-[10px] font-semibold uppercase tracking-[0.18em] tv-text-sub"><UserRound className="h-3.5 w-3.5" /> Mijn Naam</label>
-        <input
-          type="text"
-          value={draftName}
-          onChange={(event) => setDraftName(event.target.value)}
-          placeholder="Je naam aan tafel"
-          className="tv-field"
-        />
-      </div>
-
-      <div>
-        <label className="mb-3 flex items-center gap-2 text-[10px] font-semibold uppercase tracking-[0.18em] tv-text-sub"><SwatchBook className="h-3.5 w-3.5" /> Kleurenthema</label>
-        <div className="grid grid-cols-1 gap-1.5 sm:grid-cols-2">
-          {themes.map((themeOption) => {
-            const isActive = draftTheme === themeOption.value;
-            return (
-              <button
-                key={themeOption.value}
-                type="button"
-                onClick={() => handleThemeClick(themeOption.value)}
-                title={themeOption.label}
-                className={`group flex min-h-12 items-center justify-between gap-2.5 rounded-xl border px-3 py-2.5 text-left transition-all duration-200 ease-out hover:scale-[1.01] active:scale-[0.985] ${isActive ? 'tv-surface tv-magic-glow' : 'border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] tv-panel-inset hover:tv-border-emphasis'}`}
-              >
-                <div className="flex items-center gap-2.5">
-                  <span
-                    className="h-3.5 w-3.5 flex-shrink-0 rounded-full tv-border-emphasis ring-1"
-                    style={{ background: themeOption.swatch, boxShadow: isActive ? `0 0 6px ${themeOption.swatch}88` : undefined }}
-                  />
-                  <span className={`text-xs font-semibold tracking-[0.07em] transition-colors ${isActive ? 'tv-text' : 'tv-text group-hover:tv-text'}`}>
-                    {themeOption.shortLabel}
-                  </span>
-                </div>
-                <div className="flex items-center gap-1.5">
-                  {themeOption.premium ? (
-                    <span className="tv-plan-badge">Premium</span>
-                  ) : null}
-                  {isActive ? (
-                    <span className="h-1.5 w-1.5 flex-shrink-0 rounded-full" style={{ background: themeOption.swatch }} />
-                  ) : null}
-                </div>
-              </button>
-            );
-          })}
-        </div>
-      </div>
-
-      <div>
-        <div className="mb-3 flex items-center justify-between gap-3">
-          <label className="flex items-center gap-2 text-[10px] font-semibold uppercase tracking-[0.18em] tv-text-sub"><SunMedium className="h-3.5 w-3.5" /> Helderheid</label>
-          <span className="text-[10px] uppercase tracking-widest tv-accent">
-            {['Donker', 'Iets donkerder', 'Normaal', 'Iets lichter', 'Lichter'][draftBrightness] || 'Normaal'}
-          </span>
-        </div>
-        <input
-          type="range"
-          min="0"
-          max="4"
-          step="1"
-          value={draftBrightness}
-          onChange={(event) => handleBrightnessChange(Number(event.target.value))}
-          className="brightness-slider w-full"
-          aria-label="Helderheid"
-        />
-      </div>
-
-      <div>
-        <div className="mb-3 flex items-center justify-between gap-3">
-          <label className="flex items-center gap-2 text-[10px] font-semibold uppercase tracking-[0.18em] tv-text-sub">
-            <Volume2 className="h-3.5 w-3.5" /> Interfacegeluiden
-          </label>
-          <button
-            type="button"
-            role="switch"
-            aria-checked={draftUiSounds}
-            onClick={() => {
-              const next = !draftUiSounds;
-              setDraftUiSounds(next);
-              onSaveSettings?.({
-                nextPlayerName: draftName,
-                nextTheme: draftTheme,
-                nextBrightness: draftBrightness,
-                nextUiSounds: next,
-              });
-            }}
-            className={`relative h-7 w-12 rounded-full border transition-colors duration-200 ${draftUiSounds ? 'border-[color-mix(in_srgb,var(--tv-accent),transparent_35%)] bg-[color-mix(in_srgb,var(--tv-accent),transparent_72%)]' : 'border-[color-mix(in_srgb,var(--tv-border),transparent_28%)] tv-panel-inset'}`}
-          >
-            <span
-              className={`absolute top-0.5 h-5 w-5 rounded-full border border-[color-mix(in_srgb,var(--tv-border),transparent_28%)] bg-[color-mix(in_srgb,var(--tv-text-primary),#fff_82%)] shadow-sm transition-transform duration-200 ${draftUiSounds ? 'translate-x-5' : 'translate-x-0.5'}`}
-            />
-          </button>
-        </div>
-        <p className="text-[11px] leading-relaxed tv-muted">
-          Subtiele klik- en beurtgeluiden. Standaard aan — zet uit als je stil wilt spelen.
-        </p>
-      </div>
-
-      <div className="flex flex-col gap-3 border-t border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] pt-4">
-        <label className="block text-[10px] font-semibold uppercase tracking-[0.18em] tv-text-sub">Plan & sessie</label>
-        {currentPlanLabel ? (
-          <div className="tv-plan-summary space-y-3">
-            <div className="flex items-center justify-between gap-3 text-xs uppercase tracking-[0.16em]">
-              <span className="font-semibold tv-text-sub">Huidig plan</span>
-              <span className="font-medium tv-accent">{currentPlanLabel}</span>
-            </div>
-            {planFeatures.length > 0 ? (
-              <ul className="space-y-1.5 text-xs tv-text-sub">
-                {planFeatures.map((feature) => (
-                  <li key={feature} className="flex items-start gap-2">
-                    <span className="mt-1 h-1 w-1 shrink-0 rounded-full tv-accent" style={{ background: 'var(--tv-accent)' }} />
-                    <span>{feature}</span>
-                  </li>
-                ))}
-              </ul>
-            ) : null}
-            <p className="text-[11px] leading-relaxed tv-muted">
-              Upgraden en limieten worden later geactiveerd. Je huidige plan is alvast zichtbaar voor de toekomst.
-            </p>
-          </div>
-        ) : null}
-
-        <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-          <Button
-            variant="secondary"
-            block
-            onClick={() => onExportArchive?.()}
-            disabled={exportBusy}
-          >
-            <Download className="h-4 w-4" /> {exportBusy ? 'Laden...' : (role === 'gm' ? 'Archief' : 'Profiel')}
-          </Button>
-
-          <Button
-            variant="danger"
-            block
-            onClick={() => { onLogout(); onClose(); }}
-          >
-            <LogOut className="h-4 w-4" /> Verlaat
-          </Button>
-        </div>
-
-        {canOpenOwnerPanel ? (
-          <Button
-            variant="secondary"
-            block
-            onClick={() => {
-              onClose();
-              onOpenOwnerPanel?.();
-            }}
-          >
-            <Crown className="h-4 w-4" /> Owner Panel
-          </Button>
-        ) : null}
-      </div>
-
-      <div className="-mt-1 flex justify-stretch pt-1 sm:justify-end">
-        <Button
-          variant="primary"
-          onClick={handleSave}
-          className="w-full sm:w-auto"
-        >
+      maxWidthClassName="max-w-md"
+      bodyClassName="!p-0"
+      footer={(
+        <Button variant="primary" block onClick={handleSave}>
           <Save className="h-4 w-4" /> Opslaan
         </Button>
+      )}
+      footerClassName="tv-modal-footer--settings"
+    >
+      <div className="tv-settings-sheet">
+        <section className="tv-settings-identity">
+          <div
+            className="tv-settings-identity-avatar"
+            style={{
+              borderColor: `${activeTheme.swatch}55`,
+              background: `color-mix(in srgb, ${activeTheme.swatch}, transparent 82%)`,
+              color: `color-mix(in srgb, ${activeTheme.swatch}, #fff 35%)`,
+            }}
+            aria-hidden="true"
+          >
+            {initials}
+          </div>
+          <div className="min-w-0 flex-1">
+            <label htmlFor="settings-player-name" className="tv-profile-section-label">
+              Mijn naam
+            </label>
+            <input
+              id="settings-player-name"
+              type="text"
+              value={draftName}
+              onChange={(event) => setDraftName(event.target.value)}
+              placeholder="Je naam aan tafel"
+              className="tv-field mt-1.5"
+            />
+            <p className="mt-2 text-xs tv-muted">
+              {roleShort} · {roleLabel}
+            </p>
+          </div>
+        </section>
+
+        <SettingsFold
+          title="Weergave"
+          badge={displayBadge}
+          open={openPanel === SETTINGS_PANELS.display}
+          onToggle={() => togglePanel(SETTINGS_PANELS.display)}
+        >
+          <div>
+            <p className="tv-profile-section-label mb-3">Kleurenthema</p>
+            <div className="tv-settings-theme-row">
+              {themes.map((themeOption) => {
+                const isActive = draftTheme === themeOption.value;
+                return (
+                  <button
+                    key={themeOption.value}
+                    type="button"
+                    onClick={() => handleThemeClick(themeOption.value)}
+                    title={themeOption.label}
+                    aria-pressed={isActive}
+                    className={`tv-settings-theme-pick ${isActive ? 'is-active' : ''}`}
+                  >
+                    <span
+                      className="tv-settings-theme-pick__swatch"
+                      style={{
+                        background: themeOption.swatch,
+                        boxShadow: isActive ? `0 0 10px ${themeOption.swatch}88` : undefined,
+                      }}
+                    />
+                    <span className="tv-settings-theme-pick__label">{themeOption.shortLabel}</span>
+                    {themeOption.premium ? <span className="tv-settings-theme-pick__pro">Pro</span> : null}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          <div>
+            <div className="mb-2 flex items-center justify-between gap-3">
+              <span className="inline-flex items-center gap-2 text-sm tv-text">
+                <SunMedium className="h-4 w-4 tv-muted" />
+                Helderheid
+              </span>
+              <span className="text-xs tv-muted">{brightnessLabel}</span>
+            </div>
+            <div className="tv-settings-brightness-steps" role="group" aria-label="Helderheid">
+              {BRIGHTNESS_LABELS.map((label, index) => (
+                <button
+                  key={label}
+                  type="button"
+                  title={label}
+                  aria-label={label}
+                  aria-pressed={draftBrightness === index}
+                  onClick={() => handleBrightnessChange(index)}
+                  className={`tv-settings-brightness-step ${draftBrightness === index ? 'is-active' : ''}`}
+                />
+              ))}
+            </div>
+          </div>
+        </SettingsFold>
+
+        <SettingsFold
+          title="Geluid"
+          badge={soundBadge}
+          open={openPanel === SETTINGS_PANELS.sound}
+          onToggle={() => togglePanel(SETTINGS_PANELS.sound)}
+        >
+          <div className="tv-settings-row-head">
+            <div className="min-w-0">
+              <span className="inline-flex items-center gap-2 text-sm tv-text">
+                <Volume2 className="h-4 w-4 tv-muted" />
+                Interfacegeluiden
+              </span>
+              <p className="mt-1 text-xs tv-muted">Klik- en beurtgeluiden aan tafel</p>
+            </div>
+            <button
+              type="button"
+              role="switch"
+              aria-checked={draftUiSounds}
+              onClick={handleUiSoundsToggle}
+              className={`tv-settings-toggle ${draftUiSounds ? 'is-on' : ''}`}
+            >
+              <span className="tv-settings-toggle-knob" />
+            </button>
+          </div>
+        </SettingsFold>
+
+        <SettingsFold
+          title="Sessie"
+          badge={currentPlanLabel || null}
+          open={openPanel === SETTINGS_PANELS.session}
+          onToggle={() => togglePanel(SETTINGS_PANELS.session)}
+        >
+          {currentPlanLabel ? (
+            <div className="space-y-2">
+              <p className="text-sm tv-text-sub">
+                Plan: <span className="tv-accent">{currentPlanLabel}</span>
+              </p>
+              {planFeatures.length > 0 ? (
+                <ul className="space-y-1.5 text-sm tv-muted">
+                  {planFeatures.map((feature) => (
+                    <li key={feature}>{feature}</li>
+                  ))}
+                </ul>
+              ) : null}
+            </div>
+          ) : null}
+
+          <div className="flex flex-col gap-2">
+            <Button
+              variant="secondary"
+              block
+              onClick={() => onExportArchive?.()}
+              disabled={exportBusy}
+            >
+              <Download className="h-4 w-4" /> {exportBusy ? 'Laden...' : (role === 'gm' ? 'Archief exporteren' : 'Profiel exporteren')}
+            </Button>
+
+            {canOpenOwnerPanel ? (
+              <Button
+                variant="secondary"
+                block
+                onClick={() => {
+                  onClose();
+                  onOpenOwnerPanel?.();
+                }}
+              >
+                <Crown className="h-4 w-4" /> Owner Panel
+              </Button>
+            ) : null}
+          </div>
+        </SettingsFold>
       </div>
     </ModalFrame>
   );

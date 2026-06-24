@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from 'react';
-import { playUiSound } from '../lib/uiFeedback';
+import { Dice5 } from 'lucide-react';
+import { diceRollHasNat1, diceRollHasNat20, playUiSound } from '../lib/uiFeedback';
 import DiceIcon from '../ui/DiceIcon';
 
 const DICE_TYPES = [
@@ -29,38 +30,17 @@ function DiceTypeIcon({ sides, className = '' }) {
   return <DiceIcon sides={sides} className={className} style={{ color: iconColor }} />;
 }
 
-function getRollActionAccent() {
-  return {
-    backgroundColor: 'var(--tv-accent)',
-    boxShadow: 'var(--tv-shadow)',
-  };
-}
-
-function getRollerPalette() {
-  return {
-    panelBorder: 'var(--tv-border)',
-    panelBg: 'linear-gradient(180deg, color-mix(in srgb, var(--tv-accent), transparent 85%) 0%, color-mix(in srgb, var(--tv-bg-surface), #000 10%) 58%)',
-    rowBorder: 'color-mix(in srgb, var(--tv-border), #fff 12%)',
-    rowBg: 'color-mix(in srgb, var(--tv-bg-surface), #000 6%)',
-    stepperBorder: 'var(--tv-border)',
-    stepperBg: 'color-mix(in srgb, var(--tv-bg-surface), #fff 8%)',
-    labelColor: 'var(--tv-text-primary)',
-    countColor: 'var(--tv-text-primary)',
-    metaColor: 'var(--tv-text-secondary)',
-  };
-}
-
-export default function DiceRoller({ onRoll, theme, embedded = false }) {
+export default function DiceRoller({ onRoll, embedded = false }) {
   const [dice, setDice] = useState(
     DICE_TYPES.map((type) => ({ ...type, count: 0 }))
   );
-  const rollActionAccent = getRollActionAccent();
-  const palette = getRollerPalette();
 
   const totalDiceSelected = useMemo(
     () => dice.reduce((sum, entry) => sum + Number(entry.count || 0), 0),
     [dice]
   );
+
+  const canRoll = totalDiceSelected > 0 && totalDiceSelected <= MAX_DICE_PER_ROLL;
 
   const handleChange = (idx, delta) => {
     setDice((prev) => {
@@ -89,6 +69,8 @@ export default function DiceRoller({ onRoll, theme, embedded = false }) {
     if (!rolls.length) return;
 
     playUiSound('dice');
+    if (diceRollHasNat20(rolls)) playUiSound('success');
+    else if (diceRollHasNat1(rolls)) playUiSound('warning');
 
     const total = rolls
       .flatMap((entry) => entry.rolls)
@@ -105,55 +87,31 @@ export default function DiceRoller({ onRoll, theme, embedded = false }) {
   };
 
   return (
-    <div
-      className={embedded ? 'w-full rounded-2xl border p-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] sm:p-3.5' : 'mx-auto w-full max-w-sm rounded-2xl border p-4 shadow-2xl'}
-      style={{
-        borderColor: palette.panelBorder,
-        backgroundImage: palette.panelBg,
-        boxShadow: embedded ? undefined : rollActionAccent.boxShadow,
-      }}
-    >
-      <div className={`w-full ${embedded ? 'grid grid-cols-1 gap-2 sm:grid-cols-2' : 'flex flex-col gap-2.5'}`}>
+    <div className={`tv-dice-roller ${embedded ? 'tv-dice-roller--embedded' : ''}`}>
+      <div className={`tv-dice-roller__grid ${embedded ? 'tv-dice-roller__grid--embedded' : ''}`}>
         {dice.map((d, idx) => (
-          <div
-            key={d.label}
-            className={`flex w-full items-center rounded-2xl border ${embedded ? 'px-2.5 py-2 sm:px-3 sm:py-2.5' : 'px-3 py-2.5'}`}
-            style={{
-              borderColor: palette.rowBorder,
-              backgroundColor: palette.rowBg,
-            }}
-          >
-            <div className="flex min-w-0 items-center gap-2.5">
-              <span className="inline-flex h-6 w-6 items-center justify-center">
+          <div key={d.label} className="tv-dice-roller__row">
+            <div className="tv-dice-roller__label">
+              <span className="tv-dice-roller__icon">
                 <DiceTypeIcon sides={d.sides} className="h-5 w-5" />
               </span>
-              <span className="w-10 font-fantasy text-base leading-none" style={{ color: palette.labelColor }}>{d.label}</span>
+              <span className="tv-dice-roller__name">{d.label}</span>
             </div>
 
-            <div className="ml-auto inline-flex items-center gap-1.5 sm:gap-2">
+            <div className="tv-dice-roller__stepper">
               <button
                 type="button"
-                className={`${embedded ? 'h-7 w-7 sm:h-8 sm:w-8' : 'h-8 w-8'} rounded-xl border text-sm disabled:opacity-40 transition-all hover:scale-105 active:scale-95`}
-                style={{
-                  borderColor: palette.stepperBorder,
-                  backgroundColor: palette.stepperBg,
-                  color: palette.labelColor,
-                }}
+                className="tv-dice-roller__step"
                 onClick={() => handleChange(idx, -1)}
                 disabled={d.count === 0}
                 aria-label={`Verlaag aantal ${d.label}`}
               >
                 -
               </button>
-              <span className={`${embedded ? 'w-7 text-base sm:w-8 sm:text-lg' : 'w-8 text-lg'} text-center tabular-nums`} style={{ color: palette.countColor }}>{d.count}</span>
+              <span className="tv-dice-roller__count">{d.count}</span>
               <button
                 type="button"
-                className={`${embedded ? 'h-7 w-7 sm:h-8 sm:w-8' : 'h-8 w-8'} rounded-xl border text-sm disabled:opacity-40 transition-all hover:scale-105 active:scale-95`}
-                style={{
-                  borderColor: palette.stepperBorder,
-                  backgroundColor: palette.stepperBg,
-                  color: palette.labelColor,
-                }}
+                className="tv-dice-roller__step"
                 onClick={() => handleChange(idx, 1)}
                 disabled={totalDiceSelected >= MAX_DICE_PER_ROLL}
                 aria-label={`Verhoog aantal ${d.label}`}
@@ -165,18 +123,18 @@ export default function DiceRoller({ onRoll, theme, embedded = false }) {
         ))}
       </div>
 
-      <div className="mt-3 text-[11px]" style={{ color: palette.metaColor }}>
+      <div className="tv-dice-roller__meta">
         {totalDiceSelected}/{MAX_DICE_PER_ROLL} geselecteerd
       </div>
 
       <button
         type="button"
-        className={`mt-4 block w-full rounded-2xl px-6 tv-text font-fantasy uppercase tracking-[0.16em] shadow transition-all duration-200 hover:brightness-110 active:scale-[0.98] disabled:opacity-40 ${embedded ? 'py-2.5 text-lg sm:py-3 sm:text-xl' : 'py-3 text-xl'}`}
-        style={rollActionAccent}
+        className={`tv-dice-roll-btn ${canRoll ? 'tv-dice-roll-btn--ready' : ''}`}
         onClick={handleRoll}
-        disabled={dice.every((d) => d.count === 0) || totalDiceSelected > MAX_DICE_PER_ROLL}
+        disabled={!canRoll}
+        aria-label="Gooi geselecteerde dobbelstenen"
       >
-        Gooi
+        <Dice5 className="h-6 w-6" />
       </button>
     </div>
   );

@@ -1,9 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { HeartPulse, Minus, Plus, Equal } from 'lucide-react';
 import ModalFrame from './ModalFrame';
+import { playFeedback } from '../lib/uiFeedback';
 
 export default function DamageModal({ isOpen, onClose, target, onSave }) {
   const [amount, setAmount] = useState('');
+  const hpDisplayRef = useRef(null);
 
   useEffect(() => {
     if (isOpen) setAmount('');
@@ -14,16 +16,29 @@ export default function DamageModal({ isOpen, onClose, target, onSave }) {
   const handleDamage = () => {
     if (!amount) return;
     onSave(target.id, Math.max(0, target.hp - Number(amount)));
+    playFeedback({
+      sound: 'warning',
+      element: hpDisplayRef.current,
+      variant: 'danger',
+      pulseClassName: 'tv-hp-flash--damage',
+    });
   };
 
   const handleHeal = () => {
     if (!amount) return;
     onSave(target.id, target.hp + Number(amount));
+    playFeedback({
+      sound: 'success',
+      element: hpDisplayRef.current,
+      variant: 'heal',
+      pulseClassName: 'tv-hp-flash--heal',
+    });
   };
   
   const handleSet = () => {
     if (!amount && amount !== 0) return;
     onSave(target.id, Number(amount));
+    playFeedback({ sound: 'tap', element: hpDisplayRef.current });
   };
 
   return (
@@ -36,7 +51,11 @@ export default function DamageModal({ isOpen, onClose, target, onSave }) {
       bodyClassName="gap-4"
     >
           <div className="text-center mb-2">
-            <div className={`text-5xl font-fantasy font-bold mt-1 ${target.hp < 10 ? 'tv-hp-low' : 'tv-accent'}`}>
+            <div
+              ref={hpDisplayRef}
+              data-tv-feedback-root
+              className={`text-5xl font-fantasy font-bold mt-1 ${target.hp < 10 ? 'tv-hp-low' : 'tv-accent'}`}
+            >
               {target.hp}
             </div>
           </div>
@@ -74,7 +93,7 @@ export default function DamageModal({ isOpen, onClose, target, onSave }) {
             onClick={handleSet}
             aria-label="Stel exact in"
             title="Stel exact in"
-            className="tv-button-secondary mt-2 flex h-10 w-full items-center justify-center gap-2 rounded-lg"
+            className="tv-btn tv-button-secondary tv-btn--block mt-2 gap-2"
           >
             <Equal className="h-4 w-4" />
           </button>

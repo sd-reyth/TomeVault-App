@@ -1,110 +1,45 @@
 import React, { useMemo, useState } from 'react';
+import { COIN_ORDER, UNIT_FACTOR, formatWalletTotal, normalizeWalletShape, walletTotalBronze } from '../lib/walletUtils';
 
 function WalletSection({
   title,
   wallet,
-  isGm,
   editable = false,
   onAdjust,
-  description,
-  onPrimaryAction,
-  primaryActionLabel = 'Nieuw item',
-  hideSummaryCard = false,
 }) {
   const [editingCoin, setEditingCoin] = useState(null);
   const [inputValue, setInputValue] = useState('');
 
-  const coinOrder = ['platinum', 'gold', 'silver', 'bronze'];
-  const unitFactor = {
-    platinum: 1000000,
-    gold: 10000,
-    silver: 100,
-    bronze: 1,
-  };
-
   const coins = [
-    {
-      key: 'platinum',
-      label: 'Platinum',
-      icon: 'Pt',
-      iconColor: '#bae6fd',
-      glowColor: 'bg-sky-300/18',
-    },
-    {
-      key: 'gold',
-      label: 'Gold',
-      icon: 'Au',
-      iconColor: '#fcd34d',
-      glowColor: 'bg-amber-400/18',
-    },
-    {
-      key: 'silver',
-      label: 'Silver',
-      icon: 'Ag',
-      iconColor: '#e2e8f0',
-      glowColor: 'bg-slate-200/16',
-    },
-    {
-      key: 'bronze',
-      label: 'Copper',
-      icon: 'Cu',
-      iconColor: '#fdba74',
-      glowColor: 'bg-orange-400/18',
-    },
+    { key: 'platinum', label: 'Pt', fullLabel: 'Platinum', iconColor: '#bae6fd' },
+    { key: 'gold', label: 'Au', fullLabel: 'Goud', iconColor: '#fcd34d' },
+    { key: 'silver', label: 'Ag', fullLabel: 'Zilver', iconColor: '#e2e8f0' },
+    { key: 'bronze', label: 'Cu', fullLabel: 'Koper', iconColor: '#fdba74' },
   ];
 
-  const safeWallet = useMemo(
-    () =>
-      coinOrder.reduce((acc, key) => {
-        acc[key] = Math.max(0, Number(wallet?.[key] || 0));
-        return acc;
-      }, {}),
-    [wallet]
-  );
+  const safeWallet = useMemo(() => normalizeWalletShape(wallet), [wallet]);
 
-  const totalBronze =
-    safeWallet.platinum * unitFactor.platinum +
-    safeWallet.gold * unitFactor.gold +
-    safeWallet.silver * unitFactor.silver +
-    safeWallet.bronze;
-
-  const totalGoldEquivalent = totalBronze / unitFactor.gold;
-  const isEmptyWallet = totalBronze === 0;
-
-  const formatGoldEquivalent = (value) => {
-    if (value === 0) return '0';
-    return Number(value.toFixed(2)).toLocaleString('nl-NL', {
-      minimumFractionDigits: value < 1 ? 2 : 0,
-      maximumFractionDigits: 2,
-    });
-  };
+  const totalBronze = walletTotalBronze(safeWallet);
+  const totalLabel = formatWalletTotal(safeWallet);
 
   const normalizeWallet = (nextWallet) => {
-    const safe = coinOrder.reduce((acc, key) => {
-      acc[key] = Math.max(0, Number(nextWallet?.[key] || 0));
-      return acc;
-    }, {});
+    const safe = normalizeWalletShape(nextWallet);
 
-    const nextTotalBronze =
-      safe.platinum * unitFactor.platinum +
-      safe.gold * unitFactor.gold +
-      safe.silver * unitFactor.silver +
-      safe.bronze;
-
+    const nextTotalBronze = walletTotalBronze(safe);
     let remainder = Math.max(0, Math.floor(nextTotalBronze));
 
     const normalized = {
-      platinum: Math.floor(remainder / unitFactor.platinum),
+      platinum: Math.floor(remainder / UNIT_FACTOR.platinum),
       gold: 0,
       silver: 0,
       bronze: 0,
     };
 
-    remainder %= unitFactor.platinum;
-    normalized.gold = Math.floor(remainder / unitFactor.gold);
-    remainder %= unitFactor.gold;
-    normalized.silver = Math.floor(remainder / unitFactor.silver);
-    remainder %= unitFactor.silver;
+    remainder %= UNIT_FACTOR.platinum;
+    normalized.gold = Math.floor(remainder / UNIT_FACTOR.gold);
+    remainder %= UNIT_FACTOR.gold;
+    normalized.silver = Math.floor(remainder / UNIT_FACTOR.silver);
+    remainder %= UNIT_FACTOR.silver;
     normalized.bronze = remainder;
 
     return normalized;
@@ -112,16 +47,12 @@ function WalletSection({
 
   const applyWalletDiff = (targetWallet) => {
     if (!onAdjust) return;
-    coinOrder.forEach((key) => {
+    COIN_ORDER.forEach((key) => {
       const currentValue = Number(wallet?.[key] || 0);
       const nextValue = Number(targetWallet?.[key] || 0);
       const diff = nextValue - currentValue;
       if (diff !== 0) onAdjust(key, diff);
     });
-  };
-
-  const handleInputChange = (e) => {
-    setInputValue(e.target.value);
   };
 
   const handleInputSubmit = (coinKey) => {
@@ -163,78 +94,58 @@ function WalletSection({
   };
 
   return (
-    <div className="relative isolate px-2 py-4 md:px-4 md:py-6">
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute inset-x-0 top-1/2 h-72 -translate-y-1/2 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-black/50 via-fuchsia-950/16 to-transparent blur-2xl"
-      />
+    <div className="tv-wallet-strip-wrap tv-wallet-strip-wrap--subtle">
+      {title ? (
+        <div className="tv-wallet-strip-wrap__label">
+          <span>{title}</span>
+          {totalBronze > 0 ? (
+            <span className="tv-wallet-strip-wrap__total">{totalLabel}</span>
+          ) : null}
+        </div>
+      ) : null}
 
-      <div className="relative z-10 mx-auto w-full max-w-5xl">
-        {(title || description) && (
-          <div className="mb-6 text-center md:mb-8">
-            {title && (
-              <h2 className="text-3xl font-fantasy font-semibold tv-text/95 md:text-4xl">
-                {title}
-              </h2>
-            )}
-            {description && (
-              <p className="mx-auto mt-2 max-w-2xl text-sm tv-text/80 md:text-base">
-                {description}
-              </p>
-            )}
-          </div>
-        )}
-
-        <div className="mb-6 grid grid-cols-2 gap-3 md:mb-8 md:grid-cols-4 md:gap-4">
-          {coins.map((coin, index) => (
-            <div
-              key={coin.key}
-              className="group relative overflow-hidden rounded-2xl border border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] tv-panel-inset p-4 shadow-[0_10px_30px_rgba(0,0,0,0.32)] transition-all duration-300 hover:-translate-y-0.5 hover:border-[color:var(--tv-accent)]/45 hover:shadow-[0_16px_34px_rgba(0,0,0,0.42)]"
-            >
-              <div
-                className={`pointer-events-none absolute -top-5 left-1/2 h-24 w-24 -translate-x-1/2 ${coin.glowColor} rounded-full blur-3xl transition-opacity duration-300 group-hover:opacity-90`}
+      <div className="tv-wallet-strip tv-wallet-strip--subtle">
+        {coins.map((coin) => (
+          <div key={coin.key} className="tv-wallet-strip__coin">
+            <div className="tv-wallet-strip__coin-head">
+              <span
+                className="tv-wallet-strip__badge"
+                style={{ color: coin.iconColor }}
                 aria-hidden="true"
-              />
+              >
+                {coin.label}
+              </span>
+              <span className="tv-wallet-strip__name">{coin.fullLabel}</span>
+            </div>
 
-              <div className="relative z-10 flex flex-col items-center">
-                <div
-                  aria-label={coin.label}
-                  className="mb-3 flex h-12 w-12 items-center justify-center rounded-full border border-[color-mix(in_srgb,var(--tv-border),transparent_28%)] tv-input-surface text-xl font-semibold shadow-[0_8px_24px_rgba(0,0,0,0.45)] transition-transform duration-300 group-hover:scale-105"
-                  style={{ animation: `walletFloat 4.6s ease-in-out ${index * 0.24}s infinite`, color: coin.iconColor }}
-                >
-                  <span className="leading-none" aria-hidden="true">{coin.icon}</span>
-                </div>
-
-                <div className="mb-1 text-[11px] uppercase tracking-[0.2em] tv-text-sub/90">
-                  {coin.label}
-                </div>
-
-                <div className="mb-2 flex items-center gap-1.5">
+            <div className="tv-wallet-strip__value-row">
+              {editable ? (
+                <>
                   <button
                     type="button"
                     onClick={() => handleAdjust(coin.key, -1)}
-                    className="tv-wallet-stepper-btn h-8 w-8 rounded-md text-sm leading-none md:h-7 md:w-7"
-                    aria-label={`${coin.label} verminderen`}
+                    className="tv-wallet-stepper-btn tv-wallet-strip__stepper"
+                    aria-label={`${coin.fullLabel} verminderen`}
                   >
-                    -
+                    −
                   </button>
 
                   {editingCoin === coin.key ? (
                     <input
                       type="number"
                       value={inputValue}
-                      onChange={handleInputChange}
+                      onChange={(e) => setInputValue(e.target.value)}
                       onBlur={() => handleInputSubmit(coin.key)}
                       onKeyDown={(e) => e.key === 'Enter' && handleInputSubmit(coin.key)}
-                      className="hide-arrows w-14 bg-transparent text-center font-fantasy text-2xl font-bold tv-text drop-shadow-md focus:outline-none md:text-3xl"
+                      className="hide-arrows tv-wallet-strip__input"
                       autoFocus
                     />
                   ) : (
                     <button
                       type="button"
                       onClick={() => beginEditCoin(coin.key)}
-                      className="min-w-[2.4ch] cursor-text text-center font-fantasy text-2xl font-bold tv-text drop-shadow-md md:text-3xl"
-                      aria-label={`${coin.label} aanpassen`}
+                      className="tv-wallet-strip__amount"
+                      aria-label={`${coin.fullLabel} aanpassen`}
                     >
                       {safeWallet[coin.key]}
                     </button>
@@ -243,56 +154,21 @@ function WalletSection({
                   <button
                     type="button"
                     onClick={() => handleAdjust(coin.key, 1)}
-                    className="tv-wallet-stepper-btn h-8 w-8 rounded-md text-sm leading-none md:h-7 md:w-7"
-                    aria-label={`${coin.label} verhogen`}
+                    className="tv-wallet-stepper-btn tv-wallet-strip__stepper"
+                    aria-label={`${coin.fullLabel} verhogen`}
                   >
                     +
                   </button>
-                </div>
-              </div>
+                </>
+              ) : (
+                <span className="tv-wallet-strip__amount tv-wallet-strip__amount--readonly">
+                  {safeWallet[coin.key]}
+                </span>
+              )}
             </div>
-          ))}
-        </div>
-
-        {!hideSummaryCard ? (
-        <div className="tv-wallet-summary-card rounded-2xl p-4 backdrop-blur-sm md:p-5">
-          <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-            <div>
-              <div className="text-[11px] uppercase tracking-[0.2em] tv-text-sub">Totale waarde</div>
-              <div className="mt-1 text-2xl font-semibold tabular-nums tv-text md:text-3xl">
-                {formatGoldEquivalent(totalGoldEquivalent)} goud
-              </div>
-              <p className="mt-1 text-xs tv-text-sub/80">Automatisch bijgewerkt bij mutaties.</p>
-            </div>
-
-            {onPrimaryAction && (
-              <button
-                type="button"
-                onClick={onPrimaryAction}
-                className="inline-flex h-11 items-center justify-center rounded-xl tv-button-primary px-5 text-sm font-semibold uppercase tracking-[0.12em]"
-              >
-                + {primaryActionLabel}
-              </button>
-            )}
           </div>
-
-          {isEmptyWallet && (
-            <div className="mt-4 rounded-xl border border-dashed border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] tv-panel-inset px-4 py-3 text-sm tv-text-sub">
-              {isGm
-                ? 'De kas is nog leeg. Voeg een buit-item toe of zet de eerste munten klaar voor het gezelschap.'
-                : 'Deze buidel is nog leeg. Voeg een item toe of ontvang buit van de groep.'}
-            </div>
-          )}
-        </div>
-        ) : null}
+        ))}
       </div>
-
-      <style>
-        {`@keyframes walletFloat {
-          0%, 100% { transform: translateY(0px); }
-          50% { transform: translateY(-7px); }
-        }`}
-      </style>
     </div>
   );
 }

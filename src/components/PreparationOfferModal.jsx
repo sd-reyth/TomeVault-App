@@ -53,7 +53,7 @@ export default function PreparationOfferModal({ isOpen, preparation, onAccept, o
                 {statPills.map((pill) => (
                   <span
                     key={`${preparation.id}-${pill}`}
-                    className="tv-chip-surface rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.16em] tv-text-sub"
+                    className="tv-chip-surface tv-tag px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.16em] tv-text-sub"
                   >
                     {pill}
                   </span>
@@ -81,7 +81,7 @@ export default function PreparationOfferModal({ isOpen, preparation, onAccept, o
             type="button"
             onClick={onAccept}
             aria-label="Rol accepteren"
-            className="tv-button-primary flex h-10 flex-1 items-center justify-center gap-2 rounded-lg sm:flex-none sm:px-5"
+            className="tv-btn tv-button-primary tv-btn--block flex-1 gap-2 sm:flex-none sm:px-5"
           >
             <Check className="h-4 w-4" />
             <span className="text-sm font-fantasy uppercase tracking-[0.16em]">Aanvaard</span>

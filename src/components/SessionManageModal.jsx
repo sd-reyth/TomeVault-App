@@ -7,6 +7,7 @@ import Button from './Button';
 export default function SessionManageModal({
   isOpen,
   onClose,
+  role,
   sessionId,
   sessionNumber,
   theme,
@@ -15,12 +16,15 @@ export default function SessionManageModal({
 }) {
   const [draftSession, setDraftSession] = useState(Math.max(1, Number(sessionNumber) || 1));
   const [copyFeedback, setCopyFeedback] = useState('');
+  const isGM = role === 'gm';
 
   useEffect(() => {
     if (!isOpen) return;
     setDraftSession(Math.max(1, Number(sessionNumber) || 1));
     setCopyFeedback('');
   }, [isOpen, sessionNumber]);
+
+  if (!isOpen || !isGM) return null;
 
   const canonicalSessionCode = toLegacyHashJoinTag(sessionId || '');
   const joinUrl = buildSessionInviteUrl(sessionId || '');
@@ -59,7 +63,7 @@ export default function SessionManageModal({
               <button
                 type="button"
                 onClick={() => setDraftSession((v) => Math.max(1, Number(v || 1) - 1))}
-                className="tv-button-secondary h-10 w-10 rounded-xl transition-all duration-200 ease-out active:scale-[0.985]"
+                className="tv-toolbar-icon-btn tv-button-secondary transition-all duration-200 ease-out active:scale-[0.985]"
                 title="Vorige sessie"
               >
                 −
@@ -69,12 +73,12 @@ export default function SessionManageModal({
                 min="1"
                 value={Math.max(1, Number(draftSession) || 1)}
                 onChange={(e) => setDraftSession(Math.max(1, Number(e.target.value) || 1))}
-                className="tv-input-surface hide-arrows h-10 flex-1 rounded-xl px-3 text-center text-sm tracking-[0.12em] transition-colors focus:outline-none"
+                className="tv-input-surface tv-chat-compose-input hide-arrows flex-1 px-3 text-center text-sm tracking-[0.12em] transition-colors focus:outline-none"
               />
               <button
                 type="button"
                 onClick={() => setDraftSession((v) => (Number(v) || 1) + 1)}
-                className="tv-button-secondary h-10 w-10 rounded-xl transition-all duration-200 ease-out active:scale-[0.985]"
+                className="tv-toolbar-icon-btn tv-button-secondary transition-all duration-200 ease-out active:scale-[0.985]"
                 title="Volgende sessie"
               >
                 +
@@ -99,7 +103,7 @@ export default function SessionManageModal({
                   <button
                     type="button"
                     onClick={() => handleCopy(canonicalSessionCode, 'code')}
-                    className="tv-button-secondary inline-flex h-9 w-full shrink-0 items-center justify-center gap-1.5 rounded-xl px-2.5 text-[10px] uppercase tracking-[0.12em] transition-all duration-200 ease-out active:scale-[0.985] sm:h-8 sm:w-auto"
+                    className="tv-btn tv-button-secondary tv-btn--block w-full shrink-0 gap-1.5 text-[10px] uppercase tracking-[0.12em] transition-all duration-200 ease-out active:scale-[0.985] sm:w-auto"
                   >
                     <Copy className="h-3 w-3" />
                     {copyFeedback === 'code' ? 'Klaar!' : 'Kopieer'}
@@ -118,7 +122,7 @@ export default function SessionManageModal({
                   <button
                     type="button"
                     onClick={() => handleCopy(joinUrl, 'url')}
-                    className="tv-button-secondary inline-flex h-9 w-full shrink-0 items-center justify-center gap-1.5 rounded-xl px-2.5 text-[10px] uppercase tracking-[0.12em] transition-all duration-200 ease-out active:scale-[0.985] sm:h-8 sm:w-auto"
+                    className="tv-btn tv-button-secondary tv-btn--block w-full shrink-0 gap-1.5 text-[10px] uppercase tracking-[0.12em] transition-all duration-200 ease-out active:scale-[0.985] sm:w-auto"
                   >
                     <Copy className="h-3 w-3" />
                     {copyFeedback === 'url' ? 'Klaar!' : 'Kopieer'}

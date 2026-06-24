@@ -1,5 +1,6 @@
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
+import { getItemCategoryLabel } from './itemCategories';
 
 const PDF_MARGIN = 32;
 
@@ -360,7 +361,7 @@ export async function downloadPlayerArchivePdf(archive = {}) {
     asString(item.name, 'Onbekend item'),
     String(Number(item.amount ?? 1)),
     asString(item.ownerName || item.ownerId || '-', '-'),
-    asString(item.category, 'overig'),
+    getItemCategoryLabel(item.category),
     asString(item.desc, '-'),
   ]);
 

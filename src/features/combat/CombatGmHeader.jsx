@@ -5,6 +5,7 @@ import Button from '../../ui/Button';
 import IconButton from '../../ui/IconButton';
 import SegmentedControl from '../../ui/SegmentedControl';
 import Text from '../../ui/Text';
+import CombatRoundBar from './CombatRoundBar';
 import { SlagordeInfoButton, SlagordeInfoContent, useSlagordeInfo } from './SlagordeInfoPanel';
 
 export default function CombatGmHeader({
@@ -12,8 +13,8 @@ export default function CombatGmHeader({
   combatInProgress,
   turnRound,
   currentTurnOrderIndex,
-  isActionBusy,
-  isPinned,
+  currentTurnMember,
+  isActionBusy,  isPinned,
   onTogglePinned,
   onClose,
   onStart,
@@ -22,6 +23,7 @@ export default function CombatGmHeader({
   onRequestEndCombat,
   statusTitle,
   statusSubtitle,
+  ambienceActive = true,
 }) {
   const isLive = combatStatus === COMBAT_STATUS.ACTIVE;
   const info = useSlagordeInfo();
@@ -67,7 +69,7 @@ export default function CombatGmHeader({
             Start gevecht
           </Button>
         ) : (
-          <div className="grid grid-cols-[minmax(0,1fr)_auto] gap-2">
+          <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-2">
             <SegmentedControl
               block
               aria-label="Gevechtsmodus"
@@ -79,40 +81,39 @@ export default function CombatGmHeader({
                 { value: 'paused', label: 'Pauze' },
               ]}
             />
-            <IconButton
-              icon={Skull}
-              label="Beëindig gevecht"
-              variant="danger"
-              size="sm"
-              className="shrink-0"
-              disabled={!combatInProgress || isActionBusy}
+            <button
+              type="button"
               onClick={onRequestEndCombat}
-            />
+              title="Beëindig gevecht"
+              aria-label="Beëindig gevecht"
+              disabled={!combatInProgress || isActionBusy}
+              className={`tv-toolbar-icon-btn tv-chat-dice-btn transition-all duration-200 ease-out disabled:opacity-50 active:scale-[0.985] ${
+                combatInProgress && !isActionBusy ? 'tv-combat-end-btn--ready' : ''
+              }`}
+            >
+              <Skull className="h-[1.05rem] w-[1.05rem] shrink-0 translate-y-[1.5px]" />
+            </button>
           </div>
         )}
 
-        {combatInProgress ? (
-          <>
-            <div className="tv-combat-round-bar flex items-center gap-2">
-              {currentTurnOrderIndex ? (
-                <span
-                  className={`tv-combat-turn-index ${isLive ? 'tv-combat-turn-index--live' : ''}`}
-                  title="Huidige beurt in volgorde"
-                >
-                  {currentTurnOrderIndex}
-                </span>
-              ) : null}
-              <Text variant="body" as="span" className="min-w-0 flex-1 truncate text-sm font-semibold">
-                Ronde {turnRound}
-              </Text>
-              <SlagordeInfoButton open={info.open} onToggle={info.toggle} />
+        <div className="flex flex-col gap-2">
+          <CombatRoundBar
+            combatStatus={combatStatus}
+            turnRound={turnRound}
+            currentTurnOrderIndex={currentTurnOrderIndex}
+            currentTurnMember={currentTurnMember}
+            isActive={ambienceActive}
+            infoSlot={<SlagordeInfoButton open={info.open} onToggle={info.toggle} />}
+          />
+          {info.open ? (
+            <div className="tv-combat-info-popover">
+              <SlagordeInfoContent />
             </div>
-            {info.open ? <SlagordeInfoContent /> : null}
-          </>
-        ) : (
-          <Text variant="meta" as="p" className="leading-5">{statusSubtitle || statusTitle}</Text>
-        )}
-      </div>
+          ) : null}
+          {!combatInProgress ? (
+            <Text variant="meta" as="p" className="leading-5">{statusSubtitle || statusTitle}</Text>
+          ) : null}
+        </div>      </div>
     </div>
   );
 }

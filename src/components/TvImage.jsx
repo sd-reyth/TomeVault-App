@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { getImageCoverZoom } from '../lib/placeholders';
 
 /**
@@ -14,7 +14,12 @@ export default function TvImage({
   style,
   ...props
 }) {
+  const [hasError, setHasError] = useState(false);
+
   if (!src) return null;
+  if (hasError) {
+    return <div aria-hidden="true" className={`tv-image-fallback ${className}`.trim()} />;
+  }
 
   if (contain) {
     return (
@@ -23,6 +28,7 @@ export default function TvImage({
         alt={alt}
         className={`tv-image-contain ${className}`.trim()}
         style={style}
+        onError={() => setHasError(true)}
         {...props}
       />
     );
@@ -36,6 +42,7 @@ export default function TvImage({
       alt={alt}
       className={`tv-image-cover ${className}`.trim()}
       style={{ '--tv-image-zoom': resolvedZoom, ...style }}
+      onError={() => setHasError(true)}
       {...props}
     />
   );
