@@ -52,9 +52,7 @@ export default function ParticipantRow({
     >
       {isCurrentTurn && battleActive ? <div className="tv-combat-turn-rail" aria-hidden="true" /> : null}
 
-      <div className={`tv-handout-media tv-image-frame relative flex aspect-square w-[4.25rem] shrink-0 items-center justify-center overflow-hidden border-r md:w-[4.75rem] ${
-        member.isNpc ? 'tv-tone-enemy-chip' : 'tv-chip-surface tv-accent'
-      }`}>
+      <div className="tv-handout-media tv-image-frame tv-combat-participant-media relative w-[4.25rem] shrink-0 self-stretch overflow-hidden border-r md:w-[4.75rem]">
         <TvImage
           src={resolveDisplayAvatar(displayMemberAvatar, member.id)}
           alt={displayMemberName}
