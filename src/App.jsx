@@ -3131,6 +3131,7 @@ export default function TomeVaultApp() {
 
   const handleAdjustWallet = async (ownerId, coinKey, delta) => {
     if (!['platinum', 'gold', 'silver', 'bronze'].includes(coinKey)) return;
+    if (role !== 'gm' && ownerId !== CURRENT_PLAYER_ID) return;
 
     const previousWallets = wallets;
     const currentValue = Number(previousWallets?.[ownerId]?.[coinKey] || 0);

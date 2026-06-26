@@ -222,6 +222,8 @@ function InventoryView({
     ? (walletOwnerId === 'party' ? 'Groepskas' : resolveOwnerLabel(walletOwnerId, party))
     : 'Buidel';
 
+  const canEditWallet = role === 'gm' || walletOwnerId === currentPlayerId;
+
   const preferredOwnerForAdd = role === 'gm'
     ? (gmScope === 'all' ? 'party' : gmScope)
     : currentPlayerId;
@@ -286,7 +288,7 @@ function InventoryView({
           )}
           <WalletSection
             wallet={activeWallet}
-            editable={role === 'gm'}
+            editable={canEditWallet}
             onAdjust={(coinKey, delta) => onAdjustWallet?.(walletOwnerId, coinKey, delta)}
           />
         </div>
