@@ -290,7 +290,7 @@ function SettingsModal({
               onClick={() => onExportArchive?.()}
               disabled={exportBusy}
             >
-              <Download className="h-4 w-4" /> {exportBusy ? 'Laden...' : (role === 'gm' ? 'Archief exporteren' : 'Profiel exporteren')}
+              <Download className="h-4 w-4" /> {exportBusy ? 'Exporteren...' : (role === 'gm' ? 'GM-dossier exporteren' : 'Spelerkroniek exporteren')}
             </Button>
 
             {canOpenOwnerPanel ? (

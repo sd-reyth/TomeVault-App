@@ -3053,7 +3053,8 @@ export default function TomeVaultApp() {
 
     return {
       mode: isGmExport ? 'gm' : 'player',
-      layoutVersion: 'TV-PDF-R4',
+      layoutVersion: 'TV-PDF-R5',
+      theme,
       sessionId,
       generatedAt: new Date().toISOString(),
       subjectName: currentPlayer?.name || playerName || displayName || 'Avonturier',
@@ -3118,8 +3119,8 @@ export default function TomeVaultApp() {
     setIsArchiveExporting(true);
     try {
       const payload = buildPlayerArchivePayload();
-      const fileName = await downloadPlayerArchivePdf(payload);
-      setSessionInfo(`Export voltooid: ${fileName}`);
+      const result = await downloadPlayerArchivePdf(payload);
+      setSessionInfo(`Kroniek opgeslagen: ${result.pageCount} pagina's, ${result.sectionCount} secties ┬À ${result.filename}`);
       setSessionError('');
     } catch (err) {
       console.error('Player archive export fout:', err);
