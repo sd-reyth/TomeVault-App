@@ -1,91 +1,93 @@
 import React from 'react';
 import { Crown, Check, X } from 'lucide-react';
 import { resolveDisplayAvatar } from '../lib/placeholders';
+import { formatCustomStatValue, formatSignedModifier } from '../lib/statModifiers';
 import ModalFrame from './ModalFrame';
 import TvImage from './TvImage';
+import Button from '../ui/Button';
 
 function formatModifier(value) {
-  const safeValue = Number(value ?? 0) || 0;
-  return safeValue >= 0 ? `+${safeValue}` : String(safeValue);
+  return formatSignedModifier(value);
 }
 
-export default function PreparationOfferModal({ isOpen, preparation, onAccept, onReject }) {
+export default function PreparationOfferModal({ isOpen, preparation, onAccept, onReject, busy = false }) {
   if (!isOpen || !preparation) return null;
 
   const statPills = [
-    `HP ${Number(preparation.hp ?? 0)}/${Number(preparation.maxHp ?? preparation.hp ?? 0)}`,
-    `AC ${Number(preparation.ac ?? 10)}`,
-    `Init ${formatModifier(preparation.initMod)}`,
-  ].concat((preparation.customStats || []).slice(0, 4).map((stat) => `${stat.name} ${stat.value}`));
+    { label: 'HP', value: `${Number(preparation.hp ?? 0)}/${Number(preparation.maxHp ?? preparation.hp ?? 0)}` },
+    { label: 'AC', value: String(Number(preparation.ac ?? 10)) },
+    { label: 'Init', value: formatModifier(preparation.initMod) },
+  ].concat((preparation.customStats || []).slice(0, 4).map((stat) => ({
+    label: stat.name,
+    value: formatCustomStatValue(stat),
+  })));
 
   return (
     <ModalFrame
       isOpen={isOpen}
-      onClose={onReject}
+      onClose={busy ? () => {} : onReject}
       title="Rolvoorstel"
       subtitle={preparation.name || 'Naamloos personage'}
       icon={Crown}
+      iconClassName="tv-accent h-5 w-5 shrink-0"
       maxWidthClassName="max-w-xl"
-      bodyClassName="px-0 py-0 overflow-y-hidden sm:px-0 sm:py-0"
-    >
-      <div className="flex flex-1 flex-col overflow-hidden">
-        <div className="tv-profile-banner relative overflow-hidden border-b border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] p-5">
-          {preparation.subtitle ? (
-            <p className="tv-text-sub mt-1 text-sm italic">{preparation.subtitle}</p>
-          ) : null}
+      panelClassName="tv-offer-modal"
+      bodyClassName="!p-0"
+      footer={(
+        <div className="tv-offer-modal__footer">
+          <Button type="button" variant="ghost" block onClick={onReject} disabled={busy} icon={X}>
+            Weiger
+          </Button>
+          <Button
+            type="button"
+            variant="primary"
+            block
+            icon={Check}
+            onClick={onAccept}
+            loading={busy}
+            disabled={busy}
+          >
+            Aanvaard
+          </Button>
         </div>
+      )}
+    >
+      <div className="tv-offer-modal__body">
+        <div className="tv-offer-modal__hero">
+          <div className="tv-offer-modal__portrait tv-image-frame">
+            <TvImage
+              src={resolveDisplayAvatar(preparation.imageUrl, preparation.id)}
+              alt={preparation.name || 'Voorbereid personage'}
+            />
+          </div>
 
-        <div className="flex-1 overflow-y-auto">
-          <div className="grid gap-5 p-5 md:grid-cols-[140px_minmax(0,1fr)] md:p-6">
-            <div className="tv-image-frame mx-auto h-[140px] w-[140px] overflow-hidden rounded-2xl border border-[color-mix(in_srgb,var(--tv-border),transparent_28%)] tv-panel-inset shadow-inner">
-              <TvImage
-                src={resolveDisplayAvatar(preparation.imageUrl, preparation.id)}
-                alt={preparation.name || 'Voorbereid personage'}
-              />
-            </div>
-
-            <div>
-              <p className="tv-meta text-sm leading-7">
-                De GM biedt een voorbereid personage aan. Je profiel wordt bijgewerkt; inventaris en wallet blijven intact. Er wordt automatisch een herstelpunt gemaakt.
-              </p>
-
-              <div className="mt-4 flex flex-wrap gap-2">
-                {statPills.map((pill) => (
-                  <span
-                    key={`${preparation.id}-${pill}`}
-                    className="tv-chip-surface tv-tag px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.16em] tv-text-sub"
-                  >
-                    {pill}
-                  </span>
-                ))}
-              </div>
-
-              <div className="tv-panel-inset mt-4 rounded-xl p-4 text-sm leading-7 tv-text">
-                {preparation.bio || <span className="italic tv-muted">Geen bio.</span>}
-              </div>
-            </div>
+          <div className="tv-offer-modal__intro">
+            {preparation.subtitle ? (
+              <p className="tv-offer-modal__class">{preparation.subtitle}</p>
+            ) : null}
+            <p className="tv-offer-modal__lead">
+              De GM biedt een voorbereid personage aan. Inventaris en wallet blijven intact; je vorige profiel komt in je archief.
+            </p>
+            <p className="tv-offer-modal__hint">
+              Sluiten werkt hetzelfde als weigeren — de voorbereiding gaat terug naar de GM.
+            </p>
           </div>
         </div>
 
-        <div className="tv-modal-footer shrink-0 !justify-stretch sm:!justify-end">
-          <button
-            type="button"
-            onClick={onReject}
-            aria-label="Weigeren"
-            className="tv-icon-btn tv-icon-btn--danger h-10 flex-1 sm:flex-none sm:px-4"
-          >
-            <X className="h-4 w-4" />
-            <span className="ml-2 hidden text-xs font-fantasy uppercase tracking-[0.16em] sm:inline">Weiger</span>
-          </button>
-          <button
-            type="button"
-            onClick={onAccept}
-            aria-label="Rol accepteren"
-            className="tv-btn tv-button-primary tv-btn--block flex-1 gap-2 sm:flex-none sm:px-5"
-          >
-            <Check className="h-4 w-4" />
-            <span className="text-sm font-fantasy uppercase tracking-[0.16em]">Aanvaard</span>
-          </button>
+        <div className="tv-offer-modal__stats" aria-label="Karakterstatistieken">
+          {statPills.map((pill) => (
+            <span key={`${preparation.id}-${pill.label}`} className="tv-prep-stat-pill">
+              <span className="tv-prep-stat-pill__label">{pill.label}</span>
+              <span className="tv-prep-stat-pill__value">{pill.value}</span>
+            </span>
+          ))}
+        </div>
+
+        <div className="tv-offer-modal__bio tv-panel-inset">
+          <p className="tv-offer-modal__bio-label">Achtergrond</p>
+          <div className="tv-offer-modal__bio-copy font-story text-sm leading-7 tv-text">
+            {preparation.bio || <span className="italic tv-muted">Geen bio.</span>}
+          </div>
         </div>
       </div>
     </ModalFrame>

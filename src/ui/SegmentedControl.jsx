@@ -41,8 +41,16 @@ export default function SegmentedControl({
               }
             }}
             className={`tv-segmented__option ${isActive ? 'tv-segmented__option--active' : ''}`}
+            aria-label={option.count != null ? `${option.label} (${option.count})` : undefined}
           >
-            {option.label}
+            {option.count != null ? (
+              <span className="tv-segmented__option-content">
+                <span className="tv-segmented__option-label">{option.label}</span>
+                <span className="tv-segmented__option-meta">{option.count}</span>
+              </span>
+            ) : (
+              option.label
+            )}
           </button>
         );
       })}

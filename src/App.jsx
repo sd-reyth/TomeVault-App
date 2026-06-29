@@ -13,6 +13,7 @@ import {
   collection,
   collectionGroup,
   deleteDoc,
+  deleteField,
   doc,
   getDoc,
   getDocs,
@@ -70,14 +71,22 @@ import {
 } from './lib/ambienceLibrary';
 import { DEFAULT_AVATAR_POSITION, normalizeAvatarPosition, normalizeAvatarUrl } from './lib/placeholders';
 import { normalizeItemCategory } from './lib/itemCategories';
-import { handoutHasSecret, resolveHandoutSecret } from './lib/handoutUtils';
+import { handoutHasSecret, isHandoutDeleted, isHandoutTrashExpired, resolveHandoutSecret, HANDOUT_TRASH_RETENTION_MS } from './lib/handoutUtils';
 import { downloadPlayerArchivePdf } from './lib/playerArchivePdf';
-import { sendChatMessage } from './lib/chatUtils';
+import { sanitizeCustomStats } from './lib/statModifiers';
+import {
+  buildBackupEntry,
+  findAcceptedTemplatesForPlayer,
+  playerProfileFieldsFromSnapshot,
+  profileSnapshotMatchesPlayer,
+  templateReturnToPoolFields,
+} from './lib/preparationLifecycle';
+import { canDeleteChatMessage, canEditChatMessage, sendChatMessage } from './lib/chatUtils';
 import LandingScreen from './components/LandingScreen';
 import QRJoinScreen from './components/QRJoinScreen';
 import TopBar from './components/TopBar';
 import DamageModal from './components/DamageModal';
-import ShareModal from './components/ShareModal';
+import SessionHubModal from './components/SessionHubModal';
 import AddNpcModal from './components/AddNpcModal';
 import Sidebar from './components/Sidebar';
 import PlaceholderView from './components/PlaceholderView';
@@ -89,10 +98,11 @@ import InventoryView from './components/InventoryView';
 import NotesView from './components/NotesView';
 import EditableStat from './components/EditableStat';
 import SettingsModal from './components/SettingsModal';
-import SessionManageModal from './components/SessionManageModal';
 import SourcelistModal from './components/SourcelistModal';
 import AddItemModal from './components/AddItemModal';
 import HandoutModal from './components/HandoutModal';
+import HandoutDeleteConfirmModal from './components/HandoutDeleteConfirmModal';
+import HandoutTrashModal from './components/HandoutTrashModal';
 import CharacterProfileModal from './components/CharacterProfileModal';
 import PreparationModal from './components/PreparationModal';
 import PlayerPickerModal from './components/PlayerPickerModal';
@@ -101,6 +111,13 @@ import RightSidebar from './components/RightSidebar';
 import InitiativeSwapModal from './components/InitiativeSwapModal';
 import OwnerAdminPanel from './components/OwnerAdminPanel';
 import { resolveActivePlan } from './lib/accessPlans';
+import {
+  ensureJoinCodeAlias,
+  generateUniqueJoinTag,
+  resolveSessionDocFromJoinInput,
+  resolveSessionPreview,
+  rollJoinCodeForSession,
+} from './lib/joinCodeUtils';
 import { DEFAULT_THEME, LANDING_DEFAULT_THEME } from './lib/appThemes';
 
 async function uploadImageToStorage(file, path) {
@@ -110,25 +127,6 @@ async function uploadImageToStorage(file, path) {
 }
 
 // Prototype source for the React shell migration.
-
-
-async function generateUniqueJoinTag(sessionName) {
-  const base = slugifySessionName(sessionName);
-  const sessionsRef = collection(db, 'sessions');
-
-  for (let i = 0; i < 30; i += 1) {
-    const code = String(Math.floor(1000 + Math.random() * 9000));
-    const candidate = `${base}#${code}`;
-    const safeCandidate = toSafeJoinTagForLink(candidate);
-    const [hashSnap, safeSnap] = await Promise.all([
-      getDocs(query(sessionsRef, where('joinTag', '==', candidate))),
-      getDocs(query(sessionsRef, where('joinTag', '==', safeCandidate))),
-    ]);
-    if (hashSnap.empty && safeSnap.empty) return candidate;
-  }
-
-  return `${base}#${String(Date.now()).slice(-4)}`;
-}
 
 async function writeMembership({ uid, sessionId, role, sessionName, joinTag, status = 'active', preferredChatColor }) {
   if (!uid || !sessionId) return;
@@ -159,6 +157,36 @@ async function writeMembership({ uid, sessionId, role, sessionName, joinTag, sta
   }
 
   await setDoc(ref, payload, { merge: true });
+}
+
+async function ensureSessionPlayerProfile({
+  sessionId,
+  uid,
+  name,
+  defaultCombatParticipation = COMBAT_PARTICIPATION_STATUS.ACTIVE,
+}) {
+  if (!sessionId || !uid) return '';
+
+  const playerRef = doc(db, 'sessions', sessionId, 'players', uid);
+  const playerSnap = await getDoc(playerRef);
+  const existing = playerSnap.data() || {};
+  const resolvedName = String(existing.nickname || name || 'Avonturier').trim() || 'Avonturier';
+  const payload = {
+    nickname: resolvedName,
+    lastSeenAt: serverTimestamp(),
+    isNpc: false,
+    isRevealed: true,
+  };
+
+  if (!playerSnap.exists()) {
+    payload.joinedAt = serverTimestamp();
+    payload.initiative = null;
+    payload.combatParticipation = defaultCombatParticipation;
+    payload.combatJoinRequestStatus = COMBAT_JOIN_REQUEST_STATUS.NONE;
+  }
+
+  await setDoc(playerRef, payload, { merge: true });
+  return resolvedName;
 }
 
 function loadStoredListenerAmbienceVolume() {
@@ -229,17 +257,6 @@ function hasNonEmptyText(value) {
   return typeof value === 'string' && value.trim().length > 0;
 }
 
-function sanitizeCustomStats(value) {
-  if (!Array.isArray(value)) return [];
-
-  return value
-    .map((entry, index) => ({
-      id: entry?.id || `stat-${index}`,
-      name: String(entry?.name || '').trim().toUpperCase(),
-      value: Number(entry?.value ?? 0) || 0,
-    }))
-    .filter((entry) => entry.name.length > 0);
-}
 
 function normalizePreparationDoc(docSnap) {
   const data = docSnap.data() || {};
@@ -281,6 +298,7 @@ function normalizePreparationBackupDoc(docSnap) {
     playerName: String(data.playerName || '').trim() || '',
     templateId: String(data.templateId || '').trim() || null,
     templateName: String(data.templateName || '').trim() || '',
+    reason: String(data.reason || 'accept').trim() || 'accept',
     createdAtMs: data.createdAt?.toMillis ? data.createdAt.toMillis() : 0,
     restoredAtMs: data.restoredAt?.toMillis ? data.restoredAt.toMillis() : 0,
     snapshot: {
@@ -325,6 +343,37 @@ function buildPreparationBackupSnapshot(player = {}, fallbacks = {}) {
     initMod: Number(player.initMod ?? fallbacks.initMod ?? 0),
     customStats: sanitizeCustomStats(player.customStats || fallbacks.customStats),
   };
+}
+
+const MAX_PROFILE_BACKUPS = 3;
+
+const PROFILE_BACKUP_REASON_LABELS = {
+  profile_save: 'Profiel opgeslagen',
+  settings_save: 'Instellingen opgeslagen',
+  leave: 'Sessie verlaten',
+  logout: 'Uitgelogd',
+  manual: 'Handmatig',
+};
+
+function buildProfileBackupSnapshot(player = {}) {
+  return {
+    name: String(player.name || '').trim() || 'Avonturier',
+    subtitle: String(player.subtitle || '').trim(),
+    bio: String(player.bio || '').trim(),
+    avatarUrl: normalizeAvatarUrl(player.avatar || player.avatarUrl),
+    avatarPosition: normalizeAvatarPosition(player.avatarPosition),
+    hp: Number(player.hp ?? 0),
+    maxHp: Number(player.maxHp ?? player.hp ?? 0),
+    ac: Number(player.ac ?? 10),
+    initMod: Number(player.initMod ?? 0),
+    hasAlertFeat: player.hasAlertFeat === true,
+    proficiencyBonus: Number(player.proficiencyBonus ?? 2),
+    customStats: sanitizeCustomStats(player.customStats),
+  };
+}
+
+function profileBackupSignature(snapshot) {
+  return JSON.stringify(buildProfileBackupSnapshot(snapshot || {}));
 }
 
 const ACTIVE_SESSION_STORAGE_KEY = 'tomevault:active-session:v1';
@@ -383,7 +432,9 @@ export default function TomeVaultApp() {
   const [role, setRole] = useState(() => persistedActiveSession?.role || null);
   const [sessionId, setSessionId] = useState(() => persistedActiveSession?.sessionId || '');
   const [sessionDocId, setSessionDocId] = useState(() => persistedActiveSession?.sessionDocId || '');
-  const [showShareModal, setShowShareModal] = useState(false);
+  const [isSessionHubOpen, setIsSessionHubOpen] = useState(false);
+  const [sessionHubInitialTab, setSessionHubInitialTab] = useState('overview');
+  const [joinCodeRolling, setJoinCodeRolling] = useState(false);
   const [activeTab, setActiveTab] = useState(() => persistedActiveSession?.activeTab || 'handouts');
   const [playerName, setPlayerName] = useState(() => persistedActiveSession?.playerName || '');
 
@@ -394,6 +445,7 @@ export default function TomeVaultApp() {
     return String(params.get('code') || '').trim();
   });
   const [qrJoinDone, setQrJoinDone] = useState(false);
+  const [qrInvitePreview, setQrInvitePreview] = useState(null);
   const showQRJoin = Boolean(qrInviteCode && view === 'landing' && !qrJoinDone);
   const [theme, setTheme] = useState(() => {
     if (typeof window === 'undefined') return DEFAULT_THEME;
@@ -461,6 +513,8 @@ export default function TomeVaultApp() {
   const [notes, setNotes] = useState(MOCK_NOTES);
   const [preparations, setPreparations] = useState([]);
   const [preparationBackups, setPreparationBackups] = useState([]);
+  const [profileBackups, setProfileBackups] = useState([]);
+  const profileBackupInFlightRef = useRef(false);
   const [sessionAmbience, setSessionAmbience] = useState(() => ({ ...DEFAULT_AMBIENCE_STATE }));
   const [isAmbiencePanelOpen, setIsAmbiencePanelOpen] = useState(false);
   const [needsAudioUnlock, setNeedsAudioUnlock] = useState(false);
@@ -501,6 +555,7 @@ export default function TomeVaultApp() {
     handleDeleteNpc,
     handleKickPlayerFromCombat,
     handleRequestCombatJoin,
+    handleReturnPlayerToCombat,
   } = useCombat({ sessionDocId, party, setParty, role, uid, setSessionInfo });
   const [appUpdateNotice, setAppUpdateNotice] = useState('');
   const [sessionBusy, setSessionBusy] = useState(false);
@@ -523,9 +578,8 @@ export default function TomeVaultApp() {
     activeTab: 'handouts',
     isPartyOpen: false,
     isAmbiencePanelOpen: false,
-    showShareModal: false,
+    isSessionHubOpen: false,
     isSettingsOpen: false,
-    isSessionPanelOpen: false,
     isSourcelistOpen: false,
     isNpcModalOpen: false,
     isAddItemModalOpen: false,
@@ -556,13 +610,14 @@ export default function TomeVaultApp() {
   const [addItemPreferredOwner, setAddItemPreferredOwner] = useState(null);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isOwnerPanelOpen, setIsOwnerPanelOpen] = useState(false);
-  const [isSessionPanelOpen, setIsSessionPanelOpen] = useState(false);
   const [isSourcelistOpen, setIsSourcelistOpen] = useState(false);
   const [isArchiveExporting, setIsArchiveExporting] = useState(false);
   const [initiativeSwapTarget, setInitiativeSwapTarget] = useState(null);
   const [damageTarget, setDamageTarget] = useState(null);
   const [profileTarget, setProfileTarget] = useState(null);
   const [selectedHandout, setSelectedHandout] = useState(null);
+  const [handoutPendingDelete, setHandoutPendingDelete] = useState(null);
+  const [isHandoutTrashOpen, setIsHandoutTrashOpen] = useState(false);
 
   useEffect(() => {
     handoutsRef.current = handouts;
@@ -572,14 +627,21 @@ export default function TomeVaultApp() {
     setSelectedHandout((current) => {
       if (!current || current === 'new') return current;
       const fresh = handouts.find((entry) => String(entry.id) === String(current.id));
-      return fresh ? fresh : current;
+      if (!fresh || isHandoutDeleted(fresh)) return null;
+      return fresh;
     });
   }, [handouts]);
   const [selectedPreparation, setSelectedPreparation] = useState(null);
   const [assigningPreparation, setAssigningPreparation] = useState(null);
   const [importingPreparationPlayer, setImportingPreparationPlayer] = useState(false);
   const [pendingPreparationOffer, setPendingPreparationOffer] = useState(null);
+  const [preparationOfferBusy, setPreparationOfferBusy] = useState(false);
+  const [playerProfileArchives, setPlayerProfileArchives] = useState([]);
+  const [playerAssignedTemplates, setPlayerAssignedTemplates] = useState([]);
+  const [profileArchiveBusy, setProfileArchiveBusy] = useState(false);
+  const [claimNotesByHandoutId, setClaimNotesByHandoutId] = useState({});
   const [campaignSessionNumber, setCampaignSessionNumber] = useState(1);
+  const [campaignName, setCampaignName] = useState('');
   const localDevBootstrap = useMemo(() => getLocalDevBootstrapConfig(), []);
   const accessRole = role === 'gm' ? 'gm' : (role === 'player' ? 'player' : 'player');
   const currentAccessPlan = useMemo(
@@ -821,7 +883,7 @@ export default function TomeVaultApp() {
             if (existingData.gmUid !== uid && allowLocalDevTakeover) {
               // Firestore rules do not permit arbitrary GM takeover of another
               // anonymous dev session, so create an isolated fresh dev session instead.
-              joinTag = await generateUniqueJoinTag(sessionName);
+              joinTag = await generateUniqueJoinTag(db, sessionName);
               shouldCreateFreshLocalDevSession = true;
               setSessionInfo('Bestaande lokale testsessie was bezet. Er wordt een nieuwe testsessie voor je aangemaakt.');
             }
@@ -834,17 +896,25 @@ export default function TomeVaultApp() {
                 sessionName: existingData.name || sessionName,
                 joinTag: toLegacyHashJoinTag(existingData.joinTag || joinTag),
               });
+              const resolvedGmPlayerName = await ensureSessionPlayerProfile({
+                sessionId: existing.id,
+                uid,
+                name: playerName || displayName || 'GM',
+                defaultCombatParticipation: COMBAT_PARTICIPATION_STATUS.REMOVED,
+              });
 
+              setPlayerName(resolvedGmPlayerName || playerName);
               setRole('gm');
               setSessionDocId(existing.id);
               setSessionId(toLegacyHashJoinTag(existingData.joinTag || joinTag));
+              setCampaignName(String(existingData.name || sessionName).trim());
               setCampaignSessionNumber(Number(existingData.campaignSessionNumber || 1));
               setView('dashboard');
               return;
             }
           }
         } else {
-          joinTag = await generateUniqueJoinTag(sessionName);
+          joinTag = await generateUniqueJoinTag(db, sessionName);
         }
 
         const sessionData = {
@@ -862,6 +932,8 @@ export default function TomeVaultApp() {
 
         const created = await addDoc(collection(db, 'sessions'), sessionData);
 
+        await ensureJoinCodeAlias(db, created.id, joinTag);
+
         await writeMembership({
           uid,
           sessionId: created.id,
@@ -869,10 +941,18 @@ export default function TomeVaultApp() {
           sessionName: sessionData?.name || '',
           joinTag: toLegacyHashJoinTag(sessionData?.joinTag || joinTag),
         });
+        const resolvedGmPlayerName = await ensureSessionPlayerProfile({
+          sessionId: created.id,
+          uid,
+          name: playerName || displayName || 'GM',
+          defaultCombatParticipation: COMBAT_PARTICIPATION_STATUS.REMOVED,
+        });
 
+        setPlayerName(resolvedGmPlayerName || playerName);
         setRole('gm');
         setSessionDocId(created.id);
         setSessionId(joinTag);
+        setCampaignName(sessionName);
         setCampaignSessionNumber(1);
         setView('dashboard');
         return;
@@ -895,26 +975,7 @@ export default function TomeVaultApp() {
         return;
       }
 
-      const variants = getJoinTagLookupVariants(joinTagRaw);
-      let sessionDoc = null;
-
-      for (const candidate of variants) {
-        const byTag = await getDocs(query(collection(db, 'sessions'), where('joinTag', '==', candidate)));
-        if (!byTag.empty) {
-          sessionDoc = byTag.docs[0];
-          break;
-        }
-      }
-
-      if (!sessionDoc) {
-        for (const candidate of variants) {
-          const byId = await getDoc(doc(db, 'sessions', candidate));
-          if (byId.exists()) {
-            sessionDoc = byId;
-            break;
-          }
-        }
-      }
+      const sessionDoc = await resolveSessionDocFromJoinInput(db, joinTagRaw);
 
       if (!sessionDoc) {
         setSessionError('Sessie niet gevonden. Controleer de code.');
@@ -962,6 +1023,7 @@ export default function TomeVaultApp() {
       setRole('player');
       setSessionDocId(sessionDoc.id);
       setSessionId(toLegacyHashJoinTag(sessionData?.joinTag || joinTagRaw));
+      setCampaignName(String(sessionData?.name || '').trim());
       setCampaignSessionNumber(Number(sessionData?.campaignSessionNumber || 1));
       setView('dashboard');
     } catch (err) {
@@ -1004,10 +1066,18 @@ export default function TomeVaultApp() {
           sessionName: data.name || membership.sessionName || '',
           joinTag: resolvedJoinTag,
         });
+        const resolvedGmPlayerName = await ensureSessionPlayerProfile({
+          sessionId: snap.id,
+          uid,
+          name: playerName || displayName || 'GM',
+          defaultCombatParticipation: COMBAT_PARTICIPATION_STATUS.REMOVED,
+        });
 
+        setPlayerName(resolvedGmPlayerName || playerName);
         setRole('gm');
         setSessionDocId(snap.id);
         setSessionId(resolvedJoinTag);
+        setCampaignName(String(data.name || membership.sessionName || '').trim());
         setCampaignSessionNumber(Number(data?.campaignSessionNumber || 1));
         setView('dashboard');
         return;
@@ -1046,6 +1116,7 @@ export default function TomeVaultApp() {
       setRole('player');
       setSessionDocId(snap.id);
       setSessionId(resolvedJoinTag);
+      setCampaignName(String(data.name || membership.sessionName || '').trim());
       setCampaignSessionNumber(Number(data?.campaignSessionNumber || 1));
       setView('dashboard');
     } catch (err) {
@@ -1150,6 +1221,7 @@ export default function TomeVaultApp() {
           autoResumeAttemptRef.current = uid || autoResumeAttemptRef.current;
           setRole(null);
           setSessionId('');
+          setCampaignName('');
           setCampaignSessionNumber(1);
           setSessionDocId('');
           setView('landing');
@@ -1175,6 +1247,11 @@ export default function TomeVaultApp() {
 
   const handleLogout = async () => {
     try {
+      await createProfileBackup('logout');
+    } catch (_) {
+      // best-effort backup; never block logout
+    }
+    try {
       await signOut(auth);
     } catch (err) {
       console.error('Logout fout:', err);
@@ -1182,6 +1259,7 @@ export default function TomeVaultApp() {
     autoResumeAttemptRef.current = '';
     setRole(null);
     setSessionId('');
+    setCampaignName('');
     setCampaignSessionNumber(1);
     setSessionDocId('');
     setView('landing');
@@ -1194,11 +1272,13 @@ export default function TomeVaultApp() {
   };
 
   const handleLeaveSession = () => {
+    void createProfileBackup('leave');
     autoResumeAttemptRef.current = uid || autoResumeAttemptRef.current;
     setSessionError('');
     setSessionInfo('');
     setRole(null);
     setSessionId('');
+    setCampaignName('');
     setCampaignSessionNumber(1);
     setSessionDocId('');
     setView('landing');
@@ -1562,9 +1642,8 @@ export default function TomeVaultApp() {
       activeTab,
       isPartyOpen,
       isAmbiencePanelOpen,
-      showShareModal,
+      isSessionHubOpen,
       isSettingsOpen,
-      isSessionPanelOpen,
       isSourcelistOpen,
       isNpcModalOpen,
       isAddItemModalOpen,
@@ -1598,9 +1677,8 @@ export default function TomeVaultApp() {
     const closableFlags = [
       ['isPartyOpen', 'party'],
       ['isAmbiencePanelOpen', 'ambiencePanel'],
-      ['showShareModal', 'shareModal'],
+      ['isSessionHubOpen', 'sessionHub'],
       ['isSettingsOpen', 'settingsModal'],
-      ['isSessionPanelOpen', 'sessionPanel'],
       ['isSourcelistOpen', 'sourcelistModal'],
       ['isNpcModalOpen', 'npcModal'],
       ['isAddItemModalOpen', 'addItemModal'],
@@ -1630,7 +1708,7 @@ export default function TomeVaultApp() {
     isAmbiencePanelOpen,
     isNpcModalOpen,
     isPartyOpen,
-    isSessionPanelOpen,
+    isSessionHubOpen,
     isSettingsOpen,
     isSourcelistOpen,
     pendingPreparationOffer,
@@ -1638,7 +1716,6 @@ export default function TomeVaultApp() {
     role,
     selectedHandout,
     selectedPreparation,
-    showShareModal,
     view,
   ]);
 
@@ -1662,12 +1739,10 @@ export default function TomeVaultApp() {
         setIsNpcModalOpen(false);
       } else if (target === 'settingsModal') {
         setIsSettingsOpen(false);
-      } else if (target === 'sessionPanel') {
-        setIsSessionPanelOpen(false);
+      } else if (target === 'sessionHub') {
+        setIsSessionHubOpen(false);
       } else if (target === 'sourcelistModal') {
         setIsSourcelistOpen(false);
-      } else if (target === 'shareModal') {
-        setShowShareModal(false);
       } else if (target === 'ambiencePanel') {
         setIsAmbiencePanelOpen(false);
       } else if (target === 'party') {
@@ -1733,6 +1808,7 @@ export default function TomeVaultApp() {
       setNotes([]);
       setPreparations([]);
       setPreparationBackups([]);
+      setProfileBackups([]);
       setPendingPreparationOffer(null);
       resetAmbienceState();
       lastInventorySectionCleanupSignatureRef.current = '';
@@ -1757,6 +1833,7 @@ export default function TomeVaultApp() {
         const { skipCombatUpdate } = reconcileCombatFromSnapshot(s);
 
         setCampaignSessionNumber(Number(s.campaignSessionNumber || 1));
+        setCampaignName(String(s.name || '').trim());
         setSessionAmbience(normalizeAmbienceState(s.ambience));
 
         if (s.gmUid && uid) {
@@ -1778,6 +1855,10 @@ export default function TomeVaultApp() {
           const createdAtMs = h.createdAt?.toMillis ? h.createdAt.toMillis() : 0;
           const updatedAtCandidate = h.updatedAt || h.createdAt || null;
           const updatedAtMs = updatedAtCandidate?.toMillis ? updatedAtCandidate.toMillis() : createdAtMs;
+          const deletedAtMs = h.deletedAt?.toMillis ? h.deletedAt.toMillis() : null;
+          const deletedExpiresAtMs = h.deletedExpiresAt?.toMillis
+            ? h.deletedExpiresAt.toMillis()
+            : (deletedAtMs ? deletedAtMs + HANDOUT_TRASH_RETENTION_MS : null);
           return {
             id: d.id,
             title: h.title || 'Naamloze handout',
@@ -1801,6 +1882,9 @@ export default function TomeVaultApp() {
             npcInitMod: Number(h.npcInitMod ?? 2),
             createdAtMs,
             updatedAtMs,
+            deletedAtMs,
+            deletedByUid: h.deletedByUid || null,
+            deletedExpiresAtMs,
           };
         });
 
@@ -1833,10 +1917,11 @@ export default function TomeVaultApp() {
             avatar: p.avatarUrl || p.avatar || null,
             avatarPosition: normalizeAvatarPosition(p.avatarPosition),
             bio: p.bio || '',
-            customStats: Array.isArray(p.customStats) ? p.customStats : [],
+            customStats: sanitizeCustomStats(p.customStats),
             conditions: normalizedConditions,
             hasAlertFeat: p.hasAlertFeat === true,
             proficiencyBonus: Number(p.proficiencyBonus ?? 2),
+            isDead: p.isDead === true,
             combatParticipation: normalizeCombatParticipation(p.combatParticipation),
             combatJoinRequestStatus: normalizeCombatJoinRequestStatus(p.combatJoinRequestStatus),
           };
@@ -1972,6 +2057,53 @@ export default function TomeVaultApp() {
               .filter((entry) => entry.assignmentStatus === 'pending')
               .sort((left, right) => Number(right.offeredAtMs || 0) - Number(left.offeredAtMs || 0))[0] || null;
             setPendingPreparationOffer(nextPending);
+            setPlayerAssignedTemplates(incoming.filter((entry) => entry.assignmentStatus === 'accepted'));
+          }
+        )
+      );
+
+      unsubs.push(
+        onSnapshot(
+          query(collection(db, 'sessions', sid, 'preparationBackups'), where('playerUid', '==', uid)),
+          (snap) => {
+            const incoming = snap.docs
+              .map((entry) => normalizePreparationBackupDoc(entry))
+              .sort((left, right) => Number(right.createdAtMs || 0) - Number(left.createdAtMs || 0));
+            setPlayerProfileArchives(incoming);
+          }
+        )
+      );
+    }
+
+    if (uid) {
+      unsubs.push(
+        onSnapshot(
+          query(collection(db, 'users', uid, 'profileBackups'), where('sessionDocId', '==', sid)),
+          (snap) => {
+            const incoming = snap.docs
+              .map((entry) => {
+                const data = entry.data() || {};
+                const createdAtMs = Number(
+                  data.createdAtMs
+                  ?? (data.createdAt?.toMillis ? data.createdAt.toMillis() : 0)
+                );
+                return {
+                  id: entry.id,
+                  snapshot: data.snapshot || {},
+                  reason: data.reason || 'manual',
+                  reasonLabel: PROFILE_BACKUP_REASON_LABELS[data.reason] || 'Herstelpunt',
+                  signature: data.signature || '',
+                  createdAtMs,
+                  createdAtLabel: createdAtMs ? formatLastEditedLabel({ toMillis: () => createdAtMs }) : '',
+                };
+              })
+              .sort((left, right) => Number(right.createdAtMs || 0) - Number(left.createdAtMs || 0))
+              .slice(0, MAX_PROFILE_BACKUPS);
+            setProfileBackups(incoming);
+          },
+          (err) => {
+            console.error('Profielback-ups laden mislukt:', err);
+            setProfileBackups([]);
           }
         )
       );
@@ -1987,6 +2119,47 @@ export default function TomeVaultApp() {
       });
     };
   }, [role, sessionDocId, uid, view]);
+
+  useEffect(() => {
+    if (!sessionDocId || view !== 'dashboard' || !uid || role !== 'player') {
+      setClaimNotesByHandoutId({});
+      return undefined;
+    }
+
+    const claimedIds = (handouts || [])
+      .filter((entry) => entry.claimedBy === uid)
+      .map((entry) => String(entry.id));
+
+    if (claimedIds.length === 0) {
+      setClaimNotesByHandoutId({});
+      return undefined;
+    }
+
+    const unsubs = claimedIds.map((handoutId) => onSnapshot(
+      doc(db, 'sessions', sessionDocId, 'handouts', handoutId, 'claimNotes', uid),
+      (snap) => {
+        setClaimNotesByHandoutId((prev) => {
+          const next = { ...prev };
+          if (!snap.exists() || !String(snap.data()?.note || '').trim()) {
+            delete next[handoutId];
+          } else {
+            next[handoutId] = String(snap.data().note || '').trim();
+          }
+          return next;
+        });
+      }
+    ));
+
+    return () => {
+      unsubs.forEach((fn) => {
+        try {
+          fn();
+        } catch (_) {
+          // no-op
+        }
+      });
+    };
+  }, [handouts, role, sessionDocId, uid, view]);
 
   useEffect(() => {
     if (!sessionDocId || view !== 'dashboard' || !inventoryLoaded) return;
@@ -2193,26 +2366,82 @@ export default function TomeVaultApp() {
     }
   };
 
+  const handleSaveHandoutClaimNote = async (handoutId, note) => {
+    if (!sessionDocId || !uid || !handoutId) return;
+
+    const trimmed = String(note || '').trim();
+    const noteRef = doc(db, 'sessions', sessionDocId, 'handouts', handoutId, 'claimNotes', uid);
+
+    try {
+      if (!trimmed) {
+        await deleteDoc(noteRef);
+        setClaimNotesByHandoutId((prev) => {
+          const next = { ...prev };
+          delete next[handoutId];
+          return next;
+        });
+        return;
+      }
+
+      await setDoc(noteRef, {
+        playerUid: uid,
+        note: trimmed,
+        updatedAt: serverTimestamp(),
+      }, { merge: true });
+
+      setClaimNotesByHandoutId((prev) => ({ ...prev, [handoutId]: trimmed }));
+    } catch (err) {
+      console.error('Handout-notitie opslaan mislukt:', err);
+      setSessionError('Je persoonlijke notitie kon niet worden opgeslagen.');
+    }
+  };
+
   const handleUnclaimHandout = async (handoutId) => {
+    const handout = handouts.find((entry) => String(entry.id) === String(handoutId));
+    const claimantUid = String(handout?.claimedBy || '').trim();
     let didPersist = false;
 
     try {
       if (sessionDocId) {
+        if (claimantUid) {
+          try {
+            await deleteDoc(doc(db, 'sessions', sessionDocId, 'handouts', handoutId, 'claimNotes', claimantUid));
+          } catch (err) {
+            console.warn('Claim-notitie verwijderen mislukt:', err);
+          }
+        }
+
+        // The GM can also clear an assignment so the handout fully returns to
+        // the pool. Players may only touch claim metadata (Firestore rules),
+        // so assignment fields are GM-only here.
+        const assignmentReset = role === 'gm'
+          ? { assignedToUid: null, assignedToNick: null }
+          : {};
+
         await updateDoc(doc(db, 'sessions', sessionDocId, 'handouts', handoutId), {
           claimedByUid: null,
           claimedByNick: null,
           mapVisibleToUid: null,
           claimedAt: null,
+          ...assignmentReset,
           updatedAt: serverTimestamp(),
         });
       }
       didPersist = true;
     } catch (err) {
       console.error('Unclaim handout fout:', err);
+      setSessionError('Terugleggen naar handouts is mislukt. Probeer opnieuw.');
     }
 
     if (didPersist) {
-      setHandouts(handouts.map(h => h.id === handoutId ? { ...h, claimedBy: null } : h));
+      setHandouts(handouts.map((h) => (h.id === handoutId
+        ? { ...h, claimedBy: null, ...(role === 'gm' ? { assignedToUid: null, assignedToNick: null } : {}) }
+        : h)));
+      setClaimNotesByHandoutId((prev) => {
+        const next = { ...prev };
+        delete next[handoutId];
+        return next;
+      });
     }
   };
 
@@ -2236,6 +2465,11 @@ export default function TomeVaultApp() {
 
   const handleEditChatMessage = async (msgId, newText) => {
     if (!sessionDocId || !msgId) return;
+
+    const selfAuthor = role === 'gm' ? 'GM' : (playerName || 'Speler');
+    const message = chat.find((entry) => entry.id === msgId);
+    if (!canEditChatMessage(message, chat, uid, selfAuthor)) return;
+
     try {
       await updateDoc(doc(db, 'sessions', sessionDocId, 'chatMessages', msgId), {
         message: String(newText || '').trim(),
@@ -2247,6 +2481,11 @@ export default function TomeVaultApp() {
 
   const handleDeleteChatMessage = async (msgId) => {
     if (!sessionDocId || !msgId || msgId.startsWith('tmp-')) return;
+
+    const selfAuthor = role === 'gm' ? 'GM' : (playerName || 'Speler');
+    const message = chat.find((entry) => entry.id === msgId);
+    if (!canDeleteChatMessage(message, role, uid, selfAuthor)) return;
+
     try {
       await deleteDoc(doc(db, 'sessions', sessionDocId, 'chatMessages', msgId));
     } catch (err) {
@@ -2309,8 +2548,78 @@ export default function TomeVaultApp() {
       });
     } catch (err) {
       console.error('Campagne sessienummer bijwerken mislukt:', err);
+      throw err;
     }
   };
+
+  const handleUpdateCampaignName = async (nextName) => {
+    const trimmed = String(nextName || '').trim().slice(0, 48);
+    if (!trimmed || !sessionDocId || role !== 'gm') return;
+
+    setCampaignName(trimmed);
+
+    try {
+      await updateDoc(doc(db, 'sessions', sessionDocId), {
+        name: trimmed,
+        updatedAt: serverTimestamp(),
+      });
+
+      if (uid) {
+        await writeMembership({
+          uid,
+          sessionId: sessionDocId,
+          sessionName: trimmed,
+        });
+      }
+    } catch (err) {
+      console.error('Campagnenaam bijwerken mislukt:', err);
+      throw err;
+    }
+  };
+
+  const handleRollJoinCode = async () => {
+    if (!sessionDocId || role !== 'gm' || !sessionId) return;
+
+    setJoinCodeRolling(true);
+    try {
+      const newTag = await rollJoinCodeForSession(db, {
+        sessionDocId,
+        sessionName: campaignName || 'Session',
+        currentJoinTag: sessionId,
+      });
+
+      setSessionId(newTag);
+
+      if (uid) {
+        await writeMembership({
+          uid,
+          sessionId: sessionDocId,
+          joinTag: newTag,
+        });
+      }
+    } catch (err) {
+      console.error('Join-code rollen mislukt:', err);
+      throw err;
+    } finally {
+      setJoinCodeRolling(false);
+    }
+  };
+
+  const openSessionHub = (tab = 'overview') => {
+    setSessionHubInitialTab(tab);
+    setIsSessionHubOpen(true);
+
+    if (role === 'gm' && sessionDocId && sessionId) {
+      void ensureJoinCodeAlias(db, sessionDocId, sessionId).catch((err) => {
+        console.warn('[TomeVault] join-code alias kon niet worden geborgd.', err);
+      });
+    }
+  };
+
+  const activePlayerCount = useMemo(
+    () => party.filter((member) => member.isNpc !== true).length,
+    [party]
+  );
 
   const persistSessionAmbience = async (nextAmbience, { refreshStartedAt = false } = {}) => {
     if (!sessionDocId || role !== 'gm') return;
@@ -2481,87 +2790,217 @@ export default function TomeVaultApp() {
     });
   };
 
+  const handleReturnPreparationToPool = async (preparationOrId) => {
+    const preparationId = typeof preparationOrId === 'string' ? preparationOrId : preparationOrId?.id;
+    if (!sessionDocId || role !== 'gm' || !preparationId) return;
+
+    await updateDoc(doc(db, 'sessions', sessionDocId, 'characterTemplates', preparationId), {
+      ...templateReturnToPoolFields(),
+      updatedAt: serverTimestamp(),
+    });
+  };
+
   const handleRestorePreparationBackup = async (backup) => {
     if (!sessionDocId || role !== 'gm' || !backup?.playerUid) return;
 
-    await updateDoc(doc(db, 'sessions', sessionDocId, 'players', backup.playerUid), {
-      nickname: backup.snapshot.name || 'Avonturier',
-      subtitle: backup.snapshot.subtitle || '',
-      hp: backup.snapshot.hp ?? 0,
-      maxHp: backup.snapshot.maxHp ?? backup.snapshot.hp ?? 0,
-      ac: backup.snapshot.ac ?? 10,
-      initMod: backup.snapshot.initMod ?? 0,
-      bio: backup.snapshot.bio || '',
-      customStats: backup.snapshot.customStats || [],
-      avatarUrl: backup.snapshot.avatarUrl || null,
+    const batch = writeBatch(db);
+
+    batch.update(doc(db, 'sessions', sessionDocId, 'players', backup.playerUid), {
+      ...playerProfileFieldsFromSnapshot(backup.snapshot, backup.playerName || 'Avonturier'),
       updatedAt: serverTimestamp(),
     });
 
-    await updateDoc(doc(db, 'sessions', sessionDocId, 'preparationBackups', backup.id), {
+    if (backup.templateId) {
+      const linkedTemplate = preparations.find((entry) => entry.id === backup.templateId);
+      if (linkedTemplate?.assignmentStatus === 'accepted') {
+        batch.update(doc(db, 'sessions', sessionDocId, 'characterTemplates', backup.templateId), {
+          ...templateReturnToPoolFields(),
+          updatedAt: serverTimestamp(),
+        });
+      }
+    } else {
+      findAcceptedTemplatesForPlayer(preparations, backup.playerUid).forEach((entry) => {
+        batch.update(doc(db, 'sessions', sessionDocId, 'characterTemplates', entry.id), {
+          ...templateReturnToPoolFields(),
+          updatedAt: serverTimestamp(),
+        });
+      });
+    }
+
+    batch.update(doc(db, 'sessions', sessionDocId, 'preparationBackups', backup.id), {
       restoredAt: serverTimestamp(),
+    });
+
+    await batch.commit();
+  };
+
+  const releaseAcceptedTemplatesInBatch = (batch, playerId, excludeId = null, templates = []) => {
+    findAcceptedTemplatesForPlayer(templates, playerId, excludeId).forEach((entry) => {
+      batch.update(doc(db, 'sessions', sessionDocId, 'characterTemplates', entry.id), {
+        ...templateReturnToPoolFields(),
+        updatedAt: serverTimestamp(),
+      });
     });
   };
 
   const handleAcceptPreparationOffer = async () => {
-    if (!sessionDocId || !uid || !pendingPreparationOffer) return;
+    if (!sessionDocId || !uid || !pendingPreparationOffer || preparationOfferBusy) return;
 
     const currentPlayer = party.find((member) => member.id === uid && member.isNpc !== true) || {};
     const previousSnapshot = buildPreparationBackupSnapshot(currentPlayer, {
       name: playerName || displayName || 'Avonturier',
     });
+    const offer = pendingPreparationOffer;
 
-    await addDoc(collection(db, 'sessions', sessionDocId, 'preparationBackups'), {
-      playerUid: uid,
-      playerName: previousSnapshot.name || 'Avonturier',
-      templateId: pendingPreparationOffer.id,
-      templateName: pendingPreparationOffer.name || 'Naamloos personage',
-      snapshot: previousSnapshot,
-      createdAt: serverTimestamp(),
-      restoredAt: null,
-    });
+    setPreparationOfferBusy(true);
+    setSessionError('');
 
-    await updateDoc(doc(db, 'sessions', sessionDocId, 'players', uid), {
-      nickname: pendingPreparationOffer.name || previousSnapshot.name || 'Avonturier',
-      subtitle: pendingPreparationOffer.subtitle || '',
-      hp: pendingPreparationOffer.hp ?? 0,
-      maxHp: pendingPreparationOffer.maxHp ?? pendingPreparationOffer.hp ?? 0,
-      ac: pendingPreparationOffer.ac ?? 10,
-      initMod: pendingPreparationOffer.initMod ?? 0,
-      bio: pendingPreparationOffer.bio || '',
-      customStats: pendingPreparationOffer.customStats || [],
-      avatarUrl: pendingPreparationOffer.imageUrl || null,
-      updatedAt: serverTimestamp(),
-    });
+    try {
+      const batch = writeBatch(db);
+      const backupRef = doc(collection(db, 'sessions', sessionDocId, 'preparationBackups'));
 
-    await updateDoc(doc(db, 'sessions', sessionDocId, 'characterTemplates', pendingPreparationOffer.id), {
-      assignmentStatus: 'accepted',
-      respondedAt: serverTimestamp(),
-      updatedAt: serverTimestamp(),
-    });
+      batch.set(backupRef, {
+        ...buildBackupEntry({
+          playerUid: uid,
+          playerName: previousSnapshot.name || 'Avonturier',
+          snapshot: previousSnapshot,
+          templateId: offer.id,
+          templateName: offer.name || 'Naamloos personage',
+          reason: 'accept',
+        }),
+        createdAt: serverTimestamp(),
+      });
 
-    const nextName = pendingPreparationOffer.name || previousSnapshot.name || 'Avonturier';
-    setPlayerName(nextName);
-    setDisplayName(nextName);
-    if (auth.currentUser && nextName) {
-      try {
-        await updateProfile(auth.currentUser, { displayName: nextName });
-      } catch (err) {
-        console.warn('Auth displayName bijwerken voor voorbereiding mislukt:', err);
+      releaseAcceptedTemplatesInBatch(batch, uid, offer.id, playerAssignedTemplates);
+
+      batch.update(doc(db, 'sessions', sessionDocId, 'players', uid), {
+        ...playerProfileFieldsFromSnapshot({
+          name: offer.name,
+          subtitle: offer.subtitle,
+          hp: offer.hp,
+          maxHp: offer.maxHp,
+          ac: offer.ac,
+          initMod: offer.initMod,
+          bio: offer.bio,
+          customStats: offer.customStats,
+          avatarUrl: offer.imageUrl,
+        }, previousSnapshot.name || 'Avonturier'),
+        updatedAt: serverTimestamp(),
+      });
+
+      batch.update(doc(db, 'sessions', sessionDocId, 'characterTemplates', offer.id), {
+        assignmentStatus: 'accepted',
+        respondedAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
+      });
+
+      await batch.commit();
+
+      const nextName = offer.name || previousSnapshot.name || 'Avonturier';
+      setPlayerName(nextName);
+      setDisplayName(nextName);
+      if (auth.currentUser && nextName) {
+        try {
+          await updateProfile(auth.currentUser, { displayName: nextName });
+        } catch (err) {
+          console.warn('Auth displayName bijwerken voor voorbereiding mislukt:', err);
+        }
       }
+      setPendingPreparationOffer(null);
+      setSessionInfo(`Rol "${nextName}" geaccepteerd. Je vorige profiel staat in je archief.`);
+    } catch (err) {
+      console.error('Rolvoorstel accepteren mislukt:', err);
+      setSessionError('Het rolvoorstel kon niet worden geaccepteerd. Controleer je verbinding en probeer opnieuw.');
+    } finally {
+      setPreparationOfferBusy(false);
     }
-    setPendingPreparationOffer(null);
   };
 
   const handleRejectPreparationOffer = async () => {
-    if (!sessionDocId || !uid || !pendingPreparationOffer) return;
+    if (!sessionDocId || !uid || !pendingPreparationOffer || preparationOfferBusy) return;
 
-    await updateDoc(doc(db, 'sessions', sessionDocId, 'characterTemplates', pendingPreparationOffer.id), {
-      assignmentStatus: 'rejected',
-      respondedAt: serverTimestamp(),
-      updatedAt: serverTimestamp(),
+    setPreparationOfferBusy(true);
+    setSessionError('');
+
+    try {
+      await updateDoc(doc(db, 'sessions', sessionDocId, 'characterTemplates', pendingPreparationOffer.id), {
+        ...templateReturnToPoolFields(),
+        respondedAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
+      });
+      setPendingPreparationOffer(null);
+      setSessionInfo('Rolvoorstel geweigerd. De voorbereiding staat weer klaar bij de GM.');
+    } catch (err) {
+      console.error('Rolvoorstel weigeren mislukt:', err);
+      setSessionError('Het rolvoorstel kon niet worden geweigerd. Probeer opnieuw.');
+    } finally {
+      setPreparationOfferBusy(false);
+    }
+  };
+
+  const handlePlayerActivateProfileArchive = async (backup) => {
+    if (!sessionDocId || !uid || profileArchiveBusy || !backup?.snapshot) return;
+
+    const currentPlayer = party.find((member) => member.id === uid && member.isNpc !== true) || {};
+    if (profileSnapshotMatchesPlayer(backup.snapshot, currentPlayer)) {
+      setSessionInfo('Dit profiel is al je actieve personage.');
+      return;
+    }
+
+    const confirmed = typeof window !== 'undefined'
+      ? window.confirm(`Wissel naar "${backup.snapshot.name || 'dit profiel'}"? Je huidige profiel wordt bewaard in je archief. Een actieve GM-voorbereiding gaat terug naar de bibliotheek.`)
+      : true;
+    if (!confirmed) return;
+
+    const currentSnapshot = buildPreparationBackupSnapshot(currentPlayer, {
+      name: playerName || displayName || 'Avonturier',
     });
 
-    setPendingPreparationOffer(null);
+    setProfileArchiveBusy(true);
+    setSessionError('');
+
+    try {
+      const batch = writeBatch(db);
+      const archiveRef = doc(collection(db, 'sessions', sessionDocId, 'preparationBackups'));
+
+      batch.set(archiveRef, {
+        ...buildBackupEntry({
+          playerUid: uid,
+          playerName: currentSnapshot.name || 'Avonturier',
+          snapshot: currentSnapshot,
+          templateId: null,
+          templateName: 'Profielwissel',
+          reason: 'profile_switch',
+        }),
+        createdAt: serverTimestamp(),
+      });
+
+      releaseAcceptedTemplatesInBatch(batch, uid, null, playerAssignedTemplates);
+
+      batch.update(doc(db, 'sessions', sessionDocId, 'players', uid), {
+        ...playerProfileFieldsFromSnapshot(backup.snapshot, currentSnapshot.name || 'Avonturier'),
+        updatedAt: serverTimestamp(),
+      });
+
+      await batch.commit();
+
+      const nextName = backup.snapshot.name || currentSnapshot.name || 'Avonturier';
+      setPlayerName(nextName);
+      setDisplayName(nextName);
+      if (auth.currentUser && nextName) {
+        try {
+          await updateProfile(auth.currentUser, { displayName: nextName });
+        } catch (err) {
+          console.warn('Auth displayName bijwerken na archiefwissel mislukt:', err);
+        }
+      }
+      setSessionInfo(`Profiel "${nextName}" geactiveerd.`);
+    } catch (err) {
+      console.error('Profielarchief activeren mislukt:', err);
+      setSessionError('Profiel wisselen is mislukt. Probeer opnieuw.');
+    } finally {
+      setProfileArchiveBusy(false);
+    }
   };
 
   const buildHandoutPayload = (handout = {}) => {
@@ -2622,9 +3061,42 @@ export default function TomeVaultApp() {
     });
   };
 
-  const handleDeleteHandoutRemote = async (handoutId) => {
+  const handleSoftDeleteHandoutRemote = async (handoutId) => {
     if (role !== 'gm') {
       throw new Error('Alleen de GM kan handouts verwijderen.');
+    }
+    if (!sessionDocId || !handoutId || !uid) {
+      throw new Error('Kan handout niet verwijderen zonder actieve sessie en id.');
+    }
+
+    const deletedExpiresAt = Timestamp.fromMillis(Date.now() + HANDOUT_TRASH_RETENTION_MS);
+    await updateDoc(doc(db, 'sessions', sessionDocId, 'handouts', handoutId), {
+      deletedAt: serverTimestamp(),
+      deletedByUid: uid,
+      deletedExpiresAt,
+      updatedAt: serverTimestamp(),
+    });
+  };
+
+  const handleRestoreHandoutRemote = async (handoutId) => {
+    if (role !== 'gm') {
+      throw new Error('Alleen de GM kan handouts terugzetten.');
+    }
+    if (!sessionDocId || !handoutId) {
+      throw new Error('Kan handout niet terugzetten zonder actieve sessie en id.');
+    }
+
+    await updateDoc(doc(db, 'sessions', sessionDocId, 'handouts', handoutId), {
+      deletedAt: deleteField(),
+      deletedByUid: deleteField(),
+      deletedExpiresAt: deleteField(),
+      updatedAt: serverTimestamp(),
+    });
+  };
+
+  const handlePermanentDeleteHandoutRemote = async (handoutId) => {
+    if (role !== 'gm') {
+      throw new Error('Alleen de GM kan handouts definitief verwijderen.');
     }
     if (!sessionDocId || !handoutId) {
       throw new Error('Kan handout niet verwijderen zonder actieve sessie en id.');
@@ -2632,6 +3104,35 @@ export default function TomeVaultApp() {
 
     await deleteDoc(doc(db, 'sessions', sessionDocId, 'handouts', handoutId));
   };
+
+  const trashedHandouts = useMemo(
+    () => (role === 'gm'
+      ? handouts.filter((entry) => isHandoutDeleted(entry) && !isHandoutTrashExpired(entry))
+      : []),
+    [handouts, role]
+  );
+
+  useEffect(() => {
+    if (role !== 'gm' || !sessionDocId) return undefined;
+
+    const expired = handouts.filter(isHandoutTrashExpired);
+    if (expired.length === 0) return undefined;
+
+    let cancelled = false;
+    (async () => {
+      try {
+        const batch = writeBatch(db);
+        expired.forEach((entry) => {
+          batch.delete(doc(db, 'sessions', sessionDocId, 'handouts', entry.id));
+        });
+        await batch.commit();
+      } catch (err) {
+        if (!cancelled) console.error('Verlopen handouts opruimen mislukt:', err);
+      }
+    })();
+
+    return () => { cancelled = true; };
+  }, [handouts, role, sessionDocId]);
 
   const handleToggleVisibility = async (id) => {
     if (role !== 'gm') return;
@@ -2714,14 +3215,25 @@ export default function TomeVaultApp() {
   };
 
   const handleUpdatePlayerStat = async (memberId, key, val) => {
-    setParty(party.map(p => p.id === memberId ? { ...p, [key]: val } : p));
+    const member = party.find((p) => p.id === memberId);
+    let nextMember = member ? { ...member, [key]: val } : null;
+
+    if (key === 'hp' && member && (Number(val) || 0) > 0 && member.isDead) {
+      nextMember = { ...nextMember, isDead: false };
+    }
+
+    setParty(party.map((p) => (p.id === memberId && nextMember ? nextMember : p)));
     if (sessionDocId) {
       const fsKey = key === 'init' ? 'initiative' : key;
       try {
-        await updateDoc(doc(db, 'sessions', sessionDocId, 'players', memberId), {
+        const payload = {
           [fsKey]: val,
           updatedAt: serverTimestamp(),
-        });
+        };
+        if (key === 'hp' && nextMember?.isDead === false && member?.isDead) {
+          payload.isDead = false;
+        }
+        await updateDoc(doc(db, 'sessions', sessionDocId, 'players', memberId), payload);
       } catch (err) {
         console.error('Stat update fout:', err);
       }
@@ -2765,14 +3277,24 @@ export default function TomeVaultApp() {
 
   const handleDamageModalSave = async (memberId, newHp) => {
     if (role !== 'gm') return;
-    setParty(party.map(p => p.id === memberId ? { ...p, hp: newHp } : p));
+    const member = party.find((p) => p.id === memberId);
+    const shouldRevive = (Number(newHp) || 0) > 0 && member?.isDead;
+    const nextMember = {
+      ...member,
+      hp: newHp,
+      ...(shouldRevive ? { isDead: false } : {}),
+    };
+
+    setParty(party.map((p) => (p.id === memberId ? nextMember : p)));
     setDamageTarget(null);
     if (sessionDocId) {
       try {
-        await updateDoc(doc(db, 'sessions', sessionDocId, 'players', memberId), {
+        const payload = {
           hp: newHp,
           updatedAt: serverTimestamp(),
-        });
+        };
+        if (shouldRevive) payload.isDead = false;
+        await updateDoc(doc(db, 'sessions', sessionDocId, 'players', memberId), payload);
       } catch (err) {
         console.error('HP update fout:', err);
       }
@@ -2797,6 +3319,7 @@ export default function TomeVaultApp() {
       ...finalChar,
       avatar: normalizeAvatarUrl(finalChar.avatar),
       avatarPosition: normalizeAvatarPosition(finalChar.avatarPosition || DEFAULT_AVATAR_POSITION),
+      customStats: sanitizeCustomStats(finalChar.customStats),
     };
 
     setParty(party.map(p => p.id === finalChar.id ? finalChar : p));
@@ -2812,15 +3335,127 @@ export default function TomeVaultApp() {
           initMod: finalChar.initMod ?? 0,
           hasAlertFeat: finalChar.hasAlertFeat === true,
           proficiencyBonus: Number(finalChar.proficiencyBonus ?? 2),
+          isRevealed: finalChar.isRevealed !== false,
+          isDead: finalChar.isDead === true,
           bio: finalChar.bio || '',
-          customStats: finalChar.customStats || [],
+          customStats: sanitizeCustomStats(finalChar.customStats),
           avatarUrl: finalChar.avatar || null,
           avatarPosition: normalizeAvatarPosition(finalChar.avatarPosition || DEFAULT_AVATAR_POSITION),
           updatedAt: serverTimestamp(),
         });
+
+        if (finalChar.id === uid && finalChar.isNpc !== true) {
+          void createProfileBackup('profile_save', finalChar);
+        }
       } catch (err) {
         console.error('Profiel opslaan fout:', err);
       }
+    }
+  };
+
+  const createProfileBackup = async (reason = 'manual', overridePlayer = null) => {
+    if (!uid || !sessionDocId) return;
+    if (profileBackupInFlightRef.current) return;
+
+    const ownPlayer = overridePlayer
+      || party.find((member) => member.id === uid && member.isNpc !== true);
+    if (!ownPlayer || !ownPlayer.name) return;
+
+    const snapshot = buildProfileBackupSnapshot(ownPlayer);
+    const signature = profileBackupSignature(snapshot);
+
+    profileBackupInFlightRef.current = true;
+    try {
+      const backupsRef = collection(db, 'users', uid, 'profileBackups');
+      const existingSnap = await getDocs(
+        query(backupsRef, where('sessionDocId', '==', sessionDocId))
+      );
+      const existing = existingSnap.docs
+        .map((entry) => ({ id: entry.id, ...(entry.data() || {}) }))
+        .sort((a, b) => Number(b.createdAtMs || 0) - Number(a.createdAtMs || 0));
+
+      if (existing[0] && existing[0].signature === signature) {
+        return;
+      }
+
+      const nowMs = Date.now();
+      await addDoc(backupsRef, {
+        snapshot,
+        signature,
+        reason,
+        sessionDocId,
+        sessionJoinTag: sessionId || '',
+        sessionNumber: Number(campaignSessionNumber || 1),
+        playerName: snapshot.name,
+        createdAt: serverTimestamp(),
+        createdAtMs: nowMs,
+      });
+
+      const overflow = existing.slice(MAX_PROFILE_BACKUPS - 1);
+      if (overflow.length > 0) {
+        await Promise.all(
+          overflow.map((entry) =>
+            deleteDoc(doc(db, 'users', uid, 'profileBackups', entry.id)).catch(() => {})
+          )
+        );
+      }
+    } catch (err) {
+      console.error('Profielback-up maken mislukt:', err);
+    } finally {
+      profileBackupInFlightRef.current = false;
+    }
+  };
+
+  const handleRestoreProfileBackup = async (backup) => {
+    if (!uid || !sessionDocId || !backup?.snapshot) return;
+
+    const snapshot = backup.snapshot;
+    const restoredFields = {
+      nickname: String(snapshot.name || '').trim() || 'Avonturier',
+      subtitle: String(snapshot.subtitle || '').trim(),
+      bio: String(snapshot.bio || '').trim(),
+      hp: Number(snapshot.hp ?? 0),
+      maxHp: Number(snapshot.maxHp ?? snapshot.hp ?? 0),
+      ac: Number(snapshot.ac ?? 10),
+      initMod: Number(snapshot.initMod ?? 0),
+      hasAlertFeat: snapshot.hasAlertFeat === true,
+      proficiencyBonus: Number(snapshot.proficiencyBonus ?? 2),
+      customStats: sanitizeCustomStats(snapshot.customStats),
+      avatarUrl: normalizeAvatarUrl(snapshot.avatarUrl),
+      avatarPosition: normalizeAvatarPosition(snapshot.avatarPosition),
+    };
+
+    try {
+      await updateDoc(doc(db, 'sessions', sessionDocId, 'players', uid), {
+        ...restoredFields,
+        updatedAt: serverTimestamp(),
+      });
+      setParty((prev) => prev.map((member) => (
+        member.id === uid
+          ? {
+              ...member,
+              name: restoredFields.nickname,
+              subtitle: restoredFields.subtitle,
+              bio: restoredFields.bio,
+              hp: restoredFields.hp,
+              maxHp: restoredFields.maxHp,
+              ac: restoredFields.ac,
+              initMod: restoredFields.initMod,
+              hasAlertFeat: restoredFields.hasAlertFeat,
+              proficiencyBonus: restoredFields.proficiencyBonus,
+              customStats: restoredFields.customStats,
+              avatar: restoredFields.avatarUrl,
+              avatarPosition: restoredFields.avatarPosition,
+            }
+          : member
+      )));
+      if (typeof snapshot.name === 'string' && snapshot.name.trim()) {
+        setPlayerName(snapshot.name.trim());
+      }
+      setSessionInfo('Profiel hersteld naar een eerder herstelpunt.');
+    } catch (err) {
+      console.error('Profiel herstellen mislukt:', err);
+      setSessionError('Profiel herstellen is mislukt. Probeer opnieuw.');
     }
   };
 
@@ -2880,6 +3515,7 @@ export default function TomeVaultApp() {
         id: tempId,
         isNpc: true,
         init: null,
+        isRevealed: npcData.isRevealed === true,
         bio: npcData.bio || '',
         avatar: avatarUrl,
         avatarPosition: normalizeAvatarPosition(npcData.avatarPosition || DEFAULT_AVATAR_POSITION),
@@ -2899,7 +3535,7 @@ export default function TomeVaultApp() {
           isNpc: true,
           combatParticipation: COMBAT_PARTICIPATION_STATUS.ACTIVE,
           combatJoinRequestStatus: COMBAT_JOIN_REQUEST_STATUS.NONE,
-          isRevealed: true,
+          isRevealed: npcData.isRevealed === true,
           avatarUrl,
           avatarPosition: normalizeAvatarPosition(npcData.avatarPosition || DEFAULT_AVATAR_POSITION),
           bio: npcData.bio || '',
@@ -2986,8 +3622,70 @@ export default function TomeVaultApp() {
     }
   };
 
-  const handleSaveSettings = async ({ nextPlayerName, nextTheme, nextBrightness, nextSessionNumber, nextUiSounds }) => {
-    if (typeof nextPlayerName === 'string') setPlayerName(nextPlayerName);
+  const handleSaveSettings = async ({
+    nextPlayerName,
+    nextAvatarFile,
+    nextAvatarUrl,
+    nextGmParticipates,
+    nextTheme,
+    nextBrightness,
+    nextSessionNumber,
+    nextUiSounds,
+  }) => {
+    let resolvedAvatarUrl = typeof nextAvatarUrl === 'string' && !nextAvatarUrl.startsWith('blob:')
+      ? nextAvatarUrl
+      : null;
+
+    if (nextAvatarFile && uid) {
+      try {
+        const ext = nextAvatarFile.name.split('.').pop();
+        resolvedAvatarUrl = await uploadImageToStorage(nextAvatarFile, `users/${uid}/avatars/${uid}.${ext}`);
+      } catch (err) {
+        console.error('Configuratie-avatar uploaden mislukt:', err);
+      }
+    }
+
+    const normalizedPlayerName = typeof nextPlayerName === 'string'
+      ? nextPlayerName.trim()
+      : '';
+
+    if (normalizedPlayerName) setPlayerName(normalizedPlayerName);
+
+    if (sessionDocId && uid && (normalizedPlayerName || resolvedAvatarUrl || typeof nextGmParticipates === 'boolean')) {
+      const nextCombatParticipation = typeof nextGmParticipates === 'boolean'
+        ? (nextGmParticipates ? COMBAT_PARTICIPATION_STATUS.ACTIVE : COMBAT_PARTICIPATION_STATUS.REMOVED)
+        : undefined;
+
+      setParty((currentParty) => currentParty.map((member) => (
+        member.id === uid && member.isNpc !== true
+          ? {
+              ...member,
+              ...(normalizedPlayerName ? { name: normalizedPlayerName } : {}),
+              ...(resolvedAvatarUrl ? { avatar: resolvedAvatarUrl } : {}),
+              ...(nextCombatParticipation ? { combatParticipation: nextCombatParticipation } : {}),
+            }
+          : member
+      )));
+
+      try {
+        const payload = {
+          updatedAt: serverTimestamp(),
+          isNpc: false,
+          isRevealed: true,
+        };
+        if (normalizedPlayerName) payload.nickname = normalizedPlayerName;
+        if (resolvedAvatarUrl) payload.avatarUrl = resolvedAvatarUrl;
+        if (nextCombatParticipation) {
+          payload.combatParticipation = nextCombatParticipation;
+          payload.combatJoinRequestStatus = COMBAT_JOIN_REQUEST_STATUS.NONE;
+        }
+
+        await setDoc(doc(db, 'sessions', sessionDocId, 'players', uid), payload, { merge: true });
+      } catch (err) {
+        console.error('Configuratieprofiel opslaan mislukt:', err);
+      }
+    }
+
     if (typeof nextTheme === 'string') applyTheme(nextTheme);
     if (Number.isFinite(nextBrightness)) handleBrightnessChange(nextBrightness);
     if (typeof nextUiSounds === 'boolean') {
@@ -2997,6 +3695,8 @@ export default function TomeVaultApp() {
     if (role === 'gm' && Number.isFinite(Number(nextSessionNumber))) {
       await handleUpdateCampaignSessionNumber(nextSessionNumber);
     }
+
+    void createProfileBackup('settings_save');
   };
 
   const buildPlayerArchivePayload = () => {
@@ -3065,7 +3765,7 @@ export default function TomeVaultApp() {
         maxHp: Number(currentPlayer?.maxHp ?? currentPlayer?.hp ?? 0),
         ac: Number(currentPlayer?.ac ?? 10),
         initMod: Number(currentPlayer?.initMod ?? 0),
-        customStats: Array.isArray(currentPlayer?.customStats) ? currentPlayer.customStats : [],
+        customStats: sanitizeCustomStats(currentPlayer?.customStats),
       },
       notes: notes.map((entry) => ({
         title: entry.title,
@@ -3120,7 +3820,7 @@ export default function TomeVaultApp() {
     try {
       const payload = buildPlayerArchivePayload();
       const result = await downloadPlayerArchivePdf(payload);
-      setSessionInfo(`Kroniek opgeslagen: ${result.pageCount} pagina's, ${result.sectionCount} secties ┬À ${result.filename}`);
+      setSessionInfo(`Kroniek opgeslagen: ${result.pageCount} pagina's, ${result.sectionCount} secties · ${result.filename}`);
       setSessionError('');
     } catch (err) {
       console.error('Player archive export fout:', err);
@@ -3211,12 +3911,39 @@ export default function TomeVaultApp() {
     // Optionally, you can add additional logic here if needed
   };
 
+  useEffect(() => {
+    if (!qrInviteCode || !showQRJoin) {
+      setQrInvitePreview(null);
+      return undefined;
+    }
+
+    let cancelled = false;
+
+    void resolveSessionPreview(db, qrInviteCode)
+      .then((preview) => {
+        if (!cancelled) {
+          setQrInvitePreview(preview);
+        }
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setQrInvitePreview(null);
+        }
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [qrInviteCode, showQRJoin]);
+
   if (view === 'landing') {
     // QR-code invite flow — no PIN required after sign-in
     if (showQRJoin) {
       return (
         <QRJoinScreen
           inviteCode={qrInviteCode}
+          campaignName={qrInvitePreview?.campaignName || ''}
+          sessionNumber={qrInvitePreview?.sessionNumber || null}
           uid={uid}
           authLoading={authLoading}
           sessionBusy={sessionBusy}
@@ -3299,7 +4026,7 @@ export default function TomeVaultApp() {
       <div className="relative z-10 flex h-full flex-col">
         <TopBar 
           role={role} 
-          sessionId={sessionId}
+          campaignName={campaignName}
           sessionNumber={campaignSessionNumber}
           theme={theme}
           combatStatus={combatStatus}
@@ -3328,10 +4055,9 @@ export default function TomeVaultApp() {
           onUnlockAmbienceAudio={handleUnlockAmbienceAudio}
           onToggleParty={handleToggleParty}
           isPartyOpen={isPartyOpen}
-          onOpenShare={() => setShowShareModal(true)}
+          onOpenSessionHub={() => openSessionHub('overview')}
           onOpenProfile={() => setProfileTarget(party.find(p => p.id === CURRENT_PLAYER_ID))}
           onOpenSettings={() => setIsSettingsOpen(true)}
-          onOpenSessionPanel={() => setIsSessionPanelOpen(true)}
           onOpenSourcelist={() => setIsSourcelistOpen(true)}
           runtimeBadge={runtimeBadge}
         />
@@ -3362,6 +4088,8 @@ export default function TomeVaultApp() {
                     onOpenHandout={(h) => setSelectedHandout(h)} 
                     onCreateHandout={() => setSelectedHandout('new')}
                     onClaim={(id) => handleClaimHandout(id, CURRENT_PLAYER_ID)}
+                    trashCount={trashedHandouts.length}
+                    onOpenTrash={() => setIsHandoutTrashOpen(true)}
                   />
                 </div>
               )}
@@ -3391,6 +4119,7 @@ export default function TomeVaultApp() {
                     party={party} 
                     currentPlayerId={CURRENT_PLAYER_ID} 
                     handouts={handouts}
+                    claimNotesByHandoutId={claimNotesByHandoutId}
                     onUnclaim={handleUnclaimHandout}
                     onOpenHandout={(h) => setSelectedHandout(h)}
                     onOpenAddItem={(ownerId) => {
@@ -3415,6 +4144,7 @@ export default function TomeVaultApp() {
                     onDeletePreparation={(preparation) => handleDeletePreparationRemote(preparation)}
                     onAssignPreparation={(preparation) => setAssigningPreparation(preparation)}
                     onRestoreBackup={handleRestorePreparationBackup}
+                    onReturnToPool={handleReturnPreparationToPool}
                   />
                 </div>
               )}
@@ -3451,6 +4181,7 @@ export default function TomeVaultApp() {
             onRollAllInitiative={handleBatchUpdateInitiatives}
             onKickPlayerFromCombat={handleKickPlayerFromCombat}
             onRequestCombatJoin={handleRequestCombatJoin}
+            onReturnPlayerToCombat={handleReturnPlayerToCombat}
             onOpenNpcModal={() => setIsNpcModalOpen(true)}
             onOpenDamageModal={(member) => setDamageTarget(member)}
             onOpenProfile={(member) => setProfileTarget(member)}
@@ -3463,11 +4194,20 @@ export default function TomeVaultApp() {
         </div>
       </div>
 
-        <ShareModal 
-          isOpen={showShareModal} 
-          onClose={() => setShowShareModal(false)} 
-          sessionId={sessionId} 
+        <SessionHubModal
+          isOpen={isSessionHubOpen}
+          onClose={() => setIsSessionHubOpen(false)}
+          role={role}
+          campaignName={campaignName}
+          sessionId={sessionId}
+          sessionNumber={campaignSessionNumber}
+          activePlayerCount={activePlayerCount}
           theme={theme}
+          initialTab={sessionHubInitialTab}
+          onSaveSessionNumber={handleUpdateCampaignSessionNumber}
+          onSaveCampaignName={handleUpdateCampaignName}
+          onRollJoinCode={handleRollJoinCode}
+          joinCodeRolling={joinCodeRolling}
         />
 
         <AddNpcModal
@@ -3496,6 +4236,9 @@ export default function TomeVaultApp() {
           onUpdateStat={handleUpdatePlayerStat}
           chatColor={getCharacterChatColor(profileTarget)}
           initiativeOrder={initiativeOrder}
+          profileArchives={role === 'player' ? playerProfileArchives : []}
+          onActivateProfileArchive={handlePlayerActivateProfileArchive}
+          profileArchiveBusy={profileArchiveBusy}
           onOpenInitiativeSwap={(member) => {
             setInitiativeSwapTarget(member);
             setProfileTarget(null);
@@ -3568,6 +4311,7 @@ export default function TomeVaultApp() {
         <PreparationOfferModal
           isOpen={role === 'player' && !!pendingPreparationOffer}
           preparation={pendingPreparationOffer}
+          busy={preparationOfferBusy}
           onAccept={handleAcceptPreparationOffer}
           onReject={handleRejectPreparationOffer}
         />
@@ -3591,6 +4335,8 @@ export default function TomeVaultApp() {
           role={role}
           players={party.filter((member) => member.isNpc !== true)}
           currentPlayerId={CURRENT_PLAYER_ID}
+          claimNote={selectedHandout && selectedHandout !== 'new' ? (claimNotesByHandoutId[selectedHandout.id] || '') : ''}
+          onSaveClaimNote={handleSaveHandoutClaimNote}
           canAddToInitiative={role === 'gm' && combatStatus !== COMBAT_STATUS.ACTIVE}
           onAddToInitiative={handleAddNpcFromHandout}
           onClose={() => setSelectedHandout(null)}
@@ -3611,33 +4357,88 @@ export default function TomeVaultApp() {
               }
             }
 
+            const upsertHandout = (entry) => setHandouts((prev) => {
+              const withoutDup = prev.filter((h) => String(h.id) !== String(entry.id));
+              const existedBefore = withoutDup.length !== prev.length;
+              return existedBefore
+                ? prev.map((h) => (String(h.id) === String(entry.id) ? entry : h))
+                : [entry, ...withoutDup];
+            });
+
             try {
               if (selectedHandout === 'new') {
                 const newId = await handleCreateHandoutRemote(finalHandout);
-                setHandouts((prev) => [{ ...finalHandout, id: newId }, ...prev]);
+                upsertHandout({ ...finalHandout, id: newId });
               } else {
                 await handleUpdateHandoutRemote(finalHandout);
-                setHandouts((prev) => prev.map((h) => (String(h.id) === String(finalHandout.id) ? finalHandout : h)));
+                upsertHandout(finalHandout);
               }
             } catch (err) {
               console.error('Handout opslaan fout:', err);
               if (selectedHandout === 'new') {
-                setHandouts((prev) => [{ ...finalHandout, id: Date.now().toString() }, ...prev]);
+                upsertHandout({ ...finalHandout, id: Date.now().toString() });
               } else {
-                setHandouts((prev) => prev.map((h) => (String(h.id) === String(finalHandout.id) ? finalHandout : h)));
+                upsertHandout(finalHandout);
               }
             }
 
             setSelectedHandout(null);
           }}
-          onDelete={async (id) => {
+          onDelete={(handout) => {
+            if (!handout?.id) return;
+            setHandoutPendingDelete(handout);
+          }}
+        />
+
+        <HandoutDeleteConfirmModal
+          isOpen={Boolean(handoutPendingDelete)}
+          handoutTitle={handoutPendingDelete?.title || 'deze handout'}
+          onClose={() => setHandoutPendingDelete(null)}
+          onConfirm={async () => {
+            const id = handoutPendingDelete?.id;
+            if (!id) return;
             try {
-              await handleDeleteHandoutRemote(id);
+              await handleSoftDeleteHandoutRemote(id);
             } catch (err) {
               console.error('Handout verwijderen fout:', err);
+              return;
             }
-            setHandouts((prev) => prev.filter((h) => String(h.id) !== String(id)));
+            setHandouts((prev) => prev.map((entry) => (
+              String(entry.id) === String(id)
+                ? {
+                  ...entry,
+                  deletedAtMs: Date.now(),
+                  deletedByUid: uid,
+                  deletedExpiresAtMs: Date.now() + HANDOUT_TRASH_RETENTION_MS,
+                }
+                : entry
+            )));
+            setHandoutPendingDelete(null);
             setSelectedHandout(null);
+          }}
+        />
+
+        <HandoutTrashModal
+          isOpen={isHandoutTrashOpen}
+          onClose={() => setIsHandoutTrashOpen(false)}
+          handouts={trashedHandouts}
+          onRestore={async (id) => {
+            try {
+              await handleRestoreHandoutRemote(id);
+            } catch (err) {
+              console.error('Handout terugzetten mislukt:', err);
+            }
+          }}
+          onPermanentDelete={async (id) => {
+            try {
+              await handlePermanentDeleteHandoutRemote(id);
+            } catch (err) {
+              console.error('Handout definitief verwijderen mislukt:', err);
+            }
+            setHandouts((prev) => prev.filter((entry) => String(entry.id) !== String(id)));
+            if (selectedHandout && String(selectedHandout.id) === String(id)) {
+              setSelectedHandout(null);
+            }
           }}
         />
 
@@ -3654,9 +4455,12 @@ export default function TomeVaultApp() {
           uiSounds={uiSounds}
           currentPlanLabel={currentAccessPlan.label}
           currentAccessPlan={currentAccessPlan}
+          sessionPlayerProfile={party.find((member) => member.id === CURRENT_PLAYER_ID && member.isNpc !== true) || null}
           canOpenOwnerPanel={isOwner}
           onOpenOwnerPanel={() => setIsOwnerPanelOpen(true)}
           onSaveSettings={handleSaveSettings}
+          profileBackups={profileBackups}
+          onRestoreProfileBackup={handleRestoreProfileBackup}
         />
 
         <OwnerAdminPanel
@@ -3664,17 +4468,6 @@ export default function TomeVaultApp() {
           onClose={() => setIsOwnerPanelOpen(false)}
           uid={uid}
           isOwner={isOwner}
-        />
-
-        <SessionManageModal
-          isOpen={isSessionPanelOpen}
-          onClose={() => setIsSessionPanelOpen(false)}
-          role={role}
-          sessionId={sessionId}
-          sessionNumber={campaignSessionNumber}
-          theme={theme}
-          onSaveSessionNumber={async (n) => { await handleUpdateCampaignSessionNumber(n); }}
-          onOpenShare={() => { setIsSessionPanelOpen(false); setShowShareModal(true); }}
         />
 
         <SourcelistModal

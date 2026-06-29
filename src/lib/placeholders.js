@@ -137,6 +137,41 @@ export function getAvatarObjectPosition(position) {
   return `${normalized.x}% ${normalized.y}%`;
 }
 
+/**
+ * Convert pointer drag delta (px) into avatar position shift (%).
+ * Dragging right/down moves the visible crop as if pulling the image.
+ */
+export function applyAvatarPositionDelta(position, deltaX, deltaY, frameWidth, frameHeight, zoom = 1.42) {
+  const current = normalizeAvatarPosition(position);
+  const width = Math.max(Number(frameWidth) || 1, 1);
+  const height = Math.max(Number(frameHeight) || 1, 1);
+  const zoomFactor = Math.max(Number(zoom) || 1, 1);
+  const panRange = Math.max((zoomFactor - 1) * 55, 28);
+
+  return normalizeAvatarPosition({
+    x: current.x - (deltaX / width) * panRange * 2,
+    y: current.y - (deltaY / height) * panRange * 2,
+  });
+}
+
+export function nudgeAvatarPosition(position, direction, step = 2) {
+  const current = normalizeAvatarPosition(position);
+  const delta = Math.max(Number(step) || 2, 1);
+
+  switch (direction) {
+    case 'left':
+      return normalizeAvatarPosition({ ...current, x: current.x - delta });
+    case 'right':
+      return normalizeAvatarPosition({ ...current, x: current.x + delta });
+    case 'up':
+      return normalizeAvatarPosition({ ...current, y: current.y - delta });
+    case 'down':
+      return normalizeAvatarPosition({ ...current, y: current.y + delta });
+    default:
+      return current;
+  }
+}
+
 export function suggestHandoutImages(title, content, type, count = 6) {
   const text = `${title || ''} ${content || ''} ${type || ''}`.toLowerCase();
   const typeTagMap = { loot: ['loot'], clue: ['clue', 'mystery'], map: ['map'], npc: ['npc', 'social'] };

@@ -1,7 +1,8 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { Plus, X } from 'lucide-react';
+import { Dice5, Plus, X } from 'lucide-react';
 import { STAT_SUGGESTIONS } from '../data/mockData';
+import { computeD20Modifier, formatSignedModifier } from '../lib/statModifiers';
 
 function normalizeStatName(value) {
   return String(value || '').split(' - ')[0].trim().toUpperCase();
@@ -9,10 +10,10 @@ function normalizeStatName(value) {
 
 function filterSuggestions(query, suggestions) {
   const needle = normalizeStatName(query);
-  if (!needle) return suggestions.slice(0, 10);
+  if (!needle) return suggestions;
   return suggestions.filter((entry) => (
     entry.abbr.includes(needle) || entry.name.toUpperCase().includes(needle)
-  )).slice(0, 10);
+  ));
 }
 
 function StatNameCombobox({ value, onChange, suggestions }) {
@@ -52,9 +53,9 @@ function StatNameCombobox({ value, onChange, suggestions }) {
       position: 'fixed',
       left: rect.left,
       top: openUp ? rect.top - 6 : rect.bottom + 6,
-      width: Math.max(rect.width, 168),
+      width: Math.max(rect.width, 220),
       transform: openUp ? 'translateY(-100%)' : undefined,
-      zIndex: 120,
+      zIndex: 200,
     });
   };
 
@@ -200,6 +201,25 @@ export default function CustomStatChips({
             className="tv-custom-stat-chip__value hide-arrows"
             aria-label={`Waarde voor ${stat.name || 'eigenschap'}`}
           />
+          {stat.showModifier ? (
+            <span
+              className="tv-custom-stat-chip__mod"
+              title="D20 modifier"
+              aria-label={`Modifier voor ${stat.name || 'eigenschap'}: ${formatSignedModifier(computeD20Modifier(stat.value))}`}
+            >
+              {formatSignedModifier(computeD20Modifier(stat.value))}
+            </span>
+          ) : null}
+          <button
+            type="button"
+            onClick={() => onUpdate(stat.id, 'showModifier', !stat.showModifier)}
+            className={`tv-custom-stat-chip__mod-toggle${stat.showModifier ? ' is-active' : ''}`}
+            title={stat.showModifier ? 'Worp-modifier verbergen' : 'Toon worp-modifier (d20: afronden naar beneden van (waarde - 10) / 2)'}
+            aria-label={stat.showModifier ? 'Worp-modifier verbergen' : 'Toon worp-modifier'}
+            aria-pressed={stat.showModifier === true}
+          >
+            <Dice5 className="h-3.5 w-3.5" aria-hidden />
+          </button>
           <button
             type="button"
             onClick={() => onRemove(stat.id)}

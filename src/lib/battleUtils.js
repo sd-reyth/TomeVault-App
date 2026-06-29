@@ -153,44 +153,97 @@ export function buildInitiativeOrder(party = [], groupOverrides = {}) {
   });
 }
 
-export function getNextTurnId(party = [], currentTurnId = null, initiativeOrder = []) {
-  const sorted = sortPartyByInitiative(
-    party.filter((member) => getInitiativeTotal(member) !== null),
+export function isNpcDefeated(member) {
+  if (!member || member.isNpc !== true) return false;
+  if (member.isDead === true) return true;
+  const maxHp = Number(member.maxHp);
+  const hp = Number(member.hp);
+  if (!Number.isFinite(maxHp) || maxHp <= 0) return false;
+  return Number.isFinite(hp) && hp <= 0;
+}
+
+export function isPlayerMarkedDead(member) {
+  if (!member || member.isNpc === true) return false;
+  return member.isDead === true;
+}
+
+export function shouldSkipCombatTurn(member) {
+  if (!member) return true;
+  if (!isCombatParticipant(member)) return true;
+  if (getInitiativeTotal(member) === null) return true;
+  return isNpcDefeated(member) || isPlayerMarkedDead(member);
+}
+
+export function getTurnEligibleMembers(party = [], initiativeOrder = []) {
+  return sortPartyByInitiative(
+    filterCombatParticipants(party).filter((member) => !shouldSkipCombatTurn(member)),
     initiativeOrder
   );
-  if (sorted.length === 0) return null;
+}
 
-  const currentIndex = sorted.findIndex((member) => member.id === currentTurnId);
-  if (currentIndex === -1 || currentIndex === sorted.length - 1) {
-    return sorted[0].id;
+export function hasReserveNpcs(party = []) {
+  return party.some((member) => member?.isNpc === true && member.isRevealed === false);
+}
+
+export function shouldAutoEndCombat(party = [], combatStatus) {
+  if (combatStatus !== COMBAT_STATUS.ACTIVE && combatStatus !== COMBAT_STATUS.PAUSED) {
+    return false;
   }
 
-  return sorted[currentIndex + 1].id;
+  const participants = filterCombatParticipants(party);
+  if (participants.length === 0) return true;
+
+  const allMarkedDead = participants.every((member) => member.isDead === true);
+  if (allMarkedDead) return true;
+
+  const npcParticipants = participants.filter((member) => member.isNpc === true);
+  const allNpcsDefeated = npcParticipants.length > 0
+    && npcParticipants.every((member) => isNpcDefeated(member));
+
+  if (allNpcsDefeated && !hasReserveNpcs(party)) {
+    return true;
+  }
+
+  const hasRolledInitiative = participants.some((member) => getInitiativeTotal(member) !== null);
+  if (hasRolledInitiative && getTurnEligibleMembers(party).length === 0) {
+    return true;
+  }
+
+  return false;
+}
+
+export function getNextTurnId(party = [], currentTurnId = null, initiativeOrder = []) {
+  const eligible = getTurnEligibleMembers(party, initiativeOrder);
+  if (eligible.length === 0) return null;
+  if (eligible.length === 1) return eligible[0].id;
+
+  const currentIndex = eligible.findIndex((member) => member.id === currentTurnId);
+  if (currentIndex === -1) return eligible[0].id;
+
+  const nextIndex = (currentIndex + 1) % eligible.length;
+  return eligible[nextIndex].id;
 }
 
 export function getTurnsUntilMember(party = [], initiativeOrder = [], currentTurnId = null, targetId = null) {
   if (!targetId) return null;
 
-  const sorted = sortPartyByInitiative(
-    party.filter((member) => getInitiativeTotal(member) !== null),
-    initiativeOrder
-  );
-  if (sorted.length === 0) return null;
+  const eligible = getTurnEligibleMembers(party, initiativeOrder);
+  if (eligible.length === 0) return null;
 
-  const currentIndex = sorted.findIndex((member) => member.id === currentTurnId);
-  const targetIndex = sorted.findIndex((member) => member.id === targetId);
+  const currentIndex = eligible.findIndex((member) => member.id === currentTurnId);
+  const targetIndex = eligible.findIndex((member) => member.id === targetId);
   if (targetIndex === -1) return null;
   if (currentIndex === -1) return targetIndex;
   if (targetIndex >= currentIndex) return targetIndex - currentIndex;
-  return sorted.length - currentIndex + targetIndex;
+  return eligible.length - currentIndex + targetIndex;
 }
 
 export function getTurnApproachRatio(party = [], initiativeOrder = [], currentTurnId = null, targetId = null) {
   const turnsUntil = getTurnsUntilMember(party, initiativeOrder, currentTurnId, targetId);
-  const activeMembers = party.filter((member) => getInitiativeTotal(member) !== null);
-  if (turnsUntil === null || activeMembers.length <= 1) return 0;
+  const eligible = getTurnEligibleMembers(party, initiativeOrder);
+  if (turnsUntil === null || eligible.length <= 1) return 0;
   if (turnsUntil === 0) return 1;
-  const maxDistance = Math.max(activeMembers.length - 1, 1);
+  const maxDistance = Math.max(eligible.length - 1, 1);
   return Math.max(0, Math.min(1, 1 - turnsUntil / maxDistance));
 }
 

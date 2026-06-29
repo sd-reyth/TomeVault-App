@@ -1,9 +1,12 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Flame, Loader2, LogIn, Mail, ShieldCheck, Swords } from 'lucide-react';
+import { Flame, Loader2, LogIn, Mail, Scroll, ShieldCheck, Swords } from 'lucide-react';
+import { formatCampaignDisplayName } from '../lib/sessionUtils';
 import landingBackgroundVideo from '../../Video/landingBG.mp4';
 
 export default function QRJoinScreen({
   inviteCode,
+  campaignName = '',
+  sessionNumber = null,
   uid,
   authLoading,
   sessionBusy,
@@ -17,6 +20,8 @@ export default function QRJoinScreen({
   const videoRef = useRef(null);
   const [name, setName] = useState('');
   const [localError, setLocalError] = useState('');
+  const displayCampaignName = formatCampaignDisplayName(campaignName, '');
+  const safeSessionNumber = Math.max(1, Number(sessionNumber) || 0);
 
   useEffect(() => {
     const v = videoRef.current;
@@ -66,6 +71,23 @@ export default function QRJoinScreen({
           <span className="tv-label">Uitnodiging</span>
         </div>
 
+        {displayCampaignName ? (
+          <div className="tv-entry-hero-card w-full px-4 py-4 text-center">
+            <div className="mx-auto mb-3 flex h-10 w-10 items-center justify-center rounded-xl border border-[color-mix(in_srgb,var(--tv-accent),transparent_55%)] bg-[color-mix(in_srgb,var(--tv-accent),transparent_88%)] text-[color:var(--tv-accent)]">
+              <Scroll className="h-4 w-4" />
+            </div>
+            <div className="font-fantasy text-xl tracking-[0.04em] tv-text">{displayCampaignName}</div>
+            {safeSessionNumber > 0 ? (
+              <div className="mt-1 text-xs font-semibold uppercase tracking-[0.16em] text-[color:var(--tv-text-secondary)]">
+                Sessie {safeSessionNumber}
+              </div>
+            ) : null}
+            <p className="tv-meta mt-3 text-sm leading-relaxed">
+              Je bent uitgenodigd om mee te spelen. Log in om verder te gaan.
+            </p>
+          </div>
+        ) : null}
+
         <div className="flex w-full items-center gap-3">
           <div className="h-px flex-1 bg-gradient-to-r from-transparent to-[color-mix(in_srgb,var(--tv-border),transparent_20%)]" />
           <Swords className="tv-muted h-4 w-4" />
@@ -75,13 +97,13 @@ export default function QRJoinScreen({
         <div className="tv-entry-hero-card flex w-full flex-col gap-4 p-5">
           {!uid ? (
             <>
-              <div className="rounded-2xl border border-emerald-900/35 bg-emerald-950/18 px-4 py-3 text-sm font-story leading-relaxed text-emerald-100">
+              <div className="rounded-xl border border-emerald-900/35 bg-emerald-950/18 px-4 py-3 text-sm font-story leading-relaxed text-emerald-100">
                 <div className="flex items-center gap-2 font-fantasy text-[11px] uppercase tracking-[0.18em] text-emerald-300">
                   <ShieldCheck className="h-3.5 w-3.5" />
-                  Account
+                  Account vereist
                 </div>
                 <p className="mt-2 text-sm leading-relaxed text-emerald-100/90">
-                  Log in om via deze uitnodiging mee te doen — zonder PIN.
+                  Maak een account aan of log in om via deze uitnodiging mee te doen — zonder PIN.
                 </p>
               </div>
 
@@ -123,7 +145,7 @@ export default function QRJoinScreen({
           ) : (
             <>
               <div>
-                <label className="tv-label mb-1.5 block">Naam</label>
+                <label className="tv-label mb-1.5 block">Karakternaam</label>
                 <input
                   type="text"
                   value={name}
@@ -156,17 +178,12 @@ export default function QRJoinScreen({
                 ) : (
                   <>
                     <LogIn className="h-4 w-4" />
-                    Deelnemen
+                    {displayCampaignName ? `Deelnemen aan ${displayCampaignName}` : 'Deelnemen'}
                   </>
                 )}
               </button>
             </>
           )}
-        </div>
-
-        <div className="flex flex-col items-center gap-1 opacity-60">
-          <span className="tv-label">Code</span>
-          <span className="font-fantasy text-xs tracking-[0.14em] tv-accent">{inviteCode}</span>
         </div>
 
         <button

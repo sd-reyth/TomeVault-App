@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { UserPlus, ImagePlus } from 'lucide-react';
+import { Eye, EyeOff, UserPlus, ImagePlus } from 'lucide-react';
 import ModalFrame from './ModalFrame';
 import TvImage from './TvImage';
 import Button from './Button';
@@ -11,6 +11,7 @@ export default function AddNpcModal({ isOpen, onClose, onSave }) {
   const [initMod, setInitMod] = useState(2);
   const [avatarUrl, setAvatarUrl] = useState(null);
   const [avatarFile, setAvatarFile] = useState(null);
+  const [isRevealed, setIsRevealed] = useState(false);
 
   useEffect(() => {
     if (isOpen) {
@@ -20,6 +21,7 @@ export default function AddNpcModal({ isOpen, onClose, onSave }) {
       setInitMod(2);
       setAvatarUrl(null);
       setAvatarFile(null);
+      setIsRevealed(false);
     }
   }, [isOpen]);
 
@@ -28,7 +30,16 @@ export default function AddNpcModal({ isOpen, onClose, onSave }) {
   const handleSave = (e) => {
     e.preventDefault();
     if (!name.trim()) return;
-    onSave({ name, subtitle: 'Vijand', hp: Number(hp), maxHp: Number(hp), ac: Number(ac), initMod: Number(initMod), avatar: avatarUrl }, avatarFile);
+    onSave({
+      name,
+      subtitle: 'Vijand',
+      hp: Number(hp),
+      maxHp: Number(hp),
+      ac: Number(ac),
+      initMod: Number(initMod),
+      avatar: avatarUrl,
+      isRevealed,
+    }, avatarFile);
   };
 
   const handleImageChange = (e) => {
@@ -112,6 +123,24 @@ export default function AddNpcModal({ isOpen, onClose, onSave }) {
               />
             </div>
           </div>
+
+          <button
+            type="button"
+            onClick={() => setIsRevealed((current) => !current)}
+            className="tv-profile-inline-option justify-between text-left"
+          >
+            <span className="flex min-w-0 items-center gap-2">
+              {isRevealed ? <Eye className="h-4 w-4 tv-accent" /> : <EyeOff className="h-4 w-4 tv-muted" />}
+              <span>
+                <span className="block text-sm tv-text">
+                  {isRevealed ? 'Zichtbaar voor spelers' : 'Verborgen voor spelers'}
+                </span>
+                <span className="mt-0.5 block text-xs leading-5 tv-muted">
+                  Verborgen NPC’s staan niet in de spelers-slagorde.
+                </span>
+              </span>
+            </span>
+          </button>
 
           <div className="mt-2 flex flex-col-reverse gap-3 sm:flex-row">
             <Button variant="ghost" block onClick={onClose}>

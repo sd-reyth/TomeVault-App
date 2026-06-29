@@ -12,6 +12,8 @@ import {
   COMBAT_STATUS,
   filterCombatParticipants,
   getNextTurnId,
+  getTurnEligibleMembers,
+  shouldAutoEndCombat,
   sortPartyByInitiative,
 } from '../lib/battleUtils';
 import { isIncapacitated } from '../lib/battleConditions';
@@ -277,7 +279,7 @@ export function useCombat({ sessionDocId, party, setParty, role, uid, setSession
 
     const nextCombatState = {
       status: COMBAT_STATUS.ACTIVE,
-      currentTurnId: resolvedOrder[0] || null,
+      currentTurnId: getTurnEligibleMembers(nextParty, resolvedOrder)[0]?.id || resolvedOrder[0] || null,
       turnRound: 1,
       initiativeOrder: resolvedOrder,
     };
@@ -400,16 +402,31 @@ export function useCombat({ sessionDocId, party, setParty, role, uid, setSession
     });
   };
 
+  useEffect(() => {
+    if (role !== 'gm') return;
+    if (combatStatus !== COMBAT_STATUS.ACTIVE && combatStatus !== COMBAT_STATUS.PAUSED) return;
+    if (!shouldAutoEndCombat(party, combatStatus)) return;
+
+    setSessionInfo?.('Gevecht automatisch beëindigd — geen actieve tegenstanders of deelnemers meer.');
+    handleEndCombat();
+  }, [party, combatStatus, role]);
+
   const handleAdvanceTurn = async () => {
     if (role !== 'gm') return null;
-    const activeMembers = sortPartyByInitiative(filterCombatParticipants(party), initiativeOrder)
-      .filter((member) => Number.isFinite(Number(member.init)));
+    const eligibleMembers = getTurnEligibleMembers(party, initiativeOrder);
 
-    if (activeMembers.length === 0) return null;
+    if (eligibleMembers.length === 0) {
+      return handleEndCombat();
+    }
 
-    const currentIndex = activeMembers.findIndex((member) => member.id === currentTurnId);
-    const nextTurnId = getNextTurnId(activeMembers, currentTurnId, initiativeOrder);
-    const wrappedRound = currentIndex === -1 || currentIndex === activeMembers.length - 1;
+    const currentIndex = eligibleMembers.findIndex((member) => member.id === currentTurnId);
+    const nextTurnId = getNextTurnId(party, currentTurnId, initiativeOrder);
+
+    if (!nextTurnId) {
+      return handleEndCombat();
+    }
+
+    const wrappedRound = currentIndex !== -1 && currentIndex === eligibleMembers.length - 1;
 
     return persistCombatState({
       ...getCurrentCombatState(),
@@ -456,7 +473,7 @@ export function useCombat({ sessionDocId, party, setParty, role, uid, setSession
     if (role !== 'gm' || !sessionDocId || !playerId) return;
 
     const targetMember = party.find((member) => member.id === playerId);
-    if (!targetMember || targetMember.isNpc || targetMember.id === uid) return;
+    if (!targetMember || targetMember.isNpc) return;
     if (targetMember.combatParticipation === COMBAT_PARTICIPATION_STATUS.REMOVED) return;
 
     const previousParty = party;
@@ -532,6 +549,62 @@ export function useCombat({ sessionDocId, party, setParty, role, uid, setSession
     }
   };
 
+  const handleReturnPlayerToCombat = async (playerId) => {
+    if (role !== 'gm' || !sessionDocId || !playerId) return;
+
+    const targetMember = party.find((member) => member.id === playerId);
+    if (!targetMember || targetMember.isNpc) return;
+    if (targetMember.combatParticipation !== COMBAT_PARTICIPATION_STATUS.REMOVED) return;
+
+    const previousParty = party;
+    const previousCombatState = getCurrentCombatState();
+    const nextParty = party.map((member) => (
+      member.id === playerId
+        ? {
+            ...member,
+            combatParticipation: COMBAT_PARTICIPATION_STATUS.ACTIVE,
+            combatJoinRequestStatus: COMBAT_JOIN_REQUEST_STATUS.NONE,
+          }
+        : member
+    ));
+    const shouldUpdateCombat = combatStatus !== COMBAT_STATUS.IDLE
+      && !initiativeOrder.includes(playerId)
+      && Number.isFinite(Number(targetMember.init));
+    const nextCombatState = shouldUpdateCombat
+      ? { ...previousCombatState, initiativeOrder: [...initiativeOrder, playerId] }
+      : previousCombatState;
+
+    setParty(nextParty);
+    if (shouldUpdateCombat) {
+      applyLocalCombatState(nextCombatState);
+    }
+
+    try {
+      const batch = writeBatch(db);
+      batch.set(doc(db, 'sessions', sessionDocId, 'players', playerId), {
+        combatParticipation: COMBAT_PARTICIPATION_STATUS.ACTIVE,
+        combatJoinRequestStatus: COMBAT_JOIN_REQUEST_STATUS.NONE,
+        updatedAt: serverTimestamp(),
+      }, { merge: true });
+
+      if (shouldUpdateCombat) {
+        batch.update(doc(db, 'sessions', sessionDocId), {
+          ...buildCombatSessionPatch(nextCombatState),
+          updatedAt: serverTimestamp(),
+        });
+      }
+
+      await batch.commit();
+    } catch (err) {
+      console.error('Speler terugzetten in gevecht fout:', err);
+      setParty(previousParty);
+      if (shouldUpdateCombat) {
+        applyLocalCombatState(previousCombatState);
+      }
+      throw err;
+    }
+  };
+
   useEffect(() => {
     if (
       role !== 'gm'
@@ -592,6 +665,7 @@ export function useCombat({ sessionDocId, party, setParty, role, uid, setSession
     handleDeleteNpc,
     handleKickPlayerFromCombat,
     handleRequestCombatJoin,
+    handleReturnPlayerToCombat,
   };
 }
 

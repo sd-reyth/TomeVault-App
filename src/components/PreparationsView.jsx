@@ -11,6 +11,7 @@ import {
   UserRound,
 } from 'lucide-react';
 import { resolveDisplayAvatar } from '../lib/placeholders';
+import { formatCustomStatValue, formatSignedModifier } from '../lib/statModifiers';
 import SegmentedControl from '../ui/SegmentedControl';
 import TvImage from './TvImage';
 
@@ -25,8 +26,7 @@ function formatPreparationTime(ms) {
 }
 
 function formatModifier(value) {
-  const safeValue = Number(value ?? 0) || 0;
-  return safeValue >= 0 ? `+${safeValue}` : String(safeValue);
+  return formatSignedModifier(value);
 }
 
 function getStatusMeta(preparation, party) {
@@ -76,7 +76,7 @@ function getPreparationStatPills(preparation) {
     { label: 'Init', value: formatModifier(preparation.initMod) },
     ...(preparation.customStats || []).slice(0, 2).map((stat) => ({
       label: stat.name,
-      value: stat.value,
+      value: formatCustomStatValue(stat),
     })),
   ];
 }
@@ -96,6 +96,7 @@ function PreparationCard({
   onEditPreparation,
   onAssignPreparation,
   onDeletePreparation,
+  onReturnToPool,
 }) {
   const statusMeta = getStatusMeta(preparation, party);
   const statPills = getPreparationStatPills(preparation);
@@ -168,6 +169,17 @@ function PreparationCard({
           <Hand className="h-3.5 w-3.5" />
           <span>Toewijzen</span>
         </button>
+        {preparation.assignmentStatus === 'rejected' ? (
+          <button
+            type="button"
+            onClick={() => onReturnToPool?.(preparation)}
+            className="tv-prep-card__action"
+            title="Terug naar bibliotheek"
+          >
+            <History className="h-3.5 w-3.5" />
+            <span>Bibliotheek</span>
+          </button>
+        ) : null}
         <button
           type="button"
           onClick={handleDelete}
@@ -192,10 +204,13 @@ export default function PreparationsView({
   onDeletePreparation,
   onAssignPreparation,
   onRestoreBackup,
+  onReturnToPool,
 }) {
   const [query, setQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [showInfo, setShowInfo] = useState(false);
+  const [mobileOverviewOpen, setMobileOverviewOpen] = useState(false);
+  const [mobileBackupsOpen, setMobileBackupsOpen] = useState(false);
 
   const activePlayers = party.filter((member) => !member.isNpc);
   const readyCount = templates.filter((entry) => entry.assignmentStatus === 'unassigned').length;
@@ -207,17 +222,17 @@ export default function PreparationsView({
     return templates.filter((entry) => {
       if (!matchesStatusFilter(entry, statusFilter)) return false;
       if (!needle) return true;
-      const statHaystack = (entry.customStats || []).map((stat) => `${stat.name} ${stat.value}`).join(' ');
+      const statHaystack = (entry.customStats || []).map((stat) => `${stat.name} ${stat.value} ${stat.showModifier ? formatCustomStatValue(stat) : ''}`).join(' ');
       const haystack = `${entry.name || ''} ${entry.subtitle || ''} ${entry.bio || ''} ${statHaystack}`.toLowerCase();
       return haystack.includes(needle);
     });
   }, [templates, query, statusFilter]);
 
   const statusFilterOptions = useMemo(() => [
-    { value: 'all', label: `Alles (${templates.length})` },
-    { value: 'ready', label: `Klaar (${readyCount})` },
-    { value: 'pending', label: `Open (${pendingCount})` },
-    { value: 'active', label: `Actief (${acceptedCount})` },
+    { value: 'all', label: 'Alles', count: templates.length },
+    { value: 'ready', label: 'Klaar', count: readyCount },
+    { value: 'pending', label: 'Open', count: pendingCount },
+    { value: 'active', label: 'Actief', count: acceptedCount },
   ], [templates.length, readyCount, pendingCount, acceptedCount]);
 
   const handleRestore = (backup) => {
@@ -231,17 +246,20 @@ export default function PreparationsView({
 
   return (
     <div className="tv-view-shell tv-prep-view relative z-10 flex h-full flex-col">
-      <div className="tv-view-shell-header tv-prep-view__header flex shrink-0 flex-col gap-2 p-3 sm:flex-row sm:items-center sm:justify-between md:p-4">
-        <h2 className="flex items-center gap-2 font-fantasy text-xs font-medium uppercase tracking-[0.18em] tv-text md:text-sm">
+      <div className="tv-view-shell-header tv-prep-view__header flex shrink-0 flex-row items-center justify-between gap-2 p-3 md:p-4">
+        <h2 className="flex min-w-0 items-center gap-2 font-fantasy text-xs font-medium uppercase tracking-[0.18em] tv-text md:text-sm">
           <Crown className="tv-view-title-icon" aria-hidden />
           Voorbereidingen
         </h2>
 
-        <div className="tv-toolbar w-full sm:w-auto">
-          <div className="tv-toolbar__stat">
+        <div className="tv-toolbar shrink-0">
+          <div className="tv-prep-toolbar-stat tv-toolbar__stat">
             <span className="tv-toolbar__stat-label">Profielen</span>
             <span className="tv-toolbar__stat-value">{templates.length}</span>
           </div>
+          <span className="tv-prep-header-count" aria-label={`${templates.length} profielen`}>
+            {templates.length}
+          </span>
           <button
             type="button"
             onClick={onCreatePreparation}
@@ -258,7 +276,7 @@ export default function PreparationsView({
         <div className="tv-prep-layout">
           <section className="tv-prep-main">
             <div className="tv-prep-main__toolbar">
-              <div className="tv-prep-main__head">
+              <div className="tv-prep-main__head max-md:hidden">
                 <h3 className="tv-panel-title text-base">Bibliotheek</h3>
                 <span className="tv-prep-panel__badge">{visibleLabel}</span>
               </div>
@@ -300,8 +318,8 @@ export default function PreparationsView({
                   </h3>
                   <p className="tv-prep-empty__copy">
                     {templates.length === 0
-                      ? 'Zet een nieuw profiel klaar of start met het huidige profiel van een speler in de sessie.'
-                      : 'Pas je zoekterm of filter aan, of maak een nieuw profiel aan.'}
+                      ? 'Maak een profiel aan of start vanuit een speler.'
+                      : 'Pas zoek of filter aan.'}
                   </p>
                   {templates.length === 0 ? (
                     <div className="tv-prep-empty__actions">
@@ -337,6 +355,7 @@ export default function PreparationsView({
                       onEditPreparation={onEditPreparation}
                       onAssignPreparation={onAssignPreparation}
                       onDeletePreparation={onDeletePreparation}
+                      onReturnToPool={onReturnToPool}
                     />
                   ))}
                 </div>
@@ -347,114 +366,143 @@ export default function PreparationsView({
           <aside className="tv-prep-sidebar">
             <div className="tv-prep-sidebar__glow" aria-hidden />
 
-            <div className="tv-prep-sidebar__chrome">
-              <div className="tv-prep-sidebar__section-head">
-                <h3 className="tv-prep-sidebar__title">Overzicht</h3>
-                <button
-                  type="button"
-                  onClick={() => setShowInfo((value) => !value)}
-                  className={`tv-prep-sidebar__info-btn ${showInfo ? 'is-active' : ''}`}
-                  title={showInfo ? 'Verberg uitleg' : 'Toon uitleg'}
-                  aria-pressed={showInfo}
-                >
-                  <Info className="h-3.5 w-3.5" aria-hidden />
-                </button>
-              </div>
-
-              <div className="tv-prep-stat-grid">
-                {[
-                  { label: 'Klaar', value: readyCount, tone: 'ready' },
-                  { label: 'Open', value: pendingCount, tone: 'open' },
-                  { label: 'In gebruik', value: acceptedCount, tone: 'active' },
-                  { label: 'Herstel', value: backups.length, tone: 'restore' },
-                ].map((item) => (
-                  <div key={item.label} className={`tv-prep-stat tv-prep-stat--${item.tone}`}>
-                    <span className="tv-prep-stat__label">{item.label}</span>
-                    <span className="tv-prep-stat__value">{item.value}</span>
+            <section className="tv-prep-mobile-fold">
+              <button
+                type="button"
+                onClick={() => setMobileOverviewOpen((open) => !open)}
+                className="tv-prep-mobile-fold__trigger"
+                aria-expanded={mobileOverviewOpen}
+              >
+                <span>Overzicht</span>
+                <span className="tv-prep-mobile-fold__meta">{templates.length} profielen</span>
+              </button>
+              <div className={`tv-prep-mobile-fold__body ${mobileOverviewOpen ? 'is-open' : ''}`}>
+                <div className="tv-prep-sidebar__chrome">
+                  <div className="tv-prep-sidebar__section-head">
+                    <h3 className="tv-prep-sidebar__title">Overzicht</h3>
+                    <button
+                      type="button"
+                      onClick={() => setShowInfo((value) => !value)}
+                      className={`tv-prep-sidebar__info-btn ${showInfo ? 'is-active' : ''}`}
+                      title={showInfo ? 'Verberg uitleg' : 'Toon uitleg'}
+                      aria-pressed={showInfo}
+                    >
+                      <Info className="h-3.5 w-3.5" aria-hidden />
+                    </button>
                   </div>
-                ))}
-              </div>
-            </div>
 
-            {showInfo ? (
-              <div className="tv-prep-sidebar__block">
-                <div className="tv-prep-info">
-                  <div className="tv-prep-info__pills">
-                    {['Inventaris blijft', 'Wallet blijft', 'Notities blijven'].map((pill) => (
-                      <span key={pill} className="tv-prep-info__pill">{pill}</span>
-                    ))}
-                  </div>
-                  <ol className="tv-prep-info__steps">
+                  <div className="tv-prep-stat-grid">
                     {[
-                      { title: 'Nieuw', body: 'Maak een voorbereiding of bewaar een bestaand spelersprofiel.' },
-                      { title: 'Werk af', body: 'Controleer avatar, stats, verborgen eigenschappen en lore.' },
-                      { title: 'Toewijzen', body: 'Bied het personage aan een speler aan — zij accepteren of wijzen af.' },
-                    ].map((step, index) => (
-                      <li key={step.title} className="tv-prep-info__step">
-                        <span className="tv-prep-info__step-num">{index + 1}</span>
-                        <div className="min-w-0">
-                          <div className="tv-prep-info__step-title">{step.title}</div>
-                          <p className="tv-prep-info__step-body">{step.body}</p>
-                        </div>
-                      </li>
-                    ))}
-                  </ol>
-                </div>
-              </div>
-            ) : null}
-
-            <div className="tv-prep-sidebar__block tv-prep-sidebar__block--flush">
-              <div className="tv-prep-sidebar__section-head">
-                <div className="flex min-w-0 items-center gap-2">
-                  <span className="tv-prep-sidebar__section-icon" aria-hidden>
-                    <History className="h-3.5 w-3.5" />
-                  </span>
-                  <h3 className="tv-prep-sidebar__title">Herstelpunten</h3>
-                </div>
-                <span className="tv-prep-sidebar__count">{backups.length}</span>
-              </div>
-
-              {backups.length === 0 ? (
-                <div className="tv-prep-backups-empty">
-                  <div className="tv-prep-backups-empty__icon" aria-hidden>
-                    <History className="h-4 w-4" />
-                  </div>
-                  <p className="tv-prep-backups-empty__copy">
-                    Na een acceptatie verschijnt hier automatisch een terugzetpunt voor de speler.
-                  </p>
-                </div>
-              ) : (
-                <div className="tv-prep-backup-list">
-                  {backups.map((backup) => (
-                    <article key={backup.id} className="tv-prep-backup">
-                      <div className="tv-prep-backup__head">
-                        <div className="min-w-0">
-                          <p className="tv-prep-backup__name">{backup.playerName || 'Onbekende speler'}</p>
-                          <p className="tv-prep-backup__via">
-                            via {backup.templateName || 'Naamloze voorbereiding'}
-                          </p>
-                        </div>
-                        <time className="tv-prep-backup__time">
-                          {formatPreparationTime(backup.createdAtMs)}
-                        </time>
+                      { label: 'Klaar', value: readyCount, tone: 'ready' },
+                      { label: 'Open', value: pendingCount, tone: 'open' },
+                      { label: 'In gebruik', value: acceptedCount, tone: 'active' },
+                      { label: 'Herstel', value: backups.length, tone: 'restore' },
+                    ].map((item) => (
+                      <div key={item.label} className={`tv-prep-stat tv-prep-stat--${item.tone}`}>
+                        <span className="tv-prep-stat__label">{item.label}</span>
+                        <span className="tv-prep-stat__value">{item.value}</span>
                       </div>
-                      {backup.restoredAtMs ? (
-                        <p className="tv-prep-backup__restored">
-                          Hersteld {formatPreparationTime(backup.restoredAtMs)}
-                        </p>
-                      ) : null}
-                      <button
-                        type="button"
-                        onClick={() => handleRestore(backup)}
-                        className="tv-prep-backup__restore"
-                      >
-                        Zet terug
-                      </button>
-                    </article>
-                  ))}
+                    ))}
+                  </div>
                 </div>
-              )}
-            </div>
+
+                {showInfo ? (
+                  <div className="tv-prep-sidebar__block">
+                    <div className="tv-prep-info">
+                      <div className="tv-prep-info__pills">
+                        {['Inventaris blijft', 'Wallet blijft', 'Notities blijven'].map((pill) => (
+                          <span key={pill} className="tv-prep-info__pill">{pill}</span>
+                        ))}
+                      </div>
+                      <ol className="tv-prep-info__steps">
+                        {[
+                          { title: 'Nieuw', body: 'Maak een voorbereiding of bewaar een bestaand spelersprofiel.' },
+                          { title: 'Werk af', body: 'Controleer avatar, stats, verborgen eigenschappen en lore.' },
+                          { title: 'Toewijzen', body: 'Bied het personage aan een speler aan — zij accepteren of wijzen af.' },
+                        ].map((step, index) => (
+                          <li key={step.title} className="tv-prep-info__step">
+                            <span className="tv-prep-info__step-num">{index + 1}</span>
+                            <div className="min-w-0">
+                              <div className="tv-prep-info__step-title">{step.title}</div>
+                              <p className="tv-prep-info__step-body">{step.body}</p>
+                            </div>
+                          </li>
+                        ))}
+                      </ol>
+                    </div>
+                  </div>
+                ) : null}
+              </div>
+            </section>
+
+            <section className="tv-prep-mobile-fold">
+              <button
+                type="button"
+                onClick={() => setMobileBackupsOpen((open) => !open)}
+                className="tv-prep-mobile-fold__trigger"
+                aria-expanded={mobileBackupsOpen}
+              >
+                <span className="inline-flex items-center gap-2">
+                  <History className="h-3.5 w-3.5" aria-hidden />
+                  Herstelpunten
+                </span>
+                <span className="tv-prep-mobile-fold__meta">{backups.length}</span>
+              </button>
+              <div className={`tv-prep-mobile-fold__body ${mobileBackupsOpen ? 'is-open' : ''}`}>
+                <div className="tv-prep-sidebar__block tv-prep-sidebar__block--flush">
+                  <div className="tv-prep-sidebar__section-head">
+                    <div className="flex min-w-0 items-center gap-2">
+                      <span className="tv-prep-sidebar__section-icon" aria-hidden>
+                        <History className="h-3.5 w-3.5" />
+                      </span>
+                      <h3 className="tv-prep-sidebar__title">Herstelpunten</h3>
+                    </div>
+                    <span className="tv-prep-sidebar__count">{backups.length}</span>
+                  </div>
+
+                  {backups.length === 0 ? (
+                    <div className="tv-prep-backups-empty">
+                      <div className="tv-prep-backups-empty__icon" aria-hidden>
+                        <History className="h-4 w-4" />
+                      </div>
+                      <p className="tv-prep-backups-empty__copy">
+                        Na een acceptatie verschijnt hier automatisch een terugzetpunt voor de speler.
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="tv-prep-backup-list">
+                      {backups.map((backup) => (
+                        <article key={backup.id} className="tv-prep-backup">
+                          <div className="tv-prep-backup__head">
+                            <div className="min-w-0">
+                              <p className="tv-prep-backup__name">{backup.playerName || 'Onbekende speler'}</p>
+                              <p className="tv-prep-backup__via">
+                                via {backup.templateName || 'Naamloze voorbereiding'}
+                              </p>
+                            </div>
+                            <time className="tv-prep-backup__time">
+                              {formatPreparationTime(backup.createdAtMs)}
+                            </time>
+                          </div>
+                          {backup.restoredAtMs ? (
+                            <p className="tv-prep-backup__restored">
+                              Hersteld {formatPreparationTime(backup.restoredAtMs)}
+                            </p>
+                          ) : null}
+                          <button
+                            type="button"
+                            onClick={() => handleRestore(backup)}
+                            className="tv-prep-backup__restore"
+                          >
+                            Zet terug
+                          </button>
+                        </article>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+            </section>
           </aside>
         </div>
       </div>

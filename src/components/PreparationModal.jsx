@@ -3,7 +3,7 @@ import { NotebookPen, Plus, Save, UserRound } from 'lucide-react';
 import { PROFILE_PROMPT_AVATARS, resolveDisplayAvatar } from '../lib/placeholders';
 import ModalFrame from './ModalFrame';
 import Button from './Button';
-import CustomStatChips from '../ui/CustomStatChips';
+import CustomStatsSection from '../ui/CustomStatsSection';
 import {
   CREATE_MODAL_BODY_CLASS,
   CREATE_MODAL_FLAT_SCROLL_CLASS,
@@ -270,14 +270,16 @@ export default function PreparationModal({
             </CreateFormSection>
 
             <CreateFormSection flat>
-              <CreateFormField label="Verborgen eigenschappen" aside="Optioneel">
-                <CustomStatChips
-                  stats={formData.customStats || []}
-                  onAdd={addCustomStat}
-                  onUpdate={updateCustomStat}
-                  onRemove={removeCustomStat}
-                />
-              </CreateFormField>
+              <CustomStatsSection
+                stats={formData.customStats || []}
+                canEdit
+                onAdd={addCustomStat}
+                onUpdate={updateCustomStat}
+                onRemove={removeCustomStat}
+                sectionLabel="Verborgen eigenschappen"
+                emptyHint="Optioneel — voeg verborgen eigenschappen toe voor dit personage."
+                resetKey={preparation?.id || 'new'}
+              />
             </CreateFormSection>
 
             {players.length > 0 ? (

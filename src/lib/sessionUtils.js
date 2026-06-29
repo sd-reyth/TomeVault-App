@@ -49,6 +49,23 @@ export function buildSessionInviteUrl(joinTag, origin = '') {
   return `${resolvedOrigin}/?code=${encodeURIComponent(safeCode)}`;
 }
 
+export function formatCampaignDisplayName(name, fallback = 'Campagne') {
+  const trimmed = String(name || '').trim();
+  return trimmed || fallback;
+}
+
+export function buildInviteShareText({ campaignName, joinTag, joinUrl }) {
+  const displayName = formatCampaignDisplayName(campaignName, 'mijn campagne');
+  const canonicalCode = toLegacyHashJoinTag(joinTag);
+  const resolvedUrl = joinUrl || buildSessionInviteUrl(joinTag);
+  return `Sluit je aan bij ${displayName} op TomeVault!\n\nCampagne: ${displayName}\nCode: ${canonicalCode}\n\nSpeel direct mee: ${resolvedUrl}`;
+}
+
+export function buildWhatsAppShareUrl({ campaignName, joinTag, joinUrl }) {
+  const text = buildInviteShareText({ campaignName, joinTag, joinUrl });
+  return `https://wa.me/?text=${encodeURIComponent(text)}`;
+}
+
 export function getJoinTagLookupVariants(value) {
   const normalized = normalizeJoinTagInput(value);
   if (!normalized) return [];

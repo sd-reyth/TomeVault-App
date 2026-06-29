@@ -30,7 +30,9 @@ import {
   COMBAT_STATUS,
   buildInitiativeOrder,
   filterCombatParticipants,
+  getInitiativeModifier,
   getInitiativeTieGroups,
+  getInitiativeTotal,
   getTieGroupKey,
   getTurnsUntilMember,
   hasPendingCombatJoinRequest,
@@ -122,6 +124,7 @@ function RightSidebar({
   onRollAllInitiative,
   onKickPlayerFromCombat,
   onRequestCombatJoin,
+  onReturnPlayerToCombat,
   onOpenNpcModal,
   onOpenDamageModal,
   onOpenProfile,
@@ -149,10 +152,20 @@ function RightSidebar({
   const combatInProgress = combatStatus !== COMBAT_STATUS.IDLE;
   const canManageRoster = isGm && combatStatus !== COMBAT_STATUS.ACTIVE;
   const combatRoster = useMemo(() => filterCombatParticipants(party), [party]);
+  const visibleCombatRoster = useMemo(() => (
+    isGm
+      ? combatRoster
+      : combatRoster.filter((member) => !(member.isNpc && member.isRevealed === false))
+  ), [combatRoster, isGm]);
+  const hiddenPlayers = useMemo(() => (
+    isGm
+      ? party.filter((member) => member.isNpc !== true && !isCombatParticipant(member))
+      : []
+  ), [isGm, party]);
 
   const sortedParty = useMemo(
-    () => sortPartyByInitiative(combatRoster, combatInProgress ? initiativeOrder : []),
-    [combatInProgress, combatRoster, initiativeOrder]
+    () => sortPartyByInitiative(visibleCombatRoster, combatInProgress ? initiativeOrder : []),
+    [combatInProgress, visibleCombatRoster, initiativeOrder]
   );
 
   const myCharacter = party.find((member) => member.id === currentPlayerId);
@@ -193,6 +206,11 @@ function RightSidebar({
   const activeTieGroup = tieResolutionState?.tieGroups?.[tieResolutionState.currentIndex] || null;
   const activeTieGroupKey = activeTieGroup ? getTieGroupKey(activeTieGroup[0]) : null;
   const activeTieGroupMembers = activeTieGroup || [];
+  const tieRepresentative = activeTieGroupMembers[0] || null;
+  const tieSharedTotal = tieRepresentative ? getInitiativeTotal(tieRepresentative) : null;
+  const tieSharedModifier = tieRepresentative ? getInitiativeModifier(tieRepresentative) : 0;
+  const tieSharedModifierLabel = tieSharedModifier >= 0 ? `+${tieSharedModifier}` : `${tieSharedModifier}`;
+  const tieIsManual = tieResolutionState?.selectionMode === 'manual';
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -683,6 +701,31 @@ function RightSidebar({
               {statusError}
             </div>
           ) : null}
+
+          {isGm && hiddenPlayers.length > 0 ? (
+            <div className="mt-3 rounded-[var(--tv-radius)] border border-[color-mix(in_srgb,var(--tv-border),transparent_46%)] tv-panel-inset px-3 py-3">
+              <div className="mb-2 text-[10px] font-bold uppercase tracking-[0.18em] tv-muted">Verborgen uit slagorde</div>
+              <div className="space-y-2">
+                {hiddenPlayers.map((member) => (
+                  <div key={member.id} className="flex items-center justify-between gap-2">
+                    <span className="min-w-0 truncate text-xs tv-text">{member.name || 'Speler'}</span>
+                    <Button
+                      type="button"
+                      variant="secondary"
+                      size="sm"
+                      disabled={combatStatus === COMBAT_STATUS.ACTIVE || isActionBusy}
+                      onClick={() => onReturnPlayerToCombat?.(member.id)}
+                    >
+                      Terug
+                    </Button>
+                  </div>
+                ))}
+              </div>
+              {combatStatus === COMBAT_STATUS.ACTIVE ? (
+                <p className="mt-2 text-[11px] leading-5 tv-muted">Pauzeer of beëindig gevecht om spelers terug te zetten.</p>
+              ) : null}
+            </div>
+          ) : null}
         </div>
 
         <div className="tv-rail-roster flex min-h-0 flex-1 flex-col overflow-hidden px-1 pb-3 pt-3 md:px-1.5 md:pb-3.5 md:pt-3.5">
@@ -831,8 +874,10 @@ function RightSidebar({
 
       {tieResolutionState && activeTieGroup && activeTieGroupKey ? (
         <OverlayDialog
-          title={`Gelijke initiative (${tieResolutionState.currentIndex + 1}/${tieResolutionState.tieGroups.length})`}
-          description="Twee of meer spelers of NPC's hebben exact dezelfde totaalscore en modifier. Kies of TomeVault willekeurig een volgorde bepaalt, of zet de volgorde zelf vast."
+          title={`Gelijke initiative${tieResolutionState.tieGroups.length > 1 ? ` (${tieResolutionState.currentIndex + 1}/${tieResolutionState.tieGroups.length})` : ''}`}
+          description={tieIsManual
+            ? 'Zet de onderlinge volgorde zelf vast. Bovenaan komt als eerste aan de beurt.'
+            : "Deze deelnemers gooiden exact gelijk. Laat TomeVault de volgorde loten, of bepaal hem zelf."}
           onClose={() => setTieResolutionState(null)}
           actions={(
             tieResolutionState.selectionMode === 'manual' ? (
@@ -840,7 +885,7 @@ function RightSidebar({
                 <Button variant="ghost" onClick={() => setTieResolutionState({ ...tieResolutionState, selectionMode: 'choice' })}>
                   Terug
                 </Button>
-                <Button variant="primary" onClick={() => handleTieOrderResolved(tieResolutionState.manualOrder)}>
+                <Button variant="primary" icon={Check} onClick={() => handleTieOrderResolved(tieResolutionState.manualOrder)}>
                   Volgorde vastzetten
                 </Button>
               </>
@@ -849,23 +894,46 @@ function RightSidebar({
                 <Button variant="secondary" onClick={() => setTieResolutionState({ ...tieResolutionState, selectionMode: 'manual' })}>
                   Ik kies zelf
                 </Button>
-                <Button variant="primary" onClick={() => handleTieOrderResolved(shuffleList(activeTieGroupMembers.map((member) => member.id)))}>
-                  TomeVault bepaalt
+                <Button variant="primary" icon={Dice5} onClick={() => handleTieOrderResolved(shuffleList(activeTieGroupMembers.map((member) => member.id)))}>
+                  TomeVault loot
                 </Button>
               </>
             )
           )}
         >
-          <div className="mb-3 rounded-xl border border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] tv-panel-inset px-3 py-2 text-xs leading-5 tv-text-sub">
-            Score {activeTieGroupMembers[0]?.init ?? '-'} · Init Mod {activeTieGroupMembers[0]?.initMod >= 0 ? `+${activeTieGroupMembers[0]?.initMod}` : activeTieGroupMembers[0]?.initMod}
+          <div className="mb-4 grid grid-cols-2 gap-2">
+            <div className="rounded-xl border border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] tv-panel-inset px-3 py-2.5">
+              <div className="text-[10px] font-semibold uppercase tracking-[0.18em] tv-muted">Totaalscore</div>
+              <div className="mt-0.5 font-fantasy text-xl leading-none tv-text">{tieSharedTotal ?? '—'}</div>
+            </div>
+            <div className="rounded-xl border border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] tv-panel-inset px-3 py-2.5">
+              <div className="text-[10px] font-semibold uppercase tracking-[0.18em] tv-muted">Initiative-mod</div>
+              <div className="mt-0.5 font-fantasy text-xl leading-none tv-text">{tieSharedModifierLabel}</div>
+            </div>
+          </div>
+
+          <div className="mb-2 flex items-center justify-between">
+            <span className="text-[10px] font-semibold uppercase tracking-[0.18em] tv-muted">
+              {tieIsManual ? 'Volgorde' : `${activeTieGroupMembers.length} gelijk`}
+            </span>
+            {tieIsManual ? (
+              <span className="text-[10px] uppercase tracking-[0.18em] tv-muted">Eerst → laatst</span>
+            ) : null}
           </div>
 
           <div className="space-y-2">
-            {(tieResolutionState.selectionMode === 'manual'
+            {(tieIsManual
               ? tieResolutionState.manualOrder.map((id) => activeTieGroupMembers.find((member) => member.id === id)).filter(Boolean)
               : activeTieGroupMembers
             ).map((member, index, list) => (
               <div key={member.id} className="flex items-center gap-3 rounded-xl border border-[color-mix(in_srgb,var(--tv-border),transparent_28%)] tv-panel-inset px-3 py-2.5">
+                <div className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border tv-chip-surface ${
+                  tieIsManual
+                    ? 'border-[color-mix(in_srgb,var(--tv-accent),transparent_55%)] font-fantasy text-base tv-accent'
+                    : 'border-[color-mix(in_srgb,var(--tv-border),transparent_28%)] tv-muted'
+                }`}>
+                  {tieIsManual ? index + 1 : <Dice5 className="h-4 w-4" />}
+                </div>
                 <div className="tv-image-frame flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-[color-mix(in_srgb,var(--tv-border),transparent_28%)] tv-chip-surface">
                   <TvImage src={resolveDisplayAvatar(member.avatar, member.id)} alt={member.name} className="opacity-90" />
                 </div>
@@ -873,10 +941,11 @@ function RightSidebar({
                   <div className="truncate font-fantasy text-sm tracking-[0.14em] tv-text">{member.name}</div>
                   <div className="text-[10px] uppercase tracking-[0.18em] tv-muted">{member.isNpc ? 'NPC' : 'Speler'}</div>
                 </div>
-                {tieResolutionState.selectionMode === 'manual' ? (
+                {tieIsManual ? (
                   <div className="flex items-center gap-1">
                     <button
                       type="button"
+                      aria-label="Omhoog"
                       onClick={() => moveTieMember(member.id, 'up')}
                       disabled={index === 0}
                       className="rounded-md border border-[color-mix(in_srgb,var(--tv-border),transparent_20%)] tv-chip-surface p-1.5 tv-text transition-colors hover:border-[color-mix(in_srgb,var(--tv-accent),transparent_58%)] hover:tv-text disabled:cursor-not-allowed disabled:opacity-40"
@@ -885,6 +954,7 @@ function RightSidebar({
                     </button>
                     <button
                       type="button"
+                      aria-label="Omlaag"
                       onClick={() => moveTieMember(member.id, 'down')}
                       disabled={index === list.length - 1}
                       className="rounded-md border border-[color-mix(in_srgb,var(--tv-border),transparent_20%)] tv-chip-surface p-1.5 tv-text transition-colors hover:border-[color-mix(in_srgb,var(--tv-accent),transparent_58%)] hover:tv-text disabled:cursor-not-allowed disabled:opacity-40"

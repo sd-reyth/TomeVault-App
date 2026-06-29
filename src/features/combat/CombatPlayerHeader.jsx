@@ -13,7 +13,8 @@ export default function CombatPlayerHeader({
   currentTurnOrderIndex,
   currentTurnMember,
   currentTurnId,
-  isMyTurn,  isPinned,
+  isMyTurn,
+  isPinned,
   onTogglePinned,
   onClose,
   statusPrimaryLine,
@@ -58,15 +59,30 @@ export default function CombatPlayerHeader({
       </div>
 
       <div className="mb-2 flex flex-col gap-2">
-        <CombatRoundBar
-          combatStatus={combatStatus}
-          turnRound={turnRound}
-          currentTurnOrderIndex={currentTurnOrderIndex}
-          currentTurnMember={currentTurnMember}
-          isMyTurn={isMyTurn}
-          isActive={ambienceActive}
-          infoSlot={combatInProgress ? <SlagordeInfoButton open={info.open} onToggle={info.toggle} /> : null}
-        />
+        {combatInProgress ? (
+          <div className="grid grid-cols-[minmax(0,1fr)_var(--tv-control-height)] items-start gap-2">
+            <CombatRoundBar
+              combatStatus={combatStatus}
+              turnRound={turnRound}
+              currentTurnOrderIndex={currentTurnOrderIndex}
+              currentTurnMember={currentTurnMember}
+              isMyTurn={isMyTurn}
+              isActive={ambienceActive}
+              infoSlot={null}
+            />
+            <SlagordeInfoButton open={info.open} onToggle={info.toggle} />
+          </div>
+        ) : (
+          <CombatRoundBar
+            combatStatus={combatStatus}
+            turnRound={turnRound}
+            currentTurnOrderIndex={currentTurnOrderIndex}
+            currentTurnMember={currentTurnMember}
+            isMyTurn={isMyTurn}
+            isActive={ambienceActive}
+            infoSlot={null}
+          />
+        )}
         {combatInProgress && info.open ? (
           <div className="tv-combat-info-popover">
             <SlagordeInfoContent />

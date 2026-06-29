@@ -14,7 +14,8 @@ export default function CombatGmHeader({
   turnRound,
   currentTurnOrderIndex,
   currentTurnMember,
-  isActionBusy,  isPinned,
+  isActionBusy,
+  isPinned,
   onTogglePinned,
   onClose,
   onStart,
@@ -69,7 +70,7 @@ export default function CombatGmHeader({
             Start gevecht
           </Button>
         ) : (
-          <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-2">
+          <div className="grid grid-cols-[minmax(0,1fr)_var(--tv-control-height)] items-start gap-2">
             <SegmentedControl
               block
               aria-label="Gevechtsmodus"
@@ -87,33 +88,36 @@ export default function CombatGmHeader({
               title="Beëindig gevecht"
               aria-label="Beëindig gevecht"
               disabled={!combatInProgress || isActionBusy}
-              className={`tv-toolbar-icon-btn tv-chat-dice-btn transition-all duration-200 ease-out disabled:opacity-50 active:scale-[0.985] ${
+              className={`tv-toolbar-icon-btn tv-chat-dice-btn inline-flex items-center justify-center transition-all duration-200 ease-out disabled:opacity-50 active:scale-[0.985] ${
                 combatInProgress && !isActionBusy ? 'tv-combat-end-btn--ready' : ''
               }`}
             >
-              <Skull className="h-[1.05rem] w-[1.05rem] shrink-0 translate-y-[1.5px]" />
+              <Skull className="h-[1.05rem] w-[1.05rem] shrink-0" aria-hidden />
             </button>
           </div>
         )}
 
-        <div className="flex flex-col gap-2">
+        <div className="grid grid-cols-[minmax(0,1fr)_var(--tv-control-height)] items-start gap-2">
           <CombatRoundBar
             combatStatus={combatStatus}
             turnRound={turnRound}
             currentTurnOrderIndex={currentTurnOrderIndex}
             currentTurnMember={currentTurnMember}
             isActive={ambienceActive}
-            infoSlot={<SlagordeInfoButton open={info.open} onToggle={info.toggle} />}
+            infoSlot={null}
           />
-          {info.open ? (
-            <div className="tv-combat-info-popover">
-              <SlagordeInfoContent />
-            </div>
-          ) : null}
-          {!combatInProgress ? (
-            <Text variant="meta" as="p" className="leading-5">{statusSubtitle || statusTitle}</Text>
-          ) : null}
-        </div>      </div>
+          <SlagordeInfoButton open={info.open} onToggle={info.toggle} />
+        </div>
+
+        {info.open ? (
+          <div className="tv-combat-info-popover">
+            <SlagordeInfoContent />
+          </div>
+        ) : null}
+        {!combatInProgress ? (
+          <Text variant="meta" as="p" className="leading-5">{statusSubtitle || statusTitle}</Text>
+        ) : null}
+      </div>
     </div>
   );
 }

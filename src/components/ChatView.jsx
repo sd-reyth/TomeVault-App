@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { MessageSquare, Palette, Pencil, Trash2, X, Check, CornerUpLeft, SendHorizontal, Dice5 } from 'lucide-react';
 import DiceRollerSheet from './DiceRollerSheet';
 import { safeLocalStorageGet, safeLocalStorageSet } from '../lib/browserStorage';
+import { canDeleteChatMessage, canEditChatMessage } from '../lib/chatUtils';
 import { diceMessageHasNat20 } from '../lib/uiFeedback';
 import DiceIcon, { DiceMultipleIcon } from '../ui/DiceIcon';
 
@@ -154,6 +155,22 @@ function ChatView({ chat, setChat, role, uid, playerName, preferredChatColor, th
   );
   const selfAuthor = role === 'gm' ? 'GM' : (playerName || 'Speler');
 
+  useEffect(() => {
+    if (!editingMsg) return undefined;
+
+    const checkEditable = () => {
+      const message = chat.find((entry) => entry.id === editingMsg.id);
+      if (!message || !canEditChatMessage(message, chat, uid, selfAuthor)) {
+        setEditingMsg(null);
+        setMsg('');
+      }
+    };
+
+    checkEditable();
+    const timer = window.setInterval(checkEditable, 15_000);
+    return () => window.clearInterval(timer);
+  }, [chat, editingMsg, selfAuthor, uid]);
+
   const buildOptimisticMessage = ({ text, replyTo, color, author }) => {
     const now = new Date();
     const clientMessageId = `cmsg-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
@@ -252,6 +269,13 @@ function ChatView({ chat, setChat, role, uid, playerName, preferredChatColor, th
     if (!text || isSending) return;
 
     if (editingMsg) {
+      const message = chat.find((entry) => entry.id === editingMsg.id);
+      if (!message || !canEditChatMessage(message, chat, uid, selfAuthor)) {
+        setEditingMsg(null);
+        setMsg('');
+        return;
+      }
+
       setChat(prev => prev.map(c => c.id === editingMsg.id ? { ...c, text } : c));
       onEditMessage?.(editingMsg.id, text);
       setEditingMsg(null);
@@ -267,6 +291,8 @@ function ChatView({ chat, setChat, role, uid, playerName, preferredChatColor, th
   };
 
   const startEdit = (message) => {
+    if (!canEditChatMessage(message, chat, uid, selfAuthor)) return;
+
     setEditingMsg({ id: message.id, text: message.text });
     setMsg(message.text);
     setActiveMenu(null);
@@ -280,6 +306,7 @@ function ChatView({ chat, setChat, role, uid, playerName, preferredChatColor, th
   };
 
   const handleDelete = (message) => {
+    if (!canDeleteChatMessage(message, role, uid, selfAuthor)) return;
     setChat(prev => prev.filter(c => c.id !== message.id));
     onDeleteMessage?.(message.id);
     setActiveMenu(null);
@@ -296,13 +323,13 @@ function ChatView({ chat, setChat, role, uid, playerName, preferredChatColor, th
 
   return (
     <div className="tv-view-shell relative z-10 h-full">
-      <div className="tv-view-shell-header flex shrink-0 flex-col gap-2 p-3 sm:flex-row sm:items-center sm:justify-between md:p-4">
-        <h2 className="flex items-center gap-2 text-xs font-medium font-fantasy uppercase tracking-[0.18em] tv-text md:text-sm">
+      <div className="tv-view-shell-header flex shrink-0 flex-row items-center justify-between gap-2 p-3 md:p-4">
+        <h2 className="flex min-w-0 items-center gap-2 text-xs font-medium font-fantasy uppercase tracking-[0.18em] tv-text md:text-sm">
           <MessageSquare className="tv-view-title-icon" /> Fluisteringen
         </h2>
         <button
           onClick={() => setShowColorPicker(true)}
-          className="inline-flex w-full items-center justify-between gap-1.5 rounded-xl border border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] tv-panel-inset px-2.5 py-2 tv-text transition-all duration-200 ease-out tv-hover-surface hover:tv-text active:scale-[0.985] sm:w-auto sm:justify-start"
+          className="tv-toolbar__btn tv-panel-inset tv-text tv-hover-surface hover:tv-text shrink-0 gap-1.5 px-2.5 active:scale-[0.985]"
           title="Kies je chatkleur"
         >
           {chatColor
@@ -388,6 +415,8 @@ function ChatView({ chat, setChat, role, uid, playerName, preferredChatColor, th
           const timeBreakToNext = nextMsg && Math.abs(Number(nextMsg.ms || 0) - Number(c.ms || 0)) > 90 * 1000;
           const showHeader = !prevMsg || prevKey !== senderKey || timeBreakFromPrev;
           const isLastInGroup = !nextMsg || nextKey !== senderKey || timeBreakToNext;
+          const canEdit = isOwn && canEditChatMessage(c, chat, uid, selfAuthor);
+          const canDelete = canDeleteChatMessage(c, role, uid, selfAuthor);
 
           return (
             <div
@@ -517,23 +546,27 @@ function ChatView({ chat, setChat, role, uid, playerName, preferredChatColor, th
                       <CornerUpLeft className="h-3.5 w-3.5 shrink-0 tv-muted" />
                       Beantwoord
                     </button>
-                    {isOwn && (
+                    {(canEdit || canDelete) && (
                       <>
                         <div className="mx-2 my-0.5 border-t border-[color-mix(in_srgb,var(--tv-border),transparent_42%)]" />
-                        <button
-                          onClick={() => startEdit(c)}
-                          className="flex w-full items-center gap-2.5 px-3 py-2 text-[11px] tv-text transition-colors hover:tv-panel-inset hover:tv-text"
-                        >
-                          <Pencil className="h-3.5 w-3.5 shrink-0 tv-muted" />
-                          Bewerk
-                        </button>
-                        <button
-                          onClick={() => handleDelete(c)}
-                          className="flex w-full items-center gap-2.5 px-3 py-2 text-[11px] tv-tone-enemy-text transition-colors tv-hover-danger"
-                        >
-                          <Trash2 className="h-3.5 w-3.5 shrink-0" />
-                          Verwijder
-                        </button>
+                        {canEdit ? (
+                          <button
+                            onClick={() => startEdit(c)}
+                            className="flex w-full items-center gap-2.5 px-3 py-2 text-[11px] tv-text transition-colors hover:tv-panel-inset hover:tv-text"
+                          >
+                            <Pencil className="h-3.5 w-3.5 shrink-0 tv-muted" />
+                            Bewerk
+                          </button>
+                        ) : null}
+                        {canDelete ? (
+                          <button
+                            onClick={() => handleDelete(c)}
+                            className="flex w-full items-center gap-2.5 px-3 py-2 text-[11px] tv-tone-enemy-text transition-colors tv-hover-danger"
+                          >
+                            <Trash2 className="h-3.5 w-3.5 shrink-0" />
+                            Verwijder
+                          </button>
+                        ) : null}
                       </>
                     )}
                   </div>
@@ -573,7 +606,7 @@ function ChatView({ chat, setChat, role, uid, playerName, preferredChatColor, th
           </div>
         )}
 
-        <form onSubmit={sendMsg} className="chat-input-form flex flex-wrap gap-2 p-3 sm:flex-nowrap md:gap-3 md:p-4">
+        <form onSubmit={sendMsg} className="chat-input-form flex flex-nowrap items-center gap-2 p-3 md:gap-3 md:p-4">
           <input
             ref={inputRef}
             type="text"
@@ -581,9 +614,9 @@ function ChatView({ chat, setChat, role, uid, playerName, preferredChatColor, th
             onChange={e => setMsg(e.target.value)}
             onClick={() => { if (!chatColor) setShowColorPicker(true); }}
             placeholder={chatColor ? (editingMsg ? 'Pas je bericht aan...' : 'Spreek in de schaduwen...') : 'Kies eerst een kleur...'}
-            className="tv-input-surface tv-chat-compose-input min-w-0 w-full flex-[1_1_100%] px-3 text-sm italic transition-colors focus:outline-none md:px-4 sm:flex-[1_1_auto]"
+            className="tv-input-surface tv-chat-compose-input min-w-0 flex-1 px-3 text-sm italic transition-colors focus:outline-none md:px-4"
           />
-          <div className={`tv-chat-compose-controls flex items-center gap-2 ${editingMsg ? 'w-full sm:w-auto' : 'ml-auto sm:ml-0'}`}>
+          <div className="tv-chat-compose-controls flex shrink-0 items-center gap-2">
             {!editingMsg && (
               <button
                 type="button"
@@ -601,7 +634,7 @@ function ChatView({ chat, setChat, role, uid, playerName, preferredChatColor, th
               disabled={isSending}
               title={editingMsg ? 'Bewerking opslaan' : 'Bericht versturen'}
               aria-label={editingMsg ? 'Bewerking opslaan' : 'Bericht versturen'}
-              className={`tv-chat-send-btn inline-flex items-center justify-center gap-2 border px-3.5 text-sm font-medium uppercase tracking-[0.16em] transition-all duration-200 ease-out disabled:opacity-50 active:scale-[0.985] md:px-4 ${msg.trim() && !isSending ? 'tv-chat-send-btn--ready' : ''} ${editingMsg ? 'flex-1 sm:flex-none' : 'shrink-0'}`}
+              className={`tv-chat-send-btn inline-flex shrink-0 items-center justify-center gap-2 border px-3.5 text-sm font-medium uppercase tracking-[0.16em] transition-all duration-200 ease-out disabled:opacity-50 active:scale-[0.985] md:px-4 ${msg.trim() && !isSending ? 'tv-chat-send-btn--ready' : ''}`}
             >
               {editingMsg ? <Check className="w-4 h-4" /> : <SendHorizontal className="w-4 h-4" />}
             </button>

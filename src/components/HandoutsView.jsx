@@ -1,17 +1,26 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { AlertTriangle, LayoutGrid, List, Plus, Eye, EyeOff, Hand, User, KeyRound, Search, SlidersHorizontal, Scroll, X } from 'lucide-react';
-import { getHandoutIcon, getHandoutSecretToggleMeta, HANDOUT_SECRET_TOGGLE_ERRORS } from '../lib/handoutUtils';
+import { AlertTriangle, LayoutGrid, List, Plus, Eye, EyeOff, Hand, User, KeyRound, Search, SlidersHorizontal, Scroll, Trash2, X } from 'lucide-react';
+import { getHandoutIcon, getHandoutSecretToggleMeta, HANDOUT_SECRET_TOGGLE_ERRORS, isHandoutAtPlayer, isHandoutDeleted } from '../lib/handoutUtils';
 import { getAvatarObjectPosition, normalizeAvatarPosition } from '../lib/placeholders';
 import { playUiSound } from '../lib/uiFeedback';
 import TvImage from './TvImage';
 
-function HandoutsView({ role, handouts, currentPlayerId, onToggleVisibility, onToggleSecretVisibility, onOpenHandout, onCreateHandout, onClaim }) {
+const SORT_LABELS = {
+  newest: 'Nieuwste eerst',
+  oldest: 'Oudste eerst',
+  'title-asc': 'Titel A-Z',
+  'title-desc': 'Titel Z-A',
+  type: 'Type',
+};
+
+function HandoutsView({ role, handouts, currentPlayerId, onToggleVisibility, onToggleSecretVisibility, onOpenHandout, onCreateHandout, onClaim, trashCount = 0, onOpenTrash }) {
   const [viewMode, setViewMode] = useState('list');
   const [searchQuery, setSearchQuery] = useState('');
   const [typeFilter, setTypeFilter] = useState('all');
   const [statusFilter, setStatusFilter] = useState('all');
   const [sortBy, setSortBy] = useState('newest');
-  const [allClaimedHidden, setAllClaimedHidden] = useState(true);
+  const [showPlayerHandouts, setShowPlayerHandouts] = useState(false);
+  const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
 
   const isClaimableLoot = (handout) => (
     handout.claimable
@@ -78,10 +87,16 @@ function HandoutsView({ role, handouts, currentPlayerId, onToggleVisibility, onT
     );
   };
 
+  const truncateSecretPreview = (text, max = 140) => {
+    const clean = String(text || '').replace(/\s+/g, ' ').trim();
+    if (clean.length <= max) return clean;
+    return `${clean.slice(0, max).trimEnd()}…`;
+  };
+
   const renderHandoutSecretSnippet = (handout, variant = 'gm') => (
     <div className={`tv-handout-card__secret tv-handout-card__secret--footer ${variant === 'gm' ? 'tv-handout-card__secret--gm' : 'tv-handout-card__secret--revealed'}`}>
       <p className={`truncate font-story text-[11px] leading-snug md:text-xs ${variant === 'gm' ? 'italic tv-text-sub' : 'tv-text'}`}>
-        {handout.secret}
+        {truncateSecretPreview(handout.secret)}
       </p>
     </div>
   );
@@ -125,15 +140,17 @@ function HandoutsView({ role, handouts, currentPlayerId, onToggleVisibility, onT
   };
 
   const visibleBaseHandouts = useMemo(() => handouts.filter((handout) => {
+    if (isHandoutDeleted(handout)) return false;
     if (role === 'gm') {
-      if (allClaimedHidden && handout.claimedBy) return false;
-      return true;
+      const atPlayer = isHandoutAtPlayer(handout);
+      // Pool view: only unassigned / unclaimed. Geclaimd view: claimed + assigned.
+      return showPlayerHandouts ? atPlayer : !atPlayer;
     }
     if (!handout.isRevealed) return false;
-    if (handout.assignedToUid && handout.assignedToUid !== currentPlayerId) return false;
+    if (handout.assignedToUid) return false;
     if (handout.claimedBy) return false;
     return true;
-  }), [allClaimedHidden, currentPlayerId, handouts, role]);
+  }), [handouts, role, showPlayerHandouts]);
 
   const typeOptions = useMemo(() => {
     const uniqueTypes = Array.from(new Set(handouts.map((handout) => String(handout.type || 'clue').toLowerCase())));
@@ -141,17 +158,20 @@ function HandoutsView({ role, handouts, currentPlayerId, onToggleVisibility, onT
     return uniqueTypes;
   }, [handouts]);
 
-  const claimedCount = useMemo(() => handouts.filter((handout) => handout.claimedBy).length, [handouts]);
+  const playerHandoutCount = useMemo(
+    () => handouts.filter((handout) => !isHandoutDeleted(handout) && isHandoutAtPlayer(handout)).length,
+    [handouts]
+  );
 
   useEffect(() => {
-    if (claimedCount === 0) {
-      setAllClaimedHidden(true);
+    if (playerHandoutCount === 0 && showPlayerHandouts) {
+      setShowPlayerHandouts(false);
     }
-  }, [claimedCount]);
+  }, [playerHandoutCount, showPlayerHandouts]);
 
-  const toggleClaimedVisibility = () => {
-    if (role !== 'gm' || claimedCount === 0) return;
-    setAllClaimedHidden((previous) => !previous);
+  const togglePlayerHandoutsView = () => {
+    if (role !== 'gm' || playerHandoutCount === 0) return;
+    setShowPlayerHandouts((previous) => !previous);
   };
 
   const processedHandouts = useMemo(() => {
@@ -205,6 +225,20 @@ function HandoutsView({ role, handouts, currentPlayerId, onToggleVisibility, onT
       { value: 'secret', label: 'Met secret' },
     ];
 
+  const activeFilterCount = useMemo(() => {
+    let count = 0;
+    if (sortBy !== 'newest') count += 1;
+    if (typeFilter !== 'all') count += 1;
+    if (statusFilter !== 'all') count += 1;
+    return count;
+  }, [sortBy, typeFilter, statusFilter]);
+
+  const filterSummary = useMemo(() => {
+    const statusLabel = statusOptions.find((option) => option.value === statusFilter)?.label || 'Alles';
+    const typeLabel = typeFilter === 'all' ? 'Alle types' : typeFilter;
+    return `${SORT_LABELS[sortBy] || 'Nieuwste'} · ${typeLabel} · ${statusLabel}`;
+  }, [sortBy, statusFilter, statusOptions, typeFilter]);
+
   return (
     <div className="tv-view-shell relative z-10 h-full">
       <div className="tv-view-shell-header flex shrink-0 flex-wrap flex-col gap-2 p-3 sm:flex-row sm:items-center sm:justify-between md:p-4">
@@ -232,15 +266,39 @@ function HandoutsView({ role, handouts, currentPlayerId, onToggleVisibility, onT
           </div>
 
           {role === 'gm' ? (
-            <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:items-center">
+            <div className="flex w-full flex-row items-stretch gap-2 sm:w-auto sm:items-center">
               <button
-                onClick={toggleClaimedVisibility}
-                disabled={claimedCount === 0}
-                className={`tv-toolbar__btn w-full sm:w-auto ${claimedCount > 0 ? 'tv-panel-inset tv-text tv-hover-surface hover:text-[var(--tv-accent)] active:scale-[0.985]' : 'cursor-not-allowed tv-panel-inset tv-muted'}`}
-                title={allClaimedHidden ? 'Maak geclaimde handouts zichtbaar' : 'Verberg geclaimde handouts'}
+                onClick={togglePlayerHandoutsView}
+                disabled={playerHandoutCount === 0}
+                aria-pressed={showPlayerHandouts}
+                aria-label={showPlayerHandouts
+                  ? `Terug naar handout-pool (${playerHandoutCount} bij spelers)`
+                  : `Toon geclaimde en toegewezen handouts (${playerHandoutCount})`}
+                className={`tv-toolbar__btn shrink-0 px-0 max-sm:w-[var(--tv-control-height)] sm:w-auto sm:gap-1.5 sm:px-3 ${playerHandoutCount > 0 ? 'tv-panel-inset tv-text tv-hover-surface hover:text-[var(--tv-accent)] active:scale-[0.985]' : 'cursor-not-allowed tv-panel-inset tv-muted'} ${showPlayerHandouts ? 'tv-view-toolbar__btn--active' : ''}`}
+                title={showPlayerHandouts
+                  ? 'Terug naar de handout-pool'
+                  : 'Toon handouts bij spelers (geclaimd en toegewezen)'}
               >
-                {allClaimedHidden ? <Eye className="h-3.5 w-3.5 shrink-0" /> : <EyeOff className="h-3.5 w-3.5 shrink-0" />}
-                <span className="truncate">Geclaimd ({claimedCount})</span>
+                {showPlayerHandouts ? <EyeOff className="h-4 w-4 shrink-0" aria-hidden /> : <Eye className="h-4 w-4 shrink-0" aria-hidden />}
+                <span className="hidden truncate sm:inline">Geclaimd ({playerHandoutCount})</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  playUiSound('paper');
+                  onOpenTrash?.();
+                }}
+                className="tv-toolbar-icon-btn tv-panel-inset tv-text tv-hover-surface relative shrink-0 hover:text-[var(--tv-accent)] active:scale-[0.985]"
+                title={trashCount > 0 ? `Prullenbak (${trashCount})` : 'Prullenbak'}
+                aria-label={trashCount > 0 ? `Prullenbak, ${trashCount} verwijderd` : 'Prullenbak'}
+              >
+                <Trash2 className="h-4 w-4" aria-hidden />
+                {trashCount > 0 ? (
+                  <span className="tv-handout-trash-badge absolute -right-1 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full px-1 text-[10px] font-semibold leading-none">
+                    {trashCount > 9 ? '9+' : trashCount}
+                  </span>
+                ) : null}
               </button>
 
               <button
@@ -248,7 +306,7 @@ function HandoutsView({ role, handouts, currentPlayerId, onToggleVisibility, onT
                   playUiSound('paper');
                   onCreateHandout?.();
                 }}
-                className="tv-toolbar__btn tv-button-primary w-full gap-2 px-4 text-sm uppercase tracking-[0.16em] active:scale-[0.985] sm:w-auto"
+                className="tv-toolbar__btn tv-button-primary min-w-0 flex-1 gap-2 px-4 text-sm uppercase tracking-[0.16em] active:scale-[0.985] sm:flex-none sm:w-auto"
               >
                 <Plus className="h-4 w-4 shrink-0" /> <span className="truncate">Nieuw</span>
               </button>
@@ -279,9 +337,78 @@ function HandoutsView({ role, handouts, currentPlayerId, onToggleVisibility, onT
 
       <div className="relative z-10 min-h-0 flex-1 overflow-y-auto p-3 no-scrollbar md:p-4">
         <div className="flex flex-col gap-3 md:gap-4">
-          <div className="grid grid-cols-1 gap-2 md:grid-cols-[minmax(0,1fr)_160px]">
+          <div className="flex items-center gap-2 md:hidden">
+            <label className="relative min-w-0 flex-1">
+              <Search className="absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 tv-muted" aria-hidden />
+              <input
+                type="search"
+                value={searchQuery}
+                onChange={(event) => setSearchQuery(event.target.value)}
+                placeholder="Zoek handouts…"
+                className="tv-input-surface tv-chat-compose-input w-full pl-9 pr-3 text-sm outline-none transition-colors"
+              />
+            </label>
+            <button
+              type="button"
+              onClick={() => setMobileFiltersOpen((open) => !open)}
+              className={`tv-toolbar-icon-btn relative shrink-0 ${mobileFiltersOpen || activeFilterCount > 0 ? 'tv-toolbar-icon-btn--active' : ''}`}
+              title={mobileFiltersOpen ? 'Verberg filters' : 'Filters en sortering'}
+              aria-expanded={mobileFiltersOpen}
+              aria-label={mobileFiltersOpen ? 'Verberg filters' : 'Toon filters'}
+            >
+              <SlidersHorizontal className="h-4 w-4" />
+              {activeFilterCount > 0 ? (
+                <span className="tv-handout-filter-badge" aria-hidden>{activeFilterCount}</span>
+              ) : null}
+            </button>
+          </div>
+
+          <div className={`tv-handout-filter-panel md:hidden ${mobileFiltersOpen ? 'is-open' : ''}`}>
+            <p className="tv-handout-filter-panel__summary">{filterSummary}</p>
+            <label className="tv-handout-filter-field">
+              <span className="tv-handout-filter-field__label">Sorteren</span>
+              <select
+                value={sortBy}
+                onChange={(event) => setSortBy(event.target.value)}
+                className="tv-input-surface tv-chat-compose-input w-full px-3 text-sm outline-none transition-colors"
+              >
+                <option value="newest">Nieuwste eerst</option>
+                <option value="oldest">Oudste eerst</option>
+                <option value="title-asc">Titel A-Z</option>
+                <option value="title-desc">Titel Z-A</option>
+                <option value="type">Type</option>
+              </select>
+            </label>
+            <label className="tv-handout-filter-field">
+              <span className="tv-handout-filter-field__label">Type</span>
+              <select
+                value={typeFilter}
+                onChange={(event) => setTypeFilter(event.target.value)}
+                className="tv-input-surface tv-chat-compose-input w-full px-3 text-sm outline-none transition-colors"
+              >
+                <option value="all">Alle types</option>
+                {typeOptions.map((type) => (
+                  <option key={type} value={type}>{type}</option>
+                ))}
+              </select>
+            </label>
+            <label className="tv-handout-filter-field">
+              <span className="tv-handout-filter-field__label">Status</span>
+              <select
+                value={statusFilter}
+                onChange={(event) => setStatusFilter(event.target.value)}
+                className="tv-input-surface tv-chat-compose-input w-full px-3 text-sm outline-none transition-colors"
+              >
+                {statusOptions.map((option) => (
+                  <option key={option.value} value={option.value}>{option.label}</option>
+                ))}
+              </select>
+            </label>
+          </div>
+
+          <div className="hidden md:grid md:grid-cols-[minmax(0,1fr)_160px] md:gap-2">
             <label className="relative">
-              <Search className="absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 tv-muted" />
+              <Search className="absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 tv-muted" aria-hidden />
               <input
                 type="search"
                 value={searchQuery}
@@ -292,7 +419,7 @@ function HandoutsView({ role, handouts, currentPlayerId, onToggleVisibility, onT
             </label>
 
             <label className="relative">
-              <SlidersHorizontal className="absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 tv-muted" />
+              <SlidersHorizontal className="absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 tv-muted" aria-hidden />
               <select
                 value={sortBy}
                 onChange={(event) => setSortBy(event.target.value)}
@@ -307,7 +434,7 @@ function HandoutsView({ role, handouts, currentPlayerId, onToggleVisibility, onT
             </label>
           </div>
 
-          <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
+          <div className="hidden md:grid md:grid-cols-2 md:gap-2">
             <select
               value={typeFilter}
               onChange={(event) => setTypeFilter(event.target.value)}
@@ -330,7 +457,7 @@ function HandoutsView({ role, handouts, currentPlayerId, onToggleVisibility, onT
             </select>
           </div>
 
-          <div className="text-[11px] tv-muted">
+          <div className="text-[11px] tv-muted max-md:hidden">
             {processedHandouts.length} van {visibleBaseHandouts.length} handouts zichtbaar
           </div>
         </div>
@@ -346,7 +473,7 @@ function HandoutsView({ role, handouts, currentPlayerId, onToggleVisibility, onT
                   playUiSound('book');
                   onOpenHandout(handout);
                 }}
-                className={`group relative flex cursor-pointer overflow-hidden rounded-2xl transition-all duration-200 ease-out ${viewMode === 'grid' ? 'flex-col' : 'flex-row items-stretch'} backdrop-blur-sm ${handout.isRevealed ? 'tv-handout-card shadow-lg' : 'tv-handout-card tv-handout-card--hidden'}`}
+                className={`group relative flex cursor-pointer overflow-hidden rounded-2xl transition-all duration-200 ease-out ${viewMode === 'grid' ? 'flex-col tv-handout-card--grid' : 'flex-row items-stretch tv-handout-card--list'} backdrop-blur-sm ${handout.isRevealed ? 'tv-handout-card shadow-lg' : 'tv-handout-card tv-handout-card--hidden'}`}
               >
                 <div className="absolute inset-0 opacity-[0.03] bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI4IiBoZWlnaHQ9IjgiPgo8cmVjdCB3aWR0aD0iOCIgaGVpZ2h0PSI4IiBmaWxsPSIjZmZmIiBmaWxsLW9wYWNpdHk9IjAuMSIvPgo8L3N2Zz4=')] pointer-events-none" />
 
@@ -427,12 +554,12 @@ function HandoutsView({ role, handouts, currentPlayerId, onToggleVisibility, onT
                   ) : null}
 
                   {viewMode === 'grid' ? (
-                    <h3 className="mb-2 text-base font-medium leading-snug tracking-[0.08em] tv-text md:mb-3 md:text-lg">
+                    <h3 className="mb-2 line-clamp-1 text-base font-medium leading-snug tracking-[0.08em] tv-text md:mb-3 md:text-lg">
                       {handout.title}
                     </h3>
                   ) : null}
 
-                  <p className={`tv-muted leading-relaxed ${viewMode === 'grid' ? 'mb-3 line-clamp-3 text-xs md:mb-4 md:text-sm' : 'line-clamp-2 text-[11px] md:text-xs'}`}>
+                  <p className={`tv-muted leading-relaxed tv-handout-card__content ${viewMode === 'grid' ? 'mb-3 line-clamp-3 text-xs md:mb-4 md:text-sm' : `${handout.type === 'npc' ? 'line-clamp-1' : 'line-clamp-2'} text-[11px] md:text-xs`}`}>
                     {handout.content}
                   </p>
 

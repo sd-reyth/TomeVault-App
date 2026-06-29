@@ -1,4 +1,5 @@
 import React from 'react';
+import { HeartCrack, Skull } from 'lucide-react';
 import EditableStat from '../../components/EditableStat';
 import TvImage from '../../components/TvImage';
 import { getAvatarObjectPosition, resolveDisplayAvatar } from '../../lib/placeholders';
@@ -21,6 +22,7 @@ export default function ParticipantRow({
   displayMemberAvatar,
   activeConditions,
   hasAlertFeat,
+  currentPlayerId,
   onOpenProfile,
   onUpdateStat,
   onOpenDamageModal,
@@ -37,12 +39,23 @@ export default function ParticipantRow({
   })();
 
   const canOpenProfile = !hiddenNpcForPlayer;
+  const isOwnCharacter = member.id === currentPlayerId;
+  const hpInteractive = isGm || isOwnCharacter;
+  const isMarkedDead = member.isDead === true;
+  const atZeroHp = Number(member.hp) <= 0 && Number(member.maxHp) > 0;
+  // NPC op 0 HP (of door de GM als overleden gemarkeerd) = defeated → doodshoofd, uit de beurtvolgorde.
+  const isDefeated = !hiddenNpcForPlayer && (isMarkedDead || (member.isNpc && atZeroHp));
+  // Speler op 0 HP maar nog niet dood = downed → blijft in de initiative voor death saves.
+  const isDowned = !hiddenNpcForPlayer && !member.isNpc && !isMarkedDead && atZeroHp;
   const rowClass = [
     'tv-combat-participant-row tv-handout-card group relative flex flex-row items-stretch overflow-hidden rounded-2xl transition-all duration-200 ease-out',
     canOpenProfile ? 'cursor-pointer' : 'cursor-default',
     member.isNpc ? 'tv-combat-row--npc' : '',
     isCurrentTurn && battleActive ? 'tv-combat-row--turn' : '',
     isCurrentTurn && combatPaused ? 'tv-combat-row--turn-paused' : '',
+    isDefeated ? 'tv-combat-row--defeated' : '',
+    isMarkedDead ? 'tv-combat-row--dead' : '',
+    isDowned ? 'tv-combat-row--downed' : '',
   ].filter(Boolean).join(' ');
 
   const handleOpenProfile = () => {
@@ -107,11 +120,15 @@ export default function ParticipantRow({
             value={member.hp}
             hidden={hiddenNpcForPlayer}
             low={hpLow}
-            interactive={isGm}
-            title={isGm ? 'Klik om HP aan te passen' : 'Hit Points'}
+            interactive={hpInteractive}
+            title={isGm ? 'Klik om HP aan te passen' : (isOwnCharacter ? 'Klik om je HP aan te passen' : 'Hit Points')}
             onClick={(event) => {
               event.stopPropagation();
-              onOpenDamageModal?.(member);
+              if (isGm) {
+                onOpenDamageModal?.(member);
+              } else if (isOwnCharacter) {
+                onOpenProfile?.(member);
+              }
             }}
           />
           <CombatStatChip label="AC" hidden={hiddenNpcForPlayer}>
@@ -152,6 +169,19 @@ export default function ParticipantRow({
       {combatInProgress ? (
         <div className="absolute right-2 top-2 z-20">
           <TurnOrderMarker orderIndex={orderIndex} isCurrentTurn={isCurrentTurn && battleActive} />
+        </div>
+      ) : null}
+
+      {isDefeated ? (
+        <div className="tv-combat-death-veil" aria-hidden="true">
+          <Skull className="tv-combat-death-skull" strokeWidth={1.5} />
+        </div>
+      ) : null}
+
+      {isDowned ? (
+        <div className="tv-combat-downed-veil" role="img" aria-label={`${displayMemberName} is buiten westen (0 HP)`}>
+          <HeartCrack className="tv-combat-downed-icon" strokeWidth={1.5} aria-hidden="true" />
+          <span className="tv-combat-downed-label">Downed</span>
         </div>
       ) : null}
     </div>

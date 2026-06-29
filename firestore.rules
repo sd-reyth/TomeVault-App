@@ -21,9 +21,63 @@ service cloud.firestore {
           && get(/databases/$(database)/documents/sessions/$(sessionId)).data.gmUid == request.auth.uid;
     }
 
+    // Assigned player responding to a pending character-template offer (accept / reject).
+    function playerCanAcceptCharacterTemplate() {
+      return request.auth != null
+          && resource.data.assignedToUid == request.auth.uid
+          && resource.data.assignmentStatus == 'pending'
+          && request.resource.data.assignedToUid == resource.data.assignedToUid
+          && request.resource.data.assignmentStatus == 'accepted'
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['assignmentStatus', 'respondedAt', 'updatedAt']);
+    }
+
+    // Reject (or close modal): return template to GM library.
+    function playerCanRejectCharacterTemplate() {
+      return request.auth != null
+          && resource.data.assignedToUid == request.auth.uid
+          && resource.data.assignmentStatus == 'pending'
+          && request.resource.data.assignmentStatus == 'unassigned'
+          && request.resource.data.assignedToUid == null
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['assignmentStatus', 'assignedToUid', 'respondedAt', 'updatedAt']);
+    }
+
+    // Player switches back to an archived profile — release active preparation to GM pool.
+    function playerCanReleaseAcceptedTemplate() {
+      return request.auth != null
+          && resource.data.assignedToUid == request.auth.uid
+          && resource.data.assignmentStatus == 'accepted'
+          && request.resource.data.assignmentStatus == 'unassigned'
+          && request.resource.data.assignedToUid == null
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['assignmentStatus', 'assignedToUid', 'updatedAt']);
+    }
+
+    function playerCanRespondToCharacterTemplate() {
+      return playerCanAcceptCharacterTemplate() || playerCanRejectCharacterTemplate();
+    }
+
     match /admins/{adminId} {
       allow read: if request.auth != null && request.auth.uid == adminId;
       allow write: if false;
+    }
+
+    // Join-code aliases — maps scanner-safe codes to canonical session documents.
+    match /joinCodes/{safeCode} {
+      allow read: if request.auth != null;
+
+      allow create: if request.auth != null
+                    && request.resource.data.keys().hasOnly(['sessionId', 'joinTag', 'createdAt'])
+                    && request.resource.data.sessionId is string
+                    && request.resource.data.sessionId.size() > 0
+                    && request.resource.data.joinTag is string
+                    && request.resource.data.joinTag.size() > 0
+                    && request.resource.data.createdAt is timestamp
+                    && isGM(request.resource.data.sessionId);
+
+      allow delete: if request.auth != null
+                    && resource.data.sessionId is string
+                    && isGM(resource.data.sessionId);
+
+      allow update: if false;
     }
 
     // User profiles
@@ -41,6 +95,13 @@ service cloud.firestore {
       match /entitlements/{audience} {
         allow read: if request.auth != null && (request.auth.uid == userId || isOwner());
         allow write: if isOwner();
+      }
+
+      // Automatic character/profile restore points (max 3 newest per session,
+      // enforced client-side). Fully owner-scoped: a user can only ever read or
+      // write their own backups. Additive rule — does not affect any other path.
+      match /profileBackups/{backupId} {
+        allow read, write: if request.auth != null && request.auth.uid == userId;
       }
     }
 
@@ -132,6 +193,24 @@ service cloud.firestore {
             )
           )
         );
+
+        // Private player notes on individually claimed loot (deleted on return).
+        match /claimNotes/{noteOwnerId} {
+          allow read: if request.auth != null
+                      && (request.auth.uid == noteOwnerId || isGM(sessionId));
+
+          allow create, update: if request.auth != null
+                                && request.auth.uid == noteOwnerId
+                                && get(/databases/$(database)/documents/sessions/$(sessionId)/handouts/$(handoutId)).data.claimedByUid == request.auth.uid
+                                && request.resource.data.playerUid == request.auth.uid
+                                && request.resource.data.note is string
+                                && request.resource.data.note.size() > 0
+                                && request.resource.data.note.size() <= 2000
+                                && request.resource.data.keys().hasOnly(['playerUid', 'note', 'updatedAt']);
+
+          allow delete: if isGM(sessionId)
+                        || (request.auth != null && request.auth.uid == noteOwnerId);
+        }
       }
 
       // Notes (per-player, synced across devices)
@@ -274,26 +353,17 @@ service cloud.firestore {
                     || (request.auth != null && resource.data.assignedToUid == request.auth.uid);
         allow create, delete: if isGM(sessionId);
 
-        // GM can update anything; assigned player can only answer their own offer.
+        // GM can update anything; players can accept/reject pending offers or release accepted templates.
         allow update: if isGM(sessionId)
-                      || (request.auth != null
-                          && resource.data.assignedToUid == request.auth.uid
-                          && request.resource.data.assignedToUid == resource.data.assignedToUid
-                          && request.resource.data.name == resource.data.name
-                          && request.resource.data.subtitle == resource.data.subtitle
-                          && request.resource.data.bio == resource.data.bio
-                          && request.resource.data.imageUrl == resource.data.imageUrl
-                          && request.resource.data.sourceUid == resource.data.sourceUid
-                          && request.resource.data.sourceType == resource.data.sourceType
-                          && request.resource.data.createdByUid == resource.data.createdByUid
-                          && request.resource.data.createdAt == resource.data.createdAt
-                          && request.resource.data.offeredAt == resource.data.offeredAt
-                          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['assignmentStatus', 'respondedAt', 'updatedAt']));
+                      || playerCanRespondToCharacterTemplate()
+                      || playerCanReleaseAcceptedTemplate();
       }
 
-      // GM-only restore points for preparation overwrites
+      // Restore points for preparation overwrites (GM reads all; players create/read own).
       match /preparationBackups/{backupId} {
-        allow read, update, delete: if isGM(sessionId);
+        allow read: if isGM(sessionId)
+                    || (request.auth != null && resource.data.playerUid == request.auth.uid);
+        allow update, delete: if isGM(sessionId);
         allow create: if isGM(sessionId)
                       || (request.auth != null && request.resource.data.playerUid == request.auth.uid);
       }

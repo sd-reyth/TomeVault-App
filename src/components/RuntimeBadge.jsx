@@ -1,7 +1,21 @@
 import React from 'react';
 
-export default function RuntimeBadge({ runtimeBadge, compact = false, className = '' }) {
+export default function RuntimeBadge({ runtimeBadge, compact = false, dot = false, className = '' }) {
   if (!runtimeBadge) return null;
+
+  const fullSummary = runtimeBadge.warning
+    || `${runtimeBadge.environmentLabel} · ${runtimeBadge.roleLabel} · ${runtimeBadge.hostLabel} · ${runtimeBadge.sourceLabel}`;
+
+  if (dot) {
+    return (
+      <span
+        className={`tv-runtime-dot ${runtimeBadge.warning ? 'tv-runtime-dot--warning' : ''} ${className}`.trim()}
+        title={fullSummary}
+        aria-label={`Runtime: ${fullSummary}`}
+        role="img"
+      />
+    );
+  }
 
   if (compact) {
     return (

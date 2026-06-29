@@ -1,13 +1,27 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
-import { ChevronDown, ChevronLeft, ChevronRight, ChevronUp, Eye, EyeOff, KeyRound, Pencil, Plus, Save, Scroll, Trash2, UserPlus } from 'lucide-react';
+import { Eye, EyeOff, KeyRound, Pencil, Plus, RotateCcw, Save, Scroll, Trash2, UserPlus } from 'lucide-react';
 import { getHandoutIcon, getHandoutTypeLabel, HANDOUT_TYPE_OPTIONS } from '../lib/handoutUtils';
-import { DEFAULT_AVATAR_POSITION, getAllPlaceholderImages, getAvatarObjectPosition, normalizeAvatarPosition, suggestHandoutImages } from '../lib/placeholders';
+import { DEFAULT_AVATAR_POSITION, getAllPlaceholderImages, normalizeAvatarPosition, suggestHandoutImages } from '../lib/placeholders';
 import ModalFrame from './ModalFrame';
 import TvImage from './TvImage';
 import Button from './Button';
 import { CreateFormPlaceholderGrid } from '../ui/CreateFormPrimitives';
+import useImagePositionDrag from '../ui/useImagePositionDrag';
 
-function HandoutModal({ isOpen, onClose, handout, role, players = [], currentPlayerId, onSave, onDelete, onAddToInitiative, canAddToInitiative }) {
+function HandoutModal({
+  isOpen,
+  onClose,
+  handout,
+  role,
+  players = [],
+  currentPlayerId,
+  claimNote = '',
+  onSaveClaimNote,
+  onSave,
+  onDelete,
+  onAddToInitiative,
+  canAddToInitiative,
+}) {
   const [isEditing, setIsEditing] = useState(false);
   const EMPTY_FORM = {
     title: '',
@@ -33,6 +47,7 @@ function HandoutModal({ isOpen, onClose, handout, role, players = [], currentPla
   const [pendingFile, setPendingFile] = useState(null);
   const [showPlaceholderPicker, setShowPlaceholderPicker] = useState(false);
   const [showAllPlaceholders, setShowAllPlaceholders] = useState(false);
+  const [claimNoteDraft, setClaimNoteDraft] = useState('');
   const fileInputRef = useRef(null);
 
   useEffect(() => {
@@ -56,6 +71,11 @@ function HandoutModal({ isOpen, onClose, handout, role, players = [], currentPla
   }, [isOpen, handout]);
 
   useEffect(() => {
+    if (!isOpen) return;
+    setClaimNoteDraft(claimNote || '');
+  }, [isOpen, handout?.id, claimNote]);
+
+  useEffect(() => {
     if (!isOpen || !handout || isEditing) return;
     setFormData((prev) => ({
       ...prev,
@@ -63,16 +83,30 @@ function HandoutModal({ isOpen, onClose, handout, role, players = [], currentPla
       imagePosition: normalizeAvatarPosition(handout.imagePosition),
       secretRevealed: handout.secretRevealed === true,
     }));
-  }, [handout?.id, handout?.updatedAtMs, handout?.secretRevealed, handout?.isRevealed, isEditing, isOpen]);
+  }, [handout, handout?.id, handout?.updatedAtMs, handout?.secretRevealed, handout?.isRevealed, isEditing, isOpen]);
 
   const placeholderImages = useMemo(() => {
     if (showAllPlaceholders) return getAllPlaceholderImages();
     return suggestHandoutImages(formData.title, formData.content, formData.type, 12);
   }, [showAllPlaceholders, formData.title, formData.content, formData.type]);
 
+  const imagePosition = normalizeAvatarPosition(formData.imagePosition);
+
+  const handleImagePositionChange = (nextPosition) => {
+    setFormData((prev) => ({ ...prev, imagePosition: normalizeAvatarPosition(nextPosition) }));
+  };
+
+  const coverDrag = useImagePositionDrag({
+    value: imagePosition,
+    onChange: handleImagePositionChange,
+    canReposition: Boolean(formData.imageUrl),
+    src: formData.imageUrl,
+  });
+
   if (!isOpen) return null;
 
   const isGM = role === 'gm';
+  const isClaimOwner = !isGM && Boolean(handout) && formData.claimedBy === currentPlayerId;
   const Icon = getHandoutIcon(formData.type);
   const playerCanSeeSecret = !isGM && formData.secretRevealed === true;
   const normalizeParagraph = (text) => String(text || '')
@@ -93,6 +127,12 @@ function HandoutModal({ isOpen, onClose, handout, role, players = [], currentPla
     onSave(formData, pendingFile);
   };
 
+  const handleClaimNoteBlur = () => {
+    if (!isClaimOwner || !handout?.id || !onSaveClaimNote) return;
+    if (claimNoteDraft === (claimNote || '')) return;
+    onSaveClaimNote(handout.id, claimNoteDraft);
+  };
+
   const handleImageChange = (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -104,19 +144,6 @@ function HandoutModal({ isOpen, onClose, handout, role, players = [], currentPla
     }));
     setShowPlaceholderPicker(false);
     e.target.value = '';
-  };
-
-  const shiftImagePosition = (axis, delta) => {
-    setFormData((prev) => {
-      const current = normalizeAvatarPosition(prev.imagePosition);
-      return {
-        ...prev,
-        imagePosition: normalizeAvatarPosition({
-          ...current,
-          [axis]: current[axis] + delta,
-        }),
-      };
-    });
   };
 
   const resetImagePosition = () => {
@@ -157,8 +184,6 @@ function HandoutModal({ isOpen, onClose, handout, role, players = [], currentPla
 
   const trimmedTitle = formData.title.trim();
   const typeLabel = getHandoutTypeLabel(formData.type);
-  const imagePosition = normalizeAvatarPosition(formData.imagePosition);
-  const imageObjectPosition = getAvatarObjectPosition(imagePosition);
   const modalTitle = handout
     ? (isEditing ? 'Handout bewerken' : 'Handout')
     : 'Nieuw handout';
@@ -181,16 +206,15 @@ function HandoutModal({ isOpen, onClose, handout, role, players = [], currentPla
       ) : isGM && isEditing ? (
         <div className="flex w-full items-center gap-2">
           {handout ? (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => onDelete(handout.id)}
-              className="tv-hover-danger shrink-0 px-2"
+            <button
+              type="button"
+              onClick={() => onDelete?.(handout)}
+              className="tv-toolbar-icon-btn tv-panel-inset tv-hover-danger shrink-0"
               title="Verwijder handout"
               aria-label="Verwijder handout"
             >
               <Trash2 className="h-4 w-4" />
-            </Button>
+            </button>
           ) : null}
           <div className="grid min-w-0 flex-1 grid-cols-[1fr_1.15fr] gap-2">
             <Button
@@ -222,23 +246,37 @@ function HandoutModal({ isOpen, onClose, handout, role, players = [], currentPla
           <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleImageChange} />
 
           <div className="-mx-5 -mt-5 sm:-mx-6 sm:-mt-6">
-            <div className="tv-handout-form-cover group">
-              <button
-                type="button"
-                onClick={openFilePicker}
-                className="tv-handout-form-cover__hit"
-                title="Afbeelding kiezen"
-                aria-label="Afbeelding kiezen"
-              />
+            <div
+              {...(formData.imageUrl ? coverDrag.dragProps : {})}
+              className={[
+                'tv-handout-form-cover group',
+                formData.imageUrl ? 'tv-handout-form-cover--draggable' : '',
+                coverDrag.isDragging ? 'is-dragging' : '',
+                coverDrag.showHint && formData.imageUrl ? 'is-hint-visible' : '',
+              ].filter(Boolean).join(' ')}
+            >
+              {!formData.imageUrl ? (
+                <button
+                  type="button"
+                  onClick={openFilePicker}
+                  className="tv-handout-form-cover__hit"
+                  title="Afbeelding kiezen"
+                  aria-label="Afbeelding kiezen"
+                />
+              ) : null}
               {formData.imageUrl ? (
                 <>
                   <TvImage
                     src={formData.imageUrl}
                     alt=""
                     className="absolute inset-0 opacity-90"
-                    style={{ objectPosition: imageObjectPosition }}
+                    style={{ objectPosition: coverDrag.objectPosition }}
+                    draggable={false}
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-[color-mix(in_srgb,var(--tv-bg-canvas),transparent_8%)] via-transparent to-transparent pointer-events-none" />
+                  <span className="tv-image-pos-frame__hint tv-handout-form-cover__hint" aria-hidden="true">
+                    Sleep om te positioneren
+                  </span>
                 </>
               ) : (
                 <div className="tv-handout-form-cover__empty">
@@ -246,28 +284,7 @@ function HandoutModal({ isOpen, onClose, handout, role, players = [], currentPla
                   <span className="tv-handout-form-cover__empty-label">Afbeelding toevoegen</span>
                 </div>
               )}
-              {formData.imageUrl ? (
-                <div className="tv-handout-cover-pan" onClick={(event) => event.stopPropagation()}>
-                  <button type="button" className="tv-handout-cover-pan__btn" onClick={() => shiftImagePosition('y', -5)} aria-label="Afbeelding omhoog">
-                    <ChevronUp className="h-3 w-3" />
-                  </button>
-                  <div className="tv-handout-cover-pan__row">
-                    <button type="button" className="tv-handout-cover-pan__btn" onClick={() => shiftImagePosition('x', -5)} aria-label="Afbeelding naar links">
-                      <ChevronLeft className="h-3 w-3" />
-                    </button>
-                    <button type="button" className="tv-handout-cover-pan__btn tv-handout-cover-pan__btn--reset" onClick={resetImagePosition} aria-label="Afbeelding centreren" title="Centreren">
-                      ·
-                    </button>
-                    <button type="button" className="tv-handout-cover-pan__btn" onClick={() => shiftImagePosition('x', 5)} aria-label="Afbeelding naar rechts">
-                      <ChevronRight className="h-3 w-3" />
-                    </button>
-                  </div>
-                  <button type="button" className="tv-handout-cover-pan__btn" onClick={() => shiftImagePosition('y', 5)} aria-label="Afbeelding omlaag">
-                    <ChevronDown className="h-3 w-3" />
-                  </button>
-                </div>
-              ) : null}
-              <div className="tv-handout-form-cover__tools">
+              <div className="tv-handout-form-cover__tools" data-no-drag>
                 <Button
                   type="button"
                   size="sm"
@@ -285,15 +302,26 @@ function HandoutModal({ isOpen, onClose, handout, role, players = [], currentPla
                   Icoon
                 </Button>
                 {formData.imageUrl ? (
-                  <Button
-                    type="button"
-                    size="sm"
-                    variant="ghost"
-                    className="tv-hover-danger"
-                    onClick={(event) => { event.stopPropagation(); clearImage(); }}
-                  >
-                    Wissen
-                  </Button>
+                  <>
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="ghost"
+                      icon={RotateCcw}
+                      onClick={(event) => { event.stopPropagation(); resetImagePosition(); }}
+                    >
+                      Reset
+                    </Button>
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="ghost"
+                      className="tv-hover-danger"
+                      onClick={(event) => { event.stopPropagation(); clearImage(); }}
+                    >
+                      Wissen
+                    </Button>
+                  </>
                 ) : null}
               </div>
             </div>
@@ -430,7 +458,7 @@ function HandoutModal({ isOpen, onClose, handout, role, players = [], currentPla
           ) : null}
 
           <section className="tv-handout-form-section tv-handout-form-options">
-            <p className="tv-label">Opties</p>
+            <p className="tv-label">Toewijzing</p>
 
             {formData.type !== 'npc' ? (
               <div className="tv-handout-form-assign">
@@ -511,7 +539,7 @@ function HandoutModal({ isOpen, onClose, handout, role, players = [], currentPla
                   src={formData.imageUrl}
                   alt={formData.title}
                   className="absolute inset-0"
-                  style={{ objectPosition: imageObjectPosition }}
+                  style={{ objectPosition: coverDrag.objectPosition }}
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-[color-mix(in_srgb,var(--tv-bg-canvas),transparent_4%)] via-transparent to-[color-mix(in_srgb,var(--tv-bg-canvas),transparent_18%)] pointer-events-none" />
               </div>
@@ -555,6 +583,22 @@ function HandoutModal({ isOpen, onClose, handout, role, players = [], currentPla
               </div>
             </div>
           </section>
+
+          {isClaimOwner ? (
+            <section className="tv-handout-form-section">
+              <div className="tv-handout-form-section__head">
+                <span className="tv-label">Jouw notitie</span>
+                <span className="tv-handout-form-section__hint">Alleen voor jou · verdwijnt bij terugleggen</span>
+              </div>
+              <textarea
+                value={claimNoteDraft}
+                onChange={(event) => setClaimNoteDraft(event.target.value)}
+                onBlur={handleClaimNoteBlur}
+                placeholder="Eigen aantekeningen over dit item…"
+                className="tv-field min-h-[88px] w-full resize-y font-story leading-relaxed"
+              />
+            </section>
+          ) : null}
 
           {formData.assignedToUid ? (
             <section className="tv-handout-form-section rounded-[var(--tv-radius)] tv-tone-ally-surface border border-[color-mix(in_srgb,var(--tv-tone-ally),transparent_55%)] p-4">

@@ -1,0 +1,97 @@
+---
+description: TomeVault UI radius, hoogte en control-uniformiteit — tokens en patronen die altijd gevolgd moeten worden
+alwaysApply: true
+---
+
+# Radius & Control Uniformiteit
+
+## De twee token-waarden (bron van waarheid: `src/theme/tokens.css`)
+
+```css
+--tv-radius: 0.75rem;      /* ALLES: kaarten, knoppen, inputs, panels, modals, shells */
+--tv-radius-pill: 9999px;  /* ALLEEN echte cirkels: status-dots, slider-thumbs, kleur-swatches, avatars */
+--tv-control-height: 2.5rem; /* ALLE interactieve controls: knoppen, inputs, toolbar-items */
+```
+
+**Nooit** losse `border-radius` waarden gebruiken (0.5rem, 1rem, rounded-[22px], etc.). Altijd via token.
+
+---
+
+## Tailwind-klassen
+
+Alle `rounded-*` klassen (sm t/m 3xl) wijzen naar `--tv-radius`. Gebruik ze vrij, maar nooit `rounded-full` voor knoppen of labels — alleen voor echte cirkels.
+
+```jsx
+// ✅ GOED
+<div className="rounded-xl">  // zelfde als rounded-lg, md, 2xl — allemaal 0.75rem
+
+// ❌ FOUT
+<div className="rounded-[22px]">
+<div style={{ borderRadius: '1.25rem' }}>
+```
+
+---
+
+## Gedeelde CSS-primitieven — gebruik deze, maak geen nieuwe
+
+| Patroon | Klasse | Gebruik |
+|---|---|---|
+| Knop (alle varianten) | `tv-btn` + `tv-button-primary/secondary/danger` | Elke klikbare actie |
+| Vierkante icon-knop | `tv-toolbar-icon-btn` | Alleenstaande icon-knoppen (add, close, dice) |
+| Knop in toolbar | `tv-toolbar__btn` | Naast andere controls in een rij |
+| Volle-breedte menu-knop | `tv-btn tv-btn--block-row` | Dropdown-menu items (TopBar, drawers) |
+| Input / select | `tv-input-surface` + `tv-chat-compose-input` | Tekstinvoer; hoogte via token |
+| Formulierveld | `tv-field` | Standaard form-inputs |
+| Toolbar-container | `tv-view-toolbar` | Rij van controls (view-toggle, filters) |
+| Toolbar-toggle | `tv-view-toolbar__btn` + `--active` | List/Grid-knoppen in Handouts e.d. |
+| Label/chip (niet pill) | `tv-tag` | Kleine tekst-badges (NPC, Privé, Alert) |
+
+```jsx
+// ✅ GOED — knop via tv-btn
+<button className="tv-btn tv-button-primary gap-2 px-4">Opslaan</button>
+
+// ✅ GOED — icon-knop
+<button className="tv-toolbar-icon-btn tv-button-primary">
+  <Plus className="h-4 w-4" />
+</button>
+
+// ❌ FOUT — losse Tailwind-geometrie
+<button className="inline-flex h-10 items-center justify-center rounded-xl border px-3">
+```
+
+---
+
+## Pill-vormen — alleen échte cirkels
+
+```jsx
+// ✅ MAG pill
+<span className="w-3 h-3 rounded-full" style={{ backgroundColor: color }} /> // kleur-dot
+<span className="animate-spin rounded-full border-2" />                        // spinner
+<span className="h-1.5 w-1.5 rounded-full bg-accent" />                        // status-dot
+
+// ❌ MAG GEEN pill
+<span className="rounded-full px-2 py-0.5">NPC</span>   // gebruik tv-tag
+<button className="rounded-full px-3 py-1">Actief</button> // gebruik tv-btn
+```
+
+---
+
+## Slider-thumbs
+
+Slider-thumbs altijd `--tv-radius-pill` (ze zijn rond). Slider-tracks altijd `--tv-radius` (rechthoekig).
+
+---
+
+## Landing screen
+
+Landing screen (`LandingScreen.jsx`) heeft bewust eigen styling met grotere/afwijkende radii — dit is een aparte flow die nog een eigen design-revisie krijgt. **Niet automatisch gelijktrekken met de in-session UI.**
+
+---
+
+## Controle bij nieuwe componenten
+
+Bij het bouwen of aanpassen van een component, check:
+1. Gebruikt het `tv-btn` of een `tv-*`-primitief?
+2. Staat de hoogte op `--tv-control-height` (niet `h-10`, `h-9`, `h-11`)?
+3. Zijn `border-radius` waarden via token, niet hardcoded?
+4. Is `rounded-full` alleen voor echte cirkels?

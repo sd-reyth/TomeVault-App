@@ -65,6 +65,11 @@ export default function Sidebar({ activeTab, setActiveTab, onOpenSettings, role,
   }, [sidebarWidth]);
 
   useEffect(() => {
+    if (typeof document === 'undefined') return;
+    document.documentElement.style.setProperty('--tv-sidebar-width', `${sidebarWidth}px`);
+  }, [sidebarWidth]);
+
+  useEffect(() => {
     if (!isDragging) return undefined;
 
     const handleMouseMove = (event) => {
@@ -98,13 +103,25 @@ export default function Sidebar({ activeTab, setActiveTab, onOpenSettings, role,
     setIsDragging(true);
   };
 
+  const mobileNavSlotCount = tabs.length + 1;
+  const desktopNavButtonClass = (isCollapsedMode, iconRailMode) => (
+    isCollapsedMode
+      ? 'md:min-h-[50px] md:px-2 md:py-2.5'
+      : (iconRailMode
+        ? 'md:min-h-[46px] md:justify-center md:px-2.5 md:py-2.5 md:rounded-2xl'
+        : 'md:min-h-[46px] md:flex-row md:justify-start md:gap-2.5 md:rounded-2xl md:px-3 md:py-2.5')
+  );
+
   return (
     <aside
-      style={{ '--sidebar-width': `${sidebarWidth}px` }}
-      className="app-shell-mobile-nav tv-nav-bg fixed bottom-0 left-0 z-30 flex h-[4.25rem] w-full flex-row items-center justify-around border-t px-2 pb-[env(safe-area-inset-bottom,0px)] backdrop-blur-md md:relative md:h-full md:shrink-0 md:w-[var(--sidebar-width)] md:min-w-[var(--sidebar-width)] md:max-w-[var(--sidebar-width)] md:flex-col md:justify-start md:border-r md:border-t-0 md:px-0 md:pt-3.5 md:pb-0 md:backdrop-blur-md md:flex md:flex-col md:overflow-hidden"
+      style={{ '--sidebar-width': `${sidebarWidth}px`, '--mobile-nav-slots': mobileNavSlotCount }}
+      className="app-shell-mobile-nav tv-nav-bg fixed bottom-0 left-0 z-30 flex h-[4.25rem] w-full flex-row items-center border-t pb-[env(safe-area-inset-bottom,0px)] backdrop-blur-md md:relative md:h-full md:shrink-0 md:w-[var(--sidebar-width)] md:min-w-[var(--sidebar-width)] md:max-w-[var(--sidebar-width)] md:flex-col md:justify-start md:border-r md:border-t-0 md:px-0 md:pt-3.5 md:pb-0 md:backdrop-blur-md md:flex md:flex-col md:overflow-hidden"
       aria-hidden={hideMobileNav ? true : undefined}
     >
-      <nav ref={navRef} className={`flex w-full flex-row items-center justify-between gap-1 md:flex-col md:flex-1 md:min-h-0 md:justify-start md:overflow-y-auto md:pr-2 md:no-scrollbar ${isCollapsed ? 'md:px-2 md:pt-2' : 'md:px-3.5 md:gap-1.5 md:pt-2'}`}>
+      <nav
+        ref={navRef}
+        className={`app-shell-mobile-nav__rail flex w-full md:flex-col md:flex-1 md:min-h-0 md:justify-start md:overflow-y-auto md:pr-2 md:no-scrollbar ${isCollapsed ? 'md:px-2 md:pt-2' : 'md:px-3.5 md:gap-1.5 md:pt-2'}`}
+      >
         {tabs.map((tab) => {
           const isActive = activeTab === tab.id;
           return (
@@ -117,8 +134,9 @@ export default function Sidebar({ activeTab, setActiveTab, onOpenSettings, role,
                 setActiveTab(tab.id);
               }}
               aria-label={tab.label}
+              aria-current={isActive ? 'page' : undefined}
               className={`
-                group relative flex min-h-[44px] min-w-0 flex-1 flex-col items-center justify-center rounded-full border border-transparent p-2 transition-all duration-200 ease-out active:scale-[0.97] md:w-full md:flex-none ${isCollapsed ? 'md:min-h-[50px] md:px-2 md:py-2.5' : (isIconRail ? 'md:min-h-[46px] md:justify-center md:px-2.5 md:py-2.5 md:rounded-2xl' : 'md:min-h-[46px] md:flex-row md:justify-start md:gap-2.5 md:rounded-2xl md:px-3 md:py-2.5')}
+                tv-nav-mobile-btn group relative flex shrink-0 flex-col items-center justify-center rounded-xl border border-transparent p-0 transition-all duration-200 ease-out active:scale-[0.97] md:min-h-[44px] md:min-w-0 md:w-full md:flex-none md:p-2 ${desktopNavButtonClass(isCollapsed, isIconRail)}
                 ${isActive ? 'tv-nav-item-active' : 'tv-nav-item'}
               `}
               title={tab.label}
@@ -134,6 +152,16 @@ export default function Sidebar({ activeTab, setActiveTab, onOpenSettings, role,
             </button>
           )
         })}
+
+        <button
+          type="button"
+          onClick={onOpenSettings}
+          aria-label="Configuratie"
+          title="Configuratie"
+          className={`tv-nav-mobile-btn group relative flex shrink-0 flex-col items-center justify-center rounded-xl border border-transparent p-0 transition-all duration-200 ease-out active:scale-[0.97] md:hidden tv-nav-item`}
+        >
+          <Icon as={Settings} size="lg" className="tv-nav-icon" />
+        </button>
       </nav>
 
       <div className="hidden md:mt-auto md:flex md:w-full md:shrink-0 md:flex-col">
@@ -145,7 +173,7 @@ export default function Sidebar({ activeTab, setActiveTab, onOpenSettings, role,
             onClick={onOpenSettings}
             aria-label="Configuratie"
             title="Configuratie"
-            className={`group relative mb-2 flex min-h-[44px] min-w-0 flex-1 flex-col items-center justify-center rounded-full border border-transparent p-2 transition-all duration-200 ease-out active:scale-[0.97] md:flex md:w-full md:flex-none ${isCollapsed ? 'md:min-h-[50px] md:px-2 md:py-2.5' : (isIconRail ? 'md:min-h-[46px] md:justify-center md:px-2.5 md:py-2.5 md:rounded-2xl' : 'md:min-h-[46px] md:flex-row md:justify-start md:gap-2.5 md:rounded-2xl md:px-3 md:py-2.5')} tv-nav-item`}
+            className={`group relative mb-2 flex min-h-[44px] min-w-0 flex-col items-center justify-center rounded-xl border border-transparent p-2 transition-all duration-200 ease-out active:scale-[0.97] md:flex md:w-full md:flex-none ${desktopNavButtonClass(isCollapsed, isIconRail)} tv-nav-item`}
           >
             <Icon as={Settings} size="lg" className="tv-nav-icon" />
             <Text variant="label" as="span" className={`${isCollapsed || isIconRail ? 'hidden' : 'hidden md:block'} max-w-full truncate`}>Configuratie</Text>
@@ -196,16 +224,6 @@ export default function Sidebar({ activeTab, setActiveTab, onOpenSettings, role,
         </div>
       ) : null}
       </div>
-
-      <button
-        type="button"
-        onClick={onOpenSettings}
-        aria-label="Configuratie"
-        title="Configuratie"
-        className="group relative flex min-h-[44px] min-w-0 flex-1 flex-col items-center justify-center rounded-full border border-transparent p-2 transition-all duration-200 ease-out active:scale-[0.97] md:hidden tv-nav-item"
-      >
-        <Icon as={Settings} size="lg" className="tv-nav-icon" />
-      </button>
 
       <button
         type="button"

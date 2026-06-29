@@ -1,9 +1,16 @@
 import React from 'react';
+import { Flame, Shield, Swords } from 'lucide-react';
 import Text from '../../ui/Text';
 import { COMBAT_STATUS } from '../../lib/battleUtils';
 import { getCombatRoundBarLabel, getCombatRoundBarMode } from './combatRoundBarMode';
 import { getCombatRoundMediaProfile } from '../../lib/combatAmbientLibrary';
 import { useCombatRoundAmbience } from './useCombatRoundAmbience';
+
+function getCombatStatusIcon(mode) {
+  if (mode === 'idle') return Flame;
+  if (mode === 'paused') return Shield;
+  return Swords;
+}
 
 export default function CombatRoundBar({
   combatStatus,
@@ -24,6 +31,7 @@ export default function CombatRoundBar({
   const { videoRef, ambienceAllowed } = useCombatRoundAmbience({ mode, isActive });
   const showTurnIndex = combatStatus !== COMBAT_STATUS.IDLE && Boolean(currentTurnOrderIndex);
   const turnIndexLive = combatStatus === COMBAT_STATUS.ACTIVE;
+  const StatusIcon = getCombatStatusIcon(mode);
 
   const turnIndexClass = [
     'tv-combat-turn-index',
@@ -69,9 +77,13 @@ export default function CombatRoundBar({
           <span className={turnIndexClass} title="Huidige beurt in volgorde">
             {currentTurnOrderIndex}
           </span>
-        ) : (
-          <span className="tv-combat-round-bar__idle-mark" aria-hidden="true" />
-        )}
+        ) : null}
+        <span
+          className={`tv-combat-round-bar__status-icon tv-combat-round-bar__status-icon--${mode}`}
+          aria-hidden="true"
+        >
+          <StatusIcon className="h-3.5 w-3.5" />
+        </span>
         <Text variant="body" as="span" className="tv-combat-round-bar__label min-w-0 flex-1 truncate text-sm font-semibold">
           {label}
         </Text>

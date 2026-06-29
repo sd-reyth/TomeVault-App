@@ -118,7 +118,7 @@ export default function AmbiencePanel({
     <div
       data-ambience-panel-root="true"
       data-theme={theme || DEFAULT_THEME}
-      className="tv-ambience-shell fixed inset-0 z-[60] flex items-end justify-center p-0 sm:items-center sm:p-4"
+      className="tv-ambience-shell tv-ambience-shell--mobile-full fixed inset-x-0 top-0 z-[60] flex md:inset-0 md:items-center md:justify-center md:p-4"
       onClick={onClose}
     >
       <div
@@ -135,7 +135,7 @@ export default function AmbiencePanel({
               Sfeer
             </span>
             <h1 className="tv-ambience-sheet__title">Ambience</h1>
-            <p className="tv-ambience-sheet__subtitle">
+            <p className="tv-ambience-sheet__subtitle max-md:hidden">
               {canControlSession
                 ? 'Kies een scene en stuur het geluid voor de hele tafel.'
                 : 'Luister mee — volume pas je hieronder aan.'}
