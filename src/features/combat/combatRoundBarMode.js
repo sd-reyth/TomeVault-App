@@ -1,4 +1,5 @@
 import { COMBAT_STATUS } from '../../lib/battleUtils';
+import { t } from '../../i18n/dialogs.js';
 
 /**
  * Visual mode for the ambient round bar in the slagorde header.
@@ -22,7 +23,7 @@ export function getCombatRoundBarMode({
 }
 
 export function getCombatRoundBarLabel({ combatStatus, turnRound }) {
-  if (combatStatus === COMBAT_STATUS.IDLE) return 'Ruststand';
-  if (combatStatus === COMBAT_STATUS.PAUSED) return `Ronde ${turnRound} · Pauze`;
-  return `Ronde ${turnRound}`;
+  if (combatStatus === COMBAT_STATUS.IDLE) return t('combat:roundBar.idle');
+  if (combatStatus === COMBAT_STATUS.PAUSED) return t('combat:roundBar.paused', { round: turnRound });
+  return t('combat:roundBar.round', { round: turnRound });
 }

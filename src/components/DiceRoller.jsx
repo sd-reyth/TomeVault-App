@@ -2,6 +2,7 @@ import React, { useMemo, useState } from 'react';
 import { Dice5 } from 'lucide-react';
 import { diceRollHasNat1, diceRollHasNat20, playUiSound } from '../lib/uiFeedback';
 import DiceIcon from '../ui/DiceIcon';
+import { useT } from '../i18n/useT';
 
 const DICE_TYPES = [
   { label: 'd4', sides: 4 },
@@ -31,6 +32,7 @@ function DiceTypeIcon({ sides, className = '' }) {
 }
 
 export default function DiceRoller({ onRoll, embedded = false }) {
+  const { t } = useT('chat');
   const [dice, setDice] = useState(
     DICE_TYPES.map((type) => ({ ...type, count: 0 }))
   );
@@ -104,7 +106,7 @@ export default function DiceRoller({ onRoll, embedded = false }) {
                 className="tv-dice-roller__step"
                 onClick={() => handleChange(idx, -1)}
                 disabled={d.count === 0}
-                aria-label={`Verlaag aantal ${d.label}`}
+                aria-label={t('dice.decreaseAria', { label: d.label })}
               >
                 -
               </button>
@@ -114,7 +116,7 @@ export default function DiceRoller({ onRoll, embedded = false }) {
                 className="tv-dice-roller__step"
                 onClick={() => handleChange(idx, 1)}
                 disabled={totalDiceSelected >= MAX_DICE_PER_ROLL}
-                aria-label={`Verhoog aantal ${d.label}`}
+                aria-label={t('dice.increaseAria', { label: d.label })}
               >
                 +
               </button>
@@ -124,7 +126,7 @@ export default function DiceRoller({ onRoll, embedded = false }) {
       </div>
 
       <div className="tv-dice-roller__meta">
-        {totalDiceSelected}/{MAX_DICE_PER_ROLL} geselecteerd
+        {t('dice.selected', { selected: totalDiceSelected, max: MAX_DICE_PER_ROLL })}
       </div>
 
       <button
@@ -132,7 +134,7 @@ export default function DiceRoller({ onRoll, embedded = false }) {
         className={`tv-dice-roll-btn ${canRoll ? 'tv-dice-roll-btn--ready' : ''}`}
         onClick={handleRoll}
         disabled={!canRoll}
-        aria-label="Gooi geselecteerde dobbelstenen"
+        aria-label={t('dice.rollSelectedAria')}
       >
         <Dice5 className="h-6 w-6" />
       </button>

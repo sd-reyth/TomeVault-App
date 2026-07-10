@@ -1,0 +1,26 @@
+---
+description: Mandatory i18n rules for all user-facing UI changes in TomeVault
+globs:
+  - src/**/*
+alwaysApply: false
+---
+
+# i18n — verplicht bij ELKE user-facing wijziging
+
+1. NOOIT hardcoded UI-tekst toevoegen in JSX of lib.
+2. ALTIJD beide locale-bestanden (`src/i18n/locales/en/` + `src/i18n/locales/nl/`) in dezelfde wijziging bijwerken.
+3. Key-naam in het Engels; namespace = feature-gebied (settings, handouts, combat, etc.).
+4. Na wijziging: `npm run check:i18n`
+5. `confirm()`/`alert()` → `confirmDialog()` / `alertDialog()` uit `src/i18n/dialogs.js` met t-keys
+6. Nieuwe component? Import `useT` from `src/i18n/useT`
+7. Zie `src/i18n/glossary.md` voor vaste termen
+
+## Atomic commit formule
+
+```
+1 key + 1 EN waarde + 1 NL waarde + 1 t() call + check:i18n ✅
+```
+
+## Namespace-conventie
+
+`{namespace}.{surface}.{element}` — bijv. `settings.display.language.label`

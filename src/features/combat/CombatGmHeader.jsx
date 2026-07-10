@@ -7,6 +7,7 @@ import SegmentedControl from '../../ui/SegmentedControl';
 import Text from '../../ui/Text';
 import CombatRoundBar from './CombatRoundBar';
 import { SlagordeInfoButton, SlagordeInfoContent, useSlagordeInfo } from './SlagordeInfoPanel';
+import { useT } from '../../i18n/useT';
 
 export default function CombatGmHeader({
   combatStatus,
@@ -26,6 +27,7 @@ export default function CombatGmHeader({
   statusSubtitle,
   ambienceActive = true,
 }) {
+  const { t } = useT('combat');
   const isLive = combatStatus === COMBAT_STATUS.ACTIVE;
   const info = useSlagordeInfo();
 
@@ -42,11 +44,11 @@ export default function CombatGmHeader({
   return (
     <div className={`tv-combat-rail-header ${isLive ? 'tv-combat-rail-header--live' : ''} ${isActionBusy ? 'opacity-80' : ''}`}>
       <div className="mb-2.5 flex items-center justify-between gap-2">
-        <Text variant="label" tone="accent">Slagorde</Text>
+        <Text variant="label" tone="accent">{t('title')}</Text>
         <div className="flex items-center gap-1 lg:hidden">
           <IconButton
             icon={isPinned ? Pin : PinOff}
-            label={isPinned ? 'Losmaken' : 'Vastzetten'}
+            label={isPinned ? t('unpin') : t('pin')}
             variant="default"
             size="sm"
             active={isPinned}
@@ -55,7 +57,7 @@ export default function CombatGmHeader({
           />
           <IconButton
             icon={X}
-            label="Sluiten"
+            label={t('common:actions.close')}
             variant="danger"
             size="sm"
             onClick={onClose}
@@ -67,26 +69,26 @@ export default function CombatGmHeader({
       <div className="tv-combat-rail-controls flex flex-col gap-2">
         {combatStatus === COMBAT_STATUS.IDLE ? (
           <Button variant="primary" block disabled={isActionBusy} onClick={onStart}>
-            Start gevecht
+            {t('startCombat')}
           </Button>
         ) : (
           <div className="grid grid-cols-[minmax(0,1fr)_var(--tv-control-height)] items-start gap-2">
             <SegmentedControl
               block
-              aria-label="Gevechtsmodus"
+              aria-label={t('combatModeAria')}
               value={combatStatus === COMBAT_STATUS.PAUSED ? 'paused' : 'active'}
               disabled={isActionBusy}
               onChange={handleSegmentChange}
               options={[
-                { value: 'active', label: 'Actief' },
-                { value: 'paused', label: 'Pauze' },
+                { value: 'active', label: t('active') },
+                { value: 'paused', label: t('pause') },
               ]}
             />
             <button
               type="button"
               onClick={onRequestEndCombat}
-              title="Beëindig gevecht"
-              aria-label="Beëindig gevecht"
+              title={t('endCombat')}
+              aria-label={t('endCombat')}
               disabled={!combatInProgress || isActionBusy}
               className={`tv-toolbar-icon-btn tv-chat-dice-btn inline-flex items-center justify-center transition-all duration-200 ease-out disabled:opacity-50 active:scale-[0.985] ${
                 combatInProgress && !isActionBusy ? 'tv-combat-end-btn--ready' : ''

@@ -3,8 +3,10 @@ import { Eye, EyeOff, UserPlus, ImagePlus } from 'lucide-react';
 import ModalFrame from './ModalFrame';
 import TvImage from './TvImage';
 import Button from './Button';
+import { useT } from '../i18n/useT';
 
 export default function AddNpcModal({ isOpen, onClose, onSave }) {
+  const { t } = useT('combat');
   const [name, setName] = useState('');
   const [hp, setHp] = useState(15);
   const [ac, setAc] = useState(12);
@@ -32,7 +34,7 @@ export default function AddNpcModal({ isOpen, onClose, onSave }) {
     if (!name.trim()) return;
     onSave({
       name,
-      subtitle: 'Vijand',
+      subtitle: t('common:fallbacks.enemy'),
       hp: Number(hp),
       maxHp: Number(hp),
       ac: Number(ac),
@@ -55,7 +57,7 @@ export default function AddNpcModal({ isOpen, onClose, onSave }) {
     <ModalFrame
       isOpen={isOpen}
       onClose={onClose}
-      title="NPC"
+      title={t('addNpc.title')}
       icon={UserPlus}
     >
         <form onSubmit={handleSave} className="flex flex-col gap-4">
@@ -65,7 +67,7 @@ export default function AddNpcModal({ isOpen, onClose, onSave }) {
               <input type="file" accept="image/*" className="hidden" onChange={handleImageChange} />
               {avatarUrl ? (
                 <>
-                  <TvImage src={avatarUrl} alt="NPC Portret preview" className="opacity-80 group-hover:opacity-50 transition-opacity" />
+                  <TvImage src={avatarUrl} alt={t('addNpc.avatarAlt')} className="opacity-80 group-hover:opacity-50 transition-opacity" />
                   <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
                     <ImagePlus className="w-6 h-6 tv-text drop-shadow-md" />
                   </div>
@@ -79,12 +81,12 @@ export default function AddNpcModal({ isOpen, onClose, onSave }) {
           </div>
 
           <div>
-            <label className="tv-label mb-1.5 block">Naam</label>
+            <label className="tv-label mb-1.5 block">{t('addNpc.name')}</label>
             <input 
               autoFocus
               type="text" 
               required
-              placeholder="Bijv. Goblin Aanvoerder"
+              placeholder={t('addNpc.namePlaceholder')}
               value={name}
               onChange={e => setName(e.target.value)}
               className="tv-field"
@@ -113,7 +115,7 @@ export default function AddNpcModal({ isOpen, onClose, onSave }) {
               />
             </div>
             <div>
-              <label className="tv-label mb-1.5 block" title="Initiative Modifier">Init</label>
+              <label className="tv-label mb-1.5 block" title={t('profile.initModTitle')}>Init</label>
               <input 
                 type="number" 
                 required
@@ -133,10 +135,10 @@ export default function AddNpcModal({ isOpen, onClose, onSave }) {
               {isRevealed ? <Eye className="h-4 w-4 tv-accent" /> : <EyeOff className="h-4 w-4 tv-muted" />}
               <span>
                 <span className="block text-sm tv-text">
-                  {isRevealed ? 'Zichtbaar voor spelers' : 'Verborgen voor spelers'}
+                  {isRevealed ? t('addNpc.visibleToPlayers') : t('addNpc.hiddenFromPlayers')}
                 </span>
                 <span className="mt-0.5 block text-xs leading-5 tv-muted">
-                  Verborgen NPC’s staan niet in de spelers-slagorde.
+                  {t('addNpc.hiddenHint')}
                 </span>
               </span>
             </span>
@@ -144,10 +146,10 @@ export default function AddNpcModal({ isOpen, onClose, onSave }) {
 
           <div className="mt-2 flex flex-col-reverse gap-3 sm:flex-row">
             <Button variant="ghost" block onClick={onClose}>
-              Annuleren
+              {t('common:actions.cancel')}
             </Button>
             <Button variant="primary" block type="submit">
-              Toevoegen
+              {t('common:actions.add')}
             </Button>
           </div>
         </form>

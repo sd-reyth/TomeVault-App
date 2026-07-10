@@ -2,6 +2,7 @@ import React from 'react';
 import ModalFrame from './ModalFrame';
 import { resolveDisplayAvatar } from '../lib/placeholders';
 import TvImage from './TvImage';
+import { useT } from '../i18n/useT';
 
 export default function PlayerPickerModal({
   isOpen,
@@ -12,13 +13,15 @@ export default function PlayerPickerModal({
   onSelect,
   mode = 'assign',
 }) {
+  const { t } = useT('preparations');
+
   if (!isOpen) return null;
 
   const isImport = mode === 'import';
-  const title = isImport ? 'Van speler starten' : 'Toewijzen';
+  const title = isImport ? t('picker.importTitle') : t('picker.assignTitle');
   const subtitle = isImport
-    ? 'Kies een speler om het huidige profiel als uitgangspunt te nemen.'
-    : (preparation?.name || 'Personage');
+    ? t('picker.importSubtitle')
+    : (preparation?.name || t('picker.characterFallback'));
 
   const handlePick = (player) => {
     if (isImport) onSelect?.(player);
@@ -36,7 +39,7 @@ export default function PlayerPickerModal({
     >
       {players.length === 0 ? (
         <div className="tv-empty-state !min-h-0 px-5 py-8">
-          <p className="text-sm leading-7 tv-text-sub">Geen actieve spelers in deze sessie.</p>
+          <p className="text-sm leading-7 tv-text-sub">{t('picker.noPlayers')}</p>
         </div>
       ) : (
         <div className="space-y-3">
@@ -55,7 +58,7 @@ export default function PlayerPickerModal({
               </div>
               <div className="min-w-0">
                 <div className="truncate font-fantasy tracking-[0.08em] tv-text">{player.name}</div>
-                <div className="mt-1 text-sm italic tv-text-sub">{player.subtitle || 'Speler'}</div>
+                <div className="mt-1 text-sm italic tv-text-sub">{player.subtitle || t('picker.playerFallback')}</div>
               </div>
             </button>
           ))}

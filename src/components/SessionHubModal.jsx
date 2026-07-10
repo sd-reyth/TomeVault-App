@@ -22,6 +22,8 @@ import {
 import { DEFAULT_THEME, getThemeQrColors } from '../lib/appThemes';
 import ModalFrame from './ModalFrame';
 import SegmentedControl from '../ui/SegmentedControl';
+import { useT } from '../i18n/useT';
+import { confirmDialog } from '../i18n/dialogs';
 
 function StyledQRCode({ value, theme, size }) {
   const containerRef = useRef(null);
@@ -76,13 +78,6 @@ function StyledQRCode({ value, theme, size }) {
   );
 }
 
-const HUB_TABS = [
-  { value: 'overview', label: 'Overzicht' },
-  { value: 'invite', label: 'Uitnodigen' },
-  { value: 'manage', label: 'Beheer' },
-  { value: 'help', label: 'Help' },
-];
-
 export default function SessionHubModal({
   isOpen,
   onClose,
@@ -98,9 +93,10 @@ export default function SessionHubModal({
   onRollJoinCode,
   joinCodeRolling = false,
 }) {
+  const { t } = useT('session');
   const resolvedTheme = theme || DEFAULT_THEME;
   const isGM = role === 'gm';
-  const displayName = formatCampaignDisplayName(campaignName, 'Campagne');
+  const displayName = formatCampaignDisplayName(campaignName, t('common:fallbacks.campaign'));
   const canonicalSessionCode = toLegacyHashJoinTag(sessionId || '');
   const joinUrl = buildSessionInviteUrl(sessionId || '');
   const shareText = buildInviteShareText({
@@ -122,9 +118,25 @@ export default function SessionHubModal({
   const [manageBusy, setManageBusy] = useState(false);
   const [manageError, setManageError] = useState('');
 
+  const hubTabs = useMemo(() => ([
+    { value: 'overview', label: t('hub.tabs.overview') },
+    { value: 'invite', label: t('hub.tabs.invite') },
+    { value: 'manage', label: t('hub.tabs.manage') },
+    { value: 'help', label: t('hub.tabs.help') },
+  ]), [t]);
+
   const visibleTabs = useMemo(
-    () => HUB_TABS.filter((tab) => tab.value !== 'manage' || isGM),
-    [isGM]
+    () => hubTabs.filter((tab) => tab.value !== 'manage' || isGM),
+    [hubTabs, isGM]
+  );
+
+  const gmHelpItems = useMemo(
+    () => t('hub.help.gmItems', { returnObjects: true }),
+    [t]
+  );
+  const playerHelpItems = useMemo(
+    () => t('hub.help.playerItems', { returnObjects: true }),
+    [t]
   );
 
   const qrSize = useMemo(() => {
@@ -188,7 +200,7 @@ export default function SessionHubModal({
     try {
       const trimmedName = draftCampaignName.trim();
       if (!trimmedName) {
-        setManageError('Campagnenaam mag niet leeg zijn.');
+        setManageError(t('hub.errors.emptyCampaignName'));
         return;
       }
 
@@ -201,14 +213,14 @@ export default function SessionHubModal({
         await onSaveSessionNumber?.(safeNumber);
       }
     } catch (err) {
-      setManageError(err?.message || 'Opslaan is mislukt.');
+      setManageError(err?.message || t('hub.errors.saveFailed'));
     } finally {
       setManageBusy(false);
     }
   };
 
   const handleRollCode = async () => {
-    if (!window.confirm('Nieuwe join-code genereren? Oude links blijven niet meer werken.')) {
+    if (!confirmDialog('session:hub.rollJoinCodeConfirm')) {
       return;
     }
 
@@ -216,17 +228,17 @@ export default function SessionHubModal({
     try {
       await onRollJoinCode?.();
     } catch (err) {
-      setManageError(err?.message || 'Join-code vernieuwen is mislukt.');
+      setManageError(err?.message || t('hub.errors.rollFailed'));
     }
   };
 
-  const roleLabel = isGM ? 'Game Master' : 'Speler';
+  const roleLabel = isGM ? t('common:roles.gm') : t('common:roles.player');
 
   return (
     <ModalFrame
       isOpen={isOpen}
       onClose={onClose}
-      title="Campaign Hub"
+      title={t('hub.title')}
       icon={BookOpen}
       subtitle={displayName}
       maxWidthClassName="max-w-lg"
@@ -237,7 +249,7 @@ export default function SessionHubModal({
         options={visibleTabs}
         onChange={setActiveTab}
         block
-        aria-label="Campaign hub secties"
+        aria-label={t('hub.tabsAria')}
       />
 
       {activeTab === 'overview' ? (
@@ -256,21 +268,21 @@ export default function SessionHubModal({
             <div className="tv-panel-block px-3.5 py-3">
               <div className="flex items-center gap-2 text-[10px] font-semibold uppercase tracking-[0.14em] tv-muted">
                 <Users className="h-3.5 w-3.5" />
-                Spelers
+                {t('hub.players')}
               </div>
               <div className="mt-2 text-2xl font-semibold tv-text">{activePlayerCount}</div>
             </div>
             <div className="tv-panel-block px-3.5 py-3">
               <div className="flex items-center gap-2 text-[10px] font-semibold uppercase tracking-[0.14em] tv-muted">
                 <Shield className="h-3.5 w-3.5" />
-                Status
+                {t('hub.status')}
               </div>
-              <div className="mt-2 text-sm font-medium tv-text">Actief · join open</div>
+              <div className="mt-2 text-sm font-medium tv-text">{t('hub.statusActive')}</div>
             </div>
           </div>
 
           <div className="tv-panel-block px-3.5 py-3">
-            <div className="text-[9px] uppercase tracking-[0.2em] tv-muted">Join-code (alleen indien nodig)</div>
+            <div className="text-[9px] uppercase tracking-[0.2em] tv-muted">{t('hub.joinCodeHint')}</div>
             <div className="mt-1.5 font-mono text-sm tracking-widest tv-accent">{canonicalSessionCode}</div>
           </div>
         </div>
@@ -283,7 +295,7 @@ export default function SessionHubModal({
           </div>
 
           <div className="tv-panel-block px-3.5 py-3">
-            <div className="text-[9px] uppercase tracking-[0.2em] tv-muted">Invite-link</div>
+            <div className="text-[9px] uppercase tracking-[0.2em] tv-muted">{t('hub.inviteLink')}</div>
             <div className="tv-text mt-1.5 break-all font-mono text-xs leading-relaxed">{joinUrl}</div>
           </div>
 
@@ -294,7 +306,7 @@ export default function SessionHubModal({
               className="tv-btn tv-button-secondary tv-btn--block w-full gap-2 text-xs uppercase tracking-[0.14em] transition-all duration-200 ease-out active:scale-[0.985]"
             >
               <Copy className="h-3.5 w-3.5" />
-              {copyFeedback === 'code' ? 'Gekopieerd' : 'Code'}
+              {copyFeedback === 'code' ? t('common:copyFeedback.copied') : t('hub.copyCode')}
             </button>
 
             <button
@@ -303,7 +315,7 @@ export default function SessionHubModal({
               className="tv-btn tv-button-secondary tv-btn--block w-full gap-2 text-xs uppercase tracking-[0.14em] transition-all duration-200 ease-out active:scale-[0.985]"
             >
               <Copy className="h-3.5 w-3.5" />
-              {copyFeedback === 'link' ? 'Gekopieerd' : 'Link'}
+              {copyFeedback === 'link' ? t('common:copyFeedback.copied') : t('hub.copyLink')}
             </button>
 
             <button
@@ -312,7 +324,9 @@ export default function SessionHubModal({
               className="tv-btn tv-button-primary tv-btn--block w-full gap-2 text-xs uppercase tracking-[0.14em] transition-all duration-200 ease-out active:scale-[0.985] sm:col-span-2"
             >
               <Share2 className="h-3.5 w-3.5" />
-              {copyFeedback === 'share' ? 'Gekopieerd' : (canNativeShare ? 'Deel via systeem' : 'Deeltekst kopiëren')}
+              {copyFeedback === 'share'
+                ? t('common:copyFeedback.copied')
+                : (canNativeShare ? t('hub.shareNative') : t('hub.shareCopy'))}
             </button>
 
             <a
@@ -322,7 +336,7 @@ export default function SessionHubModal({
               className="tv-btn tv-button-secondary tv-btn--block w-full gap-2 text-xs uppercase tracking-[0.14em] transition-all duration-200 ease-out active:scale-[0.985] sm:col-span-2"
             >
               <Share2 className="h-3.5 w-3.5" />
-              WhatsApp
+              {t('hub.whatsapp')}
             </a>
           </div>
         </div>
@@ -331,26 +345,26 @@ export default function SessionHubModal({
       {activeTab === 'manage' && isGM ? (
         <div className="flex flex-col gap-4">
           <div>
-            <label className="tv-label mb-2 block">Campagnenaam</label>
+            <label className="tv-label mb-2 block">{t('hub.campaignName')}</label>
             <input
               type="text"
               value={draftCampaignName}
               onChange={(e) => setDraftCampaignName(e.target.value)}
               maxLength={48}
               className="tv-field"
-              placeholder="Bijv. Schaduw van de Draken"
+              placeholder={t('hub.campaignNamePlaceholder')}
             />
-            <p className="tv-meta mt-1.5">Wijzigt alleen de weergavenaam — je sessiedata blijft intact.</p>
+            <p className="tv-meta mt-1.5">{t('hub.campaignNameHint')}</p>
           </div>
 
           <div>
-            <label className="tv-label mb-2 block">Sessienummer</label>
+            <label className="tv-label mb-2 block">{t('hub.sessionNumber')}</label>
             <div className="flex items-center gap-2">
               <button
                 type="button"
                 onClick={() => setDraftSessionNumber((v) => Math.max(1, Number(v || 1) - 1))}
                 className="tv-toolbar-icon-btn tv-button-secondary transition-all duration-200 ease-out active:scale-[0.985]"
-                title="Vorige sessie"
+                title={t('hub.prevSession')}
               >
                 −
               </button>
@@ -365,7 +379,7 @@ export default function SessionHubModal({
                 type="button"
                 onClick={() => setDraftSessionNumber((v) => (Number(v) || 1) + 1)}
                 className="tv-toolbar-icon-btn tv-button-secondary transition-all duration-200 ease-out active:scale-[0.985]"
-                title="Volgende sessie"
+                title={t('hub.nextSession')}
               >
                 +
               </button>
@@ -375,7 +389,7 @@ export default function SessionHubModal({
           <div className="tv-panel-block px-3.5 py-3">
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <div className="min-w-0">
-                <div className="text-[9px] uppercase tracking-[0.2em] tv-muted">Huidige join-code</div>
+                <div className="text-[9px] uppercase tracking-[0.2em] tv-muted">{t('hub.currentJoinCode')}</div>
                 <div className="mt-1 truncate font-mono text-sm tracking-widest tv-accent">{canonicalSessionCode}</div>
               </div>
               <button
@@ -385,7 +399,7 @@ export default function SessionHubModal({
                 className="tv-btn tv-button-secondary shrink-0 gap-2 text-xs uppercase tracking-[0.12em] disabled:cursor-not-allowed disabled:opacity-50"
               >
                 {joinCodeRolling ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <RefreshCw className="h-3.5 w-3.5" />}
-                Opnieuw rollen
+                {t('hub.rollJoinCode')}
               </button>
             </div>
           </div>
@@ -401,7 +415,7 @@ export default function SessionHubModal({
             className="tv-btn tv-button-primary tv-btn--block w-full gap-2 text-xs uppercase tracking-[0.14em] disabled:cursor-not-allowed disabled:opacity-50"
           >
             {manageBusy ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Save className="h-3.5 w-3.5" />}
-            Opslaan
+            {t('common:actions.save')}
           </button>
         </div>
       ) : null}
@@ -411,24 +425,24 @@ export default function SessionHubModal({
           <div className="tv-panel-block px-4 py-4">
             <div className="flex items-center gap-2 text-[10px] font-semibold uppercase tracking-[0.14em] tv-muted">
               <LayoutDashboard className="h-3.5 w-3.5" />
-              Game Master
+              {t('hub.help.gmTitle')}
             </div>
             <ul className="mt-3 space-y-2 text-sm leading-relaxed text-[color:var(--tv-text-secondary)]">
-              <li>Deel via QR of invite-link in het tabblad Uitnodigen.</li>
-              <li>Pas campagnenaam en sessienummer aan onder Beheer.</li>
-              <li>Roll de join-code opnieuw als een oude link gelekt is.</li>
+              {Array.isArray(gmHelpItems) ? gmHelpItems.map((item) => (
+                <li key={item}>{item}</li>
+              )) : null}
             </ul>
           </div>
 
           <div className="tv-panel-block px-4 py-4">
             <div className="flex items-center gap-2 text-[10px] font-semibold uppercase tracking-[0.14em] tv-muted">
               <HelpCircle className="h-3.5 w-3.5" />
-              Speler
+              {t('hub.help.playerTitle')}
             </div>
             <ul className="mt-3 space-y-2 text-sm leading-relaxed text-[color:var(--tv-text-secondary)]">
-              <li>Scan de QR-code of open de invite-link op je telefoon.</li>
-              <li>Log in met Google of e-mail — daarna kies je je karakternaam.</li>
-              <li>Je komt direct in de campagne zonder PIN via QR-uitnodiging.</li>
+              {Array.isArray(playerHelpItems) ? playerHelpItems.map((item) => (
+                <li key={item}>{item}</li>
+              )) : null}
             </ul>
           </div>
         </div>

@@ -1,0 +1,93 @@
+{
+  "view": {
+    "title": "Schatkamer",
+    "coins": "Munten",
+    "newItem": "Nieuw item",
+    "newItemAria": "Nieuw item",
+    "scopeAria": "Schatkamer weergave",
+    "filterAria": "Filter op soort",
+    "searchPlaceholder": "Zoeken…",
+    "handoutsSection": "Handouts",
+    "itemsAria": "{{count}} items"
+  },
+  "scope": {
+    "all": "Alles",
+    "party": "Groep",
+    "adventurers": "Avonturiers"
+  },
+  "wallet": {
+    "partyFund": "Groepskas",
+    "pouch": "Buidel",
+    "platinum": "Platinum",
+    "gold": "Goud",
+    "silver": "Zilver",
+    "copper": "Koper",
+    "decreaseAria": "{{coin}} verminderen",
+    "increaseAria": "{{coin}} verhogen",
+    "editAria": "{{coin}} aanpassen",
+    "total": {
+      "zeroGold": "0 goud",
+      "goldOnly": "{{count}} goud",
+      "silverOnly": "{{count}} zilver",
+      "copperOnly": "{{count}} koper",
+      "goldPart": "{{count}} goud",
+      "silverPart": "{{count}} zilver",
+      "copperPart": "{{count}} koper"
+    }
+  },
+  "empty": {
+    "noMatch": "Geen match",
+    "empty": "Nog leeg",
+    "noItems": "Nog geen items"
+  },
+  "owner": {
+    "party": "Groep",
+    "unknown": "—"
+  },
+  "item": {
+    "decreaseAmount": "Verlaag aantal",
+    "increaseAmount": "Verhoog aantal",
+    "deleteItem": "Verwijder item",
+    "addForPlayer": "Item toevoegen voor {{name}}",
+    "addForPlayerAria": "Item toevoegen voor {{name}}"
+  },
+  "handout": {
+    "return": "Terugleggen",
+    "returnTitle": "Terugleggen naar handouts",
+    "returnAria": "{{title}} terugleggen naar handouts",
+    "confirmReturn": "\"{{title}}\" terugleggen naar handouts?",
+    "confirmReturnWithNote": "\"{{title}}\" terugleggen naar handouts? Je persoonlijke notitie wordt ook verwijderd.",
+    "confirmReturnNoteHint": " Je persoonlijke notitie wordt ook verwijderd.",
+    "thisItem": "dit item"
+  },
+  "modal": {
+    "editTitle": "Item bewerken",
+    "newTitle": "Nieuw item",
+    "pickImage": "Afbeelding kiezen",
+    "addImage": "Afbeelding toevoegen",
+    "upload": "Upload",
+    "icon": "Icoon",
+    "clear": "Wissen",
+    "namePlaceholder": "Naam van het item",
+    "categoryAria": "Soort item",
+    "descriptionLabel": "Beschrijving",
+    "optional": "Optioneel",
+    "descriptionPlaceholder": "Wat doet het? Hoe ziet het eruit?",
+    "optionsLabel": "Opties",
+    "ownerLabel": "Eigenaar",
+    "partyLoot": "Groepsbuit",
+    "amountLabel": "Aantal",
+    "lessAria": "Minder",
+    "moreAria": "Meer"
+  },
+  "categories": {
+    "all": "Alles",
+    "misc": "Misc",
+    "weapon": "Weapon",
+    "armor": "Armor",
+    "consumable": "Consumable",
+    "magic": "Magic",
+    "resource": "Resource",
+    "quest": "Quest"
+  }
+}

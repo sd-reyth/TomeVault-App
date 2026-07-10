@@ -10,6 +10,7 @@ import {
   Wine,
   X,
 } from 'lucide-react';
+import { useT } from '../i18n/useT';
 
 const SCENE_ICONS = {
   warm: Wine,
@@ -18,7 +19,7 @@ const SCENE_ICONS = {
   ocean: Waves,
 };
 
-function CreditRow({ track }) {
+function CreditRow({ track, sourceLinkLabel }) {
   const Icon = SCENE_ICONS[track.accentTone] || Music2;
   const tone = track.accentTone || 'warm';
 
@@ -57,7 +58,7 @@ function CreditRow({ track }) {
           className="tv-sourcelist-row__link"
         >
           <ExternalLink className="h-3.5 w-3.5" aria-hidden />
-          Bron
+          {sourceLinkLabel}
         </a>
       </div>
     </article>
@@ -85,6 +86,8 @@ export default function SourcelistModal({
   verifiedTracks,
   archivedTracks,
 }) {
+  const { t } = useT('session');
+
   useEffect(() => {
     if (!isOpen) return undefined;
 
@@ -119,21 +122,21 @@ export default function SourcelistModal({
           <div className="min-w-0">
             <span className="tv-sourcelist-sheet__badge">
               <Music2 className="h-3.5 w-3.5" aria-hidden />
-              Credits
+              {t('ambience.sourcelist.badge')}
             </span>
             <h1 id="sourcelist-title" className="tv-sourcelist-sheet__title">
-              Audiogebruik
+              {t('ambience.sourcelist.title')}
             </h1>
             <p className="tv-sourcelist-sheet__subtitle">
-              Bronnen en dankwoord voor de sfeerlagen in TomeVault.
+              {t('ambience.sourcelist.subtitle')}
             </p>
           </div>
           <button
             type="button"
             onClick={onClose}
             className="tv-icon-btn shrink-0"
-            title="Sluiten"
-            aria-label="Sluiten"
+            title={t('common:actions.close')}
+            aria-label={t('common:actions.close')}
           >
             <X className="h-4 w-4" />
           </button>
@@ -141,23 +144,27 @@ export default function SourcelistModal({
 
         <div className="tv-sourcelist-sheet__body">
           {verifiedTracks.length > 0 ? (
-            <section className="tv-sourcelist-section" aria-label="Geverifieerde bronnen">
+            <section className="tv-sourcelist-section" aria-label={t('ambience.sourcelist.verifiedAria')}>
               <div className="tv-sourcelist-section__head">
-                <h2 className="tv-sourcelist-section__title">Geverifieerd</h2>
+                <h2 className="tv-sourcelist-section__title">{t('ambience.sourcelist.verified')}</h2>
                 <span className="tv-sourcelist-section__count">{verifiedTracks.length}</span>
               </div>
               <div className="tv-sourcelist-list">
                 {verifiedTracks.map((track) => (
-                  <CreditRow key={track.id} track={track} />
+                  <CreditRow
+                    key={track.id}
+                    track={track}
+                    sourceLinkLabel={t('ambience.sourcelist.sourceLink')}
+                  />
                 ))}
               </div>
             </section>
           ) : null}
 
           {archivedTracks.length > 0 ? (
-            <section className="tv-sourcelist-section tv-sourcelist-section--archived" aria-label="Archief">
+            <section className="tv-sourcelist-section tv-sourcelist-section--archived" aria-label={t('ambience.sourcelist.archiveAria')}>
               <div className="tv-sourcelist-section__head">
-                <h2 className="tv-sourcelist-section__title">Archief</h2>
+                <h2 className="tv-sourcelist-section__title">{t('ambience.sourcelist.archive')}</h2>
                 <span className="tv-sourcelist-section__count">{archivedTracks.length}</span>
               </div>
               <div className="tv-sourcelist-archived-list">
@@ -170,12 +177,12 @@ export default function SourcelistModal({
 
           {verifiedTracks.length === 0 && archivedTracks.length === 0 ? (
             <div className="tv-sourcelist-empty">
-              <p>Geen audiogegevens beschikbaar.</p>
+              <p>{t('ambience.sourcelist.empty')}</p>
             </div>
           ) : null}
 
           <p className="tv-sourcelist-disclaimer">
-            Alle rechten bij de oorspronkelijke makers. TomeVault host alleen de bestanden voor sessiegebruik.
+            {t('ambience.sourcelist.disclaimer')}
           </p>
         </div>
       </div>

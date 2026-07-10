@@ -3,7 +3,10 @@ import { createRoot } from 'react-dom/client'
 import './index.css'
 import App from './App.jsx'
 import RuntimeErrorScreen from './components/RuntimeErrorScreen.jsx'
+import { LocaleProvider } from './i18n/LocaleProvider.jsx'
 import { DEFAULT_THEME } from './lib/appThemes.js'
+import { isBenignFirebaseAuthRaceError } from './lib/authErrors.js'
+import { bootstrapLocale } from './i18n/index.js'
 
 const rootElement = document.getElementById('root')
 const root = createRoot(rootElement)
@@ -21,6 +24,7 @@ function bootstrapTheme() {
 }
 
 bootstrapTheme()
+bootstrapLocale()
 
 function clearTomeVaultBrowserState() {
   if (typeof window === 'undefined') return
@@ -53,7 +57,7 @@ class AppRuntimeErrorBoundary extends Component {
   }
 
   static getDerivedStateFromError(error) {
-    return { runtimeError: error || new Error('Onbekende runtimefout') }
+    return { runtimeError: error || new Error('Unknown runtime error') }
   }
 
   componentDidCatch(error, errorInfo) {
@@ -70,9 +74,17 @@ class AppRuntimeErrorBoundary extends Component {
 
   handleUnhandledRejection = (event) => {
     const reason = event?.reason
+
+    // Known Firebase popup race: login may still succeed via onAuthStateChanged.
+    if (isBenignFirebaseAuthRaceError(reason)) {
+      event.preventDefault?.()
+      console.warn('TomeVault: genegeerde Firebase auth-race na popup-login.', reason)
+      return
+    }
+
     const runtimeError = reason instanceof Error
       ? reason
-      : new Error(String(reason || 'Onbekende async fout'))
+      : new Error(String(reason || 'Unknown async error'))
 
     this.setState({ runtimeError })
   }
@@ -86,7 +98,7 @@ class AppRuntimeErrorBoundary extends Component {
 
     const errorMessage = runtimeError instanceof Error
       ? runtimeError.message
-      : String(runtimeError || 'Onbekende runtimefout')
+      : String(runtimeError || 'Unknown runtime error')
 
     return (
       <RuntimeErrorScreen
@@ -103,8 +115,10 @@ class AppRuntimeErrorBoundary extends Component {
 
 root.render(
   <StrictMode>
-    <AppRuntimeErrorBoundary>
-      <App />
-    </AppRuntimeErrorBoundary>
+    <LocaleProvider>
+      <AppRuntimeErrorBoundary>
+        <App />
+      </AppRuntimeErrorBoundary>
+    </LocaleProvider>
   </StrictMode>,
 )

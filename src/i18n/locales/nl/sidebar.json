@@ -1,0 +1,19 @@
+{
+  "tabs": {
+    "handouts": "Handouts",
+    "chat": "Fluisteringen",
+    "inventory": "Schatkamer",
+    "preparations": "Voorbereidingen",
+    "notes": "Kronieken"
+  },
+  "settings": "Configuratie",
+  "resizeAria": "Sleep om navigatiebreedte aan te passen",
+  "footer": {
+    "session": "Sessie {{number}}",
+    "atTable": "aan tafel",
+    "combatLive": "Slagorde actief",
+    "combatLiveTitle": "Gevecht actief",
+    "combatPaused": "Gevecht gepauzeerd",
+    "combatPausedTitle": "Gevecht gepauzeerd"
+  }
+}

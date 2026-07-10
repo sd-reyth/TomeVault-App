@@ -7,6 +7,7 @@ import TreasureIcon from '../ui/TreasureIcon';
 import TvImage from './TvImage';
 import { CreateFormPlaceholderGrid } from '../ui/CreateFormPrimitives';
 import { DEFAULT_ITEM_CATEGORY, ITEM_CATEGORIES } from '../lib/itemCategories';
+import { useT } from '../i18n/useT';
 
 const EMPTY_FORM = {
   name: '',
@@ -28,6 +29,7 @@ function AddItemModal({
   preferredOwnerId,
   itemToEdit,
 }) {
+  const { t } = useT('inventory');
   const [formData, setFormData] = useState(EMPTY_FORM);
   const [pendingFile, setPendingFile] = useState(null);
   const [showPlaceholderPicker, setShowPlaceholderPicker] = useState(false);
@@ -93,14 +95,14 @@ function AddItemModal({
     <ModalFrame
       isOpen={isOpen}
       onClose={onClose}
-      title={itemToEdit ? 'Item bewerken' : 'Nieuw item'}
+      title={itemToEdit ? t('modal.editTitle') : t('modal.newTitle')}
       icon={TreasureIcon}
       iconClassName="tv-accent h-6 w-6 shrink-0"
       maxWidthClassName="max-w-xl"
       footer={(
         <div className="grid w-full grid-cols-[1fr_1.15fr] gap-2">
           <Button variant="ghost" block onClick={onClose}>
-            Annuleren
+            {t('common:actions.cancel')}
           </Button>
           <Button
             variant="primary"
@@ -110,7 +112,7 @@ function AddItemModal({
             icon={itemToEdit ? Save : Plus}
             disabled={!trimmedName}
           >
-            {itemToEdit ? 'Opslaan' : 'Toevoegen'}
+            {itemToEdit ? t('common:actions.save') : t('common:actions.add')}
           </Button>
         </div>
       )}
@@ -129,7 +131,7 @@ function AddItemModal({
             type="button"
             onClick={openFilePicker}
             className="tv-handout-form-cover group"
-            title="Afbeelding kiezen"
+            title={t('modal.pickImage')}
           >
             {formData.imageUrl ? (
               <>
@@ -139,7 +141,7 @@ function AddItemModal({
             ) : (
               <div className="tv-handout-form-cover__empty">
                 <Package className="h-6 w-6 opacity-60" aria-hidden />
-                <span className="tv-handout-form-cover__empty-label">Afbeelding toevoegen</span>
+                <span className="tv-handout-form-cover__empty-label">{t('modal.addImage')}</span>
               </div>
             )}
             <div className="tv-handout-form-cover__tools">
@@ -149,7 +151,7 @@ function AddItemModal({
                 variant="secondary"
                 onClick={(event) => { event.stopPropagation(); openFilePicker(); }}
               >
-                Upload
+                {t('modal.upload')}
               </Button>
               <Button
                 type="button"
@@ -157,7 +159,7 @@ function AddItemModal({
                 variant={showPlaceholderPicker ? 'accent' : 'secondary'}
                 onClick={(event) => { event.stopPropagation(); setShowPlaceholderPicker((current) => !current); }}
               >
-                Icoon
+                {t('modal.icon')}
               </Button>
               {formData.imageUrl ? (
                 <Button
@@ -167,7 +169,7 @@ function AddItemModal({
                   className="tv-hover-danger"
                   onClick={(event) => { event.stopPropagation(); clearImage(); }}
                 >
-                  Wissen
+                  {t('modal.clear')}
                 </Button>
               ) : null}
             </div>
@@ -194,19 +196,19 @@ function AddItemModal({
             type="text"
             value={formData.name}
             onChange={(e) => patchForm({ name: e.target.value })}
-            placeholder="Naam van het item"
+            placeholder={t('modal.namePlaceholder')}
             className="tv-handout-form-title"
           />
 
-          <div className="tv-handout-form-category-grid" role="group" aria-label="Soort item">
-            {ITEM_CATEGORIES.map(({ value, label }) => (
+          <div className="tv-handout-form-category-grid" role="group" aria-label={t('modal.categoryAria')}>
+            {ITEM_CATEGORIES.map(({ value }) => (
               <button
                 key={value}
                 type="button"
                 onClick={() => patchForm({ category: value })}
                 className={`tv-segmented__option ${formData.category === value ? 'tv-segmented__option--active' : ''}`}
               >
-                {label}
+                {t(`categories.${value}`)}
               </button>
             ))}
           </div>
@@ -214,21 +216,21 @@ function AddItemModal({
 
         <section className="tv-handout-form-section">
           <div className="tv-handout-form-section__head">
-            <label htmlFor="item-desc" className="tv-label">Beschrijving</label>
-            <span className="tv-handout-form-section__hint">Optioneel</span>
+            <label htmlFor="item-desc" className="tv-label">{t('modal.descriptionLabel')}</label>
+            <span className="tv-handout-form-section__hint">{t('modal.optional')}</span>
           </div>
           <textarea
             id="item-desc"
             rows={4}
             value={formData.desc}
             onChange={(e) => patchForm({ desc: e.target.value })}
-            placeholder="Wat doet het? Hoe ziet het eruit?"
+            placeholder={t('modal.descriptionPlaceholder')}
             className="tv-field w-full resize-y font-story leading-relaxed"
           />
         </section>
 
         <section className="tv-handout-form-section tv-handout-form-options">
-          <p className="tv-label">Opties</p>
+          <p className="tv-label">{t('modal.optionsLabel')}</p>
 
           {isGM && !itemToEdit ? (
             <div className="tv-handout-form-assign">
@@ -237,9 +239,9 @@ function AddItemModal({
                 value={formData.ownerId}
                 onChange={(event) => patchForm({ ownerId: event.target.value })}
                 className="tv-select tv-handout-form-assign__select"
-                aria-label="Eigenaar"
+                aria-label={t('modal.ownerLabel')}
               >
-                <option value="party">Groepsbuit</option>
+                <option value="party">{t('modal.partyLoot')}</option>
                 {playerOptions.map((player) => (
                   <option key={player.id} value={player.id}>{player.name}</option>
                 ))}
@@ -248,13 +250,13 @@ function AddItemModal({
           ) : null}
 
           <div className="tv-handout-form-amount">
-            <span className="tv-label" id="item-amount-label">Aantal</span>
+            <span className="tv-label" id="item-amount-label">{t('modal.amountLabel')}</span>
             <div className="tv-segmented tv-handout-form-amount__stepper" role="group" aria-labelledby="item-amount-label">
               <button
                 type="button"
                 onClick={() => patchForm({ amount: Math.max(1, amount - 1) })}
                 className="tv-segmented__option"
-                aria-label="Minder"
+                aria-label={t('modal.lessAria')}
               >
                 −
               </button>
@@ -271,7 +273,7 @@ function AddItemModal({
                 type="button"
                 onClick={() => patchForm({ amount: amount + 1 })}
                 className="tv-segmented__option"
-                aria-label="Meer"
+                aria-label={t('modal.moreAria')}
               >
                 +
               </button>

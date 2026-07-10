@@ -41,6 +41,7 @@ import {
   shuffleList,
   sortPartyByInitiative,
 } from '../lib/battleUtils';
+import { useT } from '../i18n/useT';
 
 const RIGHT_SIDEBAR_DEFAULT_WIDTH = 380;
 const RIGHT_SIDEBAR_MIN_WIDTH = 248;
@@ -78,7 +79,7 @@ function getExistingTieOverrides(party = [], initiativeOrder = []) {
   return overrides;
 }
 
-function OverlayDialog({ title, description, children, onClose, actions, showCloseButton = true }) {
+function OverlayDialog({ title, description, children, onClose, actions, showCloseButton = true, closeLabel }) {
   return (
     <div className="tv-backdrop fixed inset-0 z-[70] flex items-center justify-center p-4 backdrop-blur-md">
       <div className="tv-surface tv-text w-full max-w-md overflow-hidden rounded-3xl shadow-[0_24px_70px_rgba(0,0,0,0.36)]">
@@ -91,7 +92,7 @@ function OverlayDialog({ title, description, children, onClose, actions, showClo
             <button
               type="button"
               onClick={onClose}
-              aria-label="Sluiten"
+              aria-label={closeLabel}
               className="tv-icon-btn shrink-0"
             >
               <X className="h-5 w-5" />
@@ -134,6 +135,7 @@ function RightSidebar({
   setIsPinned,
   theme,
 }) {
+  const { t } = useT('combat');
   const [sidebarWidth, setSidebarWidth] = useState(RIGHT_SIDEBAR_DEFAULT_WIDTH);
   const [isDragging, setIsDragging] = useState(false);
   const [statusError, setStatusError] = useState('');
@@ -178,7 +180,7 @@ function RightSidebar({
   const currentTurnMember = sortedParty.find((member) => member.id === currentTurnId) || null;
   const getVisibleCombatName = (member) => {
     if (!member) return null;
-    if (!isGm && member.isNpc && member.isRevealed === false) return 'Onbekende vijand';
+    if (!isGm && member.isNpc && member.isRevealed === false) return t('participant.unknownEnemy');
     return member.name;
   };
   const currentTurnDisplayName = getVisibleCombatName(currentTurnMember);
@@ -304,8 +306,8 @@ function RightSidebar({
         playFeedback({ sound: 'combatResume', element: combatHeaderRef.current });
       }
     } catch (error) {
-      console.error('Combat flow fout:', error);
-      setStatusError('De slagorde kon niet worden bijgewerkt. Probeer het opnieuw.');
+      console.error('Combat flow error:', error);
+      setStatusError(t('errors.updateFailed'));
     } finally {
       setIsActionBusy(false);
       setPendingMissingAction(null);
@@ -360,8 +362,8 @@ function RightSidebar({
       await onPauseCombat?.();
       playFeedback({ sound: 'combatPause', element: combatHeaderRef.current });
     } catch (error) {
-      console.error('Gevecht pauzeren fout:', error);
-      setStatusError('Gevecht pauzeren is mislukt.');
+      console.error('Pause combat error:', error);
+      setStatusError(t('errors.pauseFailed'));
     } finally {
       setIsActionBusy(false);
     }
@@ -392,8 +394,8 @@ function RightSidebar({
       playUiSound('dice');
       flashFeedback(combatHeaderRef.current);
     } catch (error) {
-      console.error('Rol allen fout:', error);
-      setStatusError('Niet alle initiatives konden worden gerold.');
+      console.error('Roll all error:', error);
+      setStatusError(t('errors.rollFailed'));
     } finally {
       setIsActionBusy(false);
     }
@@ -406,8 +408,8 @@ function RightSidebar({
     try {
       await onAdvanceTurn?.();
     } catch (error) {
-      console.error('Volgende beurt fout:', error);
-      setStatusError('De volgende beurt kon niet worden gestart.');
+      console.error('Advance turn error:', error);
+      setStatusError(t('errors.advanceFailed'));
     } finally {
       setIsActionBusy(false);
     }
@@ -422,8 +424,8 @@ function RightSidebar({
       playFeedback({ sound: 'combatEnd', element: combatHeaderRef.current, variant: 'danger' });
       setEndCombatConfirmOpen(false);
     } catch (error) {
-      console.error('Gevecht beëindigen fout:', error);
-      setStatusError('Gevecht beëindigen is mislukt.');
+      console.error('End combat error:', error);
+      setStatusError(t('errors.endFailed'));
     } finally {
       setIsActionBusy(false);
     }
@@ -438,8 +440,8 @@ function RightSidebar({
     try {
       await onRequestCombatJoin?.(myCharacter.id);
     } catch (error) {
-      console.error('Meedoen-verzoek versturen fout:', error);
-      setStatusError('Je verzoek kon niet worden verstuurd. Probeer het opnieuw.');
+      console.error('Join request error:', error);
+      setStatusError(t('errors.joinRequestFailed'));
     } finally {
       setIsActionBusy(false);
     }
@@ -514,58 +516,56 @@ function RightSidebar({
   };
 
   const statusTitle = role === 'player' && isMyTurn
-    ? 'Jouw beurt'
+    ? t('status.yourTurn')
     : (combatStatus === COMBAT_STATUS.IDLE
-      ? 'Ruststand'
-      : (combatStatus === COMBAT_STATUS.PAUSED ? 'Gepauzeerd' : 'Gevecht'));
+      ? t('status.idle')
+      : (combatStatus === COMBAT_STATUS.PAUSED ? t('status.paused') : t('status.combat')));
 
   const gmStatusLine = (() => {
-    if (combatStatus === COMBAT_STATUS.IDLE) return 'Klaar om de slagorde actief te maken.';
+    if (combatStatus === COMBAT_STATUS.IDLE) return t('status.gmIdle');
     if (combatStatus === COMBAT_STATUS.PAUSED) {
-      return 'Pauze actief — pas de slagorde aan en hervat wanneer je klaar bent.';
+      return t('status.gmPaused');
     }
-    return 'Gevecht loopt — de huidige beurt is gemarkeerd in de lijst.';
+    return t('status.gmActive');
   })();
 
   const playerStatusPrimaryLine = (() => {
     if (combatStatus === COMBAT_STATUS.IDLE) {
       return myCharacter?.init === null
-        ? 'Je initiative staat nog open.'
-        : 'Je staat klaar voor de volgende start.';
+        ? t('status.playerInitOpen')
+        : t('status.playerReady');
     }
 
     if (combatStatus === COMBAT_STATUS.PAUSED) {
       return currentTurnDisplayName
-        ? `Gepauzeerd tijdens ${currentTurnDisplayName}.`
-        : 'De GM past de slagorde aan.';
+        ? t('status.playerPausedDuring', { name: currentTurnDisplayName })
+        : t('status.playerPausedGeneric');
     }
 
-    if (isMyTurn) return 'Jij bent nu aan zet.';
-    return currentTurnDisplayName ? `${currentTurnDisplayName} is nu aan zet.` : 'Gevecht actief.';
+    if (isMyTurn) return t('status.playerYourTurn');
+    return currentTurnDisplayName ? t('status.playerTurnOf', { name: currentTurnDisplayName }) : t('status.playerActive');
   })();
 
   const playerStatusSecondaryLine = (() => {
     if (combatStatus === COMBAT_STATUS.IDLE) {
       return myCharacter?.init === null
-        ? 'Vul je initiative in zodra de GM gaat starten.'
-        : 'Wacht op het startsein van de GM.';
+        ? t('status.playerInitHint')
+        : t('status.playerWaitHint');
     }
 
     if (combatStatus === COMBAT_STATUS.PAUSED) {
-      return 'Je beurtvolgorde blijft bewaard tot de GM hervat.';
+      return t('status.playerPauseHint');
     }
 
     if (turnsUntilMine === null) {
-      return `Ronde ${turnRound} loopt.`;
+      return t('status.roundRunning', { round: turnRound });
     }
 
     if (isMyTurn) {
-      return `Ronde ${turnRound} · handel nu.`;
+      return t('status.roundActNow', { round: turnRound });
     }
 
-    return turnsUntilMine === 1
-      ? 'Nog 1 beurt tot jij aan zet bent.'
-      : `Nog ${turnsUntilMine} beurten tot jij aan zet bent.`;
+    return t('status.turnsUntil', { count: turnsUntilMine });
   })();
 
   return (
@@ -589,7 +589,7 @@ function RightSidebar({
         <div className="absolute top-0 left-0 hidden h-full w-1 bg-gradient-to-b from-white/8 color-mix(in srgb, var(--tv-border), transparent 40%) to-white/8 md:block" />
         <button
           type="button"
-          aria-label="Sleep om slagordebreedte aan te passen"
+          aria-label={t('resizeAria')}
           onMouseDown={handleResizeStart}
           onDoubleClick={() => setSidebarWidth(RIGHT_SIDEBAR_DEFAULT_WIDTH)}
           className="absolute left-0 top-0 hidden h-full w-3 translate-x-1/2 cursor-col-resize md:block"
@@ -641,11 +641,11 @@ function RightSidebar({
 
           {showPlayerRollPanel ? (
             <div className="mt-3 tv-panel-inset px-3 py-3">
-              <div className="mb-2 text-[10px] font-bold uppercase tracking-[0.18em] tv-accent">Initiative</div>
+              <div className="mb-2 text-[10px] font-bold uppercase tracking-[0.18em] tv-accent">{t('initiative.label')}</div>
               <div className="flex flex-col gap-2 sm:flex-row">
                 <input
                   type="number"
-                  placeholder="Typ..."
+                  placeholder={t('initiative.placeholder')}
                   onChange={(event) => {
                     const value = parseInt(event.target.value, 10);
                     if (!Number.isNaN(value)) onUpdateStat?.(myCharacter.id, 'init', value);
@@ -660,7 +660,7 @@ function RightSidebar({
                   }}
                   className="flex flex-1 items-center justify-center gap-1 rounded-md px-2 py-2 text-xs font-bold uppercase tracking-[0.18em] transition-colors tv-button-primary"
                 >
-                  <Dice5 className="h-3.5 w-3.5" /> Rol (+{myCharacter.initMod || 0})
+                  <Dice5 className="h-3.5 w-3.5" /> {t('initiative.roll', { mod: myCharacter.initMod || 0 })}
                 </button>
               </div>
             </div>
@@ -668,9 +668,9 @@ function RightSidebar({
 
           {showCombatJoinPanel ? (
             <div className="mt-3 tv-tone-ally-surface px-3 py-3">
-              <div className="mb-2 text-[10px] font-bold uppercase tracking-[0.18em] tv-tone-ally-text">Niet in gevecht</div>
+              <div className="mb-2 text-[10px] font-bold uppercase tracking-[0.18em] tv-tone-ally-text">{t('join.notInCombat')}</div>
               <p className="mb-3 text-xs leading-5 tv-text-sub">
-                Je staat nu buiten de initiativelijst. Dien een verzoek in om weer mee te doen.
+                {t('join.description')}
               </p>
               <button
                 type="button"
@@ -678,19 +678,19 @@ function RightSidebar({
                 disabled={!canRequestCombatJoin || isActionBusy}
                 className={`flex w-full items-center justify-center rounded-lg border px-3 py-2 text-xs font-fantasy uppercase tracking-[0.16em] transition-colors ${playerJoinRequestPending ? 'border-[color-mix(in_srgb,var(--tv-border),transparent_28%)] tv-panel-inset tv-muted' : (canRequestCombatJoin ? 'tv-tone-ally-button' : 'border-[color-mix(in_srgb,var(--tv-border),transparent_28%)] tv-panel-inset tv-muted')}`}
               >
-                {playerJoinRequestPending ? 'In behandeling' : 'Meedoen'}
+                {playerJoinRequestPending ? t('join.pending') : t('join.request')}
               </button>
               {playerJoinRequestPending ? (
                 <p className="mt-2 text-[11px] leading-5 tv-muted">
                   {combatStatus === COMBAT_STATUS.IDLE
-                    ? 'Verzoek ontvangen. Je wordt automatisch teruggezet in de initiative tijdens ruststand.'
-                    : 'Verzoek ontvangen. Je wordt automatisch toegevoegd zodra het gevecht eindigt en ruststand actief is.'}
+                    ? t('join.pendingIdle')
+                    : t('join.pendingActive')}
                 </p>
               ) : (
                 <p className="mt-2 text-[11px] leading-5 tv-muted">
                   {combatStatus === COMBAT_STATUS.IDLE
-                    ? 'In ruststand word je na het verzoek automatisch toegevoegd.'
-                    : 'Tijdens pauze of gevecht blijft je verzoek in behandeling tot ruststand.'}
+                    ? t('join.hintIdle')
+                    : t('join.hintActive')}
                 </p>
               )}
             </div>
@@ -704,11 +704,11 @@ function RightSidebar({
 
           {isGm && hiddenPlayers.length > 0 ? (
             <div className="mt-3 rounded-[var(--tv-radius)] border border-[color-mix(in_srgb,var(--tv-border),transparent_46%)] tv-panel-inset px-3 py-3">
-              <div className="mb-2 text-[10px] font-bold uppercase tracking-[0.18em] tv-muted">Verborgen uit slagorde</div>
+              <div className="mb-2 text-[10px] font-bold uppercase tracking-[0.18em] tv-muted">{t('hidden.title')}</div>
               <div className="space-y-2">
                 {hiddenPlayers.map((member) => (
                   <div key={member.id} className="flex items-center justify-between gap-2">
-                    <span className="min-w-0 truncate text-xs tv-text">{member.name || 'Speler'}</span>
+                    <span className="min-w-0 truncate text-xs tv-text">{member.name || t('roles.player')}</span>
                     <Button
                       type="button"
                       variant="secondary"
@@ -716,13 +716,13 @@ function RightSidebar({
                       disabled={combatStatus === COMBAT_STATUS.ACTIVE || isActionBusy}
                       onClick={() => onReturnPlayerToCombat?.(member.id)}
                     >
-                      Terug
+                      {t('hidden.return')}
                     </Button>
                   </div>
                 ))}
               </div>
               {combatStatus === COMBAT_STATUS.ACTIVE ? (
-                <p className="mt-2 text-[11px] leading-5 tv-muted">Pauzeer of beëindig gevecht om spelers terug te zetten.</p>
+                <p className="mt-2 text-[11px] leading-5 tv-muted">{t('hidden.pauseHint')}</p>
               ) : null}
             </div>
           ) : null}
@@ -732,9 +732,9 @@ function RightSidebar({
           {sortedParty.length === 0 && !showPlayerRollPanel ? (
             <div className="tv-rail-empty flex min-h-[220px] flex-1 items-center justify-center px-6 text-center">
               <div>
-                <Text variant="label" tone="muted" className="mb-2 block tracking-[0.24em]">Nog leeg</Text>
+                <Text variant="label" tone="muted" className="mb-2 block tracking-[0.24em]">{t('empty.label')}</Text>
                 <Text variant="story" tone="muted" className="leading-relaxed">
-                  Voeg spelers, NPC’s of handout-personages toe aan de lijst.
+                  {t('empty.hint')}
                 </Text>
               </div>
             </div>
@@ -744,7 +744,7 @@ function RightSidebar({
             const isCurrentTurn = combatInProgress && member.id === currentTurnId;
             const orderIndex = memberIndex + 1;
             const hiddenNpcForPlayer = !isGm && member.isNpc && member.isRevealed === false;
-            const displayMemberName = hiddenNpcForPlayer ? 'Onbekende vijand' : member.name;
+            const displayMemberName = hiddenNpcForPlayer ? t('participant.unknownEnemy') : member.name;
             const displayMemberAvatar = hiddenNpcForPlayer ? null : member.avatar;
             const initiativeEditable = isGm
               ? combatStatus !== COMBAT_STATUS.ACTIVE
@@ -792,7 +792,7 @@ function RightSidebar({
                 disabled={combatInProgress || isActionBusy}
                 onClick={handleRollAll}
               >
-                Rol allen
+                {t('deck.rollAll')}
               </Button>
               <Button
                 variant="secondary"
@@ -802,7 +802,7 @@ function RightSidebar({
                 disabled={!canManageRoster || isActionBusy}
                 onClick={onOpenNpcModal}
               >
-                NPC
+                {t('deck.npc')}
               </Button>
             </div>
             {battleActive ? (
@@ -815,7 +815,7 @@ function RightSidebar({
                 disabled={isActionBusy}
                 onClick={handleAdvanceTurn}
               >
-                Volgende beurt
+                {t('deck.nextTurn')}
               </Button>
             ) : null}
           </div>
@@ -825,38 +825,40 @@ function RightSidebar({
 
       {endCombatConfirmOpen ? (
         <OverlayDialog
-          title="Gevecht direct beëindigen"
-          description="Dit zet de tracker terug naar ruststand. Initiative-volgorde en actieve beurt worden gestopt."
+          title={t('endConfirm.title')}
+          description={t('endConfirm.description')}
+          closeLabel={t('common:actions.close')}
           onClose={() => setEndCombatConfirmOpen(false)}
           actions={(
             <>
               <Button variant="ghost" onClick={() => setEndCombatConfirmOpen(false)}>
-                Annuleren
+                {t('common:actions.cancel')}
               </Button>
               <Button variant="danger" onClick={handleEndCombatClick} disabled={isActionBusy} icon={Skull}>
-                Beëindig
+                {t('endConfirm.confirm')}
               </Button>
             </>
           )}
         >
           <div className="rounded-xl tv-tone-enemy-surface px-3 py-3 text-sm leading-6">
-            Gebruik dit alleen wanneer je het gevecht volledig wilt afbreken. Pauzeren kan nog steeds via de hoofdactieknop.
+            {t('endConfirm.body')}
           </div>
         </OverlayDialog>
       ) : null}
 
       {pendingMissingAction ? (
         <OverlayDialog
-          title={pendingMissingAction.mode === 'start' ? 'Initiative ontbreekt nog' : 'Nog niet klaar om te hervatten'}
-          description="Niet iedereen heeft al een initiative-score. TomeVault kan de ontbrekende waardes automatisch rollen of je kunt later verdergaan."
+          title={pendingMissingAction.mode === 'start' ? t('missingInit.startTitle') : t('missingInit.resumeTitle')}
+          description={t('missingInit.description')}
+          closeLabel={t('common:actions.close')}
           onClose={() => setPendingMissingAction(null)}
           actions={(
             <>
               <Button variant="ghost" onClick={() => setPendingMissingAction(null)}>
-                Nog niet starten
+                {t('missingInit.wait')}
               </Button>
               <Button variant="primary" onClick={handleConfirmMissingInitiative}>
-                Rol ontbrekende
+                {t('missingInit.rollMissing')}
               </Button>
             </>
           )}
@@ -865,7 +867,7 @@ function RightSidebar({
             {pendingMissingAction.missingMembers.map((member) => (
               <div key={member.id} className="flex items-center justify-between rounded-xl border border-[color-mix(in_srgb,var(--tv-border),transparent_28%)] tv-panel-inset px-3 py-2 text-sm tv-text">
                 <span>{member.name}</span>
-                <span className="text-[10px] uppercase tracking-[0.18em] tv-muted">{member.isNpc ? 'NPC' : 'Speler'}</span>
+                <span className="text-[10px] uppercase tracking-[0.18em] tv-muted">{member.isNpc ? t('roles.npc') : t('roles.player')}</span>
               </div>
             ))}
           </div>
@@ -874,28 +876,29 @@ function RightSidebar({
 
       {tieResolutionState && activeTieGroup && activeTieGroupKey ? (
         <OverlayDialog
-          title={`Gelijke initiative${tieResolutionState.tieGroups.length > 1 ? ` (${tieResolutionState.currentIndex + 1}/${tieResolutionState.tieGroups.length})` : ''}`}
-          description={tieIsManual
-            ? 'Zet de onderlinge volgorde zelf vast. Bovenaan komt als eerste aan de beurt.'
-            : "Deze deelnemers gooiden exact gelijk. Laat TomeVault de volgorde loten, of bepaal hem zelf."}
+          title={tieResolutionState.tieGroups.length > 1
+            ? t('tie.titleProgress', { current: tieResolutionState.currentIndex + 1, total: tieResolutionState.tieGroups.length })
+            : t('tie.title')}
+          description={tieIsManual ? t('tie.manualDescription') : t('tie.choiceDescription')}
+          closeLabel={t('common:actions.close')}
           onClose={() => setTieResolutionState(null)}
           actions={(
             tieResolutionState.selectionMode === 'manual' ? (
               <>
                 <Button variant="ghost" onClick={() => setTieResolutionState({ ...tieResolutionState, selectionMode: 'choice' })}>
-                  Terug
+                  {t('common:actions.back')}
                 </Button>
                 <Button variant="primary" icon={Check} onClick={() => handleTieOrderResolved(tieResolutionState.manualOrder)}>
-                  Volgorde vastzetten
+                  {t('tie.confirmOrder')}
                 </Button>
               </>
             ) : (
               <>
                 <Button variant="secondary" onClick={() => setTieResolutionState({ ...tieResolutionState, selectionMode: 'manual' })}>
-                  Ik kies zelf
+                  {t('tie.chooseSelf')}
                 </Button>
                 <Button variant="primary" icon={Dice5} onClick={() => handleTieOrderResolved(shuffleList(activeTieGroupMembers.map((member) => member.id)))}>
-                  TomeVault loot
+                  {t('tie.draw')}
                 </Button>
               </>
             )
@@ -903,21 +906,21 @@ function RightSidebar({
         >
           <div className="mb-4 grid grid-cols-2 gap-2">
             <div className="rounded-xl border border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] tv-panel-inset px-3 py-2.5">
-              <div className="text-[10px] font-semibold uppercase tracking-[0.18em] tv-muted">Totaalscore</div>
+              <div className="text-[10px] font-semibold uppercase tracking-[0.18em] tv-muted">{t('tie.totalScore')}</div>
               <div className="mt-0.5 font-fantasy text-xl leading-none tv-text">{tieSharedTotal ?? '—'}</div>
             </div>
             <div className="rounded-xl border border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] tv-panel-inset px-3 py-2.5">
-              <div className="text-[10px] font-semibold uppercase tracking-[0.18em] tv-muted">Initiative-mod</div>
+              <div className="text-[10px] font-semibold uppercase tracking-[0.18em] tv-muted">{t('tie.initMod')}</div>
               <div className="mt-0.5 font-fantasy text-xl leading-none tv-text">{tieSharedModifierLabel}</div>
             </div>
           </div>
 
           <div className="mb-2 flex items-center justify-between">
             <span className="text-[10px] font-semibold uppercase tracking-[0.18em] tv-muted">
-              {tieIsManual ? 'Volgorde' : `${activeTieGroupMembers.length} gelijk`}
+              {tieIsManual ? t('tie.order') : t('tie.tiedCount', { count: activeTieGroupMembers.length })}
             </span>
             {tieIsManual ? (
-              <span className="text-[10px] uppercase tracking-[0.18em] tv-muted">Eerst → laatst</span>
+              <span className="text-[10px] uppercase tracking-[0.18em] tv-muted">{t('tie.firstToLast')}</span>
             ) : null}
           </div>
 
@@ -939,13 +942,13 @@ function RightSidebar({
                 </div>
                 <div className="min-w-0 flex-1">
                   <div className="truncate font-fantasy text-sm tracking-[0.14em] tv-text">{member.name}</div>
-                  <div className="text-[10px] uppercase tracking-[0.18em] tv-muted">{member.isNpc ? 'NPC' : 'Speler'}</div>
+                  <div className="text-[10px] uppercase tracking-[0.18em] tv-muted">{member.isNpc ? t('roles.npc') : t('roles.player')}</div>
                 </div>
                 {tieIsManual ? (
                   <div className="flex items-center gap-1">
                     <button
                       type="button"
-                      aria-label="Omhoog"
+                      aria-label={t('tie.moveUp')}
                       onClick={() => moveTieMember(member.id, 'up')}
                       disabled={index === 0}
                       className="rounded-md border border-[color-mix(in_srgb,var(--tv-border),transparent_20%)] tv-chip-surface p-1.5 tv-text transition-colors hover:border-[color-mix(in_srgb,var(--tv-accent),transparent_58%)] hover:tv-text disabled:cursor-not-allowed disabled:opacity-40"
@@ -954,7 +957,7 @@ function RightSidebar({
                     </button>
                     <button
                       type="button"
-                      aria-label="Omlaag"
+                      aria-label={t('tie.moveDown')}
                       onClick={() => moveTieMember(member.id, 'down')}
                       disabled={index === list.length - 1}
                       className="rounded-md border border-[color-mix(in_srgb,var(--tv-border),transparent_20%)] tv-chip-surface p-1.5 tv-text transition-colors hover:border-[color-mix(in_srgb,var(--tv-accent),transparent_58%)] hover:tv-text disabled:cursor-not-allowed disabled:opacity-40"
@@ -971,12 +974,13 @@ function RightSidebar({
 
       {conditionsTarget && isGm ? (
         <OverlayDialog
-          title={`Conditions voor ${conditionsTarget.name}`}
-          description="Activeer of verwijder status effecten op dit personage."
+          title={t('conditions.title', { name: conditionsTarget.name })}
+          description={t('conditions.description')}
+          closeLabel={t('common:actions.close')}
           onClose={() => setConditionsTarget(null)}
           actions={(
             <Button variant="primary" onClick={handleSaveConditions}>
-              Opslaan
+              {t('common:actions.save')}
             </Button>
           )}
         >

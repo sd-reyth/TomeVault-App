@@ -1,0 +1,243 @@
+{
+  "title": "Battle order",
+  "pin": "Pin",
+  "unpin": "Unpin",
+  "startCombat": "Start combat",
+  "combatModeAria": "Combat mode",
+  "active": "Active",
+  "pause": "Pause",
+  "endCombat": "End combat",
+  "yourTurn": "Your turn",
+  "now": "Now",
+  "roundBar": {
+    "idle": "Idle",
+    "paused": "Round {{round}} · Paused",
+    "round": "Round {{round}}",
+    "turnIndexTitle": "Current turn in order"
+  },
+  "info": {
+    "title": "Battle order info",
+    "showHelp": "Show help",
+    "hideHelp": "Hide help",
+    "pills": {
+      "initiative": "Initiative",
+      "turns": "Turns",
+      "npcs": "NPCs"
+    },
+    "steps": {
+      "idle": {
+        "title": "Idle",
+        "body": "Everyone can enter initiative before the GM starts combat."
+      },
+      "active": {
+        "title": "Combat active",
+        "body": "Initiative is locked; turns and rounds continue until pause or stop."
+      },
+      "paused": {
+        "title": "Paused",
+        "body": "Add or remove NPCs without losing the current round."
+      }
+    }
+  },
+  "status": {
+    "yourTurn": "Your turn",
+    "idle": "Idle",
+    "paused": "Paused",
+    "combat": "Combat",
+    "gmIdle": "Ready to activate the battle order.",
+    "gmPaused": "Pause active — adjust the battle order and resume when ready.",
+    "gmActive": "Combat in progress — the current turn is highlighted in the list.",
+    "playerInitOpen": "Your initiative is still open.",
+    "playerReady": "You're ready for the next start.",
+    "playerPausedDuring": "Paused during {{name}}.",
+    "playerPausedGeneric": "The GM is adjusting the battle order.",
+    "playerYourTurn": "You're up now.",
+    "playerTurnOf": "{{name}} is up now.",
+    "playerActive": "Combat active.",
+    "playerInitHint": "Enter your initiative when the GM starts.",
+    "playerWaitHint": "Wait for the GM's start signal.",
+    "playerPauseHint": "Your turn order is preserved until the GM resumes.",
+    "roundRunning": "Round {{round}} in progress.",
+    "roundActNow": "Round {{round}} · act now.",
+    "turnsUntil_one": "1 turn until you're up.",
+    "turnsUntil_other": "{{count}} turns until you're up."
+  },
+  "initiative": {
+    "label": "Initiative",
+    "placeholder": "Type...",
+    "roll": "Roll (+{{mod}})"
+  },
+  "join": {
+    "notInCombat": "Not in combat",
+    "description": "You're currently outside the initiative list. Submit a request to rejoin.",
+    "pending": "Pending",
+    "request": "Join",
+    "pendingIdle": "Request received. You'll be automatically restored to initiative during idle.",
+    "pendingActive": "Request received. You'll be added automatically once combat ends and idle is active.",
+    "hintIdle": "During idle you'll be added automatically after the request.",
+    "hintActive": "During pause or combat your request stays pending until idle."
+  },
+  "errors": {
+    "updateFailed": "The battle order could not be updated. Try again.",
+    "pauseFailed": "Pausing combat failed.",
+    "rollFailed": "Not all initiatives could be rolled.",
+    "advanceFailed": "The next turn could not be started.",
+    "endFailed": "Ending combat failed.",
+    "joinRequestFailed": "Your request could not be sent. Try again."
+  },
+  "hidden": {
+    "title": "Hidden from battle order",
+    "return": "Return",
+    "pauseHint": "Pause or end combat to restore players."
+  },
+  "empty": {
+    "label": "Still empty",
+    "hint": "Add players, NPCs, or handout characters to the list."
+  },
+  "resizeAria": "Drag to resize battle order width",
+  "deck": {
+    "rollAll": "Roll all",
+    "npc": "NPC",
+    "nextTurn": "Next turn"
+  },
+  "endConfirm": {
+    "title": "End combat immediately",
+    "description": "This resets the tracker to idle. Initiative order and active turn are stopped.",
+    "body": "Use this only when you want to fully abort combat. You can still pause via the main action button.",
+    "confirm": "End"
+  },
+  "missingInit": {
+    "startTitle": "Initiative still missing",
+    "resumeTitle": "Not ready to resume yet",
+    "description": "Not everyone has an initiative score yet. TomeVault can roll the missing values automatically or you can continue later.",
+    "wait": "Don't start yet",
+    "rollMissing": "Roll missing"
+  },
+  "tie": {
+    "title": "Tied initiative",
+    "titleProgress": "Tied initiative ({{current}}/{{total}})",
+    "manualDescription": "Set the order yourself. Top goes first.",
+    "choiceDescription": "These participants rolled exactly the same. Let TomeVault draw the order, or set it yourself.",
+    "totalScore": "Total score",
+    "initMod": "Initiative mod",
+    "order": "Order",
+    "tiedCount": "{{count}} tied",
+    "firstToLast": "First → last",
+    "chooseSelf": "I'll choose",
+    "draw": "TomeVault draws",
+    "confirmOrder": "Confirm order",
+    "moveUp": "Move up",
+    "moveDown": "Move down"
+  },
+  "conditions": {
+    "title": "Conditions for {{name}}",
+    "description": "Activate or remove status effects on this character.",
+    "descriptions": {
+      "blinded": "Cannot see",
+      "charmed": "Limited in actions",
+      "deafened": "Cannot hear",
+      "frightened": "Frightened and disadvantaged",
+      "grappled": "Held in combat",
+      "incapacitated": "Cannot act",
+      "invisible": "Invisible",
+      "paralyzed": "Paralyzed",
+      "petrified": "Turned to stone",
+      "poisoned": "Poisoned",
+      "prone": "On the ground",
+      "restrained": "Restrained",
+      "stunned": "Stunned",
+      "unconscious": "Unconscious"
+    }
+  },
+  "participant": {
+    "npc": "NPC",
+    "player": "Player",
+    "enemy": "Enemy",
+    "unknownEnemy": "Unknown enemy",
+    "alert": "Alert",
+    "hpEditGm": "Click to adjust HP",
+    "hpEditSelf": "Click to adjust your HP",
+    "hpTitle": "Hit Points",
+    "initEdit": "Edit initiative",
+    "initTitle": "Initiative score",
+    "downed": "Downed",
+    "downedAria": "{{name}} is down (0 HP)",
+    "orderTitle": "Order {{index}}"
+  },
+  "roles": {
+    "npc": "NPC",
+    "player": "Player"
+  },
+  "damageModal": {
+    "title": "HP",
+    "amountPlaceholder": "0",
+    "damage": "Damage",
+    "heal": "Healing",
+    "setExact": "Set exact value"
+  },
+  "addNpc": {
+    "title": "NPC",
+    "avatarAlt": "NPC portrait preview",
+    "name": "Name",
+    "namePlaceholder": "e.g. Goblin Leader",
+    "visibleToPlayers": "Visible to players",
+    "hiddenFromPlayers": "Hidden from players",
+    "hiddenHint": "Hidden NPCs do not appear in the player battle order."
+  },
+  "initiativeSwap": {
+    "title": "Initiative Swap",
+    "subtitle": "Swap your initiative score with an ally",
+    "incapacitated": "Alert Feat Swap is not possible if you or your ally have the Incapacitated condition.",
+    "notInList": "You are not in the initiative list.",
+    "noPartners": "No available allies to swap with.",
+    "choosePartner": "Choose an ally:",
+    "initiativeScore": "Initiative: {{score}}",
+    "swap": "Swap"
+  },
+  "profile": {
+    "titleNpc": "NPC",
+    "titlePlayer": "Profile",
+    "portraitAlt": "Portrait",
+    "namePlaceholder": "Name",
+    "subtitlePlaceholder": "Race / class",
+    "pickAvatar": "Choose avatar",
+    "combatSection": "Combat",
+    "decreaseHp": "Decrease HP",
+    "increaseHp": "Increase HP",
+    "currentHp": "Current HP",
+    "maxHp": "Maximum HP",
+    "initModTitle": "Initiative Modifier",
+    "lifeStatus": "Life status",
+    "deadHint": "Marked as deceased. Shows a skull in the battle order.",
+    "zeroHpHint": "At 0 HP. Mark as deceased or allow recovery.",
+    "revive": "Revive",
+    "markDead": "Deceased",
+    "alertFeat": "Alert Feat",
+    "alertFeatHint": "Can swap initiative at the start of combat.",
+    "active": "Active",
+    "enable": "Enable",
+    "proficiencyBonus": "PB",
+    "swapInitiative": "Swap initiative",
+    "playerVisibility": "Player visibility",
+    "npcHiddenHint": "Hidden NPCs do not appear in the player battle order.",
+    "npcVisibleHint": "This NPC is visible to players in the battle order.",
+    "reveal": "Reveal",
+    "hide": "Hide",
+    "conditionsTitle": "Status & conditions",
+    "transferGm": "Transfer GM",
+    "transferConfirm": "Transfer GM rights to {{name}}?",
+    "archiveTitle": "Profile archive",
+    "archiveEmpty": "Saved profiles appear here after accepting a role or switching profiles.",
+    "viaTemplate": "via {{name}}",
+    "ownProfile": "Own profile",
+    "activate": "Activate",
+    "loreSection": "Lore",
+    "lorePlaceholder": "Background, quotes, effects…",
+    "removeFromOrderNpc": "Remove from battle order",
+    "hideFromOrderPlayer": "Hide from battle order",
+    "removeNpcConfirm": "Are you sure you want to remove {{name}} from the battle order?",
+    "hidePlayerConfirm": "{{name}} will be hidden from the battle order and can rejoin later. Continue?",
+    "levelUpChat": "{{name}} gained a level and is now level {{level}}! Check your TTRPG rules for what you need to know and/or prepare.",
+    "levelDownChat": "{{name}} lost a level and is now level {{level}}! Check your TTRPG rules for what you need to know and/or prepare."
+  }
+}

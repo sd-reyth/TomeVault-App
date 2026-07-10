@@ -5,6 +5,7 @@ import { COMBAT_STATUS } from '../../lib/battleUtils';
 import { getCombatRoundBarLabel, getCombatRoundBarMode } from './combatRoundBarMode';
 import { getCombatRoundMediaProfile } from '../../lib/combatAmbientLibrary';
 import { useCombatRoundAmbience } from './useCombatRoundAmbience';
+import { useT } from '../../i18n/useT';
 
 function getCombatStatusIcon(mode) {
   if (mode === 'idle') return Flame;
@@ -21,6 +22,7 @@ export default function CombatRoundBar({
   isActive = true,
   infoSlot = null,
 }) {
+  const { t } = useT('combat');
   const mode = getCombatRoundBarMode({
     combatStatus,
     isMyTurn,
@@ -74,7 +76,7 @@ export default function CombatRoundBar({
 
       <div className="tv-combat-round-bar__content">
         {showTurnIndex ? (
-          <span className={turnIndexClass} title="Huidige beurt in volgorde">
+          <span className={turnIndexClass} title={t('roundBar.turnIndexTitle')}>
             {currentTurnOrderIndex}
           </span>
         ) : null}

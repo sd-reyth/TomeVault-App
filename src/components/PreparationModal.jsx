@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { NotebookPen, Plus, Save, UserRound } from 'lucide-react';
 import { PROFILE_PROMPT_AVATARS, resolveDisplayAvatar } from '../lib/placeholders';
+import { useT } from '../i18n/useT';
 import ModalFrame from './ModalFrame';
 import Button from './Button';
 import CustomStatsSection from '../ui/CustomStatsSection';
@@ -49,6 +50,7 @@ export default function PreparationModal({
   onSave,
   onDelete,
 }) {
+  const { t } = useT('preparations');
   const [formData, setFormData] = useState(getInitialPreparationState(preparation));
   const [pendingFile, setPendingFile] = useState(null);
   const [showPlaceholderPicker, setShowPlaceholderPicker] = useState(false);
@@ -123,18 +125,20 @@ export default function PreparationModal({
     ? PROFILE_PROMPT_AVATARS
     : PROFILE_PROMPT_AVATARS.slice(0, 24);
 
+  const playerFallback = t('picker.playerFallback');
+
   const identityMeta = [
-    formData.sourceType === 'playerSnapshot' ? 'Gebaseerd op spelersprofiel' : null,
-    selectedPlayer && !isAssigned ? `Voor ${selectedPlayer.name}` : null,
-    isAssigned && selectedPlayer ? `Gekoppeld aan ${selectedPlayer.name}` : null,
-  ].filter(Boolean).join(' · ') || 'Volledig karakterprofiel voor later toewijzen';
+    formData.sourceType === 'playerSnapshot' ? t('modal.fromPlayerSnapshot') : null,
+    selectedPlayer && !isAssigned ? t('modal.forPlayer', { name: selectedPlayer.name }) : null,
+    isAssigned && selectedPlayer ? t('modal.linkedTo', { name: selectedPlayer.name }) : null,
+  ].filter(Boolean).join(' · ') || t('modal.defaultMeta');
 
   return (
     <ModalFrame
       isOpen={isOpen}
       onClose={onClose}
-      title={isEditing ? 'Voorbereiding' : 'Nieuw profiel'}
-      subtitle={formData.name || 'Karakterprofiel'}
+      title={isEditing ? t('modal.editTitle') : t('modal.newTitle')}
+      subtitle={formData.name || t('modal.characterProfile')}
       icon={NotebookPen}
       maxWidthClassName="max-w-xl"
       bodyClassName={CREATE_MODAL_BODY_CLASS}
@@ -147,11 +151,11 @@ export default function PreparationModal({
               onClick={() => onDelete?.(preparation.id)}
               className="sm:col-span-1"
             >
-              Verwijder
+              {t('modal.delete')}
             </Button>
           ) : null}
           <Button type="button" variant="ghost" block onClick={onClose}>
-            Annuleren
+            {t('common:actions.cancel')}
           </Button>
           <Button
             type="submit"
@@ -161,7 +165,7 @@ export default function PreparationModal({
             icon={isEditing ? Save : Plus}
             disabled={!String(formData.name || '').trim()}
           >
-            {isEditing ? 'Opslaan' : 'Profiel opslaan'}
+            {isEditing ? t('common:actions.save') : t('modal.saveProfile')}
           </Button>
         </div>
       )}
@@ -179,7 +183,7 @@ export default function PreparationModal({
               nameId="prep-name"
               nameValue={formData.name || ''}
               onNameChange={(event) => handleChange('name', event.target.value)}
-              namePlaceholder="Karakternaam"
+              namePlaceholder={t('modal.namePlaceholder')}
               meta={identityMeta}
               autoFocus
               required
@@ -193,7 +197,7 @@ export default function PreparationModal({
                 handleChange('imageUrl', null);
               }}
               hasImage={Boolean(formData.imageUrl)}
-              pickerClosedLabel="Avatar"
+              pickerClosedLabel={t('modal.avatar')}
             />
             {showPlaceholderPicker ? (
               <div className="space-y-2">
@@ -212,7 +216,7 @@ export default function PreparationModal({
                     block
                     onClick={() => setShowAllPlaceholders(true)}
                   >
-                    Toon alle avatars
+                    {t('modal.showAllAvatars')}
                   </Button>
                 ) : null}
               </div>
@@ -222,12 +226,12 @@ export default function PreparationModal({
               type="text"
               value={formData.subtitle || ''}
               onChange={(event) => handleChange('subtitle', event.target.value)}
-              placeholder="Rol / klasse / archetype — bijv. Elf Ranger"
+              placeholder={t('modal.subtitlePlaceholder')}
               className="tv-field"
             />
 
             <CreateFormSection flat>
-              <CreateFormField label="Kerncijfers">
+              <CreateFormField label={t('modal.coreStats')}>
                 <div className="tv-stat-grid">
                   <div className="tv-stat-cell">
                     <span className="tv-label mb-1">HP</span>
@@ -276,8 +280,8 @@ export default function PreparationModal({
                 onAdd={addCustomStat}
                 onUpdate={updateCustomStat}
                 onRemove={removeCustomStat}
-                sectionLabel="Verborgen eigenschappen"
-                emptyHint="Optioneel — voeg verborgen eigenschappen toe voor dit personage."
+                sectionLabel={t('modal.hiddenTraits')}
+                emptyHint={t('modal.hiddenTraitsEmpty')}
                 resetKey={preparation?.id || 'new'}
               />
             </CreateFormSection>
@@ -285,9 +289,9 @@ export default function PreparationModal({
             {players.length > 0 ? (
               <CreateFormSection flat>
                 <CreateFormField
-                  label="Speler in deze sessie"
+                  label={t('modal.sessionPlayer')}
                   htmlFor="prep-player"
-                  aside="Optioneel"
+                  aside={t('modal.optional')}
                 >
                   <select
                     id="prep-player"
@@ -300,7 +304,7 @@ export default function PreparationModal({
                     }}
                     className="tv-select"
                   >
-                    <option value="">Nog niet gekoppeld</option>
+                    <option value="">{t('modal.notLinked')}</option>
                     {players.map((player) => (
                       <option key={player.id} value={player.id}>{player.name}</option>
                     ))}
@@ -308,7 +312,7 @@ export default function PreparationModal({
 
                   {isAssigned ? (
                     <p className="mt-2 text-[11px] leading-snug tv-muted">
-                      Dit profiel is al aangeboden of in gebruik. Wijzig de toewijzing via de bibliotheek.
+                      {t('modal.alreadyAssignedHint')}
                     </p>
                   ) : formData.targetPlayerUid ? (
                     <div className="mt-3 space-y-2 rounded-[var(--tv-radius)] border border-[color-mix(in_srgb,var(--tv-border),transparent_32%)] bg-[color-mix(in_srgb,var(--tv-bg-surface),transparent_18%)] p-3">
@@ -320,18 +324,20 @@ export default function PreparationModal({
                           className="mt-0.5"
                         />
                         <span className="min-w-0">
-                          <span className="block text-sm font-medium tv-text">Direct aanbieden aan {selectedPlayer?.name || 'speler'}</span>
+                          <span className="block text-sm font-medium tv-text">
+                            {t('modal.offerOnSave', { name: selectedPlayer?.name || playerFallback })}
+                          </span>
                           <span className="mt-0.5 block text-[11px] leading-snug tv-muted">
                             {formData.offerOnSave
-                              ? 'Na opslaan krijgt de speler meteen een acceptatie-verzoek.'
-                              : 'Profiel blijft klaarstaan, gemarkeerd voor deze speler.'}
+                              ? t('modal.offerOnSaveHintImmediate')
+                              : t('modal.offerOnSaveHintLater')}
                           </span>
                         </span>
                       </label>
                     </div>
                   ) : (
                     <p className="mt-2 text-[11px] leading-snug tv-muted">
-                      Koppel een profiel aan een deelnemer om het later sneller te vinden of direct aan te bieden.
+                      {t('modal.linkPlayerHint')}
                     </p>
                   )}
                 </CreateFormField>
@@ -339,12 +345,12 @@ export default function PreparationModal({
             ) : null}
 
             <CreateFormSection flat>
-              <CreateFormField label="Notities & lore" htmlFor="prep-bio">
+              <CreateFormField label={t('modal.notesLabel')} htmlFor="prep-bio">
                 <textarea
                   id="prep-bio"
                   value={formData.bio || ''}
                   onChange={(event) => handleChange('bio', event.target.value)}
-                  placeholder="Achtergrondverhaal, spreuken, wapens of tijdelijke effecten..."
+                  placeholder={t('modal.notesPlaceholder')}
                   rows={8}
                   className="tv-field tv-field--textarea font-story leading-relaxed"
                 />

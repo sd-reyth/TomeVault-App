@@ -1,4 +1,4 @@
-﻿import React, { useEffect, useMemo, useRef, useState } from 'react';
+﻿import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   onAuthStateChanged,
   signInWithPopup,
@@ -33,14 +33,6 @@ import { auth, db, googleProvider } from './firebase';
 import { ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { storage } from './firebase';
 import {
-  MOCK_HANDOUTS,
-  MOCK_PARTY,
-  MOCK_CHAT,
-  MOCK_INVENTORY,
-  MOCK_WALLETS,
-  MOCK_NOTES,
-} from './data/mockData';
-import {
   slugifySessionName,
   getJoinTagLookupVariants,
   toSafeJoinTagForLink,
@@ -49,6 +41,13 @@ import {
   formatLastEditedLabel,
 } from './lib/sessionUtils';
 import { safeLocalStorageGet, safeLocalStorageSet } from './lib/browserStorage';
+import { isBenignFirebaseAuthRaceError, toFriendlyAuthError } from './lib/authErrors';
+import {
+  getAuthTransitionSlowMs,
+  getAuthTransitionTimeoutError,
+  getAuthTransitionTimeoutMs,
+  isSignInTransition,
+} from './lib/authTransition';
 import { bindGlobalUiSounds, isUiSoundsEnabled, primeUiAudio, setUiSoundsEnabled } from './lib/uiFeedback';
 import { getLocalDevBootstrapConfig, getRuntimeBadgeState } from './lib/runtimeContext';
 import {
@@ -83,6 +82,7 @@ import {
 } from './lib/preparationLifecycle';
 import { canDeleteChatMessage, canEditChatMessage, sendChatMessage } from './lib/chatUtils';
 import LandingScreen from './components/LandingScreen';
+import AuthTransitionOverlay from './components/AuthTransitionOverlay';
 import QRJoinScreen from './components/QRJoinScreen';
 import TopBar from './components/TopBar';
 import DamageModal from './components/DamageModal';
@@ -98,6 +98,9 @@ import InventoryView from './components/InventoryView';
 import NotesView from './components/NotesView';
 import EditableStat from './components/EditableStat';
 import SettingsModal from './components/SettingsModal';
+import { useLocale } from './i18n/LocaleProvider';
+import i18n from './i18n/index.js';
+import { confirmDialog } from './i18n/dialogs';
 import SourcelistModal from './components/SourcelistModal';
 import AddItemModal from './components/AddItemModal';
 import HandoutModal from './components/HandoutModal';
@@ -226,28 +229,6 @@ function isLikelyAssetVersionMismatch(rawMessage) {
   );
 }
 
-function toFriendlyAuthError(error, fallbackMessage) {
-  const code = String(error?.code || '').toLowerCase();
-  const message = String(error?.message || '').toLowerCase();
-
-  if (code.includes('popup-closed-by-user')) {
-    return 'Google-venster gesloten voordat inloggen was afgerond.';
-  }
-
-  if (code.includes('popup-blocked')) {
-    return 'Je browser blokkeert de Google-popup. Sta pop-ups toe en probeer opnieuw.';
-  }
-
-  if (code.includes('unauthorized-domain')) {
-    return 'Dit domein is nog niet geautoriseerd voor Google-login in Firebase.';
-  }
-
-  if (code.includes('invalid-credential') || message.includes('redirect_uri_mismatch')) {
-    return 'Google-login is nu niet correct geconfigureerd (redirect URI mismatch). Gebruik tijdelijk e-mail om in te loggen.';
-  }
-
-  return fallbackMessage;
-}
 
 function normalizeInventorySectionName(sectionName) {
   return String(sectionName || '').trim();
@@ -347,17 +328,15 @@ function buildPreparationBackupSnapshot(player = {}, fallbacks = {}) {
 
 const MAX_PROFILE_BACKUPS = 3;
 
-const PROFILE_BACKUP_REASON_LABELS = {
-  profile_save: 'Profiel opgeslagen',
-  settings_save: 'Instellingen opgeslagen',
-  leave: 'Sessie verlaten',
-  logout: 'Uitgelogd',
-  manual: 'Handmatig',
-};
+function getProfileBackupReasonLabel(reason) {
+  return i18n.t(`session:profileBackup.reasons.${reason}`, {
+    defaultValue: i18n.t('common:fallbacks.backupPoint'),
+  });
+}
 
 function buildProfileBackupSnapshot(player = {}) {
   return {
-    name: String(player.name || '').trim() || 'Avonturier',
+    name: String(player.name || '').trim() || i18n.t('common:fallbacks.adventurer'),
     subtitle: String(player.subtitle || '').trim(),
     bio: String(player.bio || '').trim(),
     avatarUrl: normalizeAvatarUrl(player.avatar || player.avatarUrl),
@@ -427,6 +406,7 @@ function writePersistedActiveSession(payload) {
 // --- COMPONENTEN ---
 
 export default function TomeVaultApp() {
+  const { locale, setLocale } = useLocale();
   const persistedActiveSession = useMemo(() => readPersistedActiveSession(), []);
   const [view, setView] = useState(() => persistedActiveSession?.view || 'landing');
   const [role, setRole] = useState(() => persistedActiveSession?.role || null);
@@ -498,19 +478,19 @@ export default function TomeVaultApp() {
   const brightnessOverlayOpacities = [0, 0.15, 0.35, 0.55, 0.75];
   const brightnessOverlayOpacity = brightnessOverlayOpacities[brightness] ?? 0.35;
   
-  const [handouts, setHandouts] = useState(MOCK_HANDOUTS);
+  const [handouts, setHandouts] = useState([]);
   const handoutsRef = useRef(handouts);
   const subscribedSessionRef = useRef(null);
-  const [party, setParty] = useState(MOCK_PARTY);
-  const [chat, setChat] = useState(MOCK_CHAT);
+  const [party, setParty] = useState([]);
+  const [chat, setChat] = useState([]);
   const [preferredChatColor, setPreferredChatColor] = useState(() => {
     const stored = String(safeLocalStorageGet('tv_chatcolor', '') || '').trim();
     return CHAT_ACCENT_COLORS[stored] ? stored : null;
   });
-  const [inventory, setInventory] = useState(MOCK_INVENTORY);
+  const [inventory, setInventory] = useState([]);
   const [inventoryLoaded, setInventoryLoaded] = useState(false);
-  const [wallets, setWallets] = useState(MOCK_WALLETS);
-  const [notes, setNotes] = useState(MOCK_NOTES);
+  const [wallets, setWallets] = useState({});
+  const [notes, setNotes] = useState([]);
   const [preparations, setPreparations] = useState([]);
   const [preparationBackups, setPreparationBackups] = useState([]);
   const [profileBackups, setProfileBackups] = useState([]);
@@ -528,6 +508,8 @@ export default function TomeVaultApp() {
   const lastInventoryDescriptionBackfillSignatureRef = useRef('');
   const localDevBootstrapRef = useRef({ key: '', lastAuthAttemptAt: 0, lastJoinAttemptAt: 0 });
   const localDevBootstrapFallbackWarnedRef = useRef(false);
+  const authInFlightRef = useRef(false);
+  const authTransitionTimersRef = useRef([]);
 
   // Firebase auth state
   const [uid, setUid] = useState(null);
@@ -535,6 +517,8 @@ export default function TomeVaultApp() {
   const [isOwner, setIsOwner] = useState(false);
   const [currentEntitlement, setCurrentEntitlement] = useState(null);
   const [authLoading, setAuthLoading] = useState(true);
+  const [bootAuthPhase, setBootAuthPhase] = useState('loading');
+  const [authTransition, setAuthTransition] = useState(null);
   const [authError, setAuthError] = useState('');
   const [sessionError, setSessionError] = useState('');
   const [sessionInfo, setSessionInfo] = useState('');
@@ -838,7 +822,7 @@ export default function TomeVaultApp() {
     setSessionError('');
     setSessionInfo('');
     if (!uid) {
-      setAuthError('Log eerst in voordat je een sessie start of joint.');
+      setAuthError(i18n.t('session:appErrors.loginRequired'));
       return;
     }
 
@@ -849,7 +833,7 @@ export default function TomeVaultApp() {
         const sessionName = String(options.forceSessionName || code || 'Session').replace(/^#/, '').replace(/-/g, ' ').trim() || 'Session';
         const pinPlain = String(options.defaultPin || '0000').trim();
         if (!/^\d{4,8}$/.test(pinPlain)) {
-          setSessionError('PIN moet uit 4 tot 8 cijfers bestaan.');
+          setSessionError(i18n.t('session:appErrors.pinInvalid'));
           return;
         }
 
@@ -864,7 +848,7 @@ export default function TomeVaultApp() {
           let shouldCreateFreshLocalDevSession = false;
 
           for (const candidate of variants) {
-            const byTag = await getDocs(query(collection(db, 'sessions'), where('joinTag', '==', candidate)));
+            const byTag = await getDocs(query(collection(db, 'sessions'), where('joinTag', '==', candidate), limit(1)));
             if (!byTag.empty) {
               existing = byTag.docs[0];
               break;
@@ -876,7 +860,7 @@ export default function TomeVaultApp() {
             const allowLocalDevTakeover = options.allowLocalDevTakeover === true;
 
             if (existingData.gmUid !== uid && !allowLocalDevTakeover) {
-              setSessionError('Deze testsessie is al in gebruik door een andere GM.');
+              setSessionError(i18n.t('session:appErrors.testSessionInUse'));
               return;
             }
 
@@ -885,7 +869,7 @@ export default function TomeVaultApp() {
               // anonymous dev session, so create an isolated fresh dev session instead.
               joinTag = await generateUniqueJoinTag(db, sessionName);
               shouldCreateFreshLocalDevSession = true;
-              setSessionInfo('Bestaande lokale testsessie was bezet. Er wordt een nieuwe testsessie voor je aangemaakt.');
+              setSessionInfo(i18n.t('session:appInfo.devSessionTakenover'));
             }
 
             if (!shouldCreateFreshLocalDevSession) {
@@ -963,22 +947,22 @@ export default function TomeVaultApp() {
       const pinPlain = String(options.pin || '').trim();
       const skipPinCheck = options.skipPin === true;
       if (!joinTagRaw) {
-        setSessionError('Sessiecode ontbreekt.');
+        setSessionError(i18n.t('session:appErrors.sessionCodeMissing'));
         return;
       }
       if (!nick) {
-        setSessionError('Karakternaam ontbreekt.');
+        setSessionError(i18n.t('session:appErrors.characterNameMissing'));
         return;
       }
       if (!skipPinCheck && !/^\d{4,8}$/.test(pinPlain)) {
-        setSessionError('PIN moet uit 4 tot 8 cijfers bestaan.');
+        setSessionError(i18n.t('session:appErrors.pinInvalid'));
         return;
       }
 
       const sessionDoc = await resolveSessionDocFromJoinInput(db, joinTagRaw);
 
       if (!sessionDoc) {
-        setSessionError('Sessie niet gevonden. Controleer de code.');
+        setSessionError(i18n.t('session:appErrors.sessionNotFound'));
         return;
       }
 
@@ -986,7 +970,7 @@ export default function TomeVaultApp() {
       if (!skipPinCheck) {
         const pinHash = await sha256(pinPlain);
         if (sessionData?.pinHash && sessionData.pinHash !== pinHash) {
-          setSessionError('Onjuiste PIN.');
+          setSessionError(i18n.t('session:appErrors.wrongPin'));
           return;
         }
       }
@@ -1028,7 +1012,7 @@ export default function TomeVaultApp() {
       setView('dashboard');
     } catch (err) {
       console.error('Join/Create sessie fout:', err);
-      setSessionError('Sessie openen is mislukt. Controleer Firebase rules en internetverbinding.');
+      setSessionError(i18n.t('session:appErrors.openSessionFailed'));
     } finally {
       setSessionBusy(false);
     }
@@ -1045,7 +1029,7 @@ export default function TomeVaultApp() {
       const sessionRef = doc(db, 'sessions', membership.sessionId);
       const snap = await getDoc(sessionRef);
       if (!snap.exists()) {
-        setSessionError('Deze sessie bestaat niet meer.');
+        setSessionError(i18n.t('session:appErrors.sessionGone'));
         return;
       }
 
@@ -1055,7 +1039,7 @@ export default function TomeVaultApp() {
 
       if (resolvedRole === 'gm') {
         if (data.gmUid !== uid && membership.role !== 'dm') {
-          setSessionError('Je bent geen GM van deze sessie.');
+          setSessionError(i18n.t('session:appErrors.notGm'));
           return;
         }
 
@@ -1121,7 +1105,7 @@ export default function TomeVaultApp() {
       setView('dashboard');
     } catch (err) {
       console.error('Recente sessie hervatten fout:', err);
-      setSessionError('Recente sessie openen is mislukt.');
+      setSessionError(i18n.t('session:appErrors.openRecentFailed'));
     } finally {
       setSessionBusy(false);
     }
@@ -1175,7 +1159,7 @@ export default function TomeVaultApp() {
     setSessionInfo('');
     setSessionBusy(true);
 
-    const sessionName = membership.sessionName || 'Naamloze Sessie';
+    const sessionName = membership.sessionName || i18n.t('common:fallbacks.unnamedSession');
     const membershipRef = doc(db, 'users', uid, 'memberships', membership.sessionId);
 
     try {
@@ -1186,13 +1170,13 @@ export default function TomeVaultApp() {
         if (!sessionSnap.exists()) {
           await deleteDoc(membershipRef);
           setRecentSessions((prev) => prev.filter((session) => session.sessionId !== membership.sessionId));
-          setSessionInfo(`De verwijzing naar ${sessionName} is verwijderd uit je recente sessies.`);
+          setSessionInfo(i18n.t('session:appInfo.recentReferenceRemoved', { name: sessionName }));
           return;
         }
 
         const sessionData = sessionSnap.data() || {};
         if (sessionData.gmUid !== uid) {
-          throw new Error('Alleen de actieve GM kan deze campagne definitief verwijderen.');
+          throw new Error(i18n.t('session:appErrors.deleteOnlyActiveGm'));
         }
 
         await deleteDocsInSubcollection(membership.sessionId, 'wallets');
@@ -1215,7 +1199,7 @@ export default function TomeVaultApp() {
         await deleteDoc(membershipRef);
 
         setRecentSessions((prev) => prev.filter((session) => session.sessionId !== membership.sessionId));
-        setSessionInfo(`Campagne ${sessionName} is definitief verwijderd.`);
+        setSessionInfo(i18n.t('session:appInfo.campaignDeleted', { name: sessionName }));
 
         if (sessionDocId === membership.sessionId) {
           autoResumeAttemptRef.current = uid || autoResumeAttemptRef.current;
@@ -1236,26 +1220,103 @@ export default function TomeVaultApp() {
       await deleteDoc(doc(db, 'sessions', membership.sessionId, 'players', uid)).catch(() => {});
       await deleteDoc(membershipRef);
       setRecentSessions((prev) => prev.filter((session) => session.sessionId !== membership.sessionId));
-      setSessionInfo(`Je hebt ${sessionName} permanent verlaten en uit je recente sessies verwijderd.`);
+      setSessionInfo(i18n.t('session:appInfo.sessionLeftAndRemoved', { name: sessionName }));
     } catch (err) {
       console.error('Recente sessie verwijderen fout:', err);
-      setSessionError(err?.message || 'Het permanent verwijderen van deze sessie is mislukt.');
+      setSessionError(err?.message || i18n.t('session:appErrors.deleteSessionFailed'));
     } finally {
       setSessionBusy(false);
     }
   };
 
+  const clearAuthTransitionTimers = useCallback(() => {
+    authTransitionTimersRef.current.forEach((timerId) => window.clearTimeout(timerId));
+    authTransitionTimersRef.current = [];
+  }, []);
+
+  const finishAuthTransition = useCallback(() => {
+    clearAuthTransitionTimers();
+    authInFlightRef.current = false;
+    setAuthTransition(null);
+  }, [clearAuthTransitionTimers]);
+
+  const startAuthTransition = useCallback((kind) => {
+    clearAuthTransitionTimers();
+    authInFlightRef.current = true;
+    setAuthError('');
+    setAuthTransition({ kind, phase: 'loading', startedAt: Date.now() });
+
+    const slowTimer = window.setTimeout(() => {
+      setAuthTransition((prev) => (
+        prev?.kind === kind && prev.phase === 'loading'
+          ? { ...prev, phase: 'slow' }
+          : prev
+      ));
+    }, getAuthTransitionSlowMs(kind));
+
+    const timeoutTimer = window.setTimeout(() => {
+      const errorMessage = getAuthTransitionTimeoutError(kind);
+      setAuthError(errorMessage);
+      setAuthTransition((prev) => (
+        prev?.kind === kind
+          ? { ...prev, phase: 'timeout', error: errorMessage }
+          : prev
+      ));
+      authInFlightRef.current = false;
+    }, getAuthTransitionTimeoutMs(kind));
+
+    authTransitionTimersRef.current = [slowTimer, timeoutTimer];
+  }, [clearAuthTransitionTimers]);
+
+  const handleAuthRetry = useCallback(() => {
+    finishAuthTransition();
+    setAuthError('');
+  }, [finishAuthTransition]);
+
+  const activeAuthOverlay = useMemo(() => {
+    if (authTransition) return authTransition;
+    if (authLoading) return { kind: 'boot', phase: bootAuthPhase };
+    return null;
+  }, [authTransition, authLoading, bootAuthPhase]);
+
+  const authBusy = authLoading || Boolean(authTransition);
+
+  const renderAuthOverlay = () => (
+    activeAuthOverlay ? (
+      <AuthTransitionOverlay
+        kind={activeAuthOverlay.kind}
+        phase={activeAuthOverlay.phase}
+        error={activeAuthOverlay.error || ''}
+        onRetry={activeAuthOverlay.phase === 'timeout' ? handleAuthRetry : undefined}
+      />
+    ) : null
+  );
+
   const handleLogout = async () => {
+    if (authInFlightRef.current) return;
+
+    startAuthTransition('sign-out');
+
     try {
       await createProfileBackup('logout');
     } catch (_) {
       // best-effort backup; never block logout
     }
+
     try {
       await signOut(auth);
     } catch (err) {
       console.error('Logout fout:', err);
+      const message = i18n.t('session:appErrors.logoutFailed');
+      setAuthError(message);
+      setAuthTransition((prev) => (
+        prev ? { ...prev, phase: 'timeout', error: message } : prev
+      ));
+      clearAuthTransitionTimers();
+      authInFlightRef.current = false;
+      return;
     }
+
     autoResumeAttemptRef.current = '';
     setRole(null);
     setSessionId('');
@@ -1322,6 +1383,10 @@ export default function TomeVaultApp() {
 
         if (!role) continue;
 
+        const membershipRef = doc(db, 'users', uid, 'memberships', sessionDoc.id);
+        const membershipSnap = await getDoc(membershipRef);
+        if (membershipSnap.exists()) continue;
+
         await writeMembership({
           uid,
           sessionId: sessionDoc.id,
@@ -1333,10 +1398,14 @@ export default function TomeVaultApp() {
         restored += 1;
       }
 
-      setSessionInfo(`Herstel voltooid: ${restored} sessie(s) toegevoegd/geüpdatet na scan van ${scanned} sessies.`);
+      if (restored === 0) {
+        setSessionInfo(i18n.t('session:appInfo.backfillNoneFound', { scanned }));
+      } else {
+        setSessionInfo(i18n.t('session:appInfo.backfillComplete', { restored }));
+      }
     } catch (err) {
       console.error('Membership herstel fout:', err);
-      setSessionError('Herstel van oude sessies is mislukt. Controleer Firestore-toegang en probeer opnieuw.');
+      setSessionError(i18n.t('session:appErrors.restoreSessionsFailed'));
     } finally {
       setSessionBusy(false);
     }
@@ -1348,7 +1417,7 @@ export default function TomeVaultApp() {
     audio.preload = 'auto';
 
     const handleAudioError = () => {
-      setAmbienceError('De gekozen track kon niet geladen worden. Controleer de asset of bronvermelding.');
+      setAmbienceError(i18n.t('session:appErrors.ambienceTrackLoadFailed'));
     };
 
     audio.addEventListener('error', handleAudioError);
@@ -1366,7 +1435,7 @@ export default function TomeVaultApp() {
   useEffect(() => {
     if (typeof window === 'undefined') return undefined;
 
-    const updateMessage = 'Er staat een nieuwe versie klaar. Vernieuw de pagina om verder te gaan.';
+    const updateMessage = '1';
 
     const handleWindowError = (event) => {
       const message = event?.message || event?.error?.message || '';
@@ -1477,10 +1546,41 @@ export default function TomeVaultApp() {
   }, [effectiveAmbienceVolume, sessionAmbience]);
 
   useEffect(() => {
+    if (!authLoading) {
+      setBootAuthPhase('loading');
+      return undefined;
+    }
+
+    setBootAuthPhase('loading');
+    const slowTimer = window.setTimeout(() => {
+      setBootAuthPhase('slow');
+    }, getAuthTransitionSlowMs('boot'));
+
+    return () => window.clearTimeout(slowTimer);
+  }, [authLoading]);
+
+  useEffect(() => {
+    if (!authTransition || authTransition.phase === 'timeout') return undefined;
+
+    if (isSignInTransition(authTransition.kind) && uid) {
+      finishAuthTransition();
+      return undefined;
+    }
+
+    if (authTransition.kind === 'sign-out' && !uid && !authLoading) {
+      finishAuthTransition();
+    }
+
+    return undefined;
+  }, [authLoading, authTransition, finishAuthTransition, uid]);
+
+  useEffect(() => () => clearAuthTransitionTimers(), [clearAuthTransitionTimers]);
+
+  useEffect(() => {
     let didResolveAuth = false;
     const authLoadFallbackTimer = window.setTimeout(() => {
       if (didResolveAuth) return;
-      setAuthError('Authenticatie duurde te lang. Probeer opnieuw met Google of e-mail.');
+      setAuthError(i18n.t('session:appErrors.authTimeout'));
       setAuthLoading(false);
     }, 7000);
 
@@ -1528,13 +1628,13 @@ export default function TomeVaultApp() {
         },
         (error) => {
           console.error('Auth state observer failed:', error);
-          setAuthError('Authenticatie initialiseren is mislukt. Probeer opnieuw of gebruik e-mail.');
+          setAuthError(i18n.t('session:appErrors.authInitFailed'));
           finishAuthLoad();
         }
       );
     } catch (error) {
       console.error('Auth observer setup failed:', error);
-      setAuthError('Authenticatie kon niet worden gestart. Probeer opnieuw of gebruik e-mail.');
+      setAuthError(i18n.t('session:appErrors.authStartFailed'));
       finishAuthLoad();
     }
 
@@ -1861,7 +1961,7 @@ export default function TomeVaultApp() {
             : (deletedAtMs ? deletedAtMs + HANDOUT_TRASH_RETENTION_MS : null);
           return {
             id: d.id,
-            title: h.title || 'Naamloze handout',
+            title: h.title || i18n.t('common:fallbacks.unnamedHandout'),
             type: String(h.type || 'clue').toLowerCase(),
             content: h.publicContent || h.content || '',
             secret: h.secretContent || h.secret || '',
@@ -1876,7 +1976,7 @@ export default function TomeVaultApp() {
                 && h.secretVisibleToUids.length > 0),
             imageUrl: h.imageUrl || null,
             imagePosition: normalizeAvatarPosition(h.imagePosition),
-            npcSubtitle: h.npcSubtitle || 'Vijand',
+            npcSubtitle: h.npcSubtitle || i18n.t('common:fallbacks.enemy'),
             npcHp: Number(h.npcHp ?? 15),
             npcAc: Number(h.npcAc ?? 12),
             npcInitMod: Number(h.npcInitMod ?? 2),
@@ -1906,7 +2006,7 @@ export default function TomeVaultApp() {
           return {
             id: d.id,
             name: fallbackName,
-            subtitle: p.subtitle || (p.isNpc ? 'Vijand' : 'Speler'),
+            subtitle: p.subtitle || (p.isNpc ? i18n.t('common:fallbacks.enemy') : i18n.t('common:roles.player')),
             hp: Number(p.hp ?? p.hitPoints ?? 0),
             maxHp: Number(p.maxHp ?? p.maxHitPoints ?? p.hp ?? p.hitPoints ?? 0),
             ac: Number(p.ac ?? p.armorClass ?? 10),
@@ -2091,7 +2191,7 @@ export default function TomeVaultApp() {
                   id: entry.id,
                   snapshot: data.snapshot || {},
                   reason: data.reason || 'manual',
-                  reasonLabel: PROFILE_BACKUP_REASON_LABELS[data.reason] || 'Herstelpunt',
+                  reasonLabel: getProfileBackupReasonLabel(data.reason),
                   signature: data.signature || '',
                   createdAtMs,
                   createdAtLabel: createdAtMs ? formatLastEditedLabel({ toMillis: () => createdAtMs }) : '',
@@ -2253,41 +2353,80 @@ export default function TomeVaultApp() {
   }, [inventory, inventoryLoaded, sessionDocId, view]);
 
   const handleSignInGoogle = async () => {
-    setAuthError('');
+    if (authInFlightRef.current || authLoading || sessionBusy) return;
+
+    startAuthTransition('sign-in-google');
+
     try {
       await signInWithPopup(auth, googleProvider);
     } catch (err) {
-      setAuthError(toFriendlyAuthError(err, 'Google inloggen is mislukt.'));
+      if (isBenignFirebaseAuthRaceError(err) && auth.currentUser) {
+        return;
+      }
+      const message = toFriendlyAuthError(err, 'auth:errors.fallbackGoogleSignIn');
+      setAuthError(message);
+      setAuthTransition((prev) => (
+        prev ? { ...prev, phase: 'timeout', error: message } : prev
+      ));
+      clearAuthTransitionTimers();
+      authInFlightRef.current = false;
     }
   };
 
   const handleSignInGuest = async () => {
-    setAuthError('');
+    if (authInFlightRef.current || authLoading || sessionBusy) return;
+
+    startAuthTransition('sign-in-guest');
+
     try {
       await signInAnonymously(auth);
     } catch (err) {
-      setAuthError(toFriendlyAuthError(err, 'Gastmodus starten is mislukt.'));
+      const message = toFriendlyAuthError(err, 'auth:errors.fallbackGuestSignIn');
+      setAuthError(message);
+      setAuthTransition((prev) => (
+        prev ? { ...prev, phase: 'timeout', error: message } : prev
+      ));
+      clearAuthTransitionTimers();
+      authInFlightRef.current = false;
     }
   };
 
   const handleSignInEmail = async ({ email, password }) => {
-    setAuthError('');
+    if (authInFlightRef.current || authLoading || sessionBusy) return;
+
+    startAuthTransition('sign-in-email');
+
     try {
       await signInWithEmailAndPassword(auth, email, password);
     } catch (err) {
-      setAuthError(toFriendlyAuthError(err, 'Inloggen met e-mail is mislukt.'));
+      const message = toFriendlyAuthError(err, 'auth:errors.fallbackEmailSignIn');
+      setAuthError(message);
+      setAuthTransition((prev) => (
+        prev ? { ...prev, phase: 'timeout', error: message } : prev
+      ));
+      clearAuthTransitionTimers();
+      authInFlightRef.current = false;
     }
   };
 
   const handleSignUpEmail = async ({ name, email, password }) => {
-    setAuthError('');
+    if (authInFlightRef.current || authLoading || sessionBusy) return;
+
+    startAuthTransition('sign-in-email');
+
     try {
       const credential = await createUserWithEmailAndPassword(auth, email, password);
       if (name?.trim()) {
         await updateProfile(credential.user, { displayName: name.trim() });
       }
     } catch (err) {
-      setAuthError(toFriendlyAuthError(err, 'Account aanmaken is mislukt.'));
+      const message = toFriendlyAuthError(err, 'auth:errors.fallbackSignUp');
+      setAuthError(message);
+      setAuthTransition((prev) => (
+        prev ? { ...prev, phase: 'timeout', error: message } : prev
+      ));
+      clearAuthTransitionTimers();
+      authInFlightRef.current = false;
     }
   };
 
@@ -2392,7 +2531,7 @@ export default function TomeVaultApp() {
       setClaimNotesByHandoutId((prev) => ({ ...prev, [handoutId]: trimmed }));
     } catch (err) {
       console.error('Handout-notitie opslaan mislukt:', err);
-      setSessionError('Je persoonlijke notitie kon niet worden opgeslagen.');
+      setSessionError(i18n.t('session:appErrors.noteSaveFailed'));
     }
   };
 
@@ -2430,7 +2569,7 @@ export default function TomeVaultApp() {
       didPersist = true;
     } catch (err) {
       console.error('Unclaim handout fout:', err);
-      setSessionError('Terugleggen naar handouts is mislukt. Probeer opnieuw.');
+      setSessionError(i18n.t('session:appErrors.returnToHandoutsFailed'));
     }
 
     if (didPersist) {
@@ -2907,10 +3046,10 @@ export default function TomeVaultApp() {
         }
       }
       setPendingPreparationOffer(null);
-      setSessionInfo(`Rol "${nextName}" geaccepteerd. Je vorige profiel staat in je archief.`);
+      setSessionInfo(i18n.t('session:appInfo.roleOfferAccepted', { name: nextName }));
     } catch (err) {
       console.error('Rolvoorstel accepteren mislukt:', err);
-      setSessionError('Het rolvoorstel kon niet worden geaccepteerd. Controleer je verbinding en probeer opnieuw.');
+      setSessionError(i18n.t('session:appErrors.acceptRoleOfferFailed'));
     } finally {
       setPreparationOfferBusy(false);
     }
@@ -2929,10 +3068,10 @@ export default function TomeVaultApp() {
         updatedAt: serverTimestamp(),
       });
       setPendingPreparationOffer(null);
-      setSessionInfo('Rolvoorstel geweigerd. De voorbereiding staat weer klaar bij de GM.');
+      setSessionInfo(i18n.t('session:appInfo.roleOfferDeclined'));
     } catch (err) {
       console.error('Rolvoorstel weigeren mislukt:', err);
-      setSessionError('Het rolvoorstel kon niet worden geweigerd. Probeer opnieuw.');
+      setSessionError(i18n.t('session:appErrors.declineRoleOfferFailed'));
     } finally {
       setPreparationOfferBusy(false);
     }
@@ -2943,12 +3082,14 @@ export default function TomeVaultApp() {
 
     const currentPlayer = party.find((member) => member.id === uid && member.isNpc !== true) || {};
     if (profileSnapshotMatchesPlayer(backup.snapshot, currentPlayer)) {
-      setSessionInfo('Dit profiel is al je actieve personage.');
+      setSessionInfo(i18n.t('session:profileArchive.alreadyActive'));
       return;
     }
 
     const confirmed = typeof window !== 'undefined'
-      ? window.confirm(`Wissel naar "${backup.snapshot.name || 'dit profiel'}"? Je huidige profiel wordt bewaard in je archief. Een actieve GM-voorbereiding gaat terug naar de bibliotheek.`)
+      ? confirmDialog('session:profileArchive.activateConfirm', {
+        name: backup.snapshot.name || i18n.t('common:fallbacks.thisProfile'),
+      })
       : true;
     if (!confirmed) return;
 
@@ -2994,10 +3135,10 @@ export default function TomeVaultApp() {
           console.warn('Auth displayName bijwerken na archiefwissel mislukt:', err);
         }
       }
-      setSessionInfo(`Profiel "${nextName}" geactiveerd.`);
+      setSessionInfo(i18n.t('session:appInfo.profileActivated', { name: nextName }));
     } catch (err) {
       console.error('Profielarchief activeren mislukt:', err);
-      setSessionError('Profiel wisselen is mislukt. Probeer opnieuw.');
+      setSessionError(i18n.t('session:appErrors.switchProfileFailed'));
     } finally {
       setProfileArchiveBusy(false);
     }
@@ -3010,7 +3151,7 @@ export default function TomeVaultApp() {
     const hasSecretContent = handoutHasSecret(handout);
 
     return {
-      title: handout.title || 'Naamloze handout',
+      title: handout.title || i18n.t('common:fallbacks.unnamedHandout'),
       type: normalizedType,
       publicContent: handout.content || '',
       secretContent: resolveHandoutSecret(handout),
@@ -3023,7 +3164,7 @@ export default function TomeVaultApp() {
       secretVisibleToUids: [],
       imageUrl: handout.imageUrl || null,
       imagePosition: normalizeAvatarPosition(handout.imagePosition || DEFAULT_AVATAR_POSITION),
-      npcSubtitle: String(handout.npcSubtitle || 'Vijand').trim() || 'Vijand',
+      npcSubtitle: String(handout.npcSubtitle || i18n.t('common:fallbacks.enemy')).trim() || i18n.t('common:fallbacks.enemy'),
       npcHp: Math.max(0, Number(handout.npcHp) || 0),
       npcAc: Math.max(0, Number(handout.npcAc) || 10),
       npcInitMod: Number(handout.npcInitMod) || 0,
@@ -3261,8 +3402,8 @@ export default function TomeVaultApp() {
     if (!handout || role !== 'gm' || combatStatus === COMBAT_STATUS.ACTIVE) return;
 
     await handleAddNpcSave({
-      name: handout.title || 'Naamloze NPC',
-      subtitle: handout.npcSubtitle || 'Vijand',
+      name: handout.title || i18n.t('common:fallbacks.unnamedNpc'),
+      subtitle: handout.npcSubtitle || i18n.t('common:fallbacks.enemy'),
       hp: Number(handout.npcHp ?? 15) || 15,
       maxHp: Number(handout.npcHp ?? 15) || 15,
       ac: Number(handout.npcAc ?? 12) || 12,
@@ -3452,10 +3593,10 @@ export default function TomeVaultApp() {
       if (typeof snapshot.name === 'string' && snapshot.name.trim()) {
         setPlayerName(snapshot.name.trim());
       }
-      setSessionInfo('Profiel hersteld naar een eerder herstelpunt.');
+      setSessionInfo(i18n.t('session:appInfo.profileRestored'));
     } catch (err) {
       console.error('Profiel herstellen mislukt:', err);
-      setSessionError('Profiel herstellen is mislukt. Probeer opnieuw.');
+      setSessionError(i18n.t('session:appErrors.restoreProfileFailed'));
     }
   };
 
@@ -3485,11 +3626,11 @@ export default function TomeVaultApp() {
       });
 
       setRole('player');
-      setSessionInfo(`${targetMember.name || 'Speler'} is nu GM van deze sessie.`);
+      setSessionInfo(i18n.t('session:gmTransfer.success', { name: targetMember.name || i18n.t('common:roles.player') }));
       setProfileTarget(null);
     } catch (err) {
       console.error('GM overdracht mislukt:', err);
-      setSessionError('GM overdracht is mislukt. Probeer opnieuw.');
+      setSessionError(i18n.t('session:appErrors.gmTransferFailed'));
     }
   };
 
@@ -3526,7 +3667,7 @@ export default function TomeVaultApp() {
       try {
         await setDoc(doc(db, 'sessions', sessionDocId, 'players', tempId), {
           nickname: npcData.name,
-          subtitle: npcData.subtitle || 'Vijand',
+          subtitle: npcData.subtitle || i18n.t('common:fallbacks.enemy'),
           hp: npcData.hp ?? 0,
           maxHp: npcData.maxHp ?? npcData.hp ?? 0,
           ac: npcData.ac ?? 10,
@@ -3631,6 +3772,7 @@ export default function TomeVaultApp() {
     nextBrightness,
     nextSessionNumber,
     nextUiSounds,
+    nextLocale,
   }) => {
     let resolvedAvatarUrl = typeof nextAvatarUrl === 'string' && !nextAvatarUrl.startsWith('blob:')
       ? nextAvatarUrl
@@ -3691,6 +3833,9 @@ export default function TomeVaultApp() {
     if (typeof nextUiSounds === 'boolean') {
       setUiSounds(nextUiSounds);
       setUiSoundsEnabled(nextUiSounds);
+    }
+    if (typeof nextLocale === 'string' && nextLocale !== locale) {
+      setLocale(nextLocale);
     }
     if (role === 'gm' && Number.isFinite(Number(nextSessionNumber))) {
       await handleUpdateCampaignSessionNumber(nextSessionNumber);
@@ -3820,11 +3965,15 @@ export default function TomeVaultApp() {
     try {
       const payload = buildPlayerArchivePayload();
       const result = await downloadPlayerArchivePdf(payload);
-      setSessionInfo(`Kroniek opgeslagen: ${result.pageCount} pagina's, ${result.sectionCount} secties · ${result.filename}`);
+      setSessionInfo(i18n.t('session:appInfo.exportSuccess', {
+        pageCount: result.pageCount,
+        sectionCount: result.sectionCount,
+        filename: result.filename,
+      }));
       setSessionError('');
     } catch (err) {
       console.error('Player archive export fout:', err);
-      setSessionError('Exporteren is mislukt. Probeer opnieuw.');
+      setSessionError(i18n.t('session:appErrors.exportFailed'));
     } finally {
       setIsArchiveExporting(false);
     }
@@ -3940,31 +4089,36 @@ export default function TomeVaultApp() {
     // QR-code invite flow — no PIN required after sign-in
     if (showQRJoin) {
       return (
-        <QRJoinScreen
-          inviteCode={qrInviteCode}
-          campaignName={qrInvitePreview?.campaignName || ''}
-          sessionNumber={qrInvitePreview?.sessionNumber || null}
-          uid={uid}
-          authLoading={authLoading}
-          sessionBusy={sessionBusy}
-          authError={authError}
-          sessionError={sessionError}
-          theme={theme}
-          onSignInGoogle={handleSignInGoogle}
-          onUseFullLogin={() => setQrJoinDone(true)}
-          onJoin={(playerNameInput, code) => {
-            setQrJoinDone(true);
-            handleJoin('player', code, {
-              skipPin: true,
-              playerName: playerNameInput,
-            });
-          }}
-        />
+        <>
+          <QRJoinScreen
+            inviteCode={qrInviteCode}
+            campaignName={qrInvitePreview?.campaignName || ''}
+            sessionNumber={qrInvitePreview?.sessionNumber || null}
+            uid={uid}
+            authLoading={authLoading}
+            authBusy={authBusy}
+            sessionBusy={sessionBusy}
+            authError={authError}
+            sessionError={sessionError}
+            theme={theme}
+            onSignInGoogle={handleSignInGoogle}
+            onUseFullLogin={() => setQrJoinDone(true)}
+            onJoin={(playerNameInput, code) => {
+              setQrJoinDone(true);
+              handleJoin('player', code, {
+                skipPin: true,
+                playerName: playerNameInput,
+              });
+            }}
+          />
+          {renderAuthOverlay()}
+        </>
       );
     }
 
     return (
-      <LandingScreen
+      <>
+        <LandingScreen
         onJoin={handleJoin}
         onResumeRecentSession={handleResumeRecentSession}
           onHideRecentSession={handleHideRecentSession}
@@ -3975,6 +4129,7 @@ export default function TomeVaultApp() {
           setPlayerName={setPlayerName}
           uid={uid}
           authLoading={authLoading}
+          authBusy={authBusy}
           authError={authError}
           onSignInGoogle={handleSignInGoogle}
           onSignInEmail={handleSignInEmail}
@@ -3990,7 +4145,9 @@ export default function TomeVaultApp() {
           onThemeChange={applyTheme}
           appUpdateNotice={appUpdateNotice}
           onReloadApp={() => window.location.reload()}
-      />
+        />
+        {renderAuthOverlay()}
+      </>
     );
   }
 
@@ -4003,17 +4160,18 @@ export default function TomeVaultApp() {
   };
 
   return (
+    <>
     <div className={`tv-app tv-app-shell relative flex h-screen w-full flex-col overflow-hidden font-sans tv-text${isMobilePartyOverlay ? ' tv-app-shell--party-overlay' : ''}`} data-theme={theme} data-brightness-step={brightness}>
       {appUpdateNotice ? (
         <div className="absolute inset-x-4 top-3 z-50 mx-auto max-w-3xl rounded-xl px-4 py-3 tv-update-banner">
           <div className="flex flex-wrap items-center justify-between gap-3">
-            <p className="text-sm font-medium">{appUpdateNotice}</p>
+            <p className="text-sm font-medium">{i18n.t('common:updateBanner.message')}</p>
             <button
               type="button"
               onClick={() => window.location.reload()}
               className="tv-satisfy-pop rounded-lg px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.16em] tv-update-banner__action"
             >
-              Nu verversen
+              {i18n.t('common:updateBanner.refresh')}
             </button>
           </div>
         </div>
@@ -4100,9 +4258,10 @@ export default function TomeVaultApp() {
                     setChat={setChat}
                     role={role}
                     uid={uid}
-                    playerName={playerName || 'Speler'}
+                    playerName={playerName || i18n.t('common:roles.player')}
                     preferredChatColor={preferredChatColor}
                     theme={theme}
+                    party={party}
                     onSendMessageRemote={handleSendChatRemote}
                     onEditMessage={handleEditChatMessage}
                     onDeleteMessage={handleDeleteChatMessage}
@@ -4265,7 +4424,7 @@ export default function TomeVaultApp() {
             setSelectedPreparation(null);
           }}
           onDelete={async (preparationId) => {
-            if (!window.confirm('Verwijder deze voorbereiding definitief?')) return;
+            if (!confirmDialog('preparations:modal.deleteConfirmPermanent')) return;
             await handleDeletePreparationRemote(preparationId);
             setSelectedPreparation(null);
           }}
@@ -4453,6 +4612,8 @@ export default function TomeVaultApp() {
           theme={theme}
           brightness={brightness}
           uiSounds={uiSounds}
+          locale={locale}
+          onLocaleChange={setLocale}
           currentPlanLabel={currentAccessPlan.label}
           currentAccessPlan={currentAccessPlan}
           sessionPlayerProfile={party.find((member) => member.id === CURRENT_PLAYER_ID && member.isNpc !== true) || null}
@@ -4478,6 +4639,8 @@ export default function TomeVaultApp() {
           archivedTracks={archivedAmbienceTracks}
         />
       </div>
+      {renderAuthOverlay()}
+    </>
   );
 }
 

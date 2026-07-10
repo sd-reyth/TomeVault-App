@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom';
 import { Flame, LogOut, X } from 'lucide-react';
 import Button from './Button';
 import CampfireIllustration from '../ui/CampfireIllustration';
+import { useT } from '../i18n/useT';
 
 function CampfireScene() {
   return (
@@ -10,7 +11,6 @@ function CampfireScene() {
       <div className="tv-leave-scene__sky" />
       <div className="tv-leave-scene__glow" />
       <CampfireIllustration className="tv-leave-scene__fire" size={108} />
-      <span className="tv-leave-ember" />
       <span className="tv-leave-ember" />
       <span className="tv-leave-ember" />
       <span className="tv-leave-ember" />
@@ -29,6 +29,8 @@ export default function LeaveSessionConfirmModal({
   roleLabel,
   theme = 'ember-forge',
 }) {
+  const { t } = useT('session');
+
   useEffect(() => {
     if (!isOpen) return undefined;
 
@@ -60,7 +62,7 @@ export default function LeaveSessionConfirmModal({
           type="button"
           onClick={onClose}
           className="tv-leave-close absolute right-3 top-3 z-20"
-          aria-label="Sluiten"
+          aria-label={t('common:actions.close')}
         >
           <X className="h-4 w-4" />
         </button>
@@ -72,11 +74,11 @@ export default function LeaveSessionConfirmModal({
             id="leave-session-title"
             className="font-fantasy text-xl tracking-[0.1em] tv-text"
           >
-            Nog even bij het kampvuur?
+            {t('leaveConfirm.title')}
           </h3>
 
           <p className="mx-auto mt-2 max-w-[30ch] font-story text-sm italic leading-relaxed tv-text-sub">
-            Warm je nog even bij het vuur, of keer terug naar de hal.
+            {t('leaveConfirm.body')}
           </p>
 
           <div className="tv-leave-session">
@@ -89,12 +91,15 @@ export default function LeaveSessionConfirmModal({
             {sessionLabel}
           </div>
           <div className="mt-1 text-[11px] tracking-[0.04em] tv-muted">
-            Sessie #{Math.max(1, Number(sessionNumber) || 1)} · {roleLabel}
+            {t('leaveConfirm.sessionMeta', {
+              number: Math.max(1, Number(sessionNumber) || 1),
+              role: roleLabel,
+            })}
           </div>
 
           <div className="mt-6 space-y-2">
             <Button variant="primary" block icon={Flame} onClick={onClose}>
-              Blijf spelen
+              {t('leaveConfirm.stay')}
             </Button>
             <button
               type="button"
@@ -102,7 +107,7 @@ export default function LeaveSessionConfirmModal({
               className="tv-btn tv-button-ghost tv-btn--block gap-2 text-xs tv-muted transition-colors hover:tv-text-sub"
             >
               <LogOut className="h-3.5 w-3.5 opacity-70" />
-              Vertrekken
+              {t('leaveConfirm.leave')}
             </button>
           </div>
         </div>

@@ -1,42 +1,31 @@
 import React, { useState } from 'react';
 import { Info } from 'lucide-react';
 import Text from '../../ui/Text';
+import { useT } from '../../i18n/useT';
 
-const SLAGORDE_INFO_PILLS = ['Initiative', 'Beurten', "NPC's"];
-
-const SLAGORDE_INFO_STEPS = [
-  {
-    title: 'Ruststand',
-    body: 'Iedereen kan initiative invullen voordat de GM het gevecht start.',
-  },
-  {
-    title: 'Gevecht actief',
-    body: 'Initiative staat vast, beurt en ronde lopen door tot pauze of stop.',
-  },
-  {
-    title: 'Pauzeren',
-    body: 'Voeg NPC\'s toe of verwijder ze zonder de huidige ronde te verliezen.',
-  },
-];
+const SLAGORDE_INFO_PILL_KEYS = ['initiative', 'turns', 'npcs'];
+const SLAGORDE_INFO_STEP_KEYS = ['idle', 'active', 'paused'];
 
 export function SlagordeInfoContent() {
+  const { t } = useT('combat');
+
   return (
     <div className="tv-combat-info-panel tv-panel-inset">
       <Text variant="label" tone="accent" className="mb-2.5 block tracking-[0.18em]">
-        Slagorde info
+        {t('info.title')}
       </Text>
       <div className="tv-prep-info__pills">
-        {SLAGORDE_INFO_PILLS.map((pill) => (
-          <span key={pill} className="tv-prep-info__pill">{pill}</span>
+        {SLAGORDE_INFO_PILL_KEYS.map((pillKey) => (
+          <span key={pillKey} className="tv-prep-info__pill">{t(`info.pills.${pillKey}`)}</span>
         ))}
       </div>
       <ol className="tv-prep-info__steps">
-        {SLAGORDE_INFO_STEPS.map((step, index) => (
-          <li key={step.title} className="tv-prep-info__step">
+        {SLAGORDE_INFO_STEP_KEYS.map((stepKey, index) => (
+          <li key={stepKey} className="tv-prep-info__step">
             <span className="tv-prep-info__step-num">{index + 1}</span>
             <div className="min-w-0">
-              <div className="tv-prep-info__step-title">{step.title}</div>
-              <p className="tv-prep-info__step-body">{step.body}</p>
+              <div className="tv-prep-info__step-title">{t(`info.steps.${stepKey}.title`)}</div>
+              <p className="tv-prep-info__step-body">{t(`info.steps.${stepKey}.body`)}</p>
             </div>
           </li>
         ))}
@@ -46,12 +35,15 @@ export function SlagordeInfoContent() {
 }
 
 export function SlagordeInfoButton({ open, onToggle }) {
+  const { t } = useT('combat');
+  const label = open ? t('info.hideHelp') : t('info.showHelp');
+
   return (
     <button
       type="button"
       onClick={onToggle}
-      title={open ? 'Verberg uitleg' : 'Toon uitleg'}
-      aria-label={open ? 'Verberg uitleg' : 'Toon uitleg'}
+      title={label}
+      aria-label={label}
       aria-expanded={open}
       className={`tv-toolbar-icon-btn shrink-0 transition-all duration-200 ease-out active:scale-[0.985] ${
         open

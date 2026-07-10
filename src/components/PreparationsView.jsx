@@ -12,12 +12,15 @@ import {
 } from 'lucide-react';
 import { resolveDisplayAvatar } from '../lib/placeholders';
 import { formatCustomStatValue, formatSignedModifier } from '../lib/statModifiers';
+import { getIntlLocale } from '../lib/localeFormat';
+import { useT } from '../i18n/useT';
+import { confirmDialog } from '../i18n/dialogs.js';
 import SegmentedControl from '../ui/SegmentedControl';
 import TvImage from './TvImage';
 
-function formatPreparationTime(ms) {
-  if (!ms) return 'Zojuist';
-  return new Date(ms).toLocaleString('nl-NL', {
+function formatPreparationTime(ms, t) {
+  if (!ms) return t('time.justNow');
+  return new Date(ms).toLocaleString(getIntlLocale(), {
     day: '2-digit',
     month: 'short',
     hour: '2-digit',
@@ -29,42 +32,43 @@ function formatModifier(value) {
   return formatSignedModifier(value);
 }
 
-function getStatusMeta(preparation, party) {
+function getStatusMeta(preparation, party, t) {
+  const playerFallback = t('picker.playerFallback');
   const assignedPlayer = party.find((member) => member.id === preparation.assignedToUid);
   const preparedPlayer = party.find((member) => member.id === preparation.preparedForUid);
-  const assignedName = assignedPlayer?.name || 'speler';
-  const preparedName = preparedPlayer?.name || 'speler';
+  const assignedName = assignedPlayer?.name || playerFallback;
+  const preparedName = preparedPlayer?.name || playerFallback;
 
   if (preparation.assignmentStatus === 'pending') {
     return {
-      label: `Wacht op ${assignedName}`,
+      label: t('status.waitingFor', { name: assignedName }),
       className: 'tv-prep-status--pending',
     };
   }
 
   if (preparation.assignmentStatus === 'accepted') {
     return {
-      label: 'In gebruik',
+      label: t('status.inUse'),
       className: 'tv-prep-status--active',
     };
   }
 
   if (preparation.assignmentStatus === 'rejected') {
     return {
-      label: 'Afgeslagen',
+      label: t('status.rejected'),
       className: 'tv-tone-enemy-chip',
     };
   }
 
   if (preparation.preparedForUid) {
     return {
-      label: `Voor ${preparedName}`,
+      label: t('status.forPlayer', { name: preparedName }),
       className: 'tv-prep-status--linked',
     };
   }
 
   return {
-    label: 'Klaar',
+    label: t('status.done'),
     className: 'tv-prep-status--ready',
   };
 }
@@ -98,11 +102,12 @@ function PreparationCard({
   onDeletePreparation,
   onReturnToPool,
 }) {
-  const statusMeta = getStatusMeta(preparation, party);
+  const { t } = useT('preparations');
+  const statusMeta = getStatusMeta(preparation, party, t);
   const statPills = getPreparationStatPills(preparation);
 
   const handleDelete = () => {
-    if (!window.confirm(`Verwijder voorbereiding "${preparation.name}"?`)) return;
+    if (!confirmDialog('preparations:card.deleteConfirm', { name: preparation.name })) return;
     onDeletePreparation?.(preparation);
   };
 
@@ -111,7 +116,7 @@ function PreparationCard({
       <div className="tv-prep-card__media tv-image-frame">
         <TvImage
           src={resolveDisplayAvatar(preparation.imageUrl, preparation.id)}
-          alt={preparation.name || 'Voorbereid personage'}
+          alt={preparation.name || t('card.preparedCharacter')}
         />
       </div>
 
@@ -120,7 +125,7 @@ function PreparationCard({
           <div className="min-w-0 flex-1">
             <div className="flex flex-wrap items-center gap-1.5">
               <h3 className="truncate text-sm font-semibold tracking-[0.04em] tv-text">
-                {preparation.name || 'Naamloos personage'}
+                {preparation.name || t('card.unnamedCharacter')}
               </h3>
               <span className={`tv-prep-status ${statusMeta.className}`}>
                 {statusMeta.label}
@@ -131,7 +136,7 @@ function PreparationCard({
             ) : null}
           </div>
           <time className="tv-prep-card__time" dateTime={preparation.updatedAtMs ? new Date(preparation.updatedAtMs).toISOString() : undefined}>
-            {formatPreparationTime(preparation.updatedAtMs)}
+            {formatPreparationTime(preparation.updatedAtMs, t)}
           </time>
         </div>
 
@@ -145,49 +150,49 @@ function PreparationCard({
         </div>
 
         <p className="tv-prep-card__bio">
-          {preparation.bio || 'Nog geen achtergrond of notities toegevoegd.'}
+          {preparation.bio || t('card.noBio')}
         </p>
       </div>
 
-      <div className="tv-prep-card__actions" role="group" aria-label="Profielacties">
+      <div className="tv-prep-card__actions" role="group" aria-label={t('card.actionsAria')}>
         <button
           type="button"
           onClick={() => onEditPreparation?.(preparation)}
           className="tv-prep-card__action"
-          title="Bewerken"
+          title={t('card.editTitle')}
         >
           <Pencil className="h-3.5 w-3.5" />
-          <span>Bewerken</span>
+          <span>{t('card.edit')}</span>
         </button>
         <button
           type="button"
           onClick={() => onAssignPreparation?.(preparation)}
           disabled={activePlayers.length === 0}
           className="tv-prep-card__action tv-prep-card__action--primary"
-          title="Toewijzen aan speler"
+          title={t('card.assignTitle')}
         >
           <Hand className="h-3.5 w-3.5" />
-          <span>Toewijzen</span>
+          <span>{t('card.assign')}</span>
         </button>
         {preparation.assignmentStatus === 'rejected' ? (
           <button
             type="button"
             onClick={() => onReturnToPool?.(preparation)}
             className="tv-prep-card__action"
-            title="Terug naar bibliotheek"
+            title={t('card.libraryTitle')}
           >
             <History className="h-3.5 w-3.5" />
-            <span>Bibliotheek</span>
+            <span>{t('card.library')}</span>
           </button>
         ) : null}
         <button
           type="button"
           onClick={handleDelete}
           className="tv-prep-card__action tv-prep-card__action--danger"
-          title="Verwijderen"
+          title={t('card.deleteTitle')}
         >
           <Trash2 className="h-3.5 w-3.5" />
-          <span>Verwijder</span>
+          <span>{t('card.delete')}</span>
         </button>
       </div>
     </article>
@@ -206,6 +211,7 @@ export default function PreparationsView({
   onRestoreBackup,
   onReturnToPool,
 }) {
+  const { t } = useT('preparations');
   const [query, setQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [showInfo, setShowInfo] = useState(false);
@@ -229,42 +235,62 @@ export default function PreparationsView({
   }, [templates, query, statusFilter]);
 
   const statusFilterOptions = useMemo(() => [
-    { value: 'all', label: 'Alles', count: templates.length },
-    { value: 'ready', label: 'Klaar', count: readyCount },
-    { value: 'pending', label: 'Open', count: pendingCount },
-    { value: 'active', label: 'Actief', count: acceptedCount },
-  ], [templates.length, readyCount, pendingCount, acceptedCount]);
+    { value: 'all', label: t('status.all'), count: templates.length },
+    { value: 'ready', label: t('status.ready'), count: readyCount },
+    { value: 'pending', label: t('status.pending'), count: pendingCount },
+    { value: 'active', label: t('status.active'), count: acceptedCount },
+  ], [t, templates.length, readyCount, pendingCount, acceptedCount]);
 
   const handleRestore = (backup) => {
-    if (!window.confirm(`Herstel ${backup.playerName || 'deze speler'} naar de vorige profielstaat?`)) return;
+    const name = backup.playerName || t('backup.thisPlayer');
+    if (!confirmDialog('preparations:backup.restoreConfirm', { name })) return;
     onRestoreBackup?.(backup);
   };
 
   const visibleLabel = filteredTemplates.length === 1
-    ? '1 in beeld'
-    : `${filteredTemplates.length} in beeld`;
+    ? t('view.visibleOne')
+    : t('view.visibleMany', { count: filteredTemplates.length });
+
+  const infoPills = [
+    t('info.inventoryStays'),
+    t('info.walletStays'),
+    t('info.notesStay'),
+  ];
+
+  const infoSteps = [
+    { title: t('info.stepNewTitle'), body: t('info.stepNewBody') },
+    { title: t('info.stepWorkTitle'), body: t('info.stepWorkBody') },
+    { title: t('info.stepAssignTitle'), body: t('info.stepAssignBody') },
+  ];
+
+  const statGridItems = [
+    { label: t('status.ready'), value: readyCount, tone: 'ready' },
+    { label: t('status.pending'), value: pendingCount, tone: 'open' },
+    { label: t('status.inUse'), value: acceptedCount, tone: 'active' },
+    { label: t('status.restore'), value: backups.length, tone: 'restore' },
+  ];
 
   return (
     <div className="tv-view-shell tv-prep-view relative z-10 flex h-full flex-col">
       <div className="tv-view-shell-header tv-prep-view__header flex shrink-0 flex-row items-center justify-between gap-2 p-3 md:p-4">
         <h2 className="flex min-w-0 items-center gap-2 font-fantasy text-xs font-medium uppercase tracking-[0.18em] tv-text md:text-sm">
           <Crown className="tv-view-title-icon" aria-hidden />
-          Voorbereidingen
+          {t('view.title')}
         </h2>
 
         <div className="tv-toolbar shrink-0">
           <div className="tv-prep-toolbar-stat tv-toolbar__stat">
-            <span className="tv-toolbar__stat-label">Profielen</span>
+            <span className="tv-toolbar__stat-label">{t('view.profiles')}</span>
             <span className="tv-toolbar__stat-value">{templates.length}</span>
           </div>
-          <span className="tv-prep-header-count" aria-label={`${templates.length} profielen`}>
+          <span className="tv-prep-header-count" aria-label={t('view.profilesAria', { count: templates.length })}>
             {templates.length}
           </span>
           <button
             type="button"
             onClick={onCreatePreparation}
-            title="Nieuw profiel"
-            aria-label="Nieuw profiel"
+            title={t('view.newProfile')}
+            aria-label={t('view.newProfileAria')}
             className="tv-toolbar__btn tv-toolbar__btn--square tv-button-primary"
           >
             <Plus className="h-4 w-4 shrink-0" />
@@ -277,7 +303,7 @@ export default function PreparationsView({
           <section className="tv-prep-main">
             <div className="tv-prep-main__toolbar">
               <div className="tv-prep-main__head max-md:hidden">
-                <h3 className="tv-panel-title text-base">Bibliotheek</h3>
+                <h3 className="tv-panel-title text-base">{t('view.library')}</h3>
                 <span className="tv-prep-panel__badge">{visibleLabel}</span>
               </div>
 
@@ -286,7 +312,7 @@ export default function PreparationsView({
                   <Search className="absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 tv-muted" aria-hidden />
                   <input
                     type="search"
-                    placeholder="Zoek op naam, stats of notities…"
+                    placeholder={t('view.searchPlaceholder')}
                     className="tv-input-surface tv-chat-compose-input h-10 w-full pl-9 pr-3 text-sm outline-none transition-colors"
                     value={query}
                     onChange={(event) => setQuery(event.target.value)}
@@ -298,7 +324,7 @@ export default function PreparationsView({
                   value={statusFilter}
                   options={statusFilterOptions}
                   onChange={setStatusFilter}
-                  aria-label="Filter op status"
+                  aria-label={t('view.filterAria')}
                   className="tv-prep-segmented"
                 />
               </div>
@@ -313,13 +339,13 @@ export default function PreparationsView({
                   </div>
                   <h3 className="tv-prep-empty__title">
                     {templates.length === 0
-                      ? 'Nog geen voorbereide personages'
-                      : 'Geen profielen gevonden'}
+                      ? t('empty.noCharacters')
+                      : t('empty.noResults')}
                   </h3>
                   <p className="tv-prep-empty__copy">
                     {templates.length === 0
-                      ? 'Maak een profiel aan of start vanuit een speler.'
-                      : 'Pas zoek of filter aan.'}
+                      ? t('empty.noCharactersHint')
+                      : t('empty.noResultsHint')}
                   </p>
                   {templates.length === 0 ? (
                     <div className="tv-prep-empty__actions">
@@ -329,7 +355,7 @@ export default function PreparationsView({
                         className="tv-toolbar__btn tv-button-primary gap-2 px-4"
                       >
                         <Plus className="h-4 w-4" />
-                        Profiel opzetten
+                        {t('empty.setupProfile')}
                       </button>
                       {activePlayers.length > 0 ? (
                         <button
@@ -338,7 +364,7 @@ export default function PreparationsView({
                           className="tv-toolbar__btn tv-panel-inset tv-text tv-hover-surface hover:text-[var(--tv-accent)]"
                         >
                           <UserRound className="h-4 w-4" />
-                          Van speler starten
+                          {t('empty.fromPlayer')}
                         </button>
                       ) : null}
                     </div>
@@ -373,18 +399,18 @@ export default function PreparationsView({
                 className="tv-prep-mobile-fold__trigger"
                 aria-expanded={mobileOverviewOpen}
               >
-                <span>Overzicht</span>
-                <span className="tv-prep-mobile-fold__meta">{templates.length} profielen</span>
+                <span>{t('view.overview')}</span>
+                <span className="tv-prep-mobile-fold__meta">{t('view.profilesCount', { count: templates.length })}</span>
               </button>
               <div className={`tv-prep-mobile-fold__body ${mobileOverviewOpen ? 'is-open' : ''}`}>
                 <div className="tv-prep-sidebar__chrome">
                   <div className="tv-prep-sidebar__section-head">
-                    <h3 className="tv-prep-sidebar__title">Overzicht</h3>
+                    <h3 className="tv-prep-sidebar__title">{t('view.overview')}</h3>
                     <button
                       type="button"
                       onClick={() => setShowInfo((value) => !value)}
                       className={`tv-prep-sidebar__info-btn ${showInfo ? 'is-active' : ''}`}
-                      title={showInfo ? 'Verberg uitleg' : 'Toon uitleg'}
+                      title={showInfo ? t('view.hideInfo') : t('view.showInfo')}
                       aria-pressed={showInfo}
                     >
                       <Info className="h-3.5 w-3.5" aria-hidden />
@@ -392,13 +418,8 @@ export default function PreparationsView({
                   </div>
 
                   <div className="tv-prep-stat-grid">
-                    {[
-                      { label: 'Klaar', value: readyCount, tone: 'ready' },
-                      { label: 'Open', value: pendingCount, tone: 'open' },
-                      { label: 'In gebruik', value: acceptedCount, tone: 'active' },
-                      { label: 'Herstel', value: backups.length, tone: 'restore' },
-                    ].map((item) => (
-                      <div key={item.label} className={`tv-prep-stat tv-prep-stat--${item.tone}`}>
+                    {statGridItems.map((item) => (
+                      <div key={item.tone} className={`tv-prep-stat tv-prep-stat--${item.tone}`}>
                         <span className="tv-prep-stat__label">{item.label}</span>
                         <span className="tv-prep-stat__value">{item.value}</span>
                       </div>
@@ -410,16 +431,12 @@ export default function PreparationsView({
                   <div className="tv-prep-sidebar__block">
                     <div className="tv-prep-info">
                       <div className="tv-prep-info__pills">
-                        {['Inventaris blijft', 'Wallet blijft', 'Notities blijven'].map((pill) => (
+                        {infoPills.map((pill) => (
                           <span key={pill} className="tv-prep-info__pill">{pill}</span>
                         ))}
                       </div>
                       <ol className="tv-prep-info__steps">
-                        {[
-                          { title: 'Nieuw', body: 'Maak een voorbereiding of bewaar een bestaand spelersprofiel.' },
-                          { title: 'Werk af', body: 'Controleer avatar, stats, verborgen eigenschappen en lore.' },
-                          { title: 'Toewijzen', body: 'Bied het personage aan een speler aan — zij accepteren of wijzen af.' },
-                        ].map((step, index) => (
+                        {infoSteps.map((step, index) => (
                           <li key={step.title} className="tv-prep-info__step">
                             <span className="tv-prep-info__step-num">{index + 1}</span>
                             <div className="min-w-0">
@@ -444,7 +461,7 @@ export default function PreparationsView({
               >
                 <span className="inline-flex items-center gap-2">
                   <History className="h-3.5 w-3.5" aria-hidden />
-                  Herstelpunten
+                  {t('view.restorePoints')}
                 </span>
                 <span className="tv-prep-mobile-fold__meta">{backups.length}</span>
               </button>
@@ -455,7 +472,7 @@ export default function PreparationsView({
                       <span className="tv-prep-sidebar__section-icon" aria-hidden>
                         <History className="h-3.5 w-3.5" />
                       </span>
-                      <h3 className="tv-prep-sidebar__title">Herstelpunten</h3>
+                      <h3 className="tv-prep-sidebar__title">{t('view.restoreSection')}</h3>
                     </div>
                     <span className="tv-prep-sidebar__count">{backups.length}</span>
                   </div>
@@ -466,7 +483,7 @@ export default function PreparationsView({
                         <History className="h-4 w-4" />
                       </div>
                       <p className="tv-prep-backups-empty__copy">
-                        Na een acceptatie verschijnt hier automatisch een terugzetpunt voor de speler.
+                        {t('backup.emptyHint')}
                       </p>
                     </div>
                   ) : (
@@ -475,18 +492,18 @@ export default function PreparationsView({
                         <article key={backup.id} className="tv-prep-backup">
                           <div className="tv-prep-backup__head">
                             <div className="min-w-0">
-                              <p className="tv-prep-backup__name">{backup.playerName || 'Onbekende speler'}</p>
+                              <p className="tv-prep-backup__name">{backup.playerName || t('backup.unknownPlayer')}</p>
                               <p className="tv-prep-backup__via">
-                                via {backup.templateName || 'Naamloze voorbereiding'}
+                                {t('backup.via', { name: backup.templateName || t('backup.unnamedPrep') })}
                               </p>
                             </div>
                             <time className="tv-prep-backup__time">
-                              {formatPreparationTime(backup.createdAtMs)}
+                              {formatPreparationTime(backup.createdAtMs, t)}
                             </time>
                           </div>
                           {backup.restoredAtMs ? (
                             <p className="tv-prep-backup__restored">
-                              Hersteld {formatPreparationTime(backup.restoredAtMs)}
+                              {t('backup.restored', { time: formatPreparationTime(backup.restoredAtMs, t) })}
                             </p>
                           ) : null}
                           <button
@@ -494,7 +511,7 @@ export default function PreparationsView({
                             onClick={() => handleRestore(backup)}
                             className="tv-prep-backup__restore"
                           >
-                            Zet terug
+                            {t('backup.restoreButton')}
                           </button>
                         </article>
                       ))}

@@ -1,0 +1,19 @@
+{
+  "tabs": {
+    "handouts": "Handouts",
+    "chat": "Whispers",
+    "inventory": "Treasury",
+    "preparations": "Preparations",
+    "notes": "Chronicles"
+  },
+  "settings": "Settings",
+  "resizeAria": "Drag to resize navigation width",
+  "footer": {
+    "session": "Session {{number}}",
+    "atTable": "at the table",
+    "combatLive": "Battle order active",
+    "combatLiveTitle": "Combat active",
+    "combatPaused": "Combat paused",
+    "combatPausedTitle": "Combat paused"
+  }
+}

@@ -5,6 +5,7 @@ import IconButton from '../../ui/IconButton';
 import Text from '../../ui/Text';
 import CombatRoundBar from './CombatRoundBar';
 import { SlagordeInfoButton, SlagordeInfoContent, useSlagordeInfo } from './SlagordeInfoPanel';
+import { useT } from '../../i18n/useT';
 
 export default function CombatPlayerHeader({
   combatStatus,
@@ -21,6 +22,7 @@ export default function CombatPlayerHeader({
   statusSecondaryLine,
   ambienceActive = true,
 }) {
+  const { t } = useT('combat');
   const isLive = combatStatus === COMBAT_STATUS.ACTIVE;
   const info = useSlagordeInfo();
 
@@ -31,16 +33,16 @@ export default function CombatPlayerHeader({
           key={`turn-banner-${currentTurnId}-${turnRound}`}
           className="tv-turn-banner tv-turn-banner--flash"
         >
-          <span>Jouw beurt</span>
-          <span className="tv-turn-banner__tag">Nu</span>
+          <span>{t('yourTurn')}</span>
+          <span className="tv-turn-banner__tag">{t('now')}</span>
         </div>
       ) : null}
       <div className="mb-2.5 flex items-center justify-between gap-2">
-        <Text variant="label" tone="accent">Slagorde</Text>
+        <Text variant="label" tone="accent">{t('title')}</Text>
         <div className="flex items-center gap-1 lg:hidden">
           <IconButton
             icon={isPinned ? Pin : PinOff}
-            label={isPinned ? 'Losmaken' : 'Vastzetten'}
+            label={isPinned ? t('unpin') : t('pin')}
             variant="default"
             size="sm"
             active={isPinned}
@@ -49,7 +51,7 @@ export default function CombatPlayerHeader({
           />
           <IconButton
             icon={X}
-            label="Sluiten"
+            label={t('common:actions.close')}
             variant="danger"
             size="sm"
             onClick={onClose}

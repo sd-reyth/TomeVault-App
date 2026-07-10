@@ -1,0 +1,75 @@
+{
+  "actions": {
+    "save": "Save",
+    "cancel": "Cancel",
+    "close": "Close",
+    "delete": "Delete",
+    "confirm": "Confirm",
+    "restore": "Restore",
+    "export": "Export",
+    "exporting": "Exporting...",
+    "loading": "Loading...",
+    "retry": "Retry",
+    "back": "Back",
+    "next": "Next",
+    "add": "Add",
+    "edit": "Edit",
+    "remove": "Remove",
+    "search": "Search",
+    "share": "Share",
+    "copy": "Copy",
+    "yes": "Yes",
+    "no": "No"
+  },
+  "status": {
+    "on": "On",
+    "off": "Off",
+    "recent": "Recently",
+    "unknown": "Unknown",
+    "busy": "Working…"
+  },
+  "roles": {
+    "gm": "Game Master",
+    "gmShort": "GM",
+    "player": "Player",
+    "playerShort": "Player"
+  },
+  "fallbacks": {
+    "adventurer": "Adventurer",
+    "unnamedHandout": "Untitled handout",
+    "unnamedNote": "New Note",
+    "unnamedSession": "Untitled session",
+    "unnamedNpc": "Untitled NPC",
+    "unnamedProfile": "Untitled profile",
+    "unnamedCharacter": "Unnamed character",
+    "unnamed": "Untitled",
+    "thisProfile": "this profile",
+    "enemy": "Enemy",
+    "campaign": "Campaign",
+    "myCampaign": "my campaign",
+    "backupPoint": "Backup point"
+  },
+  "copyFeedback": {
+    "copied": "Copied",
+    "done": "Done!",
+    "error": "Copy failed"
+  },
+  "time": {
+    "todayAt": "Today at {{time}}",
+    "yesterdayAt": "Yesterday at {{time}}",
+    "yesterdayEveningAt": "Yesterday evening at {{time}}",
+    "weekdayAt": "{{weekday}} at {{time}}",
+    "dateAt": "{{date}} at {{time}}"
+  },
+  "brightness": {
+    "dark": "Dark",
+    "darker": "Slightly darker",
+    "normal": "Normal",
+    "lighter": "Slightly lighter",
+    "light": "Light"
+  },
+  "updateBanner": {
+    "message": "A new version is ready. Refresh the page to continue.",
+    "refresh": "Refresh now"
+  }
+}

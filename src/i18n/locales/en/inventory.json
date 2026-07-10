@@ -1,0 +1,93 @@
+{
+  "view": {
+    "title": "Treasury",
+    "coins": "Coins",
+    "newItem": "New item",
+    "newItemAria": "New item",
+    "scopeAria": "Treasury view",
+    "filterAria": "Filter by type",
+    "searchPlaceholder": "Search…",
+    "handoutsSection": "Handouts",
+    "itemsAria": "{{count}} items"
+  },
+  "scope": {
+    "all": "All",
+    "party": "Party",
+    "adventurers": "Adventurers"
+  },
+  "wallet": {
+    "partyFund": "Party fund",
+    "pouch": "Pouch",
+    "platinum": "Platinum",
+    "gold": "Gold",
+    "silver": "Silver",
+    "copper": "Copper",
+    "decreaseAria": "Decrease {{coin}}",
+    "increaseAria": "Increase {{coin}}",
+    "editAria": "Adjust {{coin}}",
+    "total": {
+      "zeroGold": "0 gold",
+      "goldOnly": "{{count}} gold",
+      "silverOnly": "{{count}} silver",
+      "copperOnly": "{{count}} copper",
+      "goldPart": "{{count}} gold",
+      "silverPart": "{{count}} silver",
+      "copperPart": "{{count}} copper"
+    }
+  },
+  "empty": {
+    "noMatch": "No match",
+    "empty": "Still empty",
+    "noItems": "No items yet"
+  },
+  "owner": {
+    "party": "Party",
+    "unknown": "—"
+  },
+  "item": {
+    "decreaseAmount": "Decrease amount",
+    "increaseAmount": "Increase amount",
+    "deleteItem": "Delete item",
+    "addForPlayer": "Add item for {{name}}",
+    "addForPlayerAria": "Add item for {{name}}"
+  },
+  "handout": {
+    "return": "Return",
+    "returnTitle": "Return to handouts",
+    "returnAria": "Return {{title}} to handouts",
+    "confirmReturn": "Return \"{{title}}\" to handouts?",
+    "confirmReturnWithNote": "Return \"{{title}}\" to handouts? Your personal note will also be removed.",
+    "confirmReturnNoteHint": " Your personal note will also be removed.",
+    "thisItem": "this item"
+  },
+  "modal": {
+    "editTitle": "Edit item",
+    "newTitle": "New item",
+    "pickImage": "Choose image",
+    "addImage": "Add image",
+    "upload": "Upload",
+    "icon": "Icon",
+    "clear": "Clear",
+    "namePlaceholder": "Item name",
+    "categoryAria": "Item type",
+    "descriptionLabel": "Description",
+    "optional": "Optional",
+    "descriptionPlaceholder": "What does it do? What does it look like?",
+    "optionsLabel": "Options",
+    "ownerLabel": "Owner",
+    "partyLoot": "Party loot",
+    "amountLabel": "Amount",
+    "lessAria": "Less",
+    "moreAria": "More"
+  },
+  "categories": {
+    "all": "All",
+    "misc": "Misc",
+    "weapon": "Weapon",
+    "armor": "Armor",
+    "consumable": "Consumable",
+    "magic": "Magic",
+    "resource": "Resource",
+    "quest": "Quest"
+  }
+}

@@ -1,0 +1,42 @@
+{
+  "view": {
+    "title": "Kronieken",
+    "newNote": "Nieuwe notitie",
+    "newNoteAria": "Nieuwe notitie",
+    "searchPlaceholder": "Zoek in je kroniek…",
+    "countOne": "1 blad",
+    "countMany": "{{count}} bladen",
+    "emptyTitle": "Je kroniek wacht",
+    "emptyHint": "Leg je eerste gedachten vast — alleen voor jou, tussen de sessies door.",
+    "firstPage": "Eerste blad",
+    "noResultsTitle": "Geen treffers",
+    "noResultsHint": "Probeer een andere zoekterm.",
+    "untitledPage": "Naamloos blad",
+    "previewEmpty": "Nog geen tekst — tik om te beginnen…",
+    "deleteTitle": "Verwijder",
+    "deleteAria": "Notitie verwijderen",
+    "backToList": "Terug naar overzicht",
+    "backToListAria": "Terug naar overzicht",
+    "lastEdited": "Laatst bewerkt · {{time}}",
+    "personalPad": "Persoonlijk schrijfblad",
+    "private": "Privé",
+    "titleAria": "Notitietitel",
+    "contentAria": "Notitie-inhoud",
+    "contentPlaceholder": "Begin met schrijven — questnotities, NPC-dialoog, geheime plannen…",
+    "autoSaveHint": "Alles wordt automatisch bewaard in je kroniek.",
+    "selectPageTitle": "Kies een blad",
+    "selectPageHint": "Selecteer een notitie links of maak een nieuw blad om je verhaal vast te leggen.",
+    "newNoteDefault": "Nieuwe Notitie",
+    "justNow": "Zojuist"
+  },
+  "saveState": {
+    "writing": "Bezig met bewaren…",
+    "saved": "Opgeslagen",
+    "error": "Opslaan mislukt"
+  },
+  "dialogs": {
+    "deleteConfirm": "Weet je zeker dat je deze notitie wilt verwijderen?",
+    "createFailed": "Notitie aanmaken mislukt.",
+    "deleteFailed": "Notitie verwijderen mislukt."
+  }
+}

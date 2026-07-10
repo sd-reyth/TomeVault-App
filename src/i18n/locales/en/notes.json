@@ -1,0 +1,42 @@
+{
+  "view": {
+    "title": "Chronicles",
+    "newNote": "New note",
+    "newNoteAria": "New note",
+    "searchPlaceholder": "Search your chronicle…",
+    "countOne": "1 page",
+    "countMany": "{{count}} pages",
+    "emptyTitle": "Your chronicle awaits",
+    "emptyHint": "Capture your first thoughts — just for you, between sessions.",
+    "firstPage": "First page",
+    "noResultsTitle": "No matches",
+    "noResultsHint": "Try a different search term.",
+    "untitledPage": "Untitled page",
+    "previewEmpty": "No text yet — tap to start…",
+    "deleteTitle": "Delete",
+    "deleteAria": "Delete note",
+    "backToList": "Back to overview",
+    "backToListAria": "Back to overview",
+    "lastEdited": "Last edited · {{time}}",
+    "personalPad": "Personal writing pad",
+    "private": "Private",
+    "titleAria": "Note title",
+    "contentAria": "Note content",
+    "contentPlaceholder": "Start writing — quest notes, NPC dialogue, secret plans…",
+    "autoSaveHint": "Everything is automatically saved in your chronicle.",
+    "selectPageTitle": "Choose a page",
+    "selectPageHint": "Select a note on the left or create a new page to capture your story.",
+    "newNoteDefault": "New Note",
+    "justNow": "Just now"
+  },
+  "saveState": {
+    "writing": "Saving…",
+    "saved": "Saved",
+    "error": "Save failed"
+  },
+  "dialogs": {
+    "deleteConfirm": "Are you sure you want to delete this note?",
+    "createFailed": "Could not create note.",
+    "deleteFailed": "Could not delete note."
+  }
+}

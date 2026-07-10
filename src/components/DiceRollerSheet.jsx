@@ -1,14 +1,17 @@
 import React, { useEffect } from 'react';
 import { Dice5, X } from 'lucide-react';
 import DiceRoller from './DiceRoller';
+import { useT } from '../i18n/useT';
 
 export default function DiceRollerSheet({
   isOpen,
   onClose,
   onRoll,
-  title = 'Dobbelstenen',
+  title,
   subtitle = '',
 }) {
+  const { t } = useT('chat');
+
   useEffect(() => {
     if (!isOpen) return undefined;
 
@@ -26,6 +29,8 @@ export default function DiceRollerSheet({
 
   if (!isOpen) return null;
 
+  const sheetTitle = title ?? t('dice.defaultTitle');
+
   return (
     <div
       className="tv-backdrop fixed inset-0 z-50 flex items-end justify-center p-2 backdrop-blur-md sm:items-center sm:p-4"
@@ -41,9 +46,9 @@ export default function DiceRollerSheet({
           <div className="min-w-0">
             <span className="tv-dice-sheet__badge">
               <Dice5 className="h-3.5 w-3.5" />
-              Roller
+              {t('dice.sheetBadge')}
             </span>
-            <h3 className="tv-dice-sheet__title">{title}</h3>
+            <h3 className="tv-dice-sheet__title">{sheetTitle}</h3>
             {subtitle ? <p className="tv-dice-sheet__subtitle">{subtitle}</p> : null}
           </div>
 
@@ -51,7 +56,7 @@ export default function DiceRollerSheet({
             type="button"
             onClick={() => onClose?.()}
             className="tv-icon-btn shrink-0"
-            aria-label="Sluit dobbelstenen"
+            aria-label={t('dice.closeSheetAria')}
           >
             <X className="h-4 w-4" />
           </button>

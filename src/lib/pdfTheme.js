@@ -3,6 +3,11 @@
  * in jsPDF-safe RGB values and reusable drawing primitives.
  */
 
+import i18n from '../i18n/index.js';
+import { getIntlLocale } from './localeFormat.js';
+
+const pdfT = (key, options) => i18n.t(`pdf:${key}`, options);
+
 /** @typedef {[number, number, number]} Rgb */
 
 /** @param {string} hex */
@@ -126,17 +131,19 @@ export function asString(value, fallback = '') {
 }
 
 export function toDisplayDate(value) {
-  if (!value) return new Date().toLocaleString('nl-NL');
+  const locale = getIntlLocale();
+  const fallback = () => new Date().toLocaleString(locale);
+  if (!value) return fallback();
   const date = value instanceof Date ? value : new Date(value);
-  if (Number.isNaN(date.getTime())) return new Date().toLocaleString('nl-NL');
-  return date.toLocaleString('nl-NL');
+  if (Number.isNaN(date.getTime())) return fallback();
+  return date.toLocaleString(locale);
 }
 
 export function formatDateShort(value) {
   if (!value) return '-';
   const date = value instanceof Date ? value : new Date(value);
   if (Number.isNaN(date.getTime())) return '-';
-  return date.toLocaleDateString('nl-NL');
+  return date.toLocaleDateString(getIntlLocale());
 }
 
 /**
@@ -278,7 +285,7 @@ export class PdfLayoutEngine {
     this.doc.setFontSize(PDF_THEME.type.meta);
     this.setText(PDF_THEME.color.inkSoft);
     this.doc.text(
-      `${shown} van ${total} ${label} opgenomen in deze kroniek.`,
+      i18n.t('pdf:labels.truncated', { shown, total, type: label }),
       PDF_LAYOUT.marginInner,
       this.cursorY + 10,
     );
@@ -311,7 +318,7 @@ export function drawSectionHeader(doc, y, title, subtitle = '') {
   doc.setTextColor(...PDF_THEME.color.goldPale);
   doc.setFont(PDF_THEME.font.ui, 'bold');
   doc.setFontSize(PDF_THEME.type.section);
-  doc.text(asString(title, 'Sectie'), x + 22, y + (subtitle ? 20 : 22));
+  doc.text(asString(title, pdfT('layout.sectionFallback')), x + 22, y + (subtitle ? 20 : 22));
 
   if (subtitle) {
     doc.setTextColor(...PDF_THEME.color.coverMuted);
@@ -430,7 +437,7 @@ export function drawStoryCard(doc, y, card, width) {
   doc.setFont(PDF_THEME.font.ui, 'bold');
   doc.setFontSize(PDF_THEME.type.body);
   doc.setTextColor(...PDF_THEME.color.ink);
-  doc.text(asString(card.title, 'Naamloos'), PDF_LAYOUT.marginInner, y + 18);
+  doc.text(asString(card.title, pdfT('layout.cardTitleFallback')), PDF_LAYOUT.marginInner, y + 18);
 
   if (card.meta) {
     doc.setFont(PDF_THEME.font.ui, 'normal');
@@ -536,7 +543,7 @@ export function drawCover(doc, archive, brandAssets = {}) {
   doc.setFontSize(PDF_THEME.type.subtitle);
   doc.text('by Sneezing Donkey', centerX, 286, { align: 'center' });
 
-  const badgeLabel = isGm ? 'GM DOSSIER' : 'SPELERKRONIEK';
+  const badgeLabel = isGm ? pdfT('cover.badgeGm') : pdfT('cover.badgePlayer');
   doc.setFontSize(PDF_THEME.type.label);
   const badgeWidth = doc.getTextWidth(badgeLabel) + 28;
   doc.setFillColor(...PDF_THEME.color.accent);
@@ -555,7 +562,7 @@ export function drawCover(doc, archive, brandAssets = {}) {
   doc.setTextColor(...PDF_THEME.color.coverText);
   doc.setFont(PDF_THEME.font.ui, 'bold');
   doc.setFontSize(26);
-  const subjectName = asString(archive.subjectName, 'Naamloze Avonturier');
+  const subjectName = asString(archive.subjectName, pdfT('cover.subjectFallback'));
   const subjectLines = doc.splitTextToSize(subjectName, width - 140);
   doc.text(subjectLines.slice(0, 2), centerX, 426, { align: 'center' });
 
@@ -563,8 +570,8 @@ export function drawCover(doc, archive, brandAssets = {}) {
   doc.setFont(PDF_THEME.font.story, 'italic');
   doc.setFontSize(PDF_THEME.type.body);
   const modeLabel = isGm
-    ? 'Grandmaster Chronicle — campagnedossier'
-    : 'Character Chronicle — persoonlijke kroniek';
+    ? pdfT('cover.modeGm')
+    : pdfT('cover.modePlayer');
   doc.text(modeLabel, centerX, 452, { align: 'center' });
 
   const metaCardW = 320;
@@ -576,9 +583,9 @@ export function drawCover(doc, archive, brandAssets = {}) {
   doc.roundedRect(metaCardX, metaY, metaCardW, 88, PDF_LAYOUT.radiusSm, PDF_LAYOUT.radiusSm, 'FD');
 
   const metaRows = [
-    ['Sessie', asString(archive.sessionId, 'Onbekend')],
-    ['Export', toDisplayDate(archive.generatedAt)],
-    ['Layout', asString(archive.layoutVersion, 'TV-PDF-R5')],
+    [pdfT('cover.metaSession'), asString(archive.sessionId, pdfT('fallbacks.unknown'))],
+    [pdfT('cover.metaExport'), toDisplayDate(archive.generatedAt)],
+    [pdfT('cover.metaLayout'), asString(archive.layoutVersion, 'TV-PDF-R5')],
   ];
   metaRows.forEach(([label, value], index) => {
     const rowY = metaY + 22 + (index * 22);
@@ -596,15 +603,15 @@ export function drawCover(doc, archive, brandAssets = {}) {
   doc.setFontSize(PDF_THEME.type.body);
   doc.setTextColor(...PDF_THEME.color.goldSoft);
   const scopeLabel = isGm
-    ? 'Uitgebreide GM-export met sessiebreed overzicht, audittrail en narratieve continuïteit.'
-    : 'Alle speler-zichtbare gegevens op het moment van export — jouw reis, vastgelegd.';
+    ? pdfT('cover.scopeGm')
+    : pdfT('cover.scopePlayer');
   const scopeWrapped = doc.splitTextToSize(scopeLabel, 360);
   doc.text(scopeWrapped, centerX, height - 96, { align: 'center' });
 
   doc.setFont(PDF_THEME.font.ui, 'normal');
   doc.setFontSize(PDF_THEME.type.meta);
   doc.setTextColor(...PDF_THEME.color.coverMuted);
-  doc.text('Sessies en herinneringen — eeuwig bewaard.', centerX, height - 62, { align: 'center' });
+  doc.text(pdfT('cover.tagline'), centerX, height - 62, { align: 'center' });
 }
 
 /**
@@ -637,13 +644,13 @@ export function drawTableOfContents(doc, layout, mode) {
       doc.setTextColor(...PDF_THEME.color.gold);
       doc.setFont(PDF_THEME.font.ui, 'bold');
       doc.setFontSize(20);
-      doc.text('Inhoudsopgave', PDF_LAYOUT.margin, 52);
+      doc.text(pdfT('toc.title'), PDF_LAYOUT.margin, 52);
 
       doc.setTextColor(...PDF_THEME.color.coverMuted);
       doc.setFont(PDF_THEME.font.ui, 'normal');
       doc.setFontSize(PDF_THEME.type.subtitle);
       doc.text(
-        `Exportmodus: ${mode === 'gm' ? 'GM volledig' : 'Speler persoonlijk'}`,
+        mode === 'gm' ? pdfT('toc.modeGm') : pdfT('toc.modePlayer'),
         PDF_LAYOUT.margin,
         72,
       );
@@ -687,7 +694,7 @@ export function drawTableOfContents(doc, layout, mode) {
     doc.setFontSize(PDF_THEME.type.meta);
     doc.setTextColor(...PDF_THEME.color.inkSoft);
     doc.text(
-      `+ ${sections.length - maxRows} extra secties — verhoog TOC-reserve`,
+      pdfT('toc.overflow', { count: sections.length - maxRows }),
       PDF_LAYOUT.marginInner,
       pageHeight - 40,
     );
@@ -713,11 +720,11 @@ export function addFooterToAllPages(doc, archive) {
     doc.setFontSize(PDF_THEME.type.meta);
     doc.setTextColor(...PDF_THEME.color.inkSoft);
     doc.text(
-      `TomeVault by Sneezing Donkey · ${asString(archive.sessionId, 'Onbekend')}`,
+      pdfT('footer.brand', { sessionId: asString(archive.sessionId, pdfT('fallbacks.unknown')) }),
       PDF_LAYOUT.margin,
       height - 14,
     );
-    doc.text(`Pagina ${page}/${pages}`, width - 72, height - 14);
+    doc.text(pdfT('footer.page', { page, pages }), width - 72, height - 14);
   }
 }
 
@@ -726,7 +733,7 @@ export function loadImageElement(src) {
     const image = new Image();
     image.crossOrigin = 'anonymous';
     image.onload = () => resolve(image);
-    image.onerror = () => reject(new Error(`Kon afbeelding niet laden: ${src}`));
+    image.onerror = () => reject(new Error(pdfT('layout.imageLoadFailed', { src })));
     image.src = src;
   });
 }

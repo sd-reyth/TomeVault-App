@@ -1,6 +1,7 @@
 import React from 'react';
 import { AlertTriangle, Eraser, RefreshCw } from 'lucide-react';
 import Button from './Button';
+import { useT } from '../i18n/useT';
 
 const TOMEVAULT_LOGO_SRC = '/references/tomeVaultLogo1.png';
 
@@ -22,6 +23,8 @@ export default function RuntimeErrorScreen({
   onReload,
   onClearStateAndReload,
 }) {
+  const { t } = useT('errors');
+
   return (
     <div className="tv-runtime-error-page bg-texture font-ui">
       <div className="tv-runtime-error-ambient" aria-hidden="true" />
@@ -44,19 +47,19 @@ export default function RuntimeErrorScreen({
 
           <ErrorHero />
 
-          <p className="tv-type-label mt-5">Runtimefout</p>
+          <p className="tv-type-label mt-5">{t('runtime.label')}</p>
 
           <h1 className="mt-2 font-fantasy text-[1.35rem] leading-tight tracking-[0.1em] tv-text sm:text-2xl">
-            De tome is even dichtgevallen
+            {t('runtime.title')}
           </h1>
 
           <p className="mx-auto mt-3 max-w-[34ch] font-story text-sm italic leading-relaxed tv-text-sub">
-            Meestal lost een herstart dit op. Je sessie blijft bewaard in de cloud.
+            {t('runtime.hint')}
           </p>
 
           <div className="mt-6 space-y-2">
             <Button variant="primary" block icon={RefreshCw} onClick={onReload}>
-              Opnieuw laden
+              {t('runtime.reload')}
             </Button>
             <button
               type="button"
@@ -64,7 +67,7 @@ export default function RuntimeErrorScreen({
               className="tv-btn tv-button-ghost tv-btn--block gap-2 text-xs tv-muted transition-colors hover:tv-text-sub"
             >
               <Eraser className="h-3.5 w-3.5 opacity-70" />
-              Browserstatus wissen en herladen
+              {t('runtime.clearAndReload')}
             </button>
           </div>
 
@@ -72,9 +75,9 @@ export default function RuntimeErrorScreen({
 
           <details className="tv-runtime-error-panel group text-left" open>
             <summary className="tv-runtime-error-panel__summary tv-type-label cursor-pointer list-none">
-              <span>Foutmelding</span>
-              <span className="tv-runtime-error-panel__hint group-open:hidden">Tonen</span>
-              <span className="tv-runtime-error-panel__hint hidden group-open:inline">Verbergen</span>
+              <span>{t('runtime.details')}</span>
+              <span className="tv-runtime-error-panel__hint group-open:hidden">{t('runtime.show')}</span>
+              <span className="tv-runtime-error-panel__hint hidden group-open:inline">{t('runtime.hide')}</span>
             </summary>
             <pre className="tv-runtime-error-message">{errorMessage}</pre>
           </details>

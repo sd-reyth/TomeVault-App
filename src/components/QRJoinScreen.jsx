@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { Flame, Loader2, LogIn, Mail, Scroll, ShieldCheck, Swords } from 'lucide-react';
 import { formatCampaignDisplayName } from '../lib/sessionUtils';
 import landingBackgroundVideo from '../../Video/landingBG.mp4';
+import { useT } from '../i18n/useT';
 
 export default function QRJoinScreen({
   inviteCode,
@@ -9,6 +10,7 @@ export default function QRJoinScreen({
   sessionNumber = null,
   uid,
   authLoading,
+  authBusy = false,
   sessionBusy,
   authError,
   sessionError,
@@ -17,6 +19,7 @@ export default function QRJoinScreen({
   onJoin,
   theme = 'ember-forge',
 }) {
+  const { t } = useT('auth');
   const videoRef = useRef(null);
   const [name, setName] = useState('');
   const [localError, setLocalError] = useState('');
@@ -34,17 +37,17 @@ export default function QRJoinScreen({
     setLocalError('');
     const trimmedName = name.trim();
     if (!trimmedName) {
-      setLocalError('Voer je naam in.');
+      setLocalError(t('qr.errors.nameRequired'));
       return;
     }
     if (!uid) {
-      setLocalError('Log eerst in.');
+      setLocalError(t('qr.errors.signInRequired'));
       return;
     }
     onJoin(trimmedName, inviteCode);
   };
 
-  const isBusy = authLoading || sessionBusy;
+  const isBusy = authBusy || authLoading || sessionBusy;
   const displayError = localError || authError || sessionError;
 
   return (
@@ -68,7 +71,7 @@ export default function QRJoinScreen({
               TOME<span className="tv-accent">VAULT</span>
             </span>
           </div>
-          <span className="tv-label">Uitnodiging</span>
+          <span className="tv-label">{t('qr.invitation')}</span>
         </div>
 
         {displayCampaignName ? (
@@ -79,11 +82,11 @@ export default function QRJoinScreen({
             <div className="font-fantasy text-xl tracking-[0.04em] tv-text">{displayCampaignName}</div>
             {safeSessionNumber > 0 ? (
               <div className="mt-1 text-xs font-semibold uppercase tracking-[0.16em] text-[color:var(--tv-text-secondary)]">
-                Sessie {safeSessionNumber}
+                {t('qr.sessionLabel', { number: safeSessionNumber })}
               </div>
             ) : null}
             <p className="tv-meta mt-3 text-sm leading-relaxed">
-              Je bent uitgenodigd om mee te spelen. Log in om verder te gaan.
+              {t('qr.inviteBody')}
             </p>
           </div>
         ) : null}
@@ -100,10 +103,10 @@ export default function QRJoinScreen({
               <div className="rounded-xl border border-emerald-900/35 bg-emerald-950/18 px-4 py-3 text-sm font-story leading-relaxed text-emerald-100">
                 <div className="flex items-center gap-2 font-fantasy text-[11px] uppercase tracking-[0.18em] text-emerald-300">
                   <ShieldCheck className="h-3.5 w-3.5" />
-                  Account vereist
+                  {t('qr.accountRequired')}
                 </div>
                 <p className="mt-2 text-sm leading-relaxed text-emerald-100/90">
-                  Maak een account aan of log in om via deze uitnodiging mee te doen — zonder PIN.
+                  {t('qr.accountHint')}
                 </p>
               </div>
 
@@ -139,19 +142,19 @@ export default function QRJoinScreen({
                 className="tv-btn tv-button-secondary tv-btn--block w-full gap-2.5 px-4 font-story text-sm disabled:cursor-not-allowed disabled:opacity-50"
               >
                 <Mail className="h-4 w-4" />
-                E-mail
+                {t('qr.email')}
               </button>
             </>
           ) : (
             <>
               <div>
-                <label className="tv-label mb-1.5 block">Karakternaam</label>
+                <label className="tv-label mb-1.5 block">{t('qr.characterName')}</label>
                 <input
                   type="text"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   onKeyDown={(e) => e.key === 'Enter' && !isBusy && handleJoin()}
-                  placeholder="Bijv. Aragorn"
+                  placeholder={t('qr.characterPlaceholder')}
                   maxLength={32}
                   disabled={isBusy}
                   className="tv-field"
@@ -178,7 +181,7 @@ export default function QRJoinScreen({
                 ) : (
                   <>
                     <LogIn className="h-4 w-4" />
-                    {displayCampaignName ? `Deelnemen aan ${displayCampaignName}` : 'Deelnemen'}
+                    {displayCampaignName ? t('qr.joinCampaign', { campaign: displayCampaignName }) : t('qr.join')}
                   </>
                 )}
               </button>
@@ -191,7 +194,7 @@ export default function QRJoinScreen({
           onClick={() => onUseFullLogin?.()}
           className="tv-muted text-center font-story text-[11px] underline-offset-2 hover:tv-accent hover:underline"
         >
-          Aanmeldformulier
+          {t('qr.signUpForm')}
         </button>
       </div>
     </div>

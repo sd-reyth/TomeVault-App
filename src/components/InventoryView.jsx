@@ -9,10 +9,11 @@ import { getHandoutIcon, getHandoutOwnerId, getHandoutTypeLabel, isHandoutDelete
 import WalletSection from './WalletSection';
 import {
   getItemCategoryChipClass,
-  getItemCategoryLabel,
   ITEM_CATEGORY_FILTER_OPTIONS,
   normalizeItemCategory,
 } from '../lib/itemCategories';
+import { useT } from '../i18n/useT';
+import { confirmDialog } from '../i18n/dialogs.js';
 
 function itemMatchesFilters(item, query, category) {
   const text = `${item.name || ''} ${item.desc || ''}`.toLowerCase();
@@ -27,6 +28,7 @@ function handoutMatchesSearch(handout, query) {
 }
 
 function TreasureEmptyState({ variant }) {
+  const { t } = useT('inventory');
   const isSearch = variant === 'search';
 
   return (
@@ -36,17 +38,17 @@ function TreasureEmptyState({ variant }) {
         {isSearch ? <Search className="h-6 w-6" /> : <TreasureIcon className="h-6 w-6" />}
       </div>
       <p className="tv-treasure-empty__title font-story">
-        {isSearch ? 'Geen match' : 'Nog leeg'}
+        {isSearch ? t('empty.noMatch') : t('empty.empty')}
       </p>
     </div>
   );
 }
 
-function resolveOwnerLabel(ownerId, party) {
-  if (ownerId === 'party') return 'Groep';
+function resolveOwnerLabel(ownerId, party, t) {
+  if (ownerId === 'party') return t('owner.party');
   const member = party.find((p) => p.id === ownerId);
   if (member) return member.name;
-  return '—';
+  return t('owner.unknown');
 }
 
 function ItemCard({
@@ -58,10 +60,11 @@ function ItemCard({
   onUpdateItemAmount,
   onDeleteItem,
 }) {
+  const { t } = useT('inventory');
   const description = String(item.desc || '').replace(/\s+/g, ' ').trim();
   const [imageFailed, setImageFailed] = useState(false);
-  const category = getItemCategoryLabel(item.category);
   const categoryKey = normalizeItemCategory(item.category);
+  const category = t(`categories.${categoryKey}`);
 
   return (
     <article className="tv-inventory-item" data-category={categoryKey}>
@@ -94,7 +97,7 @@ function ItemCard({
                       type="button"
                       onClick={() => onUpdateItemAmount?.(item.id, Math.max(1, Number(item.amount || 1) - 1))}
                       className="tv-inventory-item__action"
-                      title="Verlaag aantal"
+                      title={t('item.decreaseAmount')}
                     >
                       −
                     </button>
@@ -102,7 +105,7 @@ function ItemCard({
                       type="button"
                       onClick={() => onUpdateItemAmount?.(item.id, Number(item.amount || 0) + 1)}
                       className="tv-inventory-item__action"
-                      title="Verhoog aantal"
+                      title={t('item.increaseAmount')}
                     >
                       +
                     </button>
@@ -112,7 +115,7 @@ function ItemCard({
                   type="button"
                   onClick={() => onDeleteItem?.(item.id)}
                   className="tv-inventory-item__action tv-inventory-item__action--danger"
-                  title="Verwijder item"
+                  title={t('item.deleteItem')}
                 >
                   <Trash2 className="h-3.5 w-3.5" />
                 </button>
@@ -130,9 +133,10 @@ function ItemCard({
 }
 
 function ClaimedHandoutCard({ handout, party, showOwner, personalNote, canReturn, onOpenHandout, onReturn }) {
+  const { t } = useT('inventory');
   const Icon = getHandoutIcon(handout.type);
   const typeLabel = getHandoutTypeLabel(handout.type);
-  const ownerLabel = resolveOwnerLabel(getHandoutOwnerId(handout), party);
+  const ownerLabel = resolveOwnerLabel(getHandoutOwnerId(handout), party, t);
 
   return (
     <div
@@ -168,11 +172,11 @@ function ClaimedHandoutCard({ handout, party, showOwner, personalNote, canReturn
               type="button"
               onClick={(event) => onReturn(event, handout)}
               className="tv-inventory-handout-return"
-              title="Terugleggen naar handouts"
-              aria-label={`${handout.title} terugleggen naar handouts`}
+              title={t('handout.returnTitle')}
+              aria-label={t('handout.returnAria', { title: handout.title })}
             >
               <CornerUpLeft className="h-3.5 w-3.5" />
-              <span>Terugleggen</span>
+              <span>{t('handout.return')}</span>
             </button>
           ) : null}
         </div>
@@ -201,6 +205,7 @@ function PlayerInventoryAccordion({
   onOpenHandout,
   onReturnHandout,
 }) {
+  const { t } = useT('inventory');
   const [localOpen, setLocalOpen] = useState(false);
   const open = forceOpen || localOpen;
 
@@ -237,8 +242,8 @@ function PlayerInventoryAccordion({
             type="button"
             className="tv-player-inv__add"
             onClick={() => onAddItem?.(player.id)}
-            title={`Item toevoegen voor ${player.name}`}
-            aria-label={`Item toevoegen voor ${player.name}`}
+            title={t('item.addForPlayer', { name: player.name })}
+            aria-label={t('item.addForPlayerAria', { name: player.name })}
           >
             <Plus className="h-4 w-4" />
           </button>
@@ -274,7 +279,7 @@ function PlayerInventoryAccordion({
             </div>
           ) : (
             <p className="tv-player-inv__empty font-story">
-              {items.length === 0 ? 'Nog geen items' : 'Geen match'}
+              {items.length === 0 ? t('empty.noItems') : t('empty.noMatch')}
             </p>
           )}
 
@@ -315,6 +320,8 @@ function InventoryView({
   onDeleteItem,
   onAdjustWallet,
 }) {
+  const { t } = useT('inventory');
+
   const humanPlayers = useMemo(
     () => party.filter((p) => !p.isNpc),
     [party]
@@ -325,7 +332,13 @@ function InventoryView({
   const [search, setSearch] = useState('');
   const [filter, setFilter] = useState('all');
 
-  const categoryOptions = ITEM_CATEGORY_FILTER_OPTIONS;
+  const categoryOptions = useMemo(
+    () => ITEM_CATEGORY_FILTER_OPTIONS.map((opt) => ({
+      value: opt.value,
+      label: t(`categories.${opt.value}`),
+    })),
+    [t]
+  );
 
   const isPlayersMode = role === 'gm' && gmScope === 'players';
   const isPlayerOwned = (ownerId) => humanPlayers.some((p) => p.id === ownerId);
@@ -343,14 +356,14 @@ function InventoryView({
     };
 
     const options = [
-      withCount('all', 'Alles'),
-      withCount('party', 'Groep'),
+      withCount('all', t('scope.all')),
+      withCount('party', t('scope.party')),
     ];
     if (humanPlayers.length > 0) {
-      options.push(withCount('players', 'Avonturiers'));
+      options.push(withCount('players', t('scope.adventurers')));
     }
     return options;
-  }, [humanPlayers, scopeCounts]);
+  }, [humanPlayers, scopeCounts, t]);
 
   const scopedItems = useMemo(() => {
     if (role !== 'gm') {
@@ -406,19 +419,18 @@ function InventoryView({
 
   const handleReturnHandout = (event, handout) => {
     event.stopPropagation();
-    const title = handout?.title || 'dit item';
+    const title = handout?.title || t('handout.thisItem');
     const hasNote = Boolean(String(claimNotesByHandoutId[handout.id] || '').trim());
-    const noteHint = hasNote ? ' Je persoonlijke notitie wordt ook verwijderd.' : '';
-    const confirmed = typeof window !== 'undefined'
-      ? window.confirm(`"${title}" terugleggen naar handouts?${noteHint}`)
-      : true;
+    const confirmed = hasNote
+      ? confirmDialog('inventory:handout.confirmReturnWithNote', { title })
+      : confirmDialog('inventory:handout.confirmReturn', { title });
     if (!confirmed) return;
     onUnclaim?.(handout.id);
   };
 
   const walletTitle = role === 'gm'
-    ? (walletOwnerId === 'party' ? 'Groepskas' : resolveOwnerLabel(walletOwnerId, party))
-    : 'Buidel';
+    ? (walletOwnerId === 'party' ? t('wallet.partyFund') : resolveOwnerLabel(walletOwnerId, party, t))
+    : t('wallet.pouch');
 
   const preferredOwnerForAdd = role === 'gm'
     ? (gmScope === 'all' || gmScope === 'players' ? 'party' : gmScope)
@@ -433,7 +445,7 @@ function InventoryView({
       <div className="tv-view-shell-header flex shrink-0 flex-col gap-2 p-3 sm:flex-row sm:items-center sm:justify-between md:p-4">
         <h2 className="flex items-center gap-2 font-fantasy text-xs font-medium uppercase tracking-[0.18em] tv-text md:text-sm">
           <TreasureIcon className="tv-view-title-icon" aria-hidden />
-          Schatkamer
+          {t('view.title')}
         </h2>
 
         <div className="tv-toolbar w-full sm:w-auto">
@@ -442,7 +454,7 @@ function InventoryView({
             onClick={() => setWalletOpen((open) => !open)}
             className="tv-toolbar__stat tv-inventory-wallet-pill"
             aria-expanded={walletOpen}
-            title="Munten"
+            title={t('view.coins')}
           >
             <Coins className="h-3.5 w-3.5 shrink-0 tv-inventory-wallet-pill__icon" aria-hidden />
             <span className="tv-toolbar__stat-value">{formatWalletTotal(headerWallet)}</span>
@@ -451,8 +463,8 @@ function InventoryView({
           <button
             type="button"
             onClick={() => onOpenAddItem?.(preferredOwnerForAdd)}
-            title="Nieuw item"
-            aria-label="Nieuw item"
+            title={t('view.newItem')}
+            aria-label={t('view.newItemAria')}
             className="tv-toolbar__btn tv-toolbar__btn--square tv-button-primary"
           >
             <Plus className="h-4 w-4 shrink-0" />
@@ -498,14 +510,14 @@ function InventoryView({
               value={gmScope}
               options={gmScopeOptions}
               onChange={setGmScope}
-              aria-label="Schatkamer weergave"
+              aria-label={t('view.scopeAria')}
             />
           </div>
         ) : null}
 
         <div className="tv-inventory-sticky-tools shrink-0 space-y-2 border-b border-[color-mix(in_srgb,var(--tv-border),transparent_55%)] px-3 py-2.5 backdrop-blur-md md:px-4">
           <div className="flex items-center gap-2">
-            <span className="tv-inventory-count" aria-label={`${scopedItems.length} items`}>
+            <span className="tv-inventory-count" aria-label={t('view.itemsAria', { count: scopedItems.length })}>
               {resultLabel}
             </span>
             <div className="tv-inventory-search-wrap min-w-0 flex-1">
@@ -514,14 +526,14 @@ function InventoryView({
                 type="search"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                placeholder="Zoeken…"
+                placeholder={t('view.searchPlaceholder')}
                 className="tv-inventory-search"
               />
             </div>
           </div>
 
           <div className="tv-inventory-filter-chips-wrap">
-          <div className="tv-inventory-filter-chips no-scrollbar" role="group" aria-label="Filter op soort">
+          <div className="tv-inventory-filter-chips no-scrollbar" role="group" aria-label={t('view.filterAria')}>
             {categoryOptions.map((opt) => (
               <button
                 key={opt.value}
@@ -582,7 +594,7 @@ function InventoryView({
                       role={role}
                       currentPlayerId={currentPlayerId}
                       showOwner={showOwnerOnItems}
-                      ownerLabel={resolveOwnerLabel(item.ownerId, party)}
+                      ownerLabel={resolveOwnerLabel(item.ownerId, party, t)}
                       onUpdateItemAmount={onUpdateItemAmount}
                       onDeleteItem={onDeleteItem}
                     />
@@ -597,7 +609,7 @@ function InventoryView({
                   <div className="tv-inventory-claimed-block__head">
                     <Scroll className="h-3.5 w-3.5 shrink-0 tv-accent" aria-hidden />
                     <h4 className="text-[10px] font-semibold uppercase tracking-[0.16em] tv-text">
-                      Handouts
+                      {t('view.handoutsSection')}
                     </h4>
                     <span className="tv-inventory-count tv-inventory-count--inline">
                       {scopedClaimedHandouts.length}

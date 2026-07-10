@@ -39,6 +39,54 @@ export function canDeleteChatMessage(message, role, uid, selfAuthor) {
   return !isDiceChatMessage(message.text);
 }
 
+export function buildChatAvatarLookup(party = []) {
+  const byUid = new Map();
+  const byName = new Map();
+
+  party.forEach((member) => {
+    if (!member) return;
+    if (member.id) byUid.set(member.id, member);
+    const name = String(member.name || '').trim().toLowerCase();
+    if (name) byName.set(name, member);
+  });
+
+  return { byUid, byName };
+}
+
+export function resolveChatSenderProfile(message, lookup) {
+  if (!message) {
+    return { avatar: null, avatarPosition: null, name: '', memberId: null };
+  }
+
+  if (message.uid && lookup?.byUid?.has(message.uid)) {
+    const member = lookup.byUid.get(message.uid);
+    return {
+      avatar: member.avatar || null,
+      avatarPosition: member.avatarPosition || null,
+      name: member.name || message.author || '',
+      memberId: member.id || message.uid,
+    };
+  }
+
+  const authorKey = String(message.author || '').trim().toLowerCase();
+  if (authorKey && lookup?.byName?.has(authorKey)) {
+    const member = lookup.byName.get(authorKey);
+    return {
+      avatar: member.avatar || null,
+      avatarPosition: member.avatarPosition || null,
+      name: member.name || message.author || '',
+      memberId: member.id || null,
+    };
+  }
+
+  return {
+    avatar: null,
+    avatarPosition: null,
+    name: message.author || '',
+    memberId: message.uid || `author:${message.author || 'unknown'}`,
+  };
+}
+
 export function sendChatMessage(message, type = 'user') {
   const chatMessage = {
     content: message,

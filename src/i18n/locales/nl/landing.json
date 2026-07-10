@@ -1,0 +1,259 @@
+{
+  "hero": {
+    "eyebrow": "De digitale tafel voor je tafelrollenspel",
+    "title": "TOMEVAULT",
+    "subtitle": "Eén warme, rustige tafel waar spelleiders en spelers samenkomen. Handouts, chat, slagorde, notities en je hele wereld — realtime, zonder dashboard-chaos.",
+    "primaryCta": "Begin gratis",
+    "secondaryCta": "Ontdek de functies"
+  },
+  "features": {
+    "handouts": {
+      "title": "Handouts zonder omweg",
+      "description": "Onthul lore, kaarten en aanwijzingen op het juiste moment. Verzegeld tot jij de rol openrolt."
+    },
+    "chat": {
+      "title": "Realtime aan tafel",
+      "description": "Chat, dobbelworpen en de status van de wereld blijven voor iedere speler direct synchroon."
+    },
+    "combat": {
+      "title": "Slagorde die meeleeft",
+      "description": "Initiatief, HP, condities en beurten in één helder gevechtspaneel — premium en overzichtelijk."
+    },
+    "notes": {
+      "title": "Notities & kronieken",
+      "description": "Leg de wereld vast: privé GM-notities, gedeelde kronieken en alles wat je later terugzoekt."
+    },
+    "inventory": {
+      "title": "Inventaris & buit",
+      "description": "Beheer voorwerpen, valuta en beloningen. Spelers houden hun eigen rugzak bij de hand."
+    },
+    "roles": {
+      "title": "GM en speler, elk hun rol",
+      "description": "Eén herberg, afgeschermde rollen. De spelleider stuurt, spelers zien precies wat ze mogen zien."
+    }
+  },
+  "audiences": {
+    "gm": {
+      "label": "Spelleider",
+      "title": "Voor de spelleider",
+      "description": "Bouw werelden, leid het gevecht en deel onthullingen op jouw tempo — zonder voorbereiding kwijt te raken."
+    },
+    "player": {
+      "label": "Speler",
+      "title": "Voor de speler",
+      "description": "Stap je personage in, gooi je dobbelstenen en houd je rugzak en aantekeningen bij de hand."
+    }
+  },
+  "pricing": {
+    "gm": {
+      "free": {
+        "name": "Verkenner",
+        "tagline": "Start je eerste campagne — gratis, voor altijd.",
+        "price": "Gratis",
+        "period": "geen kaart nodig",
+        "cta": "Begin gratis"
+      },
+      "paid": {
+        "name": "Spelleider Premium",
+        "tagline": "Onbeperkte werelden voor de serieuze GM.",
+        "price": "€7,99",
+        "period": "per maand",
+        "altPrice": "of €79 per jaar",
+        "cta": "Word Premium",
+        "badge": "Meest gekozen"
+      }
+    },
+    "player": {
+      "free": {
+        "name": "Avonturier",
+        "tagline": "Doe mee aan elke sessie — gratis.",
+        "price": "Gratis",
+        "period": "geen kaart nodig",
+        "cta": "Maak account"
+      },
+      "paid": {
+        "name": "Held (Plus)",
+        "tagline": "Je personages en spullen, over al je campagnes heen.",
+        "price": "€3,99",
+        "period": "per maand",
+        "altPrice": "of €39 per jaar",
+        "cta": "Word Plus",
+        "badge": "Populair"
+      }
+    }
+  },
+  "faq": {
+    "start": {
+      "q": "Heb ik iets nodig om te beginnen?",
+      "a": "Nee. Maak een gratis account, start een sessie als spelleider of voeg je toe met een code als speler. Alles draait in je browser."
+    },
+    "cost": {
+      "q": "Wat kost het?",
+      "a": "TomeVault is gratis te gebruiken. Premium-abonnementen ontgrendelen extra's zoals onbeperkte campagnes, exporteren en premium thema's. De getoonde prijzen zijn indicatief."
+    },
+    "mobile": {
+      "q": "Werkt het ook op mijn telefoon?",
+      "a": "Ja. De tafel is gebouwd voor desktop én mobiel, zodat spelers vanaf elk scherm kunnen meedoen."
+    },
+    "upgrade": {
+      "q": "Kan ik later upgraden?",
+      "a": "Zeker. Je begint gratis en stapt op elk moment over naar Premium of Plus — je campagnes en personages blijven bewaard."
+    }
+  },
+  "about": {
+    "eyebrow": "Over TomeVault",
+    "title": "Sfeer, focus en duidelijkheid",
+    "body": "We bouwen TomeVault voor groepen die hun verhaal centraal stellen, niet hun tooling. Een rustige digitale herberg waar handouts, chat, gevecht en notities samenkomen — warm, cohesief en zonder ruis."
+  },
+  "nav": {
+    "features": "Functies",
+    "showcase": "Aan tafel",
+    "pricing": "Prijzen",
+    "about": "Over",
+    "login": "Inloggen"
+  },
+  "auth": {
+    "title": "Inloggen",
+    "lead": "Maak gratis een account of log in om je sessies te openen.",
+    "google": "Doorgaan met Google",
+    "busy": "Bezig…",
+    "inviteRecognized": "Uitnodiging herkend{{codeSuffix}}. Meld je aan en we houden deze code voor je vast.",
+    "inviteCodeSuffix": " voor {{code}}",
+    "hideEmail": "Verberg e-mail",
+    "useEmail": "Gebruik e-mail",
+    "loginTab": "Inloggen",
+    "signupTab": "Aanmaken",
+    "displayNamePlaceholder": "Weergavenaam",
+    "emailPlaceholder": "jij@email.com",
+    "passwordPlaceholder": "Wachtwoord",
+    "confirmPasswordPlaceholder": "Bevestig wachtwoord",
+    "signupSubmit": "Account Aanmaken",
+    "loginSubmit": "Inloggen met E-mail",
+    "errors": {
+      "loginRequiredGm": "Log eerst in voordat je een sessie start.",
+      "loginRequiredPlayer": "Log eerst in voordat je een sessie joint.",
+      "pinInvalid": "Voer een PIN van 4 tot 8 cijfers in.",
+      "playerFieldsRequired": "Vul een naam en een geldige sessie-code in.",
+      "emailPasswordRequired": "Vul e-mail en wachtwoord in.",
+      "passwordTooShort": "Wachtwoord moet minimaal 6 tekens hebben.",
+      "passwordMismatch": "Wachtwoorden komen niet overeen."
+    }
+  },
+  "contact": {
+    "namePlaceholder": "Je naam",
+    "emailPlaceholder": "E-mail",
+    "messagePlaceholder": "Bericht",
+    "submit": "Verstuur via E-mail",
+    "toggleClose": "Sluit feedback",
+    "toggleOpen": "Feedback",
+    "subject": "Contact via TomeVault website - {{name}}",
+    "bodyIntro": "Bericht:",
+    "unknownName": "Onbekend"
+  },
+  "ambience": {
+    "toggleTitle": "De achtergrondvideo speelt altijd. Geluid blijft zacht en start pas na een tik.",
+    "mute": "Geluid uitzetten",
+    "unmute": "Geluid aanzetten",
+    "volumeAria": "Volume van sfeergeluid"
+  },
+  "marketing": {
+    "or": "Of",
+    "audiencesEyebrow": "Eén tafel, twee rollen",
+    "audiencesTitle": "Gebouwd voor jouw groep",
+    "featuresEyebrow": "Wat biedt de Waard",
+    "featuresTitle": "Alles voor je tafel, op één plek",
+    "featuresLead": "Geen losse tools meer. TomeVault brengt je hele sessie samen in één rustige, warme ruimte.",
+    "showcaseEyebrow": "Het hart van TomeVault",
+    "showcaseTitle": "Handouts op het juiste moment",
+    "showcaseLead": "Deel kaarten, lore en geheimen wanneer jij de rol openrolt — spelers zien precies wat jij wilt onthullen.",
+    "showcaseCampaign": "Kelder van de Goblin Koning",
+    "showcaseSessionChip": "Sessie #3",
+    "pricingEyebrow": "Gratis beginnen, groeien wanneer je wilt",
+    "pricingTitle": "Kies je pad",
+    "pricingLead": "TomeVault is gratis te gebruiken. Upgrade voor onbeperkte werelden en premium extra's.",
+    "pricingNote": "Getoonde prijzen zijn indicatief. Je begint gratis — een betaalmethode is niet nodig om te starten.",
+    "footerTagline": "© {{year}} TomeVault — Jouw magische tafel aan de taverne.",
+    "forgedBy": "Gesmeed door"
+  },
+  "showcase": {
+    "nav": {
+      "handouts": "Handouts",
+      "whispers": "Fluisteringen",
+      "treasury": "Schatkamer",
+      "preparations": "Voorbereidingen",
+      "chronicles": "Kronieken"
+    },
+    "handouts": {
+      "partySeesSecret": "Party ziet secret",
+      "hidden": "Verborgen",
+      "cellarMap": {
+        "title": "Kaart van de Kelder",
+        "content": "Vier gangen naar het noorden. De zuidelijke deur is verzegeld met runen."
+      },
+      "goblinJournal": {
+        "title": "Journaal van de Goblin Koning",
+        "content": "De laatste regels zijn geschreven in een trillende hand…"
+      },
+      "sealedScroll": {
+        "title": "De Verzegelde Rol",
+        "content": "Nog verborgen voor de spelers tot jij klaar bent om te onthullen."
+      }
+    }
+  },
+  "highlights": {
+    "handouts": "Handouts",
+    "realtime": "Realtime",
+    "roles": "Rollen"
+  },
+  "sessionHub": {
+    "signOutBusy": "Uitloggen…",
+    "signOut": "Log uit",
+    "chooseNext": "Kies je volgende stap.",
+    "chooseNextLead": "Hervat een wereld of open meteen een nieuwe sessie.",
+    "pleaseWait": "Even geduld.",
+    "openingRecentBusy": "We proberen je meest recente sessie direct te openen.",
+    "loadingSessions": "We laden je sessies om te bepalen of je direct terug de wereld in kunt.",
+    "recentSessions": "Recente sessies",
+    "backfillOld": "Herstel oud",
+    "backfillDefault": "Herstel oudere sessies",
+    "backfillBusy": "Sessies herstellen…",
+    "backfillDone": "Klaar — ververs de pagina",
+    "backfillTitle": "Herstel oude sessies waar je GM of speler bent",
+    "hideHidden": "Verberg verborgen",
+    "showHidden": "Toon verborgen ({{count}})",
+    "noRecent": "Nog geen recente sessies.",
+    "codeLabel": "Code {{code}}",
+    "resume": "Hervat",
+    "restoreList": "Zet terug in recente lijst",
+    "hideFromList": "Verberg uit deze lijst",
+    "restore": "Herstel",
+    "hide": "Verberg",
+    "deleteTitle": "Verlaat en wis deze sessie permanent",
+    "newSession": "Nieuwe sessie",
+    "joinSession": "Meedoen",
+    "roleAria": "Rol",
+    "sessionName": "Sessienaam",
+    "sessionNamePlaceholder": "Optioneel — anders een willekeurige code",
+    "pin": "PIN",
+    "pinPlaceholder": "4–8 cijfers",
+    "startSession": "Start sessie",
+    "characterName": "Karakternaam",
+    "characterPlaceholder": "Bijv. Aragorn",
+    "sessionCode": "Sessiecode",
+    "sessionCodePlaceholder": "Bijv. #DRAAK-1234",
+    "pinKnownSession": "Niet nodig voor bekende sessie",
+    "knownSessionHint": "Bekende sessie gevonden. Je kunt direct zonder PIN verder.",
+    "join": "Meedoen",
+    "delete": {
+      "title": "Sessie Permanent Wissen",
+      "intro": "Om deze sessie permanent te verwijderen, typ de volledige sessienaam exact over zoals hieronder weergegeven.",
+      "confirmLabel": "Te bevestigen sessie",
+      "namePlaceholder": "Typ de sessienaam exact over",
+      "nameMismatch": "De ingevoerde sessienaam komt niet exact overeen.",
+      "gmWarning": "U bent de GM van deze sessie en staat op het punt de volledige campagne definitief te verwijderen. Spelers kunnen deze wereld daarna niet meer betreden en dit kan niet ongedaan worden gemaakt.",
+      "gmConfirm": "Weet u zeker dat u {{name}} voorgoed wilt wissen?",
+      "back": "Terug",
+      "confirmDelete": "Campagne Wissen"
+    }
+  }
+}

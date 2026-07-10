@@ -5,12 +5,15 @@ import { formatCustomStatValue, formatSignedModifier } from '../lib/statModifier
 import ModalFrame from './ModalFrame';
 import TvImage from './TvImage';
 import Button from '../ui/Button';
+import { useT } from '../i18n/useT';
 
 function formatModifier(value) {
   return formatSignedModifier(value);
 }
 
 export default function PreparationOfferModal({ isOpen, preparation, onAccept, onReject, busy = false }) {
+  const { t } = useT('preparations');
+
   if (!isOpen || !preparation) return null;
 
   const statPills = [
@@ -22,12 +25,14 @@ export default function PreparationOfferModal({ isOpen, preparation, onAccept, o
     value: formatCustomStatValue(stat),
   })));
 
+  const characterName = preparation.name || t('offer.unnamedCharacter');
+
   return (
     <ModalFrame
       isOpen={isOpen}
       onClose={busy ? () => {} : onReject}
-      title="Rolvoorstel"
-      subtitle={preparation.name || 'Naamloos personage'}
+      title={t('offer.title')}
+      subtitle={characterName}
       icon={Crown}
       iconClassName="tv-accent h-5 w-5 shrink-0"
       maxWidthClassName="max-w-xl"
@@ -36,7 +41,7 @@ export default function PreparationOfferModal({ isOpen, preparation, onAccept, o
       footer={(
         <div className="tv-offer-modal__footer">
           <Button type="button" variant="ghost" block onClick={onReject} disabled={busy} icon={X}>
-            Weiger
+            {t('offer.reject')}
           </Button>
           <Button
             type="button"
@@ -47,7 +52,7 @@ export default function PreparationOfferModal({ isOpen, preparation, onAccept, o
             loading={busy}
             disabled={busy}
           >
-            Aanvaard
+            {t('offer.accept')}
           </Button>
         </div>
       )}
@@ -57,7 +62,7 @@ export default function PreparationOfferModal({ isOpen, preparation, onAccept, o
           <div className="tv-offer-modal__portrait tv-image-frame">
             <TvImage
               src={resolveDisplayAvatar(preparation.imageUrl, preparation.id)}
-              alt={preparation.name || 'Voorbereid personage'}
+              alt={characterName}
             />
           </div>
 
@@ -66,15 +71,15 @@ export default function PreparationOfferModal({ isOpen, preparation, onAccept, o
               <p className="tv-offer-modal__class">{preparation.subtitle}</p>
             ) : null}
             <p className="tv-offer-modal__lead">
-              De GM biedt een voorbereid personage aan. Inventaris en wallet blijven intact; je vorige profiel komt in je archief.
+              {t('offer.lead')}
             </p>
             <p className="tv-offer-modal__hint">
-              Sluiten werkt hetzelfde als weigeren — de voorbereiding gaat terug naar de GM.
+              {t('offer.hint')}
             </p>
           </div>
         </div>
 
-        <div className="tv-offer-modal__stats" aria-label="Karakterstatistieken">
+        <div className="tv-offer-modal__stats" aria-label={t('offer.statsAria')}>
           {statPills.map((pill) => (
             <span key={`${preparation.id}-${pill.label}`} className="tv-prep-stat-pill">
               <span className="tv-prep-stat-pill__label">{pill.label}</span>
@@ -84,9 +89,9 @@ export default function PreparationOfferModal({ isOpen, preparation, onAccept, o
         </div>
 
         <div className="tv-offer-modal__bio tv-panel-inset">
-          <p className="tv-offer-modal__bio-label">Achtergrond</p>
+          <p className="tv-offer-modal__bio-label">{t('offer.background')}</p>
           <div className="tv-offer-modal__bio-copy font-story text-sm leading-7 tv-text">
-            {preparation.bio || <span className="italic tv-muted">Geen bio.</span>}
+            {preparation.bio || <span className="italic tv-muted">{t('offer.noBio')}</span>}
           </div>
         </div>
       </div>

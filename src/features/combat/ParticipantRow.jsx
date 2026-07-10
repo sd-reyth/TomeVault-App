@@ -7,6 +7,7 @@ import Text from '../../ui/Text';
 import CombatStatChip from './CombatStatChip';
 import ConditionChips from './ConditionChips';
 import TurnOrderMarker from './TurnOrderMarker';
+import { useT } from '../../i18n/useT';
 
 export default function ParticipantRow({
   member,
@@ -28,13 +29,14 @@ export default function ParticipantRow({
   onOpenDamageModal,
   onOpenConditions,
 }) {
+  const { t } = useT('combat');
   const hasConditions = activeConditions.length > 0;
   const hpLow = !hiddenNpcForPlayer && Number(member.hp) < 10;
-  const roleLabel = member.isNpc ? 'NPC' : 'Speler';
+  const roleLabel = member.isNpc ? t('participant.npc') : t('participant.player');
   const rawSubtitle = String(member.subtitle || '').trim();
   const displaySubtitle = (() => {
     if (rawSubtitle && rawSubtitle.toLowerCase() !== roleLabel.toLowerCase()) return rawSubtitle;
-    if (member.isNpc) return 'Vijand';
+    if (member.isNpc) return t('participant.enemy');
     return '';
   })();
 
@@ -43,9 +45,7 @@ export default function ParticipantRow({
   const hpInteractive = isGm || isOwnCharacter;
   const isMarkedDead = member.isDead === true;
   const atZeroHp = Number(member.hp) <= 0 && Number(member.maxHp) > 0;
-  // NPC op 0 HP (of door de GM als overleden gemarkeerd) = defeated → doodshoofd, uit de beurtvolgorde.
   const isDefeated = !hiddenNpcForPlayer && (isMarkedDead || (member.isNpc && atZeroHp));
-  // Speler op 0 HP maar nog niet dood = downed → blijft in de initiative voor death saves.
   const isDowned = !hiddenNpcForPlayer && !member.isNpc && !isMarkedDead && atZeroHp;
   const rowClass = [
     'tv-combat-participant-row tv-handout-card group relative flex flex-row items-stretch overflow-hidden rounded-2xl transition-all duration-200 ease-out',
@@ -105,7 +105,7 @@ export default function ParticipantRow({
           </Text>
           {hasAlertFeat ? (
             <Text variant="label" tone="accent" as="span" className="tv-tag shrink-0 px-1.5 py-0.5 text-[9px]">
-              Alert
+              {t('participant.alert')}
             </Text>
           ) : null}
         </div>
@@ -121,7 +121,7 @@ export default function ParticipantRow({
             hidden={hiddenNpcForPlayer}
             low={hpLow}
             interactive={hpInteractive}
-            title={isGm ? 'Klik om HP aan te passen' : (isOwnCharacter ? 'Klik om je HP aan te passen' : 'Hit Points')}
+            title={isGm ? t('participant.hpEditGm') : (isOwnCharacter ? t('participant.hpEditSelf') : t('participant.hpTitle'))}
             onClick={(event) => {
               event.stopPropagation();
               if (isGm) {
@@ -149,7 +149,7 @@ export default function ParticipantRow({
               value={member.init}
               onChange={(value) => onUpdateStat?.(member.id, 'init', value)}
               disabled={!initiativeEditable}
-              title={initiativeEditable ? 'Bewerk initiative' : 'Initiative score'}
+              title={initiativeEditable ? t('participant.initEdit') : t('participant.initTitle')}
             />
           </CombatStatChip>
         </div>
@@ -179,9 +179,9 @@ export default function ParticipantRow({
       ) : null}
 
       {isDowned ? (
-        <div className="tv-combat-downed-veil" role="img" aria-label={`${displayMemberName} is buiten westen (0 HP)`}>
+        <div className="tv-combat-downed-veil" role="img" aria-label={t('participant.downedAria', { name: displayMemberName })}>
           <HeartCrack className="tv-combat-downed-icon" strokeWidth={1.5} aria-hidden="true" />
-          <span className="tv-combat-downed-label">Downed</span>
+          <span className="tv-combat-downed-label">{t('participant.downed')}</span>
         </div>
       ) : null}
     </div>

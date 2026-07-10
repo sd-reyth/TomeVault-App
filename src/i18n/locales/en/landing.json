@@ -1,0 +1,259 @@
+{
+  "hero": {
+    "eyebrow": "The digital table for your tabletop RPG",
+    "title": "TOMEVAULT",
+    "subtitle": "One warm, calm table where GMs and players come together. Handouts, chat, battle order, notes and your whole world — realtime, without dashboard chaos.",
+    "primaryCta": "Start free",
+    "secondaryCta": "Explore features"
+  },
+  "features": {
+    "handouts": {
+      "title": "Handouts without detours",
+      "description": "Reveal lore, maps and clues at the right moment. Sealed until you roll open the scroll."
+    },
+    "chat": {
+      "title": "Realtime at the table",
+      "description": "Chat, dice rolls and world status stay in sync for every player instantly."
+    },
+    "combat": {
+      "title": "Battle order that keeps pace",
+      "description": "Initiative, HP, conditions and turns in one clear combat panel — premium and overview-friendly."
+    },
+    "notes": {
+      "title": "Notes & chronicles",
+      "description": "Capture the world: private GM notes, shared chronicles and everything you look up later."
+    },
+    "inventory": {
+      "title": "Inventory & loot",
+      "description": "Manage items, currency and rewards. Players keep their backpack close at hand."
+    },
+    "roles": {
+      "title": "GM and player, each their role",
+      "description": "One tavern, shielded roles. The GM steers, players see exactly what they're allowed to see."
+    }
+  },
+  "audiences": {
+    "gm": {
+      "label": "Game Master",
+      "title": "For the Game Master",
+      "description": "Build worlds, run combat and share revelations at your pace — without losing prep work."
+    },
+    "player": {
+      "label": "Player",
+      "title": "For the player",
+      "description": "Step into your character, roll your dice and keep your backpack and notes close at hand."
+    }
+  },
+  "pricing": {
+    "gm": {
+      "free": {
+        "name": "Explorer",
+        "tagline": "Start your first campaign — free, forever.",
+        "price": "Free",
+        "period": "no card required",
+        "cta": "Start free"
+      },
+      "paid": {
+        "name": "GM Premium",
+        "tagline": "Unlimited worlds for the serious GM.",
+        "price": "€7.99",
+        "period": "per month",
+        "altPrice": "or €79 per year",
+        "cta": "Go Premium",
+        "badge": "Most popular"
+      }
+    },
+    "player": {
+      "free": {
+        "name": "Adventurer",
+        "tagline": "Join any session — free.",
+        "price": "Free",
+        "period": "no card required",
+        "cta": "Create account"
+      },
+      "paid": {
+        "name": "Hero (Plus)",
+        "tagline": "Your characters and gear, across all campaigns.",
+        "price": "€3.99",
+        "period": "per month",
+        "altPrice": "or €39 per year",
+        "cta": "Go Plus",
+        "badge": "Popular"
+      }
+    }
+  },
+  "faq": {
+    "start": {
+      "q": "Do I need anything to get started?",
+      "a": "No. Create a free account, start a session as GM or join with a code as a player. Everything runs in your browser."
+    },
+    "cost": {
+      "q": "What does it cost?",
+      "a": "TomeVault is free to use. Premium subscriptions unlock extras like unlimited campaigns, export and premium themes. Prices shown are indicative."
+    },
+    "mobile": {
+      "q": "Does it work on my phone?",
+      "a": "Yes. The table is built for desktop and mobile, so players can join from any screen."
+    },
+    "upgrade": {
+      "q": "Can I upgrade later?",
+      "a": "Absolutely. Start free and upgrade to Premium or Plus anytime — your campaigns and characters stay saved."
+    }
+  },
+  "about": {
+    "eyebrow": "About TomeVault",
+    "title": "Atmosphere, focus and clarity",
+    "body": "We build TomeVault for groups who put their story first, not their tooling. A calm digital tavern where handouts, chat, combat and notes come together — warm, cohesive and without noise."
+  },
+  "nav": {
+    "features": "Features",
+    "showcase": "At the table",
+    "pricing": "Pricing",
+    "about": "About",
+    "login": "Sign in"
+  },
+  "auth": {
+    "title": "Sign in",
+    "lead": "Create a free account or sign in to open your sessions.",
+    "google": "Continue with Google",
+    "busy": "Working…",
+    "inviteRecognized": "Invitation recognized{{codeSuffix}}. Sign up and we'll keep this code for you.",
+    "inviteCodeSuffix": " for {{code}}",
+    "hideEmail": "Hide email",
+    "useEmail": "Use email",
+    "loginTab": "Sign in",
+    "signupTab": "Create account",
+    "displayNamePlaceholder": "Display name",
+    "emailPlaceholder": "you@email.com",
+    "passwordPlaceholder": "Password",
+    "confirmPasswordPlaceholder": "Confirm password",
+    "signupSubmit": "Create account",
+    "loginSubmit": "Sign in with email",
+    "errors": {
+      "loginRequiredGm": "Sign in first before starting a session.",
+      "loginRequiredPlayer": "Sign in first before joining a session.",
+      "pinInvalid": "Enter a PIN of 4 to 8 digits.",
+      "playerFieldsRequired": "Enter a name and a valid session code.",
+      "emailPasswordRequired": "Enter email and password.",
+      "passwordTooShort": "Password must be at least 6 characters.",
+      "passwordMismatch": "Passwords do not match."
+    }
+  },
+  "contact": {
+    "namePlaceholder": "Your name",
+    "emailPlaceholder": "Email",
+    "messagePlaceholder": "Message",
+    "submit": "Send via email",
+    "toggleClose": "Close feedback",
+    "toggleOpen": "Feedback",
+    "subject": "Contact via TomeVault website - {{name}}",
+    "bodyIntro": "Message:",
+    "unknownName": "Unknown"
+  },
+  "ambience": {
+    "toggleTitle": "The background video always plays. Sound stays soft and starts only after a tap.",
+    "mute": "Mute sound",
+    "unmute": "Unmute sound",
+    "volumeAria": "Ambience volume"
+  },
+  "marketing": {
+    "or": "Or",
+    "audiencesEyebrow": "One table, two roles",
+    "audiencesTitle": "Built for your group",
+    "featuresEyebrow": "What the Innkeeper offers",
+    "featuresTitle": "Everything for your table, in one place",
+    "featuresLead": "No more scattered tools. TomeVault brings your whole session together in one calm, warm space.",
+    "showcaseEyebrow": "The heart of TomeVault",
+    "showcaseTitle": "Handouts at the right moment",
+    "showcaseLead": "Share maps, lore and secrets when you roll open the scroll — players see exactly what you want to reveal.",
+    "showcaseCampaign": "Goblin King's Cellar",
+    "showcaseSessionChip": "Session #3",
+    "pricingEyebrow": "Start free, grow when you want",
+    "pricingTitle": "Choose your path",
+    "pricingLead": "TomeVault is free to use. Upgrade for unlimited worlds and premium extras.",
+    "pricingNote": "Prices shown are indicative. You start free — no payment method needed to begin.",
+    "footerTagline": "© {{year}} TomeVault — Your magical table at the tavern.",
+    "forgedBy": "Forged by"
+  },
+  "showcase": {
+    "nav": {
+      "handouts": "Handouts",
+      "whispers": "Whispers",
+      "treasury": "Treasury",
+      "preparations": "Preparations",
+      "chronicles": "Chronicles"
+    },
+    "handouts": {
+      "partySeesSecret": "Party sees secret",
+      "hidden": "Hidden",
+      "cellarMap": {
+        "title": "Cellar Map",
+        "content": "Four corridors to the north. The southern door is sealed with runes."
+      },
+      "goblinJournal": {
+        "title": "Goblin King's Journal",
+        "content": "The last lines were written in a trembling hand…"
+      },
+      "sealedScroll": {
+        "title": "The Sealed Scroll",
+        "content": "Still hidden from players until you're ready to reveal."
+      }
+    }
+  },
+  "highlights": {
+    "handouts": "Handouts",
+    "realtime": "Realtime",
+    "roles": "Roles"
+  },
+  "sessionHub": {
+    "signOutBusy": "Signing out…",
+    "signOut": "Sign out",
+    "chooseNext": "Choose your next step.",
+    "chooseNextLead": "Resume a world or open a new session right away.",
+    "pleaseWait": "Please wait.",
+    "openingRecentBusy": "We're trying to open your most recent session directly.",
+    "loadingSessions": "We're loading your sessions to see if you can jump straight back in.",
+    "recentSessions": "Recent sessions",
+    "backfillOld": "Restore old",
+    "backfillDefault": "Restore older sessions",
+    "backfillBusy": "Restoring sessions…",
+    "backfillDone": "Done — refresh the page",
+    "backfillTitle": "Restore old sessions where you're GM or player",
+    "hideHidden": "Hide hidden",
+    "showHidden": "Show hidden ({{count}})",
+    "noRecent": "No recent sessions yet.",
+    "codeLabel": "Code {{code}}",
+    "resume": "Resume",
+    "restoreList": "Restore to recent list",
+    "hideFromList": "Hide from this list",
+    "restore": "Restore",
+    "hide": "Hide",
+    "deleteTitle": "Leave and permanently delete this session",
+    "newSession": "New session",
+    "joinSession": "Join",
+    "roleAria": "Role",
+    "sessionName": "Session name",
+    "sessionNamePlaceholder": "Optional — otherwise a random code",
+    "pin": "PIN",
+    "pinPlaceholder": "4–8 digits",
+    "startSession": "Start session",
+    "characterName": "Character name",
+    "characterPlaceholder": "e.g. Aragorn",
+    "sessionCode": "Session code",
+    "sessionCodePlaceholder": "e.g. #DRAGON-1234",
+    "pinKnownSession": "Not needed for known session",
+    "knownSessionHint": "Known session found. You can continue without a PIN.",
+    "join": "Join",
+    "delete": {
+      "title": "Permanently delete session",
+      "intro": "To permanently delete this session, type the full session name exactly as shown below.",
+      "confirmLabel": "Session to confirm",
+      "namePlaceholder": "Type the session name exactly",
+      "nameMismatch": "The entered session name does not match exactly.",
+      "gmWarning": "You are the GM of this session and are about to permanently delete the entire campaign. Players will no longer be able to enter this world and this cannot be undone.",
+      "gmConfirm": "Are you sure you want to permanently delete <strong>{{name}}</strong>?",
+      "back": "Back",
+      "confirmDelete": "Delete campaign"
+    }
+  }
+}

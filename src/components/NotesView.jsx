@@ -1,14 +1,10 @@
 import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { NotebookPen, FilePlus2, Save, Trash2, Search, ScrollText, Feather, Lock, ArrowLeft } from 'lucide-react';
 import { playUiSound, playWriteSound, playWritingFromValueChange, primeUiAudio } from '../lib/uiFeedback';
+import { useT } from '../i18n/useT';
+import { confirmDialog, alertDialog } from '../i18n/dialogs.js';
 
 const SAVE_DEBOUNCE_MS = 800;
-
-function getNotePreview(content = '', maxLen = 72) {
-  const trimmed = String(content || '').replace(/\s+/g, ' ').trim();
-  if (!trimmed) return 'Nog geen tekst — tik om te beginnen…';
-  return trimmed.length > maxLen ? `${trimmed.slice(0, maxLen)}…` : trimmed;
-}
 
 function NotesView({
   role,
@@ -19,6 +15,7 @@ function NotesView({
   onUpdateNoteRemote,
   onDeleteNoteRemote,
 }) {
+  const { t } = useT('notes');
   const [activeNoteId, setActiveNoteId] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [saveState, setSaveState] = useState('saved');
@@ -32,6 +29,12 @@ function NotesView({
   activeNoteIdRef.current = activeNoteId;
   const myNotes = notes.filter(n => n.authorId === (role === 'gm' ? 'gm' : currentPlayerId));
   const activeNote = myNotes.find(n => n.id === activeNoteId) || null;
+
+  const getNotePreview = useCallback((content = '', maxLen = 72) => {
+    const trimmed = String(content || '').replace(/\s+/g, ' ').trim();
+    if (!trimmed) return t('view.previewEmpty');
+    return trimmed.length > maxLen ? `${trimmed.slice(0, maxLen)}…` : trimmed;
+  }, [t]);
 
   const filteredNotes = useMemo(() => {
     const query = searchQuery.trim().toLowerCase();
@@ -156,11 +159,14 @@ function NotesView({
   }, [flushNoteSave]);
 
   const handleCreateNote = async () => {
+    const defaultTitle = t('view.newNoteDefault');
+    const justNow = t('view.justNow');
+
     try {
       if (onCreateNoteRemote) {
         const createdId = await onCreateNoteRemote({
           role,
-          title: 'Nieuwe Notitie',
+          title: defaultTitle,
           content: '',
         });
         setActiveNoteId(createdId);
@@ -171,16 +177,16 @@ function NotesView({
       }
     } catch (err) {
       console.error('Notitie aanmaken mislukt:', err);
-      alert('Notitie aanmaken mislukt.');
+      alertDialog('notes:dialogs.createFailed');
       return;
     }
 
     const newNote = {
       id: 'n' + Date.now(),
       authorId: role === 'gm' ? 'gm' : currentPlayerId,
-      title: 'Nieuwe Notitie',
+      title: defaultTitle,
       content: '',
-      lastEdited: 'Zojuist'
+      lastEdited: justNow
     };
     setNotes([newNote, ...notes]);
     setActiveNoteId(newNote.id);
@@ -193,7 +199,7 @@ function NotesView({
     if (!activeNote) return;
 
     setNotes((prev) => prev.map((n) =>
-      n.id === activeNote.id ? { ...n, [field]: value, lastEdited: 'Zojuist' } : n
+      n.id === activeNote.id ? { ...n, [field]: value, lastEdited: t('view.justNow') } : n
     ));
 
     if (onUpdateNoteRemote) {
@@ -226,7 +232,7 @@ function NotesView({
   };
 
   const handleDeleteNote = async (id) => {
-    if (window.confirm('Weet je zeker dat je deze notitie wilt verwijderen?')) {
+    if (confirmDialog('notes:dialogs.deleteConfirm')) {
       await flushPendingForNote(id);
       pendingPatchesRef.current.delete(id);
       if (onDeleteNoteRemote) {
@@ -234,7 +240,7 @@ function NotesView({
           await onDeleteNoteRemote(id);
         } catch (err) {
           console.error('Notitie verwijderen mislukt:', err);
-          alert('Notitie verwijderen mislukt.');
+          alertDialog('notes:dialogs.deleteFailed');
           return;
         }
       }
@@ -254,14 +260,16 @@ function NotesView({
 
   const hideListOnMobile = myNotes.length > 0 && !mobileShowList;
   const hideEditorOnMobile = myNotes.length === 0 || mobileShowList;
-  const noteCountLabel = myNotes.length === 1 ? '1 blad' : `${myNotes.length} bladen`;
+  const noteCountLabel = myNotes.length === 1
+    ? t('view.countOne')
+    : t('view.countMany', { count: myNotes.length });
 
   return (
     <div className="tv-view-shell relative z-10 flex h-full flex-col">
       <div className="tv-view-shell-header flex shrink-0 flex-col gap-2 border-b p-3 sm:flex-row sm:items-center sm:justify-between md:p-4">
         <h2 className="flex items-center gap-2 font-fantasy text-xs font-medium uppercase tracking-[0.18em] tv-text md:text-sm">
           <NotebookPen className="tv-view-title-icon" strokeWidth={1.75} aria-hidden />
-          Kronieken
+          {t('view.title')}
         </h2>
 
         <div className="flex w-full items-center gap-2 sm:w-auto">
@@ -273,8 +281,8 @@ function NotesView({
           <button
             onClick={handleCreateNote}
             className="tv-toolbar-icon-btn tv-button-primary ml-auto transition-all duration-200 ease-out active:scale-[0.985] sm:ml-0"
-            title="Nieuwe notitie"
-            aria-label="Nieuwe notitie"
+            title={t('view.newNote')}
+            aria-label={t('view.newNoteAria')}
           >
             <FilePlus2 className="h-4 w-4" />
           </button>
@@ -293,7 +301,7 @@ function NotesView({
                   type="search"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Zoek in je kroniek…"
+                  placeholder={t('view.searchPlaceholder')}
                   className="tv-input-surface w-full py-2 pl-9 pr-3 text-xs italic tv-text outline-none transition-colors focus:border-[color-mix(in_srgb,var(--tv-accent),transparent_55%)]"
                 />
               </label>
@@ -304,20 +312,20 @@ function NotesView({
             {myNotes.length === 0 ? (
               <div className="tv-empty-state m-2">
                 <ScrollText className="mx-auto mb-3 h-8 w-8 opacity-45 tv-accent" strokeWidth={1.25} aria-hidden />
-                <p className="tv-empty-state-title">Je kroniek wacht</p>
-                <p className="text-sm">Leg je eerste gedachten vast — alleen voor jou, tussen de sessies door.</p>
+                <p className="tv-empty-state-title">{t('view.emptyTitle')}</p>
+                <p className="text-sm">{t('view.emptyHint')}</p>
                 <button
                   onClick={handleCreateNote}
                   className="tv-btn tv-button-primary mx-auto mt-4 gap-2 px-4 text-xs uppercase tracking-[0.14em]"
                 >
                   <FilePlus2 className="h-3.5 w-3.5" />
-                  Eerste blad
+                  {t('view.firstPage')}
                 </button>
               </div>
             ) : filteredNotes.length === 0 ? (
               <div className="tv-empty-state m-2 py-6">
-                <p className="tv-empty-state-title">Geen treffers</p>
-                <p className="text-sm">Probeer een andere zoekterm.</p>
+                <p className="tv-empty-state-title">{t('view.noResultsTitle')}</p>
+                <p className="text-sm">{t('view.noResultsHint')}</p>
               </div>
             ) : (
               filteredNotes.map((note) => {
@@ -333,7 +341,7 @@ function NotesView({
                     </div>
                     <div className="min-w-0 flex-1">
                       <h4 className={`truncate text-sm tracking-[0.06em] ${isActive ? 'font-medium tv-accent' : 'tv-text'}`}>
-                        {note.title || 'Naamloos blad'}
+                        {note.title || t('view.untitledPage')}
                       </h4>
                       <p className="mt-1 line-clamp-2 font-story text-[11px] leading-relaxed tv-muted">
                         {getNotePreview(note.content)}
@@ -343,8 +351,8 @@ function NotesView({
                     <button
                       onClick={(e) => { e.stopPropagation(); handleDeleteNote(note.id); }}
                       className="rounded p-1 tv-muted opacity-100 transition-all tv-hover-danger lg:opacity-0 lg:group-hover:opacity-100"
-                      title="Verwijder"
-                      aria-label="Notitie verwijderen"
+                      title={t('view.deleteTitle')}
+                      aria-label={t('view.deleteAria')}
                     >
                       <Trash2 className="h-3.5 w-3.5" />
                     </button>
@@ -366,18 +374,20 @@ function NotesView({
                     type="button"
                     onClick={() => setMobileShowList(true)}
                     className="tv-toolbar-icon-btn tv-panel-inset shrink-0 transition-all duration-200 ease-out active:scale-[0.985] lg:hidden"
-                    title="Terug naar overzicht"
-                    aria-label="Terug naar overzicht"
+                    title={t('view.backToList')}
+                    aria-label={t('view.backToListAria')}
                   >
                     <ArrowLeft className="h-4 w-4" />
                   </button>
                   <p className="truncate text-[10px] uppercase tracking-[0.14em] tv-muted">
-                    {activeNote.lastEdited ? `Laatst bewerkt · ${activeNote.lastEdited}` : 'Persoonlijk schrijfblad'}
+                    {activeNote.lastEdited
+                      ? t('view.lastEdited', { time: activeNote.lastEdited })
+                      : t('view.personalPad')}
                   </p>
                 </div>
                 <span className="tv-tag inline-flex items-center gap-1 border border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] tv-panel-inset px-2 py-0.5 text-[10px] uppercase tracking-[0.14em] tv-text-sub">
                   <Lock className="h-3 w-3 opacity-70" aria-hidden />
-                  Privé
+                  {t('view.private')}
                 </span>
               </div>
 
@@ -394,7 +404,7 @@ function NotesView({
                     onChange={handleNoteFieldChange('title')}
                     onBlur={handleNoteFieldBlur}
                     className="mb-3 border-b border-[color-mix(in_srgb,var(--tv-border),transparent_48%)] bg-transparent pb-2 font-fantasy text-xl font-bold tracking-[0.08em] tv-text outline-none transition-colors focus:border-[color-mix(in_srgb,var(--tv-accent),transparent_45%)] md:mb-4 md:text-2xl"
-                    aria-label="Notitietitel"
+                    aria-label={t('view.titleAria')}
                   />
                   <textarea
                     data-note-field="content"
@@ -403,19 +413,19 @@ function NotesView({
                     onChange={handleNoteFieldChange('content')}
                     onBlur={handleNoteFieldBlur}
                     className="no-scrollbar tv-notes-editor font-story flex-1 resize-none bg-transparent text-sm leading-[1.75] tv-text outline-none md:text-base"
-                    placeholder="Begin met schrijven — questnotities, NPC-dialoog, geheime plannen…"
-                    aria-label="Notitie-inhoud"
+                    placeholder={t('view.contentPlaceholder')}
+                    aria-label={t('view.contentAria')}
                   />
                 </div>
               </div>
 
               <div className="tv-notes-footer flex shrink-0 flex-col gap-1 border-t border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] px-4 py-2.5 text-xs tv-muted sm:flex-row sm:items-center sm:justify-between md:px-5">
-                <span className="font-story italic opacity-80">Alles wordt automatisch bewaard in je kroniek.</span>
+                <span className="font-story italic opacity-80">{t('view.autoSaveHint')}</span>
                 <span className={`inline-flex items-center gap-1.5 transition-colors ${saveState === 'error' ? 'tv-tone-enemy-text' : saveState === 'writing' ? 'tv-accent' : ''}`}>
                   <Save className={`h-3.5 w-3.5 ${saveState === 'writing' ? 'animate-pulse' : ''}`} aria-hidden />
-                  {saveState === 'writing' && 'Bezig met bewaren…'}
-                  {saveState === 'saved' && 'Opgeslagen'}
-                  {saveState === 'error' && 'Opslaan mislukt'}
+                  {saveState === 'writing' && t('saveState.writing')}
+                  {saveState === 'saved' && t('saveState.saved')}
+                  {saveState === 'error' && t('saveState.error')}
                 </span>
               </div>
             </>
@@ -424,9 +434,9 @@ function NotesView({
               <div className="tv-notes-empty-crest mb-5 flex h-16 w-16 items-center justify-center">
                 <Feather className="h-7 w-7 opacity-70 tv-accent" strokeWidth={1.35} aria-hidden />
               </div>
-              <p className="font-fantasy text-sm uppercase tracking-[0.16em] tv-text">Kies een blad</p>
+              <p className="font-fantasy text-sm uppercase tracking-[0.16em] tv-text">{t('view.selectPageTitle')}</p>
               <p className="mt-2 max-w-xs font-story text-sm italic leading-relaxed">
-                Selecteer een notitie links of maak een nieuw blad om je verhaal vast te leggen.
+                {t('view.selectPageHint')}
               </p>
             </div>
           ) : null}

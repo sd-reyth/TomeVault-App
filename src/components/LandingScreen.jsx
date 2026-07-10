@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
   AlertTriangle,
   ArrowRight,
@@ -13,6 +13,7 @@ import {
   LayoutGrid,
   List,
   LogOut,
+  Loader2,
   Map,
   MessageSquare,
   NotebookPen,
@@ -34,17 +35,22 @@ import { playFeedback } from '../lib/uiFeedback';
 import TreasureIcon from '../ui/TreasureIcon';
 import { PLAN_DEFINITIONS, getPlanFeatureSummary } from '../lib/accessPlans';
 import {
-  LANDING_ABOUT,
-  LANDING_AUDIENCES,
-  LANDING_FAQ,
-  LANDING_FEATURES,
-  LANDING_HERO,
-  LANDING_PRICING,
+  getLandingAbout,
+  getLandingAudiences,
+  getLandingFaq,
+  getLandingFeatures,
+  getLandingHero,
+  getLandingPricing,
 } from '../lib/landingContent';
+import { useLocale } from '../i18n/LocaleProvider.jsx';
+import { useT } from '../i18n/useT';
+import { Trans } from 'react-i18next';
 import { LANDING_DEFAULT_THEME } from '../lib/appThemes';
 import landingBackgroundVideo from '../../Video/landingBG.mp4';
 import RuntimeBadge from './RuntimeBadge';
 import Button from './Button';
+import SegmentedControl from '../ui/SegmentedControl';
+import { SHOW_MEMBERSHIP_BACKFILL_UI } from '../lib/supportFlags';
 const LANDING_AMBIENCE_ENABLED_STORAGE_KEY = 'tomevault:landing:ambience-enabled';
 const LANDING_AMBIENCE_VOLUME_STORAGE_KEY = 'tomevault:landing:ambience-volume';
 const DEFAULT_LANDING_AMBIENCE_VOLUME = 12;
@@ -60,34 +66,31 @@ const FEATURE_ICONS = {
   roles: ShieldCheck,
 };
 
-const SHOWCASE_NAV = [
-  { icon: Scroll, label: 'Handouts', active: true },
-  { icon: MessageSquare, label: 'Fluisteringen' },
-  { icon: TreasureIcon, label: 'Schatkamer' },
-  { icon: Crown, label: 'Voorbereidingen' },
-  { icon: NotebookPen, label: 'Kronieken' },
+const SHOWCASE_NAV_KEYS = [
+  { icon: Scroll, key: 'handouts', active: true },
+  { icon: MessageSquare, key: 'whispers' },
+  { icon: TreasureIcon, key: 'treasury' },
+  { icon: Crown, key: 'preparations' },
+  { icon: NotebookPen, key: 'chronicles' },
 ];
 
-const SHOWCASE_HANDOUTS = [
+const SHOWCASE_HANDOUT_KEYS = [
   {
-    title: 'Kaart van de Kelder',
+    key: 'cellarMap',
     type: 'map',
-    content: 'Vier gangen naar het noorden. De zuidelijke deur is verzegeld met runen.',
     icon: Map,
     revealed: true,
   },
   {
-    title: 'Journaal van de Goblin Koning',
+    key: 'goblinJournal',
     type: 'lore',
-    content: 'De laatste regels zijn geschreven in een trillende hand…',
     icon: ScrollText,
     revealed: true,
     secretParty: true,
   },
   {
-    title: 'De Verzegelde Rol',
+    key: 'sealedScroll',
     type: 'lore',
-    content: 'Nog verborgen voor de spelers tot jij klaar bent om te onthullen.',
     icon: ScrollText,
     revealed: false,
     hidden: true,
@@ -128,8 +131,8 @@ function getLandingJoinContext() {
   };
 }
 
-function buildPricingColumns(audience) {
-  const config = LANDING_PRICING[audience];
+function buildPricingColumns(audience, landingPricing) {
+  const config = landingPricing[audience];
   const freeDef = PLAN_DEFINITIONS[config.free.planId];
   const paidDef = PLAN_DEFINITIONS[config.paid.planId];
   const freeFeatures = getPlanFeatureSummary(freeDef);
@@ -138,7 +141,7 @@ function buildPricingColumns(audience) {
   return { config, freeFeatures, paidFeatures, lockedOnFree };
 }
 
-function BackfillButton({ onBackfillMemberships }) {
+function BackfillButton({ onBackfillMemberships, label, disabled = false, t }) {
   const [loading, setLoading] = useState(false);
   const [done, setDone] = useState(false);
 
@@ -153,27 +156,23 @@ function BackfillButton({ onBackfillMemberships }) {
     }
   };
 
+  const displayLabel = loading
+    ? t('landing:sessionHub.backfillBusy')
+    : done
+      ? t('landing:sessionHub.backfillDone')
+      : (label || t('landing:sessionHub.backfillDefault'));
+
   return (
-    <button
-      type="button"
+    <Button
+      variant="secondary"
+      size="sm"
       onClick={handleClick}
-      disabled={loading}
-      className="tv-entry-action border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] tv-panel-inset tv-text hover:border-[color-mix(in_srgb,var(--tv-accent),transparent_58%)] hover:tv-text disabled:opacity-70 inline-flex items-center gap-2"
+      disabled={loading || disabled}
+      loading={loading}
+      title={t('landing:sessionHub.backfillTitle')}
     >
-      {loading ? (
-        <>
-          <svg className="h-3.5 w-3.5 animate-spin tv-accent" viewBox="0 0 24 24" fill="none">
-            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z" />
-          </svg>
-          Sessies herstellen…
-        </>
-      ) : done ? (
-        'Klaar — ververs de pagina als je sessie er niet bij staat'
-      ) : (
-        'Herstel oudere sessies'
-      )}
-    </button>
+      {displayLabel}
+    </Button>
   );
 }
 
@@ -188,6 +187,7 @@ export default function LandingScreen({
   setPlayerName,
   uid,
   authLoading,
+  authBusy = false,
   authError,
   onSignInGoogle,
   onSignInEmail,
@@ -204,6 +204,14 @@ export default function LandingScreen({
   appUpdateNotice,
   onReloadApp,
 }) {
+  const { locale } = useLocale();
+  const { t } = useT(['landing', 'common', 'auth']);
+  const landingHero = useMemo(() => getLandingHero(), [locale]);
+  const landingAudiences = useMemo(() => getLandingAudiences(), [locale]);
+  const landingFeatures = useMemo(() => getLandingFeatures(), [locale]);
+  const landingPricing = useMemo(() => getLandingPricing(), [locale]);
+  const landingAbout = useMemo(() => getLandingAbout(), [locale]);
+  const landingFaq = useMemo(() => getLandingFaq(), [locale]);
   const landingVideoRef = useRef(null);
   const [sessionCode, setSessionCode] = useState('');
   const [sessionPin, setSessionPin] = useState('');
@@ -233,6 +241,7 @@ export default function LandingScreen({
   const [contactMessage, setContactMessage] = useState('');
   const [showContactForm, setShowContactForm] = useState(false);
   const [navScrolled, setNavScrolled] = useState(false);
+  const isAuthActionBusy = authBusy || sessionBusy;
   const [pricingAudience, setPricingAudience] = useState('gm');
   const [{ inviteCode, isJoinPath }] = useState(() => getLandingJoinContext());
   const [activeRoleTab, setActiveRoleTab] = useState(() => {
@@ -268,14 +277,14 @@ export default function LandingScreen({
   const handleGmCreate = (event) => {
     setLocalGmError('');
     if (!uid) {
-      setLocalGmError('Log eerst in voordat je een sessie start.');
+      setLocalGmError(t('landing:auth.errors.loginRequiredGm'));
       return;
     }
 
     const sessionName = String(gmSessionName || '').trim() || generateSessionCode();
     const pin = String(gmSessionPin || '').trim();
     if (!/^\d{4,8}$/.test(pin)) {
-      setLocalGmError('Voer een PIN van 4 tot 8 cijfers in.');
+      setLocalGmError(t('landing:auth.errors.pinInvalid'));
       return;
     }
 
@@ -298,15 +307,15 @@ export default function LandingScreen({
   const handlePlayerJoin = (event) => {
     setLocalPlayerError('');
     if (!uid) {
-      setLocalPlayerError('Log eerst in voordat je een sessie joint.');
+      setLocalPlayerError(t('landing:auth.errors.loginRequiredPlayer'));
       return;
     }
     if (!playerName.trim() || !sessionCode.trim()) {
-      setLocalPlayerError('Vul een naam en een geldige sessie-code in.');
+      setLocalPlayerError(t('landing:auth.errors.playerFieldsRequired'));
       return;
     }
     if (!canJoinWithoutPin && !/^\d{4,8}$/.test(sessionPin.trim())) {
-      setLocalPlayerError('Voer een PIN van 4 tot 8 cijfers in.');
+      setLocalPlayerError(t('landing:auth.errors.pinInvalid'));
       return;
     }
     playFeedback({ sound: 'paper', element: event?.currentTarget, variant: 'gold' });
@@ -322,17 +331,17 @@ export default function LandingScreen({
     setLocalAuthError('');
 
     if (!email.trim() || !password.trim()) {
-      setLocalAuthError('Vul e-mail en wachtwoord in.');
+      setLocalAuthError(t('landing:auth.errors.emailPasswordRequired'));
       return;
     }
 
     if (emailMode === 'signup') {
       if (password.length < 6) {
-        setLocalAuthError('Wachtwoord moet minimaal 6 tekens hebben.');
+        setLocalAuthError(t('landing:auth.errors.passwordTooShort'));
         return;
       }
       if (password !== confirmPassword) {
-        setLocalAuthError('Wachtwoorden komen niet overeen.');
+        setLocalAuthError(t('landing:auth.errors.passwordMismatch'));
         return;
       }
       await onSignUpEmail({ name: authName, email, password });
@@ -480,11 +489,26 @@ export default function LandingScreen({
     window.scrollTo({ top: Math.max(top, 0), behavior: 'smooth' });
   };
 
-  const compactFeatureHighlights = [
-    { icon: BookOpen, label: 'Handouts' },
-    { icon: Wand2, label: 'Realtime' },
-    { icon: ShieldCheck, label: 'Rollen' },
-  ];
+  const showcaseNav = useMemo(
+    () => SHOWCASE_NAV_KEYS.map((item) => ({
+      ...item,
+      label: t(`showcase.nav.${item.key}`),
+    })),
+    [t]
+  );
+  const showcaseHandouts = useMemo(
+    () => SHOWCASE_HANDOUT_KEYS.map((item) => ({
+      ...item,
+      title: t(`showcase.handouts.${item.key}.title`),
+      content: t(`showcase.handouts.${item.key}.content`),
+    })),
+    [t]
+  );
+  const compactFeatureHighlights = useMemo(() => ([
+    { icon: BookOpen, label: t('highlights.handouts') },
+    { icon: Wand2, label: t('highlights.realtime') },
+    { icon: ShieldCheck, label: t('highlights.roles') },
+  ]), [t]);
 
   const closeDeleteFlow = () => {
     setDeleteTarget(null);
@@ -502,9 +526,9 @@ export default function LandingScreen({
 
   const handleDeleteNameConfirm = () => {
     if (!deleteTarget) return;
-    const expectedName = String(deleteTarget.sessionName || 'Naamloze Sessie').trim();
+    const expectedName = String(deleteTarget.sessionName || t('common:fallbacks.unnamedSession')).trim();
     if (deleteSessionNameInput.trim() !== expectedName) {
-      setDeleteError('De ingevoerde sessienaam komt niet exact overeen.');
+      setDeleteError(t('landing:sessionHub.delete.nameMismatch'));
       return;
     }
 
@@ -526,27 +550,27 @@ export default function LandingScreen({
 
   const handleContactSubmit = (e) => {
     e.preventDefault();
-    const subject = `Contact via TomeVault website - ${contactName || 'Onbekend'}`;
+    const subject = t('landing:contact.subject', { name: contactName || t('landing:contact.unknownName') });
     const body = [
-      `Naam: ${contactName || '-'}`,
-      `E-mail: ${contactEmail || '-'}`,
+      `${t('landing:contact.namePlaceholder')}: ${contactName || '-'}`,
+      `${t('landing:contact.emailPlaceholder')}: ${contactEmail || '-'}`,
       '',
-      'Bericht:',
+      t('landing:contact.bodyIntro'),
       contactMessage || '-',
     ].join('\n');
 
     window.location.href = `mailto:hello@tomevault.app?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
   };
 
-  const pricing = buildPricingColumns(pricingAudience);
+  const pricing = buildPricingColumns(pricingAudience, landingPricing);
 
   const landingAmbienceDock = (
     <div className={`lp-ambience ${landingAmbienceEnabled ? 'lp-ambience--open' : ''}`}>
       <button
         type="button"
         onClick={handleToggleLandingAmbience}
-        title="De achtergrondvideo speelt altijd. Geluid blijft zacht en start pas na een tik."
-        aria-label={landingAmbienceEnabled ? 'Geluid uitzetten' : 'Geluid aanzetten'}
+        title={t('landing:ambience.toggleTitle')}
+        aria-label={landingAmbienceEnabled ? t('landing:ambience.mute') : t('landing:ambience.unmute')}
         aria-pressed={landingAmbienceEnabled}
         className="lp-ambience-toggle tv-toolbar-icon-btn"
       >
@@ -561,7 +585,7 @@ export default function LandingScreen({
           value={landingAmbienceVolume}
           onChange={handleLandingAmbienceVolumeChange}
           className="lp-ambience-slider ambience-slider"
-          aria-label="Volume van sfeergeluid"
+          aria-label={t('landing:ambience.volumeAria')}
         />
       ) : null}
     </div>
@@ -573,25 +597,25 @@ export default function LandingScreen({
         type="text"
         value={contactName}
         onChange={(e) => setContactName(e.target.value)}
-        placeholder="Je naam"
+        placeholder={t('landing:contact.namePlaceholder')}
         className="tv-field"
       />
       <input
         type="email"
         value={contactEmail}
         onChange={(e) => setContactEmail(e.target.value)}
-        placeholder="E-mail"
+        placeholder={t('landing:contact.emailPlaceholder')}
         className="tv-field"
       />
       <textarea
         value={contactMessage}
         onChange={(e) => setContactMessage(e.target.value)}
         rows={4}
-        placeholder="Bericht"
+        placeholder={t('landing:contact.messagePlaceholder')}
         className="tv-field md:col-span-2 resize-none"
       />
       <button type="submit" className="tv-button-primary md:col-span-2">
-        Verstuur via E-mail
+        {t('landing:contact.submit')}
       </button>
     </form>
   );
@@ -604,24 +628,33 @@ export default function LandingScreen({
 
   const loginCard = (
     <div className="lp-card lp-hero-login-card w-full p-5 text-left md:p-6">
-      <div className="tv-label text-center">Inloggen</div>
+      <div className="tv-label text-center">{t('landing:auth.title')}</div>
       <p className="lp-hero-login-lead mt-2 text-center">
-        Maak gratis een account of log in om je sessies te openen.
+        {t('landing:auth.lead')}
       </p>
       <div className="mt-4 space-y-3">
         <button
           type="button"
           onClick={onSignInGoogle}
-          disabled={authLoading || sessionBusy}
+          disabled={isAuthActionBusy}
           className="tv-button-primary h-11 w-full rounded-xl font-fantasy text-sm uppercase tracking-[0.16em] disabled:opacity-60"
         >
-          Doorgaan met Google
+          {authBusy ? (
+            <span className="inline-flex items-center justify-center gap-2">
+              <Loader2 className="h-4 w-4 animate-spin" />
+              {t('landing:auth.busy')}
+            </span>
+          ) : (
+            t('landing:auth.google')
+          )}
         </button>
       </div>
 
       {inviteCode || isJoinPath ? (
         <div className="mt-4 tv-alert-info rounded-xl px-4 py-3 text-sm font-story leading-relaxed">
-          Uitnodiging herkend{inviteCode ? ` voor ${inviteCode.toUpperCase()}` : ''}. Meld je aan en we houden deze code voor je vast.
+          {t('landing:auth.inviteRecognized', {
+            codeSuffix: inviteCode ? t('landing:auth.inviteCodeSuffix', { code: inviteCode.toUpperCase() }) : '',
+          })}
         </div>
       ) : null}
 
@@ -631,7 +664,7 @@ export default function LandingScreen({
           onClick={() => setShowEmailAuthForm((value) => !value)}
           className="tv-entry-action h-11 w-full border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] tv-panel-inset tv-text hover:border-[color-mix(in_srgb,var(--tv-accent),transparent_58%)] hover:tv-text"
         >
-          {showEmailAuthForm ? 'Verberg e-mail' : 'Gebruik e-mail'}
+          {showEmailAuthForm ? t('landing:auth.hideEmail') : t('landing:auth.useEmail')}
         </button>
       </div>
 
@@ -643,14 +676,14 @@ export default function LandingScreen({
               onClick={() => setEmailMode('login')}
               className={`flex-1 rounded-xl px-3 py-2 text-xs uppercase tracking-[0.18em] transition-colors ${emailMode === 'login' ? 'tv-panel-inset tv-text' : 'tv-text-sub hover:tv-text'}`}
             >
-              Inloggen
+              {t('landing:auth.loginTab')}
             </button>
             <button
               type="button"
               onClick={() => setEmailMode('signup')}
               className={`flex-1 rounded-xl px-3 py-2 text-xs uppercase tracking-[0.18em] transition-colors ${emailMode === 'signup' ? 'tv-panel-inset tv-text' : 'tv-text-sub hover:tv-text'}`}
             >
-              Aanmaken
+              {t('landing:auth.signupTab')}
             </button>
           </div>
 
@@ -658,7 +691,7 @@ export default function LandingScreen({
             {emailMode === 'signup' ? (
               <input
                 type="text"
-                placeholder="Weergavenaam"
+                placeholder={t('landing:auth.displayNamePlaceholder')}
                 value={authName}
                 onChange={(e) => setAuthName(e.target.value)}
                 className="tv-field"
@@ -666,14 +699,14 @@ export default function LandingScreen({
             ) : null}
             <input
               type="email"
-              placeholder="jij@email.com"
+              placeholder={t('landing:auth.emailPlaceholder')}
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               className="tv-field"
             />
             <input
               type="password"
-              placeholder="Wachtwoord"
+              placeholder={t('landing:auth.passwordPlaceholder')}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               className="tv-field"
@@ -681,7 +714,7 @@ export default function LandingScreen({
             {emailMode === 'signup' ? (
               <input
                 type="password"
-                placeholder="Bevestig wachtwoord"
+                placeholder={t('landing:auth.confirmPasswordPlaceholder')}
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 className="tv-field"
@@ -689,10 +722,17 @@ export default function LandingScreen({
             ) : null}
             <button
               type="submit"
-              disabled={authLoading || sessionBusy}
+              disabled={isAuthActionBusy}
               className="tv-button-secondary w-full disabled:opacity-60"
             >
-              {emailMode === 'signup' ? 'Account Aanmaken' : 'Inloggen met E-mail'}
+              {authBusy ? (
+                <span className="inline-flex items-center justify-center gap-2">
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  {t('landing:auth.busy')}
+                </span>
+              ) : (
+                emailMode === 'signup' ? t('landing:auth.signupSubmit') : t('landing:auth.loginSubmit')
+              )}
             </button>
           </div>
         </form>
@@ -740,13 +780,13 @@ export default function LandingScreen({
         {appUpdateNotice ? (
           <div className="tv-alert-warning fixed left-4 right-4 top-20 z-40 mx-auto max-w-4xl rounded-xl px-4 py-3 shadow-lg backdrop-blur">
             <div className="flex flex-wrap items-center justify-between gap-3">
-              <p className="text-sm font-medium">{appUpdateNotice}</p>
+              <p className="text-sm font-medium">{t('common:updateBanner.message')}</p>
               <button
                 type="button"
                 onClick={() => onReloadApp?.()}
                 className="tv-satisfy-pop rounded-lg border border-[color-mix(in_srgb,var(--tv-status-warning),transparent_42%)] tv-surface-raised px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.16em] transition tv-hover-surface"
               >
-                Nu verversen
+                {t('common:updateBanner.refresh')}
               </button>
             </div>
           </div>
@@ -761,15 +801,15 @@ export default function LandingScreen({
             </button>
 
             <div className="lp-nav-links">
-              <button type="button" className="lp-nav-link" onClick={() => scrollToSection('functies')}>Functies</button>
-              <button type="button" className="lp-nav-link" onClick={() => scrollToSection('showcase')}>Aan tafel</button>
-              <button type="button" className="lp-nav-link" onClick={() => scrollToSection('prijzen')}>Prijzen</button>
-              <button type="button" className="lp-nav-link" onClick={() => scrollToSection('over')}>Over</button>
+              <button type="button" className="lp-nav-link" onClick={() => scrollToSection('functies')}>{t('landing:nav.features')}</button>
+              <button type="button" className="lp-nav-link" onClick={() => scrollToSection('showcase')}>{t('landing:nav.showcase')}</button>
+              <button type="button" className="lp-nav-link" onClick={() => scrollToSection('prijzen')}>{t('landing:nav.pricing')}</button>
+              <button type="button" className="lp-nav-link" onClick={() => scrollToSection('over')}>{t('landing:nav.about')}</button>
             </div>
 
             <div className="lp-nav-actions">
               <button type="button" className="lp-btn lp-btn--primary" onClick={() => scrollToSection('inloggen')}>
-                Inloggen
+                {t('landing:nav.login')}
               </button>
             </div>
           </div>
@@ -780,11 +820,11 @@ export default function LandingScreen({
           <div className="lp-shell lp-hero-shell">
             <div className="lp-hero-stack">
               <img src={TOMEVAULT_LOGO_SRC} alt="TomeVault logo" className="lp-hero-logo tv-logo-breathe" />
-              <div className="lp-eyebrow">{LANDING_HERO.eyebrow}</div>
+              <div className="lp-eyebrow">{landingHero.eyebrow}</div>
               <h1 className="lp-hero-title">
                 TOME<span className="lp-accent">VAULT</span>
               </h1>
-              <p className="lp-hero-sub">{LANDING_HERO.subtitle}</p>
+              <p className="lp-hero-sub">{landingHero.subtitle}</p>
               <div className="lp-trust-row">
                 {compactFeatureHighlights.map((feature) => {
                   const Icon = feature.icon;
@@ -801,11 +841,11 @@ export default function LandingScreen({
                 {loginCard}
               </div>
 
-              <p className="lp-hero-or" aria-hidden="true">Of</p>
+              <p className="lp-hero-or" aria-hidden="true">{t('landing:marketing.or')}</p>
 
               <div className="lp-hero-cta">
                 <button type="button" className="lp-btn lp-btn--ghost lp-btn--lg" onClick={() => scrollToSection('functies')}>
-                  {LANDING_HERO.secondaryCta}
+                  {landingHero.secondaryCta}
                 </button>
               </div>
             </div>
@@ -816,12 +856,12 @@ export default function LandingScreen({
         <section className="lp-section">
           <div className="lp-shell lp-shell--narrow">
             <div className="lp-section-head">
-              <div className="lp-eyebrow">Eén tafel, twee rollen</div>
-              <h2 className="lp-h2">Gebouwd voor jouw groep</h2>
+              <div className="lp-eyebrow">{t('landing:marketing.audiencesEyebrow')}</div>
+              <h2 className="lp-h2">{t('landing:marketing.audiencesTitle')}</h2>
               <div className="lp-rule" />
             </div>
             <div className="lp-audience-grid">
-              {LANDING_AUDIENCES.map((audience) => (
+              {landingAudiences.map((audience) => (
                 <article key={audience.id} className="lp-card lp-audience-card">
                   <div className="lp-feature-icon">
                     {audience.id === 'gm' ? <Crown className="h-6 w-6" /> : <Swords className="h-6 w-6" />}
@@ -840,14 +880,14 @@ export default function LandingScreen({
         <section id="functies" className="lp-section">
           <div className="lp-shell lp-shell--narrow">
             <div className="lp-section-head">
-              <div className="lp-eyebrow">Wat biedt de Waard</div>
-              <h2 className="lp-h2">Alles voor je tafel, op één plek</h2>
+              <div className="lp-eyebrow">{t('landing:marketing.featuresEyebrow')}</div>
+              <h2 className="lp-h2">{t('landing:marketing.featuresTitle')}</h2>
               <p className="lp-lead">
-                Geen losse tools meer. TomeVault brengt je hele sessie samen in één rustige, warme ruimte.
+                {t('landing:marketing.featuresLead')}
               </p>
             </div>
             <div className="lp-feature-list">
-              {LANDING_FEATURES.map((feature) => {
+              {landingFeatures.map((feature) => {
                 const Icon = FEATURE_ICONS[feature.icon] || Sparkles;
                 return (
                   <article key={feature.title} className="lp-feature-item">
@@ -867,10 +907,10 @@ export default function LandingScreen({
         <section id="showcase" className="lp-section">
           <div className="lp-shell lp-shell--narrow">
             <div className="lp-section-head">
-              <div className="lp-eyebrow">Het hart van TomeVault</div>
-              <h2 className="lp-h2">Handouts op het juiste moment</h2>
+              <div className="lp-eyebrow">{t('landing:marketing.showcaseEyebrow')}</div>
+              <h2 className="lp-h2">{t('landing:marketing.showcaseTitle')}</h2>
               <p className="lp-lead">
-                Deel kaarten, lore en geheimen wanneer jij de rol openrolt — spelers zien precies wat jij wilt onthullen.
+                {t('landing:marketing.showcaseLead')}
               </p>
             </div>
 
@@ -883,13 +923,13 @@ export default function LandingScreen({
                 </span>
                 <span className="lp-showcase-title">
                   <BookOpen className="h-3.5 w-3.5" />
-                  Kelder van de Goblin Koning
+                  {t('landing:marketing.showcaseCampaign')}
                 </span>
               </div>
 
               <div className="lp-showcase-app">
                 <aside className="lp-showcase-nav tv-nav-bg">
-                  {SHOWCASE_NAV.map((item) => {
+                  {showcaseNav.map((item) => {
                     const Icon = item.icon;
                     return (
                       <div
@@ -903,8 +943,8 @@ export default function LandingScreen({
                   })}
                   <div className="lp-showcase-nav-spacer" />
                   <div className="lp-showcase-nav-foot">
-                    <span className="lp-showcase-chip">GM</span>
-                    <span className="lp-showcase-chip">Sessie #3</span>
+                    <span className="lp-showcase-chip">{t('common:roles.gmShort')}</span>
+                    <span className="lp-showcase-chip">{t('landing:marketing.showcaseSessionChip')}</span>
                   </div>
                 </aside>
 
@@ -912,7 +952,7 @@ export default function LandingScreen({
                   <div className="lp-showcase-handouts-head">
                     <span className="lp-showcase-handouts-title">
                       <Scroll className="h-4 w-4" strokeWidth={1.5} aria-hidden />
-                      Handouts
+                      {t('landing:showcase.nav.handouts')}
                     </span>
                     <div className="lp-showcase-handouts-tools">
                       <div className="tv-view-toolbar flex items-center rounded-xl p-1">
@@ -931,7 +971,7 @@ export default function LandingScreen({
 
                   <div className="lp-showcase-handouts-body">
                     <div className="lp-showcase-handouts-grid">
-                      {SHOWCASE_HANDOUTS.map((handout) => {
+                      {showcaseHandouts.map((handout) => {
                         const Icon = handout.icon;
                         return (
                           <article
@@ -947,12 +987,12 @@ export default function LandingScreen({
                                 <span className="tv-tag tv-handout-meta-tag tv-handout-meta-tag--type">{handout.type}</span>
                                 {handout.secretParty ? (
                                   <span className="tv-tag tv-handout-meta-tag tv-handout-meta-tag--secret">
-                                    <KeyRound className="h-2.5 w-2.5" aria-hidden /> Party ziet secret
+                                    <KeyRound className="h-2.5 w-2.5" aria-hidden /> {t('landing:showcase.handouts.partySeesSecret')}
                                   </span>
                                 ) : null}
                                 {handout.hidden ? (
                                   <span className="tv-tag tv-handout-meta-tag tv-handout-meta-tag--muted">
-                                    <EyeOff className="h-2.5 w-2.5" aria-hidden /> Verborgen
+                                    <EyeOff className="h-2.5 w-2.5" aria-hidden /> {t('landing:showcase.handouts.hidden')}
                                   </span>
                                 ) : null}
                               </div>
@@ -978,16 +1018,16 @@ export default function LandingScreen({
         <section id="prijzen" className="lp-section lp-section--band">
           <div className="lp-shell lp-shell--narrow">
             <div className="lp-section-head">
-              <div className="lp-eyebrow">Gratis beginnen, groeien wanneer je wilt</div>
-              <h2 className="lp-h2">Kies je pad</h2>
+              <div className="lp-eyebrow">{t('landing:marketing.pricingEyebrow')}</div>
+              <h2 className="lp-h2">{t('landing:marketing.pricingTitle')}</h2>
               <p className="lp-lead">
-                TomeVault is gratis te gebruiken. Upgrade voor onbeperkte werelden en premium extra’s.
+                {t('landing:marketing.pricingLead')}
               </p>
             </div>
 
             <div className="mt-7 flex justify-center">
               <div className="tv-role-toggle">
-                {LANDING_AUDIENCES.map((audience) => (
+                {landingAudiences.map((audience) => (
                   <button
                     key={audience.id}
                     type="button"
@@ -1068,7 +1108,7 @@ export default function LandingScreen({
             </div>
 
             <p className="lp-price-note">
-              Getoonde prijzen zijn indicatief. Je begint gratis — een betaalmethode is niet nodig om te starten.
+              {t('landing:marketing.pricingNote')}
             </p>
           </div>
         </section>
@@ -1077,13 +1117,13 @@ export default function LandingScreen({
         <section id="over" className="lp-section lp-section--band">
           <div className="lp-shell lp-shell--narrow">
             <div className="lp-section-head">
-              <div className="lp-eyebrow">{LANDING_ABOUT.eyebrow}</div>
-              <h2 className="lp-h2">{LANDING_ABOUT.title}</h2>
-              <p className="lp-lead">{LANDING_ABOUT.body}</p>
+              <div className="lp-eyebrow">{landingAbout.eyebrow}</div>
+              <h2 className="lp-h2">{landingAbout.title}</h2>
+              <p className="lp-lead">{landingAbout.body}</p>
             </div>
 
             <div className="lp-faq">
-              {LANDING_FAQ.map((item) => (
+              {landingFaq.map((item) => (
                 <details key={item.q} className="lp-card lp-faq-item">
                   <summary className="lp-faq-q">
                     {item.q}
@@ -1104,21 +1144,21 @@ export default function LandingScreen({
               <span className="lp-brand-word">TomeVault</span>
             </div>
             <div className="lp-footer-links">
-              <button type="button" className="lp-footer-link" onClick={() => scrollToSection('functies')}>Functies</button>
-              <button type="button" className="lp-footer-link" onClick={() => scrollToSection('prijzen')}>Prijzen</button>
-              <button type="button" className="lp-footer-link" onClick={() => scrollToSection('over')}>Over</button>
-              <button type="button" className="lp-footer-link" onClick={() => scrollToSection('inloggen')}>Inloggen</button>
+              <button type="button" className="lp-footer-link" onClick={() => scrollToSection('functies')}>{t('landing:nav.features')}</button>
+              <button type="button" className="lp-footer-link" onClick={() => scrollToSection('prijzen')}>{t('landing:nav.pricing')}</button>
+              <button type="button" className="lp-footer-link" onClick={() => scrollToSection('over')}>{t('landing:nav.about')}</button>
+              <button type="button" className="lp-footer-link" onClick={() => scrollToSection('inloggen')}>{t('landing:nav.login')}</button>
               <button type="button" className="lp-footer-link" onClick={() => setShowContactForm((value) => !value)}>
-                {showContactForm ? 'Sluit feedback' : 'Feedback'}
+                {showContactForm ? t('landing:contact.toggleClose') : t('landing:contact.toggleOpen')}
               </button>
             </div>
             <div className="lp-footer-legal">
               <span className="lp-footer-legal-copy">
-                © {new Date().getFullYear()} TomeVault — Jouw magische tafel aan de taverne.
+                {t('landing:marketing.footerTagline', { year: new Date().getFullYear() })}
               </span>
               <span className="lp-footer-credit">
                 <img src={NUGGET_MARK_SRC} alt="" className="lp-footer-credit-mark" aria-hidden="true" />
-                Gesmeed door{' '}
+                {t('landing:marketing.forgedBy')}{' '}
                 <span className="lp-footer-credit-name">SneezingDonkey</span>
               </span>
             </div>
@@ -1171,13 +1211,13 @@ export default function LandingScreen({
       {appUpdateNotice ? (
         <div className="tv-alert-warning absolute left-4 right-4 top-4 z-30 mx-auto max-w-4xl rounded-xl px-4 py-3 shadow-lg backdrop-blur">
           <div className="flex flex-wrap items-center justify-between gap-3">
-            <p className="text-sm font-medium">{appUpdateNotice}</p>
+            <p className="text-sm font-medium">{t('common:updateBanner.message')}</p>
             <button
               type="button"
               onClick={() => onReloadApp?.()}
               className="tv-satisfy-pop rounded-lg border border-[color-mix(in_srgb,var(--tv-status-warning),transparent_42%)] tv-surface-raised px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.16em] transition tv-hover-surface"
             >
-              Nu verversen
+              {t('common:updateBanner.refresh')}
             </button>
           </div>
         </div>
@@ -1193,10 +1233,20 @@ export default function LandingScreen({
           <button
             type="button"
             onClick={() => onSignOut?.()}
-            className="tv-entry-action tv-tone-enemy-button"
+            disabled={isAuthActionBusy}
+            className="tv-entry-action tv-tone-enemy-button disabled:opacity-60"
           >
-            <LogOut className="mr-2 h-4 w-4" />
-            Log uit
+            {authBusy ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                {t('landing:sessionHub.signOutBusy')}
+              </>
+            ) : (
+              <>
+                <LogOut className="mr-2 h-4 w-4" />
+                {t('landing:sessionHub.signOut')}
+              </>
+            )}
           </button>
         ) : null}
       </div>
@@ -1212,24 +1262,26 @@ export default function LandingScreen({
           {showSessionHub ? (
             <>
               <h1 className="mt-5 text-4xl font-fantasy tracking-[0.08em] tv-text sm:text-5xl">
-                Kies je volgende stap.
+                {t('landing:sessionHub.chooseNext')}
               </h1>
               <p className="mx-auto mt-3 max-w-2xl text-base md:text-lg tv-text-sub font-story leading-relaxed">
-                Hervat een wereld of open meteen een nieuwe sessie.
+                {t('landing:sessionHub.chooseNextLead')}
               </p>
             </>
           ) : (
             <>
               <h1 className="mt-5 text-4xl font-fantasy tracking-[0.08em] tv-text sm:text-5xl">
-                Even geduld.
+                {t('landing:sessionHub.pleaseWait')}
               </h1>
               <p className="mx-auto mt-3 max-w-2xl text-base md:text-lg tv-text-sub font-story leading-relaxed">
                 {sessionBusy
-                  ? 'We proberen je meest recente sessie direct te openen.'
-                  : 'We laden je sessies om te bepalen of je direct terug de wereld in kunt.'}
+                  ? t('landing:sessionHub.openingRecentBusy')
+                  : t('landing:sessionHub.loadingSessions')}
               </p>
               <div className="mt-5 flex justify-center">
-                <BackfillButton onBackfillMemberships={onBackfillMemberships} />
+                {SHOW_MEMBERSHIP_BACKFILL_UI ? (
+                  <BackfillButton onBackfillMemberships={onBackfillMemberships} t={t} />
+                ) : null}
               </div>
             </>
           )}
@@ -1250,41 +1302,42 @@ export default function LandingScreen({
         {/* Recent sessions */}
         {showSessionHub ? (
           <section className="mx-auto w-full max-w-3xl">
-            <div className="lp-card p-4 md:p-5 lg:p-6">
+            <div className="tv-entry-hero-card p-5 md:p-6">
               <div className="flex items-center justify-center gap-3 text-center">
-                <h2 className="text-xl md:text-2xl font-fantasy tracking-[0.12em] tv-text">Recente sessies</h2>
+                <h2 className="tv-title-section text-base md:text-lg">{t('landing:sessionHub.recentSessions')}</h2>
               </div>
 
-              <div className="mt-4 flex flex-wrap justify-center gap-2">
-                <button
-                  type="button"
-                  onClick={() => onBackfillMemberships?.()}
-                  disabled={sessionBusy}
-                  className="tv-entry-action border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] tv-panel-inset tv-text hover:border-[color-mix(in_srgb,var(--tv-accent),transparent_58%)] hover:tv-text disabled:opacity-50"
-                  title="Herstel oude sessies waar je GM of speler bent"
-                >
-                  Herstel oud
-                </button>
-                {hiddenRecentCount > 0 ? (
-                  <button
-                    type="button"
-                    onClick={() => setShowHiddenSessions((value) => !value)}
-                    className="tv-entry-action border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] tv-panel-inset tv-text hover:border-[color-mix(in_srgb,var(--tv-accent),transparent_58%)] hover:tv-text"
-                  >
-                    {showHiddenSessions ? 'Verberg verborgen' : `Toon verborgen (${hiddenRecentCount})`}
-                  </button>
-                ) : null}
-              </div>
+              {(SHOW_MEMBERSHIP_BACKFILL_UI || hiddenRecentCount > 0) ? (
+                <div className="mt-4 flex flex-wrap justify-center gap-2">
+                  {SHOW_MEMBERSHIP_BACKFILL_UI ? (
+                    <BackfillButton
+                      onBackfillMemberships={onBackfillMemberships}
+                      label={t('landing:sessionHub.backfillOld')}
+                      disabled={sessionBusy}
+                      t={t}
+                    />
+                  ) : null}
+                  {hiddenRecentCount > 0 ? (
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      onClick={() => setShowHiddenSessions((value) => !value)}
+                    >
+                      {showHiddenSessions ? t('landing:sessionHub.hideHidden') : t('landing:sessionHub.showHidden', { count: hiddenRecentCount })}
+                    </Button>
+                  ) : null}
+                </div>
+              ) : null}
 
               {displayedRecentSessions.length === 0 ? (
                 <div className="mt-4 rounded-xl border border-dashed border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] tv-panel-inset px-4 py-6 text-center">
-                  <p className="text-sm tv-text font-story italic">Nog geen recente sessies.</p>
+                  <p className="text-sm tv-text font-story italic">{t('landing:sessionHub.noRecent')}</p>
                 </div>
               ) : (
                 <div className="mt-4 grid gap-3">
                   {displayedRecentSessions.map((session) => {
                     const displayCode = session.joinTag || session.sessionId;
-                    const roleLabel = session.role === 'dm' ? 'GM' : 'Speler';
+                    const roleLabel = session.role === 'dm' ? t('common:roles.gmShort') : t('common:roles.player');
                     const defaultAsRole = session.role === 'dm' ? 'gm' : 'player';
                     const isHidden = session.status === 'hidden';
                     const roleChipClass = session.role === 'dm' ? 'tv-role-chip--gm' : 'tv-role-chip--player';
@@ -1298,9 +1351,9 @@ export default function LandingScreen({
                       >
                         <div className="flex items-start justify-between gap-3">
                           <div className="min-w-0">
-                            <div className="truncate text-lg font-fantasy tv-text">{session.sessionName || 'Naamloze Sessie'}</div>
+                            <div className="truncate text-lg font-fantasy tv-text">{session.sessionName || t('common:fallbacks.unnamedSession')}</div>
                             <div className="mt-2 flex flex-wrap items-center gap-2 text-[11px] uppercase tracking-[0.18em] tv-muted">
-                              <span>Code {displayCode}</span>
+                              <span>{t('landing:sessionHub.codeLabel', { code: displayCode })}</span>
                               <span className="tv-muted">•</span>
                               <span>{session.updatedAtLabel}</span>
                             </div>
@@ -1319,7 +1372,7 @@ export default function LandingScreen({
                             className={`tv-satisfy-pop inline-flex min-h-11 flex-1 items-center justify-center gap-2 rounded-xl border px-4 py-3 text-sm font-fantasy tracking-[0.16em] transition-all disabled:opacity-50 ${sessionActionClass}`}
                           >
                             <DoorOpen className="h-4 w-4" />
-                            Hervat
+                            {t('landing:sessionHub.resume')}
                             <ArrowRight className="h-4 w-4" />
                           </button>
                           <button
@@ -1327,16 +1380,16 @@ export default function LandingScreen({
                             onClick={() => (isHidden ? onRestoreRecentSession?.(session.sessionId) : onHideRecentSession?.(session.sessionId))}
                             disabled={sessionBusy}
                             className={`tv-entry-action border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] ${isHidden ? 'tv-alert-warning' : 'tv-panel-inset tv-text hover:border-[color-mix(in_srgb,var(--tv-accent),transparent_58%)] hover:tv-text'}`}
-                            title={isHidden ? 'Zet terug in recente lijst' : 'Verberg uit deze lijst'}
+                            title={isHidden ? t('landing:sessionHub.restoreList') : t('landing:sessionHub.hideFromList')}
                           >
-                            {isHidden ? 'Herstel' : 'Verberg'}
+                            {isHidden ? t('landing:sessionHub.restore') : t('landing:sessionHub.hide')}
                           </button>
                           <button
                             type="button"
                             onClick={() => handleOpenDeleteFlow(session)}
                             disabled={sessionBusy}
                             className="tv-alert-danger flex h-11 w-11 items-center justify-center rounded-xl transition-colors hover:brightness-110 disabled:opacity-50"
-                            title="Verlaat en wis deze sessie permanent"
+                            title={t('landing:sessionHub.deleteTitle')}
                           >
                             <Trash2 className="h-4 w-4" />
                           </button>
@@ -1352,117 +1405,142 @@ export default function LandingScreen({
 
         {/* Join / create hub */}
         {showSessionHub ? (
-          <section className="lp-card mx-auto w-full max-w-3xl p-4 md:p-5 lg:p-6">
+          <section className="tv-entry-hero-card mx-auto w-full max-w-3xl p-5 md:p-6">
             <div className="text-center">
-              <h2 className="text-xl md:text-2xl font-fantasy tracking-[0.12em] tv-text">
-                {activeRoleTab === 'gm' ? 'Nieuwe sessie' : 'Meedoen'}
+              <h2 className="tv-title-section text-base md:text-lg">
+                {activeRoleTab === 'gm' ? t('landing:sessionHub.newSession') : t('landing:sessionHub.joinSession')}
               </h2>
 
-              <div className="mt-4 flex justify-center">
-                <div className="tv-role-toggle">
-                  <button
-                    type="button"
-                    onClick={() => handleRoleToggle('player')}
-                    className={`tv-role-toggle-btn ${activeRoleTab === 'player' ? 'tv-role-toggle-btn--active' : ''}`}
-                  >
-                    Speler
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => handleRoleToggle('gm')}
-                    className={`tv-role-toggle-btn ${activeRoleTab === 'gm' ? 'tv-role-toggle-btn--active' : ''}`}
-                  >
-                    GM
-                  </button>
-                </div>
+              <div className="mx-auto mt-4 max-w-xs">
+                <SegmentedControl
+                  value={activeRoleTab}
+                  options={[
+                    { value: 'player', label: t('common:roles.player') },
+                    { value: 'gm', label: t('common:roles.gmShort') },
+                  ]}
+                  onChange={handleRoleToggle}
+                  block
+                  aria-label={t('landing:sessionHub.roleAria')}
+                />
               </div>
             </div>
 
-            <div className="mx-auto mt-5 w-full max-w-[34rem] lg:max-w-[38rem]">
-              <div className="mt-1">
-                {activeRoleTab === 'gm' ? (
-                  <div className="grid gap-3">
+            <div className="mx-auto mt-5 w-full max-w-[34rem]">
+              {activeRoleTab === 'gm' ? (
+                <div className="grid gap-4">
+                  <div>
+                    <label className="tv-label mb-1.5 block" htmlFor="gm-session-name">
+                      {t('landing:sessionHub.sessionName')}
+                    </label>
                     <input
+                      id="gm-session-name"
                       type="text"
-                      placeholder="Sessienaam"
+                      placeholder={t('landing:sessionHub.sessionNamePlaceholder')}
                       value={gmSessionName}
                       onChange={(e) => setGmSessionName(e.target.value)}
                       className="tv-field"
                     />
+                  </div>
+                  <div>
+                    <label className="tv-label mb-1.5 block" htmlFor="gm-session-pin">
+                      {t('landing:sessionHub.pin')}
+                    </label>
                     <input
+                      id="gm-session-pin"
                       type="password"
-                      placeholder="PIN (4-8 cijfers)"
+                      inputMode="numeric"
+                      placeholder={t('landing:sessionHub.pinPlaceholder')}
                       value={gmSessionPin}
                       onChange={(e) => setGmSessionPin(e.target.value)}
                       className="tv-field"
                     />
-                    <button
-                      type="button"
-                      onClick={handleGmCreate}
-                      disabled={!uid || sessionBusy}
-                      className="tv-button-primary h-11 w-full rounded-xl font-fantasy text-sm uppercase tracking-[0.16em] disabled:opacity-60"
-                    >
-                      <Plus className="mr-2 h-4 w-4" />
-                      Start sessie
-                    </button>
-                    {localGmError ? (
-                      <div className="tv-alert-danger rounded-xl px-4 py-3 text-sm">
-                        {localGmError}
-                      </div>
-                    ) : null}
                   </div>
-                ) : (
-                  <div className="grid gap-3">
+                  {localGmError ? (
+                    <p className="rounded-lg tv-tone-enemy-surface px-4 py-2.5 font-story text-sm">
+                      {localGmError}
+                    </p>
+                  ) : null}
+                  <Button
+                    variant="primary"
+                    block
+                    icon={Plus}
+                    onClick={handleGmCreate}
+                    disabled={!uid || sessionBusy}
+                  >
+                    {t('landing:sessionHub.startSession')}
+                  </Button>
+                </div>
+              ) : (
+                <div className="grid gap-4">
+                  <div>
+                    <label className="tv-label mb-1.5 block" htmlFor="player-name">
+                      {t('landing:sessionHub.characterName')}
+                    </label>
                     <input
+                      id="player-name"
                       type="text"
-                      placeholder="Karakternaam"
+                      placeholder={t('landing:sessionHub.characterPlaceholder')}
                       value={playerName}
                       onChange={(e) => setPlayerName(e.target.value)}
                       className="tv-field"
                     />
+                  </div>
+                  <div>
+                    <label className="tv-label mb-1.5 block" htmlFor="session-code">
+                      {t('landing:sessionHub.sessionCode')}
+                    </label>
                     <input
+                      id="session-code"
                       type="text"
-                      placeholder="Sessiecode"
+                      placeholder={t('landing:sessionHub.sessionCodePlaceholder')}
                       value={sessionCode}
                       onChange={(e) => setSessionCode(e.target.value.toUpperCase())}
                       className="tv-field uppercase"
                     />
+                  </div>
+                  <div>
+                    <label className="tv-label mb-1.5 block" htmlFor="session-pin">
+                      {t('landing:sessionHub.pin')}
+                    </label>
                     <input
+                      id="session-pin"
                       type="password"
-                      placeholder={canJoinWithoutPin ? 'PIN niet nodig' : 'PIN'}
+                      inputMode="numeric"
+                      placeholder={canJoinWithoutPin ? t('landing:sessionHub.pinKnownSession') : t('landing:sessionHub.pinPlaceholder')}
                       value={sessionPin}
                       onChange={(e) => setSessionPin(e.target.value)}
-                      className="tv-field"
+                      disabled={canJoinWithoutPin}
+                      className="tv-field disabled:opacity-60"
                     />
-                    {canJoinWithoutPin ? (
-                      <div className="tv-alert-warning rounded-xl px-4 py-3 text-sm font-story">
-                        Bekende sessie gevonden. Je kunt direct zonder PIN verder.
-                      </div>
-                    ) : null}
-                    <button
-                      type="button"
-                      onClick={handlePlayerJoin}
-                      disabled={!uid || sessionBusy}
-                      className="tv-button-primary h-11 w-full rounded-xl font-fantasy text-sm uppercase tracking-[0.16em] disabled:opacity-60"
-                    >
-                      <DoorOpen className="mr-2 h-4 w-4" />
-                      Meedoen
-                    </button>
-                    {localPlayerError ? (
-                      <div className="tv-alert-danger rounded-xl px-4 py-3 text-sm">
-                        {localPlayerError}
-                      </div>
-                    ) : null}
                   </div>
-                )}
-              </div>
+                  {canJoinWithoutPin ? (
+                    <div className="tv-alert-warning rounded-xl px-4 py-3 text-sm font-story">
+                      {t('landing:sessionHub.knownSessionHint')}
+                    </div>
+                  ) : null}
+                  {localPlayerError ? (
+                    <p className="rounded-lg tv-tone-enemy-surface px-4 py-2.5 font-story text-sm">
+                      {localPlayerError}
+                    </p>
+                  ) : null}
+                  <Button
+                    variant="primary"
+                    block
+                    icon={DoorOpen}
+                    onClick={handlePlayerJoin}
+                    disabled={!uid || sessionBusy}
+                  >
+                    {t('landing:sessionHub.join')}
+                  </Button>
+                </div>
+              )}
             </div>
           </section>
         ) : null}
 
         <div className="lp-hub-footer mt-8 border-t border-[color-mix(in_srgb,var(--tv-border),transparent_55%)] pt-6 text-center">
           <button type="button" className="lp-footer-link" onClick={() => setShowContactForm((value) => !value)}>
-            {showContactForm ? 'Sluit feedback' : 'Feedback'}
+            {showContactForm ? t('landing:contact.toggleClose') : t('landing:contact.toggleOpen')}
           </button>
           {contactFormPanel ? (
             <div className="mx-auto mt-4 max-w-xl text-left">{contactFormPanel}</div>
@@ -1476,7 +1554,7 @@ export default function LandingScreen({
             <div className="tv-surface-faint flex items-center justify-between gap-3 border-b border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] px-4 py-4">
               <div className="flex items-center gap-2 tv-tone-enemy-text">
                 <AlertTriangle className="w-5 h-5" />
-                <h3 className="font-fantasy tracking-wider tv-text">Sessie Permanent Wissen</h3>
+                <h3 className="font-fantasy tracking-wider tv-text">{t('landing:sessionHub.delete.title')}</h3>
               </div>
               <button onClick={closeDeleteFlow} className="tv-muted hover:tv-text transition-colors">
                 <X className="w-5 h-5" />
@@ -1486,17 +1564,17 @@ export default function LandingScreen({
             {!showGmDeleteWarning ? (
               <div className="space-y-4 px-5 py-5">
                 <p className="text-sm tv-text font-story leading-relaxed">
-                  Om deze sessie permanent te verwijderen, typ de volledige sessienaam exact over zoals hieronder weergegeven.
+                  {t('landing:sessionHub.delete.intro')}
                 </p>
                 <div className="rounded-xl border border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] tv-panel-inset px-4 py-3">
-                  <div className="text-[10px] uppercase tracking-widest tv-muted mb-1">Te bevestigen sessie</div>
-                  <div className="font-fantasy tv-text font-bold break-words">{deleteTarget.sessionName || 'Naamloze Sessie'}</div>
+                  <div className="text-[10px] uppercase tracking-widest tv-muted mb-1">{t('landing:sessionHub.delete.confirmLabel')}</div>
+                  <div className="font-fantasy tv-text font-bold break-words">{deleteTarget.sessionName || t('common:fallbacks.unnamedSession')}</div>
                 </div>
                 <input
                   type="text"
                   value={deleteSessionNameInput}
                   onChange={(e) => setDeleteSessionNameInput(e.target.value)}
-                  placeholder="Typ de sessienaam exact over"
+                  placeholder={t('landing:sessionHub.delete.namePlaceholder')}
                   className="w-full rounded-xl border border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] tv-panel-inset px-3 py-2.5 text-sm tv-text placeholder:tv-muted transition-colors focus:outline-none focus:border-[color-mix(in_srgb,var(--tv-tone-enemy),transparent_40%)]"
                 />
                 {deleteError && (
@@ -1506,27 +1584,31 @@ export default function LandingScreen({
                 )}
                 <div className="flex gap-2 pt-1">
                   <Button variant="ghost" block onClick={closeDeleteFlow}>
-                    Annuleren
+                    {t('common:actions.cancel')}
                   </Button>
                   <Button variant="danger" block onClick={handleDeleteNameConfirm} disabled={sessionBusy}>
-                    Bevestigen
+                    {t('common:actions.confirm')}
                   </Button>
                 </div>
               </div>
             ) : (
               <div className="space-y-4 px-5 py-5">
                 <p className="text-sm tv-text font-story leading-relaxed">
-                  U bent de GM van deze sessie en staat op het punt de volledige campagne definitief te verwijderen. Spelers kunnen deze wereld daarna niet meer betreden en dit kan niet ongedaan worden gemaakt.
+                  {t('landing:sessionHub.delete.gmWarning')}
                 </p>
                 <div className="rounded-xl tv-tone-enemy-surface px-4 py-3 text-sm font-story leading-relaxed">
-                  Weet u zeker dat u <strong>{deleteTarget.sessionName || 'Naamloze Sessie'}</strong> voorgoed wilt wissen?
+                  <Trans
+                    i18nKey="landing:sessionHub.delete.gmConfirm"
+                    values={{ name: deleteTarget.sessionName || t('common:fallbacks.unnamedSession') }}
+                    components={{ strong: <strong /> }}
+                  />
                 </div>
                 <div className="flex gap-2 pt-1">
                   <Button variant="ghost" block onClick={() => setShowGmDeleteWarning(false)}>
-                    Terug
+                    {t('landing:sessionHub.delete.back')}
                   </Button>
                   <Button variant="danger" block onClick={handleFinalDeleteConfirm} disabled={sessionBusy}>
-                    Campagne Wissen
+                    {t('landing:sessionHub.delete.confirmDelete')}
                   </Button>
                 </div>
               </div>

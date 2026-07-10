@@ -1,10 +1,11 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { BookOpen, Music, Pause, Swords, User, LogOut, ChevronDown, Bell, BellRing } from 'lucide-react';
 import AmbiencePanel from './AmbiencePanel';
 import LeaveSessionConfirmModal from './LeaveSessionConfirmModal';
 import RuntimeBadge from './RuntimeBadge';
 import { formatCampaignDisplayName } from '../lib/sessionUtils';
 import { COMBAT_STATUS, getTurnApproachRatio, getTurnsUntilMember, sortPartyByInitiative } from '../lib/battleUtils';
+import { useT } from '../i18n/useT';
 
 export default function TopBar({
   role,
@@ -33,33 +34,33 @@ export default function TopBar({
   onOpenSourcelist,
   runtimeBadge,
 }) {
+  const { t } = useT('session');
   const sortedParty = sortPartyByInitiative(Array.isArray(party) ? party : [], Array.isArray(initiativeOrder) ? initiativeOrder : []);
   const turnsUntilMine = getTurnsUntilMember(sortedParty, initiativeOrder, currentTurnId, currentPlayerId);
   const turnApproachRatio = getTurnApproachRatio(sortedParty, initiativeOrder, currentTurnId, currentPlayerId);
   const isMyTurn = combatStatus === COMBAT_STATUS.ACTIVE && currentTurnId === currentPlayerId;
   const ambienceShellRef = useRef(null);
   const partyIndicatorAngle = `${Math.round(Math.max(0, Math.min(1, turnApproachRatio || 0)) * 360)}deg`;
-  const partyButtonTitle = isPartyOpen
-    ? 'Verberg slagorde'
-    : (combatStatus === COMBAT_STATUS.IDLE
-      ? 'Open slagorde - ruststand'
-      : (isMyTurn
-        ? 'Open slagorde - jouw beurt'
-        : (combatStatus === COMBAT_STATUS.PAUSED
-          ? 'Open slagorde - gevecht gepauzeerd'
-          : (turnsUntilMine === null ? 'Open slagorde - gevecht actief' : `Open slagorde - nog ${turnsUntilMine} beurt(en)`))));
+  const partyButtonTitle = useMemo(() => {
+    if (isPartyOpen) return t('party.hide');
+    if (combatStatus === COMBAT_STATUS.IDLE) return t('party.idle');
+    if (isMyTurn) return t('party.myTurn');
+    if (combatStatus === COMBAT_STATUS.PAUSED) return t('party.paused');
+    if (turnsUntilMine === null) return t('party.active');
+    return t('party.turnsUntil', { count: turnsUntilMine });
+  }, [combatStatus, isMyTurn, isPartyOpen, t, turnsUntilMine]);
   const isPlayer = role === 'player';
   const [isLeaveConfirmOpen, setIsLeaveConfirmOpen] = useState(false);
   const [turnAlert, setTurnAlert] = useState(null);
   const lastTurnRef = useRef(currentTurnId || null);
   const previousCombatStatusRef = useRef(combatStatus);
-  const displayCampaignName = formatCampaignDisplayName(campaignName, 'Campagne');
+  const displayCampaignName = formatCampaignDisplayName(campaignName, t('common:fallbacks.campaign'));
   const compactCampaignName = displayCampaignName.length > 14
     ? `${displayCampaignName.slice(0, 14)}…`
     : displayCampaignName;
   const safeSessionNumber = Math.max(1, Number(sessionNumber) || 1);
-  const roleLabel = role === 'gm' ? 'Game Master' : 'Speler';
-  const sessionSublabel = `Sessie ${safeSessionNumber}`;
+  const roleLabel = role === 'gm' ? t('common:roles.gm') : t('common:roles.player');
+  const sessionSublabel = t('sessionLabel', { number: safeSessionNumber });
 
   const requestLeaveSession = useCallback(() => {
     setIsLeaveConfirmOpen(true);
@@ -79,26 +80,26 @@ export default function TopBar({
         setTurnAlert({
           id: `${Date.now()}-now`,
           variant: 'now',
-          label: 'Jij bent nu aan de beurt.',
+          label: t('turnAlert.now'),
         });
       } else if (turnsUntilMine === 1) {
         setTurnAlert({
           id: `${Date.now()}-soon`,
           variant: 'soon',
-          label: 'Bijna jouw beurt. Maak je actie alvast klaar.',
+          label: t('turnAlert.soon'),
         });
       } else if (previousCombatStatus !== COMBAT_STATUS.ACTIVE && turnsUntilMine !== null) {
         setTurnAlert({
           id: `${Date.now()}-start`,
           variant: 'start',
-          label: 'Gevecht gestart. Let op de slagorde.',
+          label: t('turnAlert.start'),
         });
       }
     }
 
     lastTurnRef.current = currentTurnId;
     previousCombatStatusRef.current = combatStatus;
-  }, [role, combatStatus, currentTurnId, currentPlayerId, turnsUntilMine]);
+  }, [role, combatStatus, currentTurnId, currentPlayerId, turnsUntilMine, t]);
 
   useEffect(() => {
     if (!turnAlert) return undefined;
@@ -140,6 +141,10 @@ export default function TopBar({
     };
   }, [ambience?.isOpen, onCloseAmbiencePanel]);
 
+  const ambienceTitle = isPlayer
+    ? t('ambience.playerSettings')
+    : (ambience?.isPlaying ? t('ambience.activeSession') : t('ambience.panel'));
+
   return (
     <header className="relative z-40 shrink-0 tv-topbar-bg backdrop-blur-md">
       {turnAlert && role === 'player' ? (
@@ -171,7 +176,7 @@ export default function TopBar({
               type="button"
               onClick={() => onOpenSessionHub?.()}
               className="tv-session-trigger"
-              title="Campaign Hub openen"
+              title={t('hubTitle')}
             >
               <span className="tv-session-trigger__crest tv-session-trigger__crest--icon" aria-hidden="true">
                 <BookOpen className="h-3.5 w-3.5" />
@@ -198,7 +203,7 @@ export default function TopBar({
                 type="button"
                 onClick={onToggleAmbiencePanel}
                 className={`tv-topbar-chip tv-topbar-chip--icon relative ${ambience?.isOpen ? 'tv-topbar-chip--active' : ''} ${ambience?.isPlaying ? 'tv-topbar-chip--playing' : ''}`}
-                title={isPlayer ? 'Open audio-instellingen' : (ambience?.isPlaying ? 'Open actieve sessiesfeer' : 'Open sferenpaneel')}
+                title={ambienceTitle}
                 aria-pressed={ambience?.isOpen === true}
               >
                 <span className={`tv-topbar-chip__dot ${ambience?.isPlaying ? '' : 'tv-topbar-chip__dot--inactive'}`} />
@@ -258,7 +263,7 @@ export default function TopBar({
                 type="button"
                 onClick={onOpenProfile}
                 className="tv-topbar-chip tv-topbar-chip--icon"
-                title="Mijn Karakterblad"
+                title={t('profileTitle')}
               >
                 <User className="h-4 w-4" />
               </button>
@@ -268,7 +273,7 @@ export default function TopBar({
               type="button"
               onClick={requestLeaveSession}
               className="tv-topbar-chip tv-topbar-chip--icon tv-topbar-chip--danger"
-              title="Verlaat Sessie"
+              title={t('leaveTitle')}
             >
               <LogOut className="h-4 w-4" />
             </button>

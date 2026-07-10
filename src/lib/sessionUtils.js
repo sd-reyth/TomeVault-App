@@ -1,3 +1,6 @@
+import i18n from '../i18n/index.js';
+import { getIntlLocale } from './localeFormat.js';
+
 export function slugifySessionName(name) {
   const trimmed = String(name || '').trim().slice(0, 48);
   const base = trimmed
@@ -49,16 +52,20 @@ export function buildSessionInviteUrl(joinTag, origin = '') {
   return `${resolvedOrigin}/?code=${encodeURIComponent(safeCode)}`;
 }
 
-export function formatCampaignDisplayName(name, fallback = 'Campagne') {
+export function formatCampaignDisplayName(name, fallbackKey = 'fallbacks.campaign') {
   const trimmed = String(name || '').trim();
-  return trimmed || fallback;
+  return trimmed || i18n.t(fallbackKey);
 }
 
 export function buildInviteShareText({ campaignName, joinTag, joinUrl }) {
-  const displayName = formatCampaignDisplayName(campaignName, 'mijn campagne');
+  const displayName = formatCampaignDisplayName(campaignName, 'fallbacks.myCampaign');
   const canonicalCode = toLegacyHashJoinTag(joinTag);
   const resolvedUrl = joinUrl || buildSessionInviteUrl(joinTag);
-  return `Sluit je aan bij ${displayName} op TomeVault!\n\nCampagne: ${displayName}\nCode: ${canonicalCode}\n\nSpeel direct mee: ${resolvedUrl}`;
+  return i18n.t('session:invite.shareText', {
+    campaignName: displayName,
+    code: canonicalCode,
+    url: resolvedUrl,
+  });
 }
 
 export function buildWhatsAppShareUrl({ campaignName, joinTag, joinUrl }) {
@@ -83,14 +90,14 @@ export async function sha256(text) {
 }
 
 function formatTime(date) {
-  return new Intl.DateTimeFormat('nl-NL', {
+  return new Intl.DateTimeFormat(getIntlLocale(), {
     hour: '2-digit',
     minute: '2-digit',
   }).format(date);
 }
 
 function formatDate(date, includeYear = false) {
-  return new Intl.DateTimeFormat('nl-NL', {
+  return new Intl.DateTimeFormat(getIntlLocale(), {
     day: 'numeric',
     month: 'long',
     ...(includeYear ? { year: 'numeric' } : {}),
@@ -98,7 +105,7 @@ function formatDate(date, includeYear = false) {
 }
 
 function formatWeekday(date) {
-  const weekday = new Intl.DateTimeFormat('nl-NL', { weekday: 'long' }).format(date);
+  const weekday = new Intl.DateTimeFormat(getIntlLocale(), { weekday: 'long' }).format(date);
   return weekday.charAt(0).toUpperCase() + weekday.slice(1);
 }
 
@@ -107,7 +114,7 @@ export function formatLastEditedLabel(ts) {
   const date = new Date(ms);
 
   if (Number.isNaN(date.getTime())) {
-    return 'Onlangs';
+    return i18n.t('status.recent');
   }
 
   const now = new Date();
@@ -117,17 +124,21 @@ export function formatLastEditedLabel(ts) {
   const timeLabel = formatTime(date);
 
   if (dayDifference <= 0) {
-    return `Vandaag om ${timeLabel}`;
+    return i18n.t('time.todayAt', { time: timeLabel });
   }
 
   if (dayDifference === 1) {
-    return `${date.getHours() >= 18 ? 'Gisteravond' : 'Gisteren'} om ${timeLabel}`;
+    const key = date.getHours() >= 18 ? 'time.yesterdayEveningAt' : 'time.yesterdayAt';
+    return i18n.t(key, { time: timeLabel });
   }
 
   if (dayDifference < 7) {
-    return `${formatWeekday(date)} om ${timeLabel}`;
+    return i18n.t('time.weekdayAt', { weekday: formatWeekday(date), time: timeLabel });
   }
 
   const includeYear = date.getFullYear() !== now.getFullYear();
-  return `${formatDate(date, includeYear)} om ${timeLabel}`;
+  return i18n.t('time.dateAt', {
+    date: formatDate(date, includeYear),
+    time: timeLabel,
+  });
 }

@@ -1,0 +1,243 @@
+{
+  "title": "Slagorde",
+  "pin": "Vastzetten",
+  "unpin": "Losmaken",
+  "startCombat": "Start gevecht",
+  "combatModeAria": "Gevechtsmodus",
+  "active": "Actief",
+  "pause": "Pauze",
+  "endCombat": "Beëindig gevecht",
+  "yourTurn": "Jouw beurt",
+  "now": "Nu",
+  "roundBar": {
+    "idle": "Ruststand",
+    "paused": "Ronde {{round}} · Pauze",
+    "round": "Ronde {{round}}",
+    "turnIndexTitle": "Huidige beurt in volgorde"
+  },
+  "info": {
+    "title": "Slagorde info",
+    "showHelp": "Toon uitleg",
+    "hideHelp": "Verberg uitleg",
+    "pills": {
+      "initiative": "Initiative",
+      "turns": "Beurten",
+      "npcs": "NPC's"
+    },
+    "steps": {
+      "idle": {
+        "title": "Ruststand",
+        "body": "Iedereen kan initiative invullen voordat de GM het gevecht start."
+      },
+      "active": {
+        "title": "Gevecht actief",
+        "body": "Initiative staat vast, beurt en ronde lopen door tot pauze of stop."
+      },
+      "paused": {
+        "title": "Pauzeren",
+        "body": "Voeg NPC's toe of verwijder ze zonder de huidige ronde te verliezen."
+      }
+    }
+  },
+  "status": {
+    "yourTurn": "Jouw beurt",
+    "idle": "Ruststand",
+    "paused": "Gepauzeerd",
+    "combat": "Gevecht",
+    "gmIdle": "Klaar om de slagorde actief te maken.",
+    "gmPaused": "Pauze actief — pas de slagorde aan en hervat wanneer je klaar bent.",
+    "gmActive": "Gevecht loopt — de huidige beurt is gemarkeerd in de lijst.",
+    "playerInitOpen": "Je initiative staat nog open.",
+    "playerReady": "Je staat klaar voor de volgende start.",
+    "playerPausedDuring": "Gepauzeerd tijdens {{name}}.",
+    "playerPausedGeneric": "De GM past de slagorde aan.",
+    "playerYourTurn": "Jij bent nu aan zet.",
+    "playerTurnOf": "{{name}} is nu aan zet.",
+    "playerActive": "Gevecht actief.",
+    "playerInitHint": "Vul je initiative in zodra de GM gaat starten.",
+    "playerWaitHint": "Wacht op het startsein van de GM.",
+    "playerPauseHint": "Je beurtvolgorde blijft bewaard tot de GM hervat.",
+    "roundRunning": "Ronde {{round}} loopt.",
+    "roundActNow": "Ronde {{round}} · handel nu.",
+    "turnsUntil_one": "Nog 1 beurt tot jij aan zet bent.",
+    "turnsUntil_other": "Nog {{count}} beurten tot jij aan zet bent."
+  },
+  "initiative": {
+    "label": "Initiative",
+    "placeholder": "Typ...",
+    "roll": "Rol (+{{mod}})"
+  },
+  "join": {
+    "notInCombat": "Niet in gevecht",
+    "description": "Je staat nu buiten de initiativelijst. Dien een verzoek in om weer mee te doen.",
+    "pending": "In behandeling",
+    "request": "Meedoen",
+    "pendingIdle": "Verzoek ontvangen. Je wordt automatisch teruggezet in de initiative tijdens ruststand.",
+    "pendingActive": "Verzoek ontvangen. Je wordt automatisch toegevoegd zodra het gevecht eindigt en ruststand actief is.",
+    "hintIdle": "In ruststand word je na het verzoek automatisch toegevoegd.",
+    "hintActive": "Tijdens pauze of gevecht blijft je verzoek in behandeling tot ruststand."
+  },
+  "errors": {
+    "updateFailed": "De slagorde kon niet worden bijgewerkt. Probeer het opnieuw.",
+    "pauseFailed": "Gevecht pauzeren is mislukt.",
+    "rollFailed": "Niet alle initiatives konden worden gerold.",
+    "advanceFailed": "De volgende beurt kon niet worden gestart.",
+    "endFailed": "Gevecht beëindigen is mislukt.",
+    "joinRequestFailed": "Je verzoek kon niet worden verstuurd. Probeer het opnieuw."
+  },
+  "hidden": {
+    "title": "Verborgen uit slagorde",
+    "return": "Terug",
+    "pauseHint": "Pauzeer of beëindig gevecht om spelers terug te zetten."
+  },
+  "empty": {
+    "label": "Nog leeg",
+    "hint": "Voeg spelers, NPC's of handout-personages toe aan de lijst."
+  },
+  "resizeAria": "Sleep om slagordebreedte aan te passen",
+  "deck": {
+    "rollAll": "Rol allen",
+    "npc": "NPC",
+    "nextTurn": "Volgende beurt"
+  },
+  "endConfirm": {
+    "title": "Gevecht direct beëindigen",
+    "description": "Dit zet de tracker terug naar ruststand. Initiative-volgorde en actieve beurt worden gestopt.",
+    "body": "Gebruik dit alleen wanneer je het gevecht volledig wilt afbreken. Pauzeren kan nog steeds via de hoofdactieknop.",
+    "confirm": "Beëindig"
+  },
+  "missingInit": {
+    "startTitle": "Initiative ontbreekt nog",
+    "resumeTitle": "Nog niet klaar om te hervatten",
+    "description": "Niet iedereen heeft al een initiative-score. TomeVault kan de ontbrekende waardes automatisch rollen of je kunt later verdergaan.",
+    "wait": "Nog niet starten",
+    "rollMissing": "Rol ontbrekende"
+  },
+  "tie": {
+    "title": "Gelijke initiative",
+    "titleProgress": "Gelijke initiative ({{current}}/{{total}})",
+    "manualDescription": "Zet de onderlinge volgorde zelf vast. Bovenaan komt als eerste aan de beurt.",
+    "choiceDescription": "Deze deelnemers gooiden exact gelijk. Laat TomeVault de volgorde loten, of bepaal hem zelf.",
+    "totalScore": "Totaalscore",
+    "initMod": "Initiative-mod",
+    "order": "Volgorde",
+    "tiedCount": "{{count}} gelijk",
+    "firstToLast": "Eerst → laatst",
+    "chooseSelf": "Ik kies zelf",
+    "draw": "TomeVault loot",
+    "confirmOrder": "Volgorde vastzetten",
+    "moveUp": "Omhoog",
+    "moveDown": "Omlaag"
+  },
+  "conditions": {
+    "title": "Conditions voor {{name}}",
+    "description": "Activeer of verwijder status effecten op dit personage.",
+    "descriptions": {
+      "blinded": "Kan niet zien",
+      "charmed": "Beperkt in acties",
+      "deafened": "Kan niet horen",
+      "frightened": "Bang en nadelig",
+      "grappled": "Vast in gevecht",
+      "incapacitated": "Kan niet handelen",
+      "invisible": "Onzichtbaar",
+      "paralyzed": "Verlamd",
+      "petrified": "Versteend",
+      "poisoned": "Vergiftigd",
+      "prone": "Op de grond",
+      "restrained": "Gebonden",
+      "stunned": "Verdwaasd",
+      "unconscious": "Bewusteloos"
+    }
+  },
+  "participant": {
+    "npc": "NPC",
+    "player": "Speler",
+    "enemy": "Vijand",
+    "unknownEnemy": "Onbekende vijand",
+    "alert": "Alert",
+    "hpEditGm": "Klik om HP aan te passen",
+    "hpEditSelf": "Klik om je HP aan te passen",
+    "hpTitle": "Hit Points",
+    "initEdit": "Bewerk initiative",
+    "initTitle": "Initiative score",
+    "downed": "Downed",
+    "downedAria": "{{name}} is buiten westen (0 HP)",
+    "orderTitle": "Volgorde {{index}}"
+  },
+  "roles": {
+    "npc": "NPC",
+    "player": "Speler"
+  },
+  "damageModal": {
+    "title": "HP",
+    "amountPlaceholder": "0",
+    "damage": "Schade",
+    "heal": "Genezing",
+    "setExact": "Stel exact in"
+  },
+  "addNpc": {
+    "title": "NPC",
+    "avatarAlt": "NPC Portret preview",
+    "name": "Naam",
+    "namePlaceholder": "Bijv. Goblin Aanvoerder",
+    "visibleToPlayers": "Zichtbaar voor spelers",
+    "hiddenFromPlayers": "Verborgen voor spelers",
+    "hiddenHint": "Verborgen NPC's staan niet in de spelers-slagorde."
+  },
+  "initiativeSwap": {
+    "title": "Initiative Swap",
+    "subtitle": "Wissel jouw initiativescore met een bondgenoot",
+    "incapacitated": "Alert Feat Swap is niet mogelijk als jij of je bondgenoot de status \"Incapacitated\" hebt.",
+    "notInList": "Je bent niet in de initiatielijst.",
+    "noPartners": "Geen beschikbare bondgenoten om mee te wisselen.",
+    "choosePartner": "Kies een bondgenoot:",
+    "initiativeScore": "Initiative: {{score}}",
+    "swap": "Wissel"
+  },
+  "profile": {
+    "titleNpc": "NPC",
+    "titlePlayer": "Profiel",
+    "portraitAlt": "Portret",
+    "namePlaceholder": "Naam",
+    "subtitlePlaceholder": "Ras / klasse",
+    "pickAvatar": "Avatar kiezen",
+    "combatSection": "Gevecht",
+    "decreaseHp": "HP verlagen",
+    "increaseHp": "HP verhogen",
+    "currentHp": "Huidige HP",
+    "maxHp": "Maximale HP",
+    "initModTitle": "Initiative Modifier",
+    "lifeStatus": "Levensstatus",
+    "deadHint": "Gemarkeerd als overleden. Toont een doodshoofd in de slagorde.",
+    "zeroHpHint": "Op 0 HP. Markeer als overleden of laat herstellen.",
+    "revive": "Herleven",
+    "markDead": "Overleden",
+    "alertFeat": "Alert Feat",
+    "alertFeatHint": "Kan het initiatief omwisselen aan het begin van het gevecht.",
+    "active": "Actief",
+    "enable": "Inschakelen",
+    "proficiencyBonus": "PB",
+    "swapInitiative": "Wissel initiatief",
+    "playerVisibility": "Spelerszichtbaarheid",
+    "npcHiddenHint": "Verborgen NPC's staan niet in de spelers-slagorde.",
+    "npcVisibleHint": "Deze NPC is zichtbaar voor spelers in de slagorde.",
+    "reveal": "Onthul",
+    "hide": "Verberg",
+    "conditionsTitle": "Status & condities",
+    "transferGm": "GM overdragen",
+    "transferConfirm": "GM-rechten overdraagt aan {{name}}?",
+    "archiveTitle": "Profielarchief",
+    "archiveEmpty": "Opgeslagen profielen verschijnen hier na een rolacceptatie of profielwissel.",
+    "viaTemplate": "via {{name}}",
+    "ownProfile": "Eigen profiel",
+    "activate": "Activeer",
+    "loreSection": "Lore",
+    "lorePlaceholder": "Achtergrond, spreuken, effecten…",
+    "removeFromOrderNpc": "Verwijder uit slagorde",
+    "hideFromOrderPlayer": "Verberg uit slagorde",
+    "removeNpcConfirm": "Weet je zeker dat je {{name}} uit de slagorde wilt verwijderen?",
+    "hidePlayerConfirm": "{{name}} wordt verborgen uit de slagorde en kan later opnieuw meedoen. Doorgaan?",
+    "levelUpChat": "{{name}} is een level gestegen en is nu level {{level}}! Controleer de regels van je TTRPG om te zien wat je moet weten en/of voorbereiden.",
+    "levelDownChat": "{{name}} is een level gedaald en is nu level {{level}}! Controleer de regels van je TTRPG om te zien wat je moet weten en/of voorbereiden."
+  }
+}

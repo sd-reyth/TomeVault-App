@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { COIN_ORDER, UNIT_FACTOR, formatWalletTotal, normalizeWalletShape, walletTotalBronze } from '../lib/walletUtils';
+import { useT } from '../i18n/useT';
 
 function WalletSection({
   title,
@@ -7,14 +8,15 @@ function WalletSection({
   editable = false,
   onAdjust,
 }) {
+  const { t } = useT('inventory');
   const [editingCoin, setEditingCoin] = useState(null);
   const [inputValue, setInputValue] = useState('');
 
   const coins = [
-    { key: 'platinum', label: 'Pt', fullLabel: 'Platinum', iconColor: '#bae6fd' },
-    { key: 'gold', label: 'Au', fullLabel: 'Goud', iconColor: '#fcd34d' },
-    { key: 'silver', label: 'Ag', fullLabel: 'Zilver', iconColor: '#e2e8f0' },
-    { key: 'bronze', label: 'Cu', fullLabel: 'Koper', iconColor: '#fdba74' },
+    { key: 'platinum', label: 'Pt', fullLabelKey: 'wallet.platinum', iconColor: '#bae6fd' },
+    { key: 'gold', label: 'Au', fullLabelKey: 'wallet.gold', iconColor: '#fcd34d' },
+    { key: 'silver', label: 'Ag', fullLabelKey: 'wallet.silver', iconColor: '#e2e8f0' },
+    { key: 'bronze', label: 'Cu', fullLabelKey: 'wallet.copper', iconColor: '#fdba74' },
   ];
 
   const safeWallet = useMemo(() => normalizeWalletShape(wallet), [wallet]);
@@ -105,69 +107,72 @@ function WalletSection({
       ) : null}
 
       <div className="tv-wallet-strip tv-wallet-strip--subtle">
-        {coins.map((coin) => (
-          <div key={coin.key} className="tv-wallet-strip__coin">
-            <div className="tv-wallet-strip__coin-head">
-              <span
-                className="tv-wallet-strip__badge"
-                style={{ color: coin.iconColor }}
-                aria-hidden="true"
-              >
-                {coin.label}
-              </span>
-              <span className="tv-wallet-strip__name">{coin.fullLabel}</span>
-            </div>
+        {coins.map((coin) => {
+          const fullLabel = t(coin.fullLabelKey);
+          return (
+            <div key={coin.key} className="tv-wallet-strip__coin">
+              <div className="tv-wallet-strip__coin-head">
+                <span
+                  className="tv-wallet-strip__badge"
+                  style={{ color: coin.iconColor }}
+                  aria-hidden="true"
+                >
+                  {coin.label}
+                </span>
+                <span className="tv-wallet-strip__name">{fullLabel}</span>
+              </div>
 
-            <div className="tv-wallet-strip__value-row">
-              {editable ? (
-                <>
-                  <button
-                    type="button"
-                    onClick={() => handleAdjust(coin.key, -1)}
-                    className="tv-wallet-stepper-btn tv-wallet-strip__stepper"
-                    aria-label={`${coin.fullLabel} verminderen`}
-                  >
-                    −
-                  </button>
-
-                  {editingCoin === coin.key ? (
-                    <input
-                      type="number"
-                      value={inputValue}
-                      onChange={(e) => setInputValue(e.target.value)}
-                      onBlur={() => handleInputSubmit(coin.key)}
-                      onKeyDown={(e) => e.key === 'Enter' && handleInputSubmit(coin.key)}
-                      className="hide-arrows tv-wallet-strip__input"
-                      autoFocus
-                    />
-                  ) : (
+              <div className="tv-wallet-strip__value-row">
+                {editable ? (
+                  <>
                     <button
                       type="button"
-                      onClick={() => beginEditCoin(coin.key)}
-                      className="tv-wallet-strip__amount"
-                      aria-label={`${coin.fullLabel} aanpassen`}
+                      onClick={() => handleAdjust(coin.key, -1)}
+                      className="tv-wallet-stepper-btn tv-wallet-strip__stepper"
+                      aria-label={t('wallet.decreaseAria', { coin: fullLabel })}
                     >
-                      {safeWallet[coin.key]}
+                      −
                     </button>
-                  )}
 
-                  <button
-                    type="button"
-                    onClick={() => handleAdjust(coin.key, 1)}
-                    className="tv-wallet-stepper-btn tv-wallet-strip__stepper"
-                    aria-label={`${coin.fullLabel} verhogen`}
-                  >
-                    +
-                  </button>
-                </>
-              ) : (
-                <span className="tv-wallet-strip__amount tv-wallet-strip__amount--readonly">
-                  {safeWallet[coin.key]}
-                </span>
-              )}
+                    {editingCoin === coin.key ? (
+                      <input
+                        type="number"
+                        value={inputValue}
+                        onChange={(e) => setInputValue(e.target.value)}
+                        onBlur={() => handleInputSubmit(coin.key)}
+                        onKeyDown={(e) => e.key === 'Enter' && handleInputSubmit(coin.key)}
+                        className="hide-arrows tv-wallet-strip__input"
+                        autoFocus
+                      />
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => beginEditCoin(coin.key)}
+                        className="tv-wallet-strip__amount"
+                        aria-label={t('wallet.editAria', { coin: fullLabel })}
+                      >
+                        {safeWallet[coin.key]}
+                      </button>
+                    )}
+
+                    <button
+                      type="button"
+                      onClick={() => handleAdjust(coin.key, 1)}
+                      className="tv-wallet-stepper-btn tv-wallet-strip__stepper"
+                      aria-label={t('wallet.increaseAria', { coin: fullLabel })}
+                    >
+                      +
+                    </button>
+                  </>
+                ) : (
+                  <span className="tv-wallet-strip__amount tv-wallet-strip__amount--readonly">
+                    {safeWallet[coin.key]}
+                  </span>
+                )}
+              </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );

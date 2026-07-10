@@ -1,23 +1,26 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { MessageSquare, Palette, Pencil, Trash2, X, Check, CornerUpLeft, SendHorizontal, Dice5 } from 'lucide-react';
 import DiceRollerSheet from './DiceRollerSheet';
+import TvImage from './TvImage';
 import { safeLocalStorageGet, safeLocalStorageSet } from '../lib/browserStorage';
-import { canDeleteChatMessage, canEditChatMessage } from '../lib/chatUtils';
+import { buildChatAvatarLookup, canDeleteChatMessage, canEditChatMessage, resolveChatSenderProfile } from '../lib/chatUtils';
 import { diceMessageHasNat20 } from '../lib/uiFeedback';
+import { getChatAvatarObjectPosition, resolveDisplayAvatar } from '../lib/placeholders';
 import DiceIcon, { DiceMultipleIcon } from '../ui/DiceIcon';
+import { useT } from '../i18n/useT';
 
 const CHAT_COLORS = [
-  { id: 'indigo',   bg: '#2d285f', border: '#6366f1', text: '#f1f5ff', swatch: '#818cf8', name: 'Indigo'   },
-  { id: 'violet',   bg: '#3a1f63', border: '#8b5cf6', text: '#f5f3ff', swatch: '#a78bfa', name: 'Violet'   },
-  { id: 'sky',      bg: '#114169', border: '#0ea5e9', text: '#f0f9ff', swatch: '#38bdf8', name: 'Hemel'    },
-  { id: 'emerald',  bg: '#0e4a2b', border: '#10b981', text: '#ecfdf5', swatch: '#34d399', name: 'Smaragd'  },
-  { id: 'lime',     bg: '#2e4a0b', border: '#84cc16', text: '#f7fee7', swatch: '#a3e635', name: 'Limoen'   },
-  { id: 'amber',    bg: '#5a2e08', border: '#f59e0b', text: '#fff7ed', swatch: '#fbbf24', name: 'Amber'    },
-  { id: 'orange',   bg: '#5a220b', border: '#f97316', text: '#fff7ed', swatch: '#fb923c', name: 'Oranje'   },
-  { id: 'rose',     bg: '#63122d', border: '#f43f5e', text: '#fff1f2', swatch: '#fb7185', name: 'Roos'     },
-  { id: 'pink',     bg: '#68163b', border: '#ec4899', text: '#fdf2f8', swatch: '#f472b6', name: 'Roze'     },
-  { id: 'fuchsia',  bg: '#5e1366', border: '#d946ef', text: '#fdf4ff', swatch: '#e879f9', name: 'Fuchsia'  },
-  { id: 'cyan',     bg: '#0f4a5f', border: '#22d3ee', text: '#ecfeff', swatch: '#67e8f9', name: 'Cyaan'    },
+  { id: 'indigo',   bg: '#2d285f', border: '#6366f1', text: '#f1f5ff', swatch: '#818cf8' },
+  { id: 'violet',   bg: '#3a1f63', border: '#8b5cf6', text: '#f5f3ff', swatch: '#a78bfa' },
+  { id: 'sky',      bg: '#114169', border: '#0ea5e9', text: '#f0f9ff', swatch: '#38bdf8' },
+  { id: 'emerald',  bg: '#0e4a2b', border: '#10b981', text: '#ecfdf5', swatch: '#34d399' },
+  { id: 'lime',     bg: '#2e4a0b', border: '#84cc16', text: '#f7fee7', swatch: '#a3e635' },
+  { id: 'amber',    bg: '#5a2e08', border: '#f59e0b', text: '#fff7ed', swatch: '#fbbf24' },
+  { id: 'orange',   bg: '#5a220b', border: '#f97316', text: '#fff7ed', swatch: '#fb923c' },
+  { id: 'rose',     bg: '#63122d', border: '#f43f5e', text: '#fff1f2', swatch: '#fb7185' },
+  { id: 'pink',     bg: '#68163b', border: '#ec4899', text: '#fdf2f8', swatch: '#f472b6' },
+  { id: 'fuchsia',  bg: '#5e1366', border: '#d946ef', text: '#fdf4ff', swatch: '#e879f9' },
+  { id: 'cyan',     bg: '#0f4a5f', border: '#22d3ee', text: '#ecfeff', swatch: '#67e8f9' },
 ];
 
 function getColor(colorId) {
@@ -104,7 +107,27 @@ function parseDiceMessage(text) {
   };
 }
 
-function ChatView({ chat, setChat, role, uid, playerName, preferredChatColor, theme, onSendMessageRemote, onEditMessage, onDeleteMessage, onChangeColor }) {
+function ChatMessageAvatar({ profile, author, accent, senderKey }) {
+  const avatarSrc = resolveDisplayAvatar(profile.avatar, senderKey);
+
+  return (
+    <div
+      className="tv-chat-avatar tv-image-frame shrink-0"
+      style={{ border: `2px solid color-mix(in srgb, ${accent.swatch}, transparent 12%)` }}
+      title={author}
+    >
+      <TvImage
+        src={avatarSrc}
+        alt={author}
+        className="h-full w-full"
+        style={{ objectPosition: getChatAvatarObjectPosition(profile.avatarPosition) }}
+      />
+    </div>
+  );
+}
+
+function ChatView({ chat, setChat, role, uid, playerName, preferredChatColor, theme, party = [], onSendMessageRemote, onEditMessage, onDeleteMessage, onChangeColor }) {
+  const { t } = useT('chat');
   const [msg, setMsg] = useState('');
   const [isSending, setIsSending] = useState(false);
   const [chatColor, setChatColor] = useState(() => getStoredChatColor(preferredChatColor));
@@ -153,7 +176,8 @@ function ChatView({ chat, setChat, role, uid, playerName, preferredChatColor, th
   const occupiedColors = new Set(
     chat.filter(c => c.uid && c.uid !== uid && c.color).map(c => c.color)
   );
-  const selfAuthor = role === 'gm' ? 'GM' : (playerName || 'Speler');
+  const selfAuthor = role === 'gm' ? 'GM' : (playerName || t('common:roles.playerShort'));
+  const avatarLookup = useMemo(() => buildChatAvatarLookup(party), [party]);
 
   useEffect(() => {
     if (!editingMsg) return undefined;
@@ -325,19 +349,19 @@ function ChatView({ chat, setChat, role, uid, playerName, preferredChatColor, th
     <div className="tv-view-shell relative z-10 h-full">
       <div className="tv-view-shell-header flex shrink-0 flex-row items-center justify-between gap-2 p-3 md:p-4">
         <h2 className="flex min-w-0 items-center gap-2 text-xs font-medium font-fantasy uppercase tracking-[0.18em] tv-text md:text-sm">
-          <MessageSquare className="tv-view-title-icon" /> Fluisteringen
+          <MessageSquare className="tv-view-title-icon" /> {t('view.title')}
         </h2>
         <button
           onClick={() => setShowColorPicker(true)}
           className="tv-toolbar__btn tv-panel-inset tv-text tv-hover-surface hover:tv-text shrink-0 gap-1.5 px-2.5 active:scale-[0.985]"
-          title="Kies je chatkleur"
+          title={t('view.pickColor')}
         >
           {chatColor
             ? <span className="w-3 h-3 rounded-full shrink-0" style={{ backgroundColor: getColor(chatColor).swatch, boxShadow: `0 0 6px ${getColor(chatColor).swatch}88` }} />
             : <Palette className="w-3.5 h-3.5" />
           }
           <span className="text-[10px] font-medium uppercase tracking-wider">
-            {chatColor ? getColor(chatColor).name : 'Kleur'}
+            {chatColor ? t(`colors.${chatColor}`) : t('view.color')}
           </span>
         </button>
       </div>
@@ -347,7 +371,7 @@ function ChatView({ chat, setChat, role, uid, playerName, preferredChatColor, th
         <div className="tv-backdrop absolute inset-0 z-30 flex items-start justify-center overflow-y-auto p-3 backdrop-blur-md sm:p-4">
           <div className="tv-surface my-auto w-full max-w-sm shrink-0 rounded-3xl p-4 sm:p-6">
             <div className="flex justify-between items-center mb-1">
-              <h3 className="text-sm uppercase tracking-[0.18em] tv-text">Kies jouw kleur</h3>
+              <h3 className="text-sm uppercase tracking-[0.18em] tv-text">{t('view.chooseColor')}</h3>
               {chatColor && (
                 <button onClick={() => setShowColorPicker(false)} className="rounded-full p-1 tv-muted transition-colors hover:tv-panel-inset hover:tv-text">
                   <X className="w-4 h-4" />
@@ -355,9 +379,7 @@ function ChatView({ chat, setChat, role, uid, playerName, preferredChatColor, th
               )}
             </div>
             <p className="mb-4 text-xs italic tv-muted">
-              {role === 'gm'
-                ? 'Als Game Master kies je als eerste - jouw kleur is gereserveerd voor jou.'
-                : 'Grijze kleuren zijn bezet door andere spelers.'}
+              {role === 'gm' ? t('view.gmColorHint') : t('view.occupiedHint')}
             </p>
             <div className="grid grid-cols-3 gap-2 sm:grid-cols-4">
               {CHAT_COLORS.map(c => {
@@ -367,7 +389,7 @@ function ChatView({ chat, setChat, role, uid, playerName, preferredChatColor, th
                   <button
                     key={c.id}
                     onClick={() => !occupied && handleColorSelect(c.id)}
-                    title={c.name + (occupied ? ' (bezet)' : '')}
+                    title={t(`colors.${c.id}`) + (occupied ? t('view.occupiedSuffix') : '')}
                     disabled={occupied}
                     className={`relative flex flex-col items-center gap-1 rounded-2xl border p-2 transition-all duration-200 ease-out ${
                       isActive
@@ -381,7 +403,7 @@ function ChatView({ chat, setChat, role, uid, playerName, preferredChatColor, th
                       className="w-8 h-8 rounded-full"
                       style={{ backgroundColor: c.swatch, boxShadow: `0 0 10px ${c.swatch}66` }}
                     />
-                    <span className="w-full truncate text-center text-[8px] font-medium uppercase leading-none tv-text-sub">{c.name}</span>
+                    <span className="w-full truncate text-center text-[8px] font-medium uppercase leading-none tv-text-sub">{t(`colors.${c.id}`)}</span>
                     {isActive && (
                       <span className="absolute right-1 top-1 flex h-3.5 w-3.5 items-center justify-center rounded-full tv-surface-raised shadow">
                         <Check className="w-2 h-2" strokeWidth={3} style={{ color: 'var(--tv-bg-canvas)' }} />
@@ -399,8 +421,8 @@ function ChatView({ chat, setChat, role, uid, playerName, preferredChatColor, th
       <div ref={messagesContainerRef} className="tv-view-shell-body relative z-10 flex-1 overflow-y-auto px-3 py-4 no-scrollbar md:px-5">
         {chat.length === 0 && (
           <div className="tv-empty-state mx-auto my-8 max-w-md">
-            <p className="tv-empty-state-title">Nog geen berichten</p>
-            <p className="text-sm">Stuur het eerste bericht of rol een dobbelsteen met <span className="font-mono">roll d20</span>.</p>
+            <p className="tv-empty-state-title">{t('view.emptyTitle')}</p>
+            <p className="text-sm">{t('view.emptyHint')} <span className="font-mono">roll d20</span>.</p>
           </div>
         )}
         {chat.map((c, i) => {
@@ -417,6 +439,7 @@ function ChatView({ chat, setChat, role, uid, playerName, preferredChatColor, th
           const isLastInGroup = !nextMsg || nextKey !== senderKey || timeBreakToNext;
           const canEdit = isOwn && canEditChatMessage(c, chat, uid, selfAuthor);
           const canDelete = canDeleteChatMessage(c, role, uid, selfAuthor);
+          const senderProfile = resolveChatSenderProfile(c, avatarLookup);
 
           return (
             <div
@@ -425,7 +448,7 @@ function ChatView({ chat, setChat, role, uid, playerName, preferredChatColor, th
             >
               {/* Author + time header */}
               {showHeader && (
-                <div className={`flex items-center gap-2 mb-1 px-1 ${isOwn ? 'flex-row-reverse' : ''}`}>
+                <div className={`mb-1 flex items-center gap-2 px-1 ${isOwn ? 'mr-10 flex-row-reverse' : 'ml-10'}`}>
                   <span className="text-[10px] font-medium tracking-[0.14em] md:text-xs" style={{ color: cs.swatch }}>
                     {c.author}
                   </span>
@@ -433,8 +456,21 @@ function ChatView({ chat, setChat, role, uid, playerName, preferredChatColor, th
                 </div>
               )}
 
-              {/* Bubble + context menu */}
-              <div className="relative max-w-[88%] sm:max-w-[82%] md:max-w-[70%]">
+              {/* Avatar + bubble */}
+              <div className={`flex max-w-[88%] items-end gap-2 sm:max-w-[82%] md:max-w-[70%] ${isOwn ? 'flex-row-reverse' : ''}`}>
+                {isLastInGroup ? (
+                  <ChatMessageAvatar
+                    profile={senderProfile}
+                    author={c.author}
+                    accent={cs}
+                    senderKey={senderKey}
+                  />
+                ) : (
+                  <div className="tv-chat-avatar-spacer shrink-0" aria-hidden="true" />
+                )}
+
+                {/* Bubble + context menu */}
+                <div className="relative min-w-0 flex-1">
                 <div
                   onClick={() => handleBubbleClick(c)}
                   className={`cursor-pointer select-none px-3 py-1.5 text-sm leading-normal shadow-sm transition-transform duration-150 active:scale-[0.985] md:px-3.5 md:py-2
@@ -481,7 +517,7 @@ function ChatView({ chat, setChat, role, uid, playerName, preferredChatColor, th
                                 style={{ color: cs.text }}
                               >
                                 <DiceMultipleIcon className="h-3 w-3" style={{ color: '#fde68a' }} />
-                                {isNat20 ? 'Kritiek!' : 'Totaal'}
+                                {isNat20 ? t('dice.critical') : t('dice.total')}
                               </div>
                               <div
                                 className={`font-ui text-4xl font-semibold leading-none tracking-[0.02em] tabular-nums md:text-[2.65rem] ${isNat20 ? 'tv-dice-total--nat20' : ''}`}
@@ -501,7 +537,7 @@ function ChatView({ chat, setChat, role, uid, playerName, preferredChatColor, th
                                   <div key={`${entry.raw}-${index}`} className="rounded-lg border border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] bg-black/5 px-2 py-1.5">
                                     <div className="flex items-center gap-1.5 text-[11px] font-semibold tv-text">
                                       {entry.sides ? <ChatDiceIcon sides={entry.sides} className="h-3.5 w-3.5 shrink-0" /> : null}
-                                      <span>Werpt {entry.raw}</span>
+                                      <span>{t('dice.rolls', { notation: entry.raw })}</span>
                                     </div>
                                     <div className="mt-0.5 break-words tabular-nums tv-text">
                                       = {shownRolls.join(' + ')}
@@ -519,9 +555,9 @@ function ChatView({ chat, setChat, role, uid, playerName, preferredChatColor, th
                                 type="button"
                                 onClick={() => toggleDiceMessageExpansion(c.id)}
                                 className="text-[10px] font-semibold uppercase tracking-[0.12em] tv-text-sub transition-colors hover:tv-text"
-                                aria-label={isExpanded ? 'Verberg berekening' : 'Toon volledige berekening'}
+                                aria-label={isExpanded ? t('dice.hideBreakdown') : t('dice.showBreakdown')}
                               >
-                                {isExpanded ? 'Minder details' : 'Meer details'}
+                                {isExpanded ? t('dice.lessDetails') : t('dice.moreDetails')}
                               </button>
                             </div>
                           ) : null}
@@ -544,7 +580,7 @@ function ChatView({ chat, setChat, role, uid, playerName, preferredChatColor, th
                       className="flex w-full items-center gap-2.5 px-3 py-2 text-[11px] tv-text transition-colors hover:tv-panel-inset hover:tv-text"
                     >
                       <CornerUpLeft className="h-3.5 w-3.5 shrink-0 tv-muted" />
-                      Beantwoord
+                      {t('view.reply')}
                     </button>
                     {(canEdit || canDelete) && (
                       <>
@@ -555,7 +591,7 @@ function ChatView({ chat, setChat, role, uid, playerName, preferredChatColor, th
                             className="flex w-full items-center gap-2.5 px-3 py-2 text-[11px] tv-text transition-colors hover:tv-panel-inset hover:tv-text"
                           >
                             <Pencil className="h-3.5 w-3.5 shrink-0 tv-muted" />
-                            Bewerk
+                            {t('view.edit')}
                           </button>
                         ) : null}
                         {canDelete ? (
@@ -564,13 +600,14 @@ function ChatView({ chat, setChat, role, uid, playerName, preferredChatColor, th
                             className="flex w-full items-center gap-2.5 px-3 py-2 text-[11px] tv-tone-enemy-text transition-colors tv-hover-danger"
                           >
                             <Trash2 className="h-3.5 w-3.5 shrink-0" />
-                            Verwijder
+                            {t('view.delete')}
                           </button>
                         ) : null}
                       </>
                     )}
                   </div>
                 )}
+                </div>
               </div>
             </div>
           );
@@ -597,7 +634,7 @@ function ChatView({ chat, setChat, role, uid, playerName, preferredChatColor, th
         {editingMsg && (
           <div className="flex items-start gap-2 px-3 pb-1 pt-2.5">
             <div className="flex-1 overflow-hidden rounded-lg border-l-2 border-[color-mix(in_srgb,var(--tv-accent),transparent_30%)] tv-panel-inset px-2.5 py-1.5 text-[11px] tv-text-sub">
-              <span className="mb-0.5 block text-[10px] font-semibold uppercase tracking-wider text-[var(--tv-accent)]">Bewerk modus</span>
+              <span className="mb-0.5 block text-[10px] font-semibold uppercase tracking-wider text-[var(--tv-accent)]">{t('view.editMode')}</span>
               <span className="line-clamp-1 italic opacity-60">{editingMsg.text}</span>
             </div>
             <button onClick={cancelEdit} className="mt-1 shrink-0 tv-muted transition-colors hover:tv-text-sub">
@@ -613,7 +650,7 @@ function ChatView({ chat, setChat, role, uid, playerName, preferredChatColor, th
             value={msg}
             onChange={e => setMsg(e.target.value)}
             onClick={() => { if (!chatColor) setShowColorPicker(true); }}
-            placeholder={chatColor ? (editingMsg ? 'Pas je bericht aan...' : 'Spreek in de schaduwen...') : 'Kies eerst een kleur...'}
+            placeholder={chatColor ? (editingMsg ? t('view.placeholderEdit') : t('view.placeholderCompose')) : t('view.placeholderColor')}
             className="tv-input-surface tv-chat-compose-input min-w-0 flex-1 px-3 text-sm italic transition-colors focus:outline-none md:px-4"
           />
           <div className="tv-chat-compose-controls flex shrink-0 items-center gap-2">
@@ -621,8 +658,8 @@ function ChatView({ chat, setChat, role, uid, playerName, preferredChatColor, th
               <button
                 type="button"
                 onClick={() => setShowDicePopover((prev) => !prev)}
-                title="Dobbelstenen rollen"
-                aria-label="Dobbelstenen rollen"
+                title={t('view.rollDice')}
+                aria-label={t('view.rollDiceAria')}
                 className={`tv-toolbar-icon-btn tv-chat-dice-btn transition-all duration-200 ease-out disabled:opacity-50 active:scale-[0.985] ${showDicePopover ? 'tv-chat-dice-btn--active' : ''}`}
                 disabled={isSending}
               >
@@ -632,8 +669,8 @@ function ChatView({ chat, setChat, role, uid, playerName, preferredChatColor, th
             <button
               type="submit"
               disabled={isSending}
-              title={editingMsg ? 'Bewerking opslaan' : 'Bericht versturen'}
-              aria-label={editingMsg ? 'Bewerking opslaan' : 'Bericht versturen'}
+              title={editingMsg ? t('view.saveEdit') : t('view.sendMessage')}
+              aria-label={editingMsg ? t('view.saveEdit') : t('view.sendMessage')}
               className={`tv-chat-send-btn inline-flex shrink-0 items-center justify-center gap-2 border px-3.5 text-sm font-medium uppercase tracking-[0.16em] transition-all duration-200 ease-out disabled:opacity-50 active:scale-[0.985] md:px-4 ${msg.trim() && !isSending ? 'tv-chat-send-btn--ready' : ''}`}
             >
               {editingMsg ? <Check className="w-4 h-4" /> : <SendHorizontal className="w-4 h-4" />}
@@ -644,8 +681,8 @@ function ChatView({ chat, setChat, role, uid, playerName, preferredChatColor, th
 
       <DiceRollerSheet
         isOpen={showDicePopover}
-        title="Rol naar de chat"
-        subtitle="Werp je stenen vanuit dezelfde roller en stuur het resultaat direct als chatbericht."
+        title={t('view.rollToChatTitle')}
+        subtitle={t('view.rollToChatSubtitle')}
         onClose={() => setShowDicePopover(false)}
         onRoll={handleRollDice}
       />

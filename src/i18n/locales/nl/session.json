@@ -1,0 +1,200 @@
+{
+  "campaignFallback": "Campagne",
+  "sessionLabel": "Sessie {{number}}",
+  "hubTitle": "Campaign Hub openen",
+  "party": {
+    "hide": "Verberg slagorde",
+    "idle": "Open slagorde - ruststand",
+    "myTurn": "Open slagorde - jouw beurt",
+    "paused": "Open slagorde - gevecht gepauzeerd",
+    "active": "Open slagorde - gevecht actief",
+    "turnsUntil": "Open slagorde - nog {{count}} beurt(en)"
+  },
+  "profileTitle": "Mijn Karakterblad",
+  "leaveTitle": "Verlaat Sessie",
+  "turnAlert": {
+    "now": "Jij bent nu aan de beurt.",
+    "soon": "Bijna jouw beurt. Maak je actie alvast klaar.",
+    "start": "Gevecht gestart. Let op de slagorde."
+  },
+  "invite": {
+    "shareText": "Sluit je aan bij {{campaignName}} op TomeVault!\n\nCampagne: {{campaignName}}\nCode: {{code}}\n\nSpeel direct mee: {{url}}"
+  },
+  "profileBackup": {
+    "reasons": {
+      "profile_save": "Profiel opgeslagen",
+      "settings_save": "Instellingen opgeslagen",
+      "leave": "Sessie verlaten",
+      "logout": "Uitgelogd",
+      "manual": "Handmatig"
+    }
+  },
+  "profileArchive": {
+    "activateConfirm": "Wissel naar \"{{name}}\"? Je huidige profiel wordt bewaard in je archief. Een actieve GM-voorbereiding gaat terug naar de bibliotheek.",
+    "alreadyActive": "Dit profiel is al je actieve personage."
+  },
+  "gmTransfer": {
+    "success": "{{name}} is nu GM van deze sessie."
+  },
+  "hub": {
+    "title": "Campaign Hub",
+    "tabsAria": "Campaign hub secties",
+    "tabs": {
+      "overview": "Overzicht",
+      "invite": "Uitnodigen",
+      "manage": "Beheer",
+      "help": "Help"
+    },
+    "players": "Spelers",
+    "status": "Status",
+    "statusActive": "Actief · join open",
+    "joinCodeHint": "Join-code (alleen indien nodig)",
+    "inviteLink": "Invite-link",
+    "copyCode": "Code",
+    "copyLink": "Link",
+    "shareNative": "Deel via systeem",
+    "shareCopy": "Deeltekst kopiëren",
+    "whatsapp": "WhatsApp",
+    "campaignName": "Campagnenaam",
+    "campaignNamePlaceholder": "Bijv. Schaduw van de Draken",
+    "campaignNameHint": "Wijzigt alleen de weergavenaam — je sessiedata blijft intact.",
+    "sessionNumber": "Sessienummer",
+    "prevSession": "Vorige sessie",
+    "nextSession": "Volgende sessie",
+    "currentJoinCode": "Huidige join-code",
+    "rollJoinCode": "Opnieuw rollen",
+    "rollJoinCodeConfirm": "Nieuwe join-code genereren? Oude links blijven niet meer werken.",
+    "errors": {
+      "emptyCampaignName": "Campagnenaam mag niet leeg zijn.",
+      "saveFailed": "Opslaan is mislukt.",
+      "rollFailed": "Join-code vernieuwen is mislukt."
+    },
+    "help": {
+      "gmTitle": "Game Master",
+      "gmItems": [
+        "Deel via QR of invite-link in het tabblad Uitnodigen.",
+        "Pas campagnenaam en sessienummer aan onder Beheer.",
+        "Roll de join-code opnieuw als een oude link gelekt is."
+      ],
+      "playerTitle": "Speler",
+      "playerItems": [
+        "Scan de QR-code of open de invite-link op je telefoon.",
+        "Log in met Google of e-mail — daarna kies je je karakternaam.",
+        "Je komt direct in de campagne zonder PIN via QR-uitnodiging."
+      ]
+    }
+  },
+  "manage": {
+    "title": "Sessiebeheer",
+    "subtitle": "Sessienummer en deelopties",
+    "sessionNumber": "Sessienummer",
+    "prevSession": "Vorige sessie",
+    "nextSession": "Volgende sessie",
+    "invitation": "Uitnodiging",
+    "sessionCode": "Sessiecode",
+    "joinLink": "Join-link",
+    "copy": "Kopieer",
+    "shareSession": "Deel sessie"
+  },
+  "share": {
+    "title": "Deel sessie",
+    "subtitle": "Scan of kopieer",
+    "sessionCode": "Sessiecode",
+    "joinLink": "Join-link",
+    "copyCode": "Code",
+    "copyLink": "Link",
+    "whatsapp": "WhatsApp Delen",
+    "whatsappText": "Sluit je aan bij mijn epische avontuur op TomeVault! 🐉\n\nSessie Code: *{{code}}*\n\nSpeel direct mee: {{url}}"
+  },
+  "leaveConfirm": {
+    "title": "Nog even bij het kampvuur?",
+    "body": "Warm je nog even bij het vuur, of keer terug naar de hal.",
+    "sessionMeta": "Sessie #{{number}} · {{role}}",
+    "stay": "Blijf spelen",
+    "leave": "Vertrekken"
+  },
+  "ambience": {
+    "playerSettings": "Open audio-instellingen",
+    "activeSession": "Open actieve sessiesfeer",
+    "panel": "Open sferenpaneel",
+    "badge": "Sfeer",
+    "title": "Ambience",
+    "subtitleGm": "Kies een scene en stuur het geluid voor de hele tafel.",
+    "subtitlePlayer": "Luister mee — volume pas je hieronder aan.",
+    "nowPlaying": "Nu speelt",
+    "noScene": "Geen scene",
+    "selectScene": "Selecteer een scene om te beginnen.",
+    "pause": "Pauzeer",
+    "play": "Afspelen",
+    "start": "Start",
+    "enableAudio": "Activeer audio",
+    "pauseAmbience": "Pauzeer sfeer",
+    "startAmbience": "Start sfeer",
+    "sessionVolume": "Sessie",
+    "sessionVolumeAria": "Sessievolume",
+    "mixVolume": "Mix",
+    "yourVolumeAria": "Jouw volume",
+    "audioBlocked": "Je browser blokkeert audio tot je het eenmalig toestaat.",
+    "enableAudioAction": "Audio aan",
+    "scenes": "Scenes",
+    "sceneActive": ", actief",
+    "live": "Live",
+    "ready": "Gereed",
+    "creditsLink": "Audiogebruik & credits",
+    "creditsAria": "Audiogebruik en credits",
+    "sourcelist": {
+      "badge": "Credits",
+      "title": "Audiogebruik",
+      "subtitle": "Bronnen en dankwoord voor de sfeerlagen in TomeVault.",
+      "verified": "Geverifieerd",
+      "verifiedAria": "Geverifieerde bronnen",
+      "archive": "Archief",
+      "archiveAria": "Archief",
+      "sourceLink": "Bron",
+      "empty": "Geen audiogegevens beschikbaar.",
+      "disclaimer": "Alle rechten bij de oorspronkelijke makers. TomeVault host alleen de bestanden voor sessiegebruik."
+    }
+  },
+  "appErrors": {
+    "loginRequired": "Log eerst in voordat je een sessie start of joint.",
+    "pinInvalid": "PIN moet uit 4 tot 8 cijfers bestaan.",
+    "testSessionInUse": "Deze testsessie is al in gebruik door een andere GM.",
+    "sessionCodeMissing": "Sessiecode ontbreekt.",
+    "characterNameMissing": "Karakternaam ontbreekt.",
+    "sessionNotFound": "Sessie niet gevonden. Controleer de code.",
+    "wrongPin": "Onjuiste PIN.",
+    "openSessionFailed": "Sessie openen is mislukt. Controleer Firebase rules en internetverbinding.",
+    "sessionGone": "Deze sessie bestaat niet meer.",
+    "notGm": "Je bent geen GM van deze sessie.",
+    "openRecentFailed": "Recente sessie openen is mislukt.",
+    "deleteSessionFailed": "Het permanent verwijderen van deze sessie is mislukt.",
+    "deleteOnlyActiveGm": "Alleen de actieve GM kan deze campagne definitief verwijderen.",
+    "logoutFailed": "Uitloggen is mislukt. Probeer het opnieuw.",
+    "restoreSessionsFailed": "Herstel van oude sessies is mislukt. Controleer Firestore-toegang en probeer opnieuw.",
+    "authTimeout": "Authenticatie duurde te lang. Probeer opnieuw met Google of e-mail.",
+    "authInitFailed": "Authenticatie initialiseren is mislukt. Probeer opnieuw of gebruik e-mail.",
+    "authStartFailed": "Authenticatie kon niet worden gestart. Probeer opnieuw of gebruik e-mail.",
+    "noteSaveFailed": "Je persoonlijke notitie kon niet worden opgeslagen.",
+    "returnToHandoutsFailed": "Terugleggen naar handouts is mislukt. Probeer opnieuw.",
+    "acceptRoleOfferFailed": "Het rolvoorstel kon niet worden geaccepteerd. Controleer je verbinding en probeer opnieuw.",
+    "declineRoleOfferFailed": "Het rolvoorstel kon niet worden geweigerd. Probeer opnieuw.",
+    "switchProfileFailed": "Profiel wisselen is mislukt. Probeer opnieuw.",
+    "restoreProfileFailed": "Profiel herstellen is mislukt. Probeer opnieuw.",
+    "gmTransferFailed": "GM overdracht is mislukt. Probeer opnieuw.",
+    "exportFailed": "Exporteren is mislukt. Probeer opnieuw.",
+    "ambienceTrackLoadFailed": "De gekozen track kon niet geladen worden. Controleer de asset of bronvermelding."
+  },
+  "appInfo": {
+    "devSessionTakenover": "Bestaande lokale testsessie was bezet. Er wordt een nieuwe testsessie voor je aangemaakt.",
+    "recentReferenceRemoved": "De verwijzing naar {{name}} is verwijderd uit je recente sessies.",
+    "campaignDeleted": "Campagne {{name}} is definitief verwijderd.",
+    "sessionLeftAndRemoved": "Je hebt {{name}} permanent verlaten en uit je recente sessies verwijderd.",
+    "backfillNoneFound": "Geen ontbrekende sessies gevonden ({{scanned}} sessies gecontroleerd).",
+    "backfillComplete": "Herstel voltooid: {{restored}} sessie(s) toegevoegd of bijgewerkt.",
+    "roleOfferAccepted": "Rol \"{{name}}\" geaccepteerd. Je vorige profiel staat in je archief.",
+    "roleOfferDeclined": "Rolvoorstel geweigerd. De voorbereiding staat weer klaar bij de GM.",
+    "profileActivated": "Profiel \"{{name}}\" geactiveerd.",
+    "profileRestored": "Profiel hersteld naar een eerder herstelpunt.",
+    "exportSuccess": "Kroniek opgeslagen: {{pageCount}} pagina's, {{sectionCount}} secties · {{filename}}"
+  }
+}

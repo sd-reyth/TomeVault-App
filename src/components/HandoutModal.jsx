@@ -1,12 +1,13 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { Eye, EyeOff, KeyRound, Pencil, Plus, RotateCcw, Save, Scroll, Trash2, UserPlus } from 'lucide-react';
-import { getHandoutIcon, getHandoutTypeLabel, HANDOUT_TYPE_OPTIONS } from '../lib/handoutUtils';
+import { getHandoutIcon, getHandoutTypeOptions } from '../lib/handoutUtils';
 import { DEFAULT_AVATAR_POSITION, getAllPlaceholderImages, normalizeAvatarPosition, suggestHandoutImages } from '../lib/placeholders';
 import ModalFrame from './ModalFrame';
 import TvImage from './TvImage';
 import Button from './Button';
 import { CreateFormPlaceholderGrid } from '../ui/CreateFormPrimitives';
 import useImagePositionDrag from '../ui/useImagePositionDrag';
+import { useT } from '../i18n/useT';
 
 function HandoutModal({
   isOpen,
@@ -22,6 +23,7 @@ function HandoutModal({
   onAddToInitiative,
   canAddToInitiative,
 }) {
+  const { t } = useT('handouts');
   const [isEditing, setIsEditing] = useState(false);
   const EMPTY_FORM = {
     title: '',
@@ -36,7 +38,7 @@ function HandoutModal({
     assignedToUid: null,
     assignedToNick: null,
     secretRevealed: false,
-    npcSubtitle: 'Vijand',
+    npcSubtitle: t('common:fallbacks.enemy'),
     npcHp: 15,
     npcAc: 12,
     npcInitMod: 2,
@@ -183,13 +185,13 @@ function HandoutModal({
   };
 
   const trimmedTitle = formData.title.trim();
-  const typeLabel = getHandoutTypeLabel(formData.type);
+  const typeLabel = t(`types.${formData.type}`);
   const modalTitle = handout
-    ? (isEditing ? 'Handout bewerken' : 'Handout')
-    : 'Nieuw handout';
+    ? (isEditing ? t('modal.editTitle') : t('modal.viewTitle'))
+    : t('modal.newTitle');
   const modalSubtitle = isEditing
     ? undefined
-    : `${formData.title || 'Naamloze handout'} · ${typeLabel}${formData.isRevealed ? '' : ' · verborgen'}`;
+    : `${formData.title || t('modal.unnamed')} · ${typeLabel}${formData.isRevealed ? '' : t('modal.hiddenSuffix')}`;
 
   return (
     <ModalFrame
@@ -201,7 +203,7 @@ function HandoutModal({
       maxWidthClassName="max-w-xl"
       footer={isGM && handout && !isEditing ? (
         <Button variant="primary" block icon={Pencil} onClick={() => setIsEditing(true)}>
-          Bewerken
+          {t('modal.edit')}
         </Button>
       ) : isGM && isEditing ? (
         <div className="flex w-full items-center gap-2">
@@ -210,8 +212,8 @@ function HandoutModal({
               type="button"
               onClick={() => onDelete?.(handout)}
               className="tv-toolbar-icon-btn tv-panel-inset tv-hover-danger shrink-0"
-              title="Verwijder handout"
-              aria-label="Verwijder handout"
+              title={t('modal.deleteTitle')}
+              aria-label={t('modal.deleteAria')}
             >
               <Trash2 className="h-4 w-4" />
             </button>
@@ -225,7 +227,7 @@ function HandoutModal({
                 else setIsEditing(false);
               }}
             >
-              Annuleren
+              {t('common:actions.cancel')}
             </Button>
             <Button
               form="handout-form"
@@ -235,7 +237,7 @@ function HandoutModal({
               icon={handout ? Save : Plus}
               disabled={!trimmedTitle || !String(formData.content || '').trim()}
             >
-              {handout ? 'Opslaan' : 'Toevoegen'}
+              {handout ? t('common:actions.save') : t('common:actions.add')}
             </Button>
           </div>
         </div>
@@ -260,8 +262,8 @@ function HandoutModal({
                   type="button"
                   onClick={openFilePicker}
                   className="tv-handout-form-cover__hit"
-                  title="Afbeelding kiezen"
-                  aria-label="Afbeelding kiezen"
+                  title={t('modal.pickImage')}
+                  aria-label={t('modal.pickImageAria')}
                 />
               ) : null}
               {formData.imageUrl ? (
@@ -275,13 +277,13 @@ function HandoutModal({
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-[color-mix(in_srgb,var(--tv-bg-canvas),transparent_8%)] via-transparent to-transparent pointer-events-none" />
                   <span className="tv-image-pos-frame__hint tv-handout-form-cover__hint" aria-hidden="true">
-                    Sleep om te positioneren
+                    {t('modal.dragToPosition')}
                   </span>
                 </>
               ) : (
                 <div className="tv-handout-form-cover__empty">
                   <Scroll className="h-6 w-6 opacity-60" aria-hidden />
-                  <span className="tv-handout-form-cover__empty-label">Afbeelding toevoegen</span>
+                  <span className="tv-handout-form-cover__empty-label">{t('modal.addImage')}</span>
                 </div>
               )}
               <div className="tv-handout-form-cover__tools" data-no-drag>
@@ -291,7 +293,7 @@ function HandoutModal({
                   variant="secondary"
                   onClick={(event) => { event.stopPropagation(); openFilePicker(); }}
                 >
-                  Upload
+                  {t('modal.upload')}
                 </Button>
                 <Button
                   type="button"
@@ -299,7 +301,7 @@ function HandoutModal({
                   variant={showPlaceholderPicker ? 'accent' : 'secondary'}
                   onClick={(event) => { event.stopPropagation(); setShowPlaceholderPicker((current) => !current); }}
                 >
-                  Icoon
+                  {t('modal.icon')}
                 </Button>
                 {formData.imageUrl ? (
                   <>
@@ -310,7 +312,7 @@ function HandoutModal({
                       icon={RotateCcw}
                       onClick={(event) => { event.stopPropagation(); resetImagePosition(); }}
                     >
-                      Reset
+                      {t('modal.reset')}
                     </Button>
                     <Button
                       type="button"
@@ -319,7 +321,7 @@ function HandoutModal({
                       className="tv-hover-danger"
                       onClick={(event) => { event.stopPropagation(); clearImage(); }}
                     >
-                      Wissen
+                      {t('modal.clear')}
                     </Button>
                   </>
                 ) : null}
@@ -338,7 +340,7 @@ function HandoutModal({
               />
               {!showAllPlaceholders ? (
                 <Button type="button" variant="ghost" size="sm" block onClick={() => setShowAllPlaceholders(true)}>
-                  Toon alle iconen
+                  {t('modal.showAllIcons')}
                 </Button>
               ) : null}
             </div>
@@ -352,19 +354,19 @@ function HandoutModal({
               type="text"
               value={formData.title}
               onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-              placeholder="Titel van de handout"
+              placeholder={t('modal.titlePlaceholder')}
               className="tv-handout-form-title"
             />
 
-            <div className="tv-segmented tv-segmented--block" role="group" aria-label="Type handout">
-              {HANDOUT_TYPE_OPTIONS.map(({ value, label }) => (
+            <div className="tv-segmented tv-segmented--block" role="group" aria-label={t('modal.typeGroupAria')}>
+              {getHandoutTypeOptions().map(({ value }) => (
                 <button
                   key={value}
                   type="button"
                   onClick={() => handleTypeChange(value)}
                   className={`tv-segmented__option ${formData.type === value ? 'tv-segmented__option--active' : ''}`}
                 >
-                  {label}
+                  {t(`types.${value}`)}
                 </button>
               ))}
             </div>
@@ -372,8 +374,8 @@ function HandoutModal({
 
           <section className="tv-handout-form-section">
             <div className="tv-handout-form-section__head">
-              <label htmlFor="handout-content" className="tv-label">Inhoud</label>
-              <span className="tv-handout-form-section__hint">Zichtbaar voor spelers</span>
+              <label htmlFor="handout-content" className="tv-label">{t('modal.contentLabel')}</label>
+              <span className="tv-handout-form-section__hint">{t('modal.contentHint')}</span>
             </div>
             <textarea
               id="handout-content"
@@ -381,7 +383,7 @@ function HandoutModal({
               rows={5}
               value={formData.content}
               onChange={(e) => setFormData({ ...formData, content: e.target.value })}
-              placeholder="Beschrijf wat de party ontdekt, leest of ziet…"
+              placeholder={t('modal.contentPlaceholder')}
               className="tv-field w-full resize-y font-story leading-relaxed"
             />
           </section>
@@ -390,16 +392,16 @@ function HandoutModal({
             <div className="tv-handout-gm-panel__head">
               <div className="tv-handout-gm-panel__title">
                 <KeyRound className="h-3.5 w-3.5 tv-tone-secret-text" aria-hidden />
-                <label htmlFor="handout-secret" className="tv-label">GM secret</label>
+                <label htmlFor="handout-secret" className="tv-label">{t('modal.secretLabel')}</label>
               </div>
               {String(formData.secret || '').trim() ? (
-                <div className="tv-segmented tv-handout-gm-panel__toggle tv-handout-gm-panel__toggle--icons" role="group" aria-label="Secret zichtbaarheid">
+                <div className="tv-segmented tv-handout-gm-panel__toggle tv-handout-gm-panel__toggle--icons" role="group" aria-label={t('modal.secretVisibilityAria')}>
                   <button
                     type="button"
                     onClick={() => setFormData((prev) => ({ ...prev, secretRevealed: false }))}
                     className={`tv-segmented__option ${!formData.secretRevealed ? 'tv-segmented__option--active' : ''}`}
-                    title="Alleen jij ziet het GM secret"
-                    aria-label="Alleen GM"
+                    title={t('modal.gmOnlyTitle')}
+                    aria-label={t('modal.gmOnlyAria')}
                     aria-pressed={!formData.secretRevealed}
                   >
                     <EyeOff className="h-4 w-4" aria-hidden />
@@ -408,15 +410,15 @@ function HandoutModal({
                     type="button"
                     onClick={() => setFormData((prev) => ({ ...prev, secretRevealed: true }))}
                     className={`tv-segmented__option ${formData.secretRevealed ? 'tv-segmented__option--active' : ''}`}
-                    title="Spelers zien het GM secret ook"
-                    aria-label="Party ziet het"
+                    title={t('modal.partySeesTitle')}
+                    aria-label={t('modal.partySeesAria')}
                     aria-pressed={Boolean(formData.secretRevealed)}
                   >
                     <Eye className="h-4 w-4" aria-hidden />
                   </button>
                 </div>
               ) : (
-                <span className="tv-handout-form-section__hint">Alleen jij ziet dit</span>
+                <span className="tv-handout-form-section__hint">{t('modal.secretHint')}</span>
               )}
             </div>
             <textarea
@@ -424,20 +426,20 @@ function HandoutModal({
               rows={3}
               value={formData.secret || ''}
               onChange={(e) => setFormData({ ...formData, secret: e.target.value })}
-              placeholder="Vallen, valse info, ware aard…"
+              placeholder={t('modal.secretPlaceholder')}
               className="tv-field w-full resize-y font-story leading-relaxed"
             />
           </section>
 
           {formData.type === 'npc' ? (
             <section className="tv-handout-form-section gap-3 rounded-[var(--tv-radius)] tv-tone-enemy-surface border border-[color-mix(in_srgb,var(--tv-tone-enemy),transparent_55%)] p-4">
-              <label htmlFor="handout-npc-label" className="tv-label block">NPC-profiel</label>
+              <label htmlFor="handout-npc-label" className="tv-label block">{t('modal.npcProfile')}</label>
               <input
                 id="handout-npc-label"
                 type="text"
                 value={formData.npcSubtitle || ''}
                 onChange={(e) => setFormData({ ...formData, npcSubtitle: e.target.value })}
-                placeholder="Bijv. Aartsvijand"
+                placeholder={t('modal.npcSubtitlePlaceholder')}
                 className="tv-field w-full"
               />
               <div className="grid grid-cols-3 gap-2">
@@ -458,7 +460,7 @@ function HandoutModal({
           ) : null}
 
           <section className="tv-handout-form-section tv-handout-form-options">
-            <p className="tv-label">Toewijzing</p>
+            <p className="tv-label">{t('modal.assignment')}</p>
 
             {formData.type !== 'npc' ? (
               <div className="tv-handout-form-assign">
@@ -475,9 +477,9 @@ function HandoutModal({
                     }));
                   }}
                   className="tv-select tv-handout-form-assign__select"
-                  aria-label="Toewijzen aan speler"
+                  aria-label={t('modal.assignAria')}
                 >
-                  <option value="">Iedereen in de party</option>
+                  <option value="">{t('modal.everyoneInParty')}</option>
                   {players.map((player) => (
                     <option key={player.id} value={player.id}>{player.name}</option>
                   ))}
@@ -487,42 +489,42 @@ function HandoutModal({
 
             <div className="tv-handout-form-option-rows">
               <div className="tv-handout-form-option-row">
-                <span className="tv-handout-form-option-label">Handout</span>
-                <div className="tv-segmented tv-segmented--block" role="group" aria-label="Zichtbaarheid handout">
+                <span className="tv-handout-form-option-label">{t('modal.handoutLabel')}</span>
+                <div className="tv-segmented tv-segmented--block" role="group" aria-label={t('modal.visibilityAria')}>
                   <button
                     type="button"
                     onClick={() => setFormData({ ...formData, isRevealed: true })}
                     className={`tv-segmented__option ${formData.isRevealed ? 'tv-segmented__option--active' : ''}`}
                   >
-                    Zichtbaar
+                    {t('visibility.visible')}
                   </button>
                   <button
                     type="button"
                     onClick={() => setFormData({ ...formData, isRevealed: false })}
                     className={`tv-segmented__option ${!formData.isRevealed ? 'tv-segmented__option--active' : ''}`}
                   >
-                    Verborgen
+                    {t('visibility.hidden')}
                   </button>
                 </div>
               </div>
 
               {formData.type === 'loot' ? (
                 <div className="tv-handout-form-option-row">
-                  <span className="tv-handout-form-option-label">Loot</span>
-                  <div className="tv-segmented tv-segmented--block" role="group" aria-label="Claimbaarheid">
+                  <span className="tv-handout-form-option-label">{t('modal.lootLabel')}</span>
+                  <div className="tv-segmented tv-segmented--block" role="group" aria-label={t('modal.claimableAria')}>
                     <button
                       type="button"
                       onClick={() => setFormData({ ...formData, claimable: true })}
                       className={`tv-segmented__option ${formData.claimable ? 'tv-segmented__option--active' : ''}`}
                     >
-                      Claimbaar
+                      {t('modal.claimable')}
                     </button>
                     <button
                       type="button"
                       onClick={() => setFormData({ ...formData, claimable: false })}
                       className={`tv-segmented__option ${!formData.claimable ? 'tv-segmented__option--active' : ''}`}
                     >
-                      Niet claimbaar
+                      {t('modal.notClaimable')}
                     </button>
                   </div>
                 </div>
@@ -554,13 +556,13 @@ function HandoutModal({
             <div className="flex flex-wrap items-center gap-2">
               <span className="tv-tag">{typeLabel}</span>
               {isGM && formData.secret && formData.secretRevealed ? (
-                <span className="tv-tag tv-handout-meta-tag tv-handout-meta-tag--secret">Secret open</span>
+                <span className="tv-tag tv-handout-meta-tag tv-handout-meta-tag--secret">{t('modal.secretOpenTag')}</span>
               ) : null}
               {isGM && !formData.isRevealed ? (
-                <span className="tv-tag tv-handout-meta-tag tv-handout-meta-tag--muted">Verborgen</span>
+                <span className="tv-tag tv-handout-meta-tag tv-handout-meta-tag--muted">{t('visibility.hidden')}</span>
               ) : null}
               {formData.assignedToUid && isGM ? (
-                <span className="tv-tag tv-tone-ally-text">Toegewezen</span>
+                <span className="tv-tag tv-tone-ally-text">{t('tags.assigned')}</span>
               ) : null}
             </div>
             <h2 className="tv-handout-view-title">{formData.title}</h2>
@@ -568,11 +570,11 @@ function HandoutModal({
 
           <section className="tv-handout-form-section">
             <div className="tv-handout-form-section__head">
-              <span className="tv-label">Inhoud</span>
+              <span className="tv-label">{t('modal.contentLabel')}</span>
               {!isGM || formData.isRevealed ? (
-                <span className="tv-handout-form-section__hint">Zichtbaar voor spelers</span>
+                <span className="tv-handout-form-section__hint">{t('modal.contentHint')}</span>
               ) : (
-                <span className="tv-handout-form-section__hint">Nog niet onthuld</span>
+                <span className="tv-handout-form-section__hint">{t('modal.notYetRevealed')}</span>
               )}
             </div>
             <div className="tv-panel-inset px-4 py-3">
@@ -587,14 +589,14 @@ function HandoutModal({
           {isClaimOwner ? (
             <section className="tv-handout-form-section">
               <div className="tv-handout-form-section__head">
-                <span className="tv-label">Jouw notitie</span>
-                <span className="tv-handout-form-section__hint">Alleen voor jou · verdwijnt bij terugleggen</span>
+                <span className="tv-label">{t('modal.yourNote')}</span>
+                <span className="tv-handout-form-section__hint">{t('modal.yourNoteHint')}</span>
               </div>
               <textarea
                 value={claimNoteDraft}
                 onChange={(event) => setClaimNoteDraft(event.target.value)}
                 onBlur={handleClaimNoteBlur}
-                placeholder="Eigen aantekeningen over dit item…"
+                placeholder={t('modal.yourNotePlaceholder')}
                 className="tv-field min-h-[88px] w-full resize-y font-story leading-relaxed"
               />
             </section>
@@ -602,17 +604,17 @@ function HandoutModal({
 
           {formData.assignedToUid ? (
             <section className="tv-handout-form-section rounded-[var(--tv-radius)] tv-tone-ally-surface border border-[color-mix(in_srgb,var(--tv-tone-ally),transparent_55%)] p-4">
-              <span className="tv-label tv-tone-ally-text">Toegewezen aan</span>
+              <span className="tv-label tv-tone-ally-text">{t('modal.assignedTo')}</span>
               <p className="mt-2 text-sm leading-6 tv-text">
-                {formData.assignedToNick || 'een speler'}
+                {formData.assignedToNick || t('modal.aPlayer')}
               </p>
             </section>
           ) : null}
 
           {isGM && formData.type === 'npc' ? (
             <section className="tv-handout-form-section gap-3 rounded-[var(--tv-radius)] tv-tone-enemy-surface border border-[color-mix(in_srgb,var(--tv-tone-enemy),transparent_55%)] p-4">
-              <span className="tv-label tv-tone-enemy-text">NPC gevechtsprofiel</span>
-              <p className="text-sm tv-muted">{formData.npcSubtitle || 'Vijand'}</p>
+              <span className="tv-label tv-tone-enemy-text">{t('modal.npcCombatProfile')}</span>
+              <p className="text-sm tv-muted">{formData.npcSubtitle || t('common:fallbacks.enemy')}</p>
               <div className="grid grid-cols-3 gap-2">
                 <div className="rounded-[var(--tv-radius)] border border-[color-mix(in_srgb,var(--tv-border),transparent_28%)] tv-chip-surface px-3 py-2.5 text-center">
                   <div className="text-[10px] uppercase tracking-[0.14em] tv-muted">HP</div>
@@ -633,7 +635,7 @@ function HandoutModal({
                 disabled={!canAddToInitiative}
                 className={`tv-btn tv-btn--block mt-1 ${canAddToInitiative ? 'tv-tone-enemy-button' : 'cursor-not-allowed tv-button-secondary opacity-60'}`}
               >
-                <UserPlus className="h-4 w-4" /> {canAddToInitiative ? 'Voeg toe aan slagorde' : 'Pauzeer gevecht om toe te voegen'}
+                <UserPlus className="h-4 w-4" /> {canAddToInitiative ? t('modal.addToInitiative') : t('modal.pauseCombatToAdd')}
               </button>
             </section>
           ) : null}
@@ -641,9 +643,9 @@ function HandoutModal({
           {isGM && formData.secret ? (
             <section className="tv-handout-form-section">
               <div className="tv-handout-form-section__head">
-                <span className="tv-label">GM secret</span>
+                <span className="tv-label">{t('modal.secretLabel')}</span>
                 <span className="tv-handout-form-section__hint">
-                  {formData.secretRevealed ? 'Zichtbaar voor spelers' : 'Alleen jij ziet dit'}
+                  {formData.secretRevealed ? t('modal.secretRevealedHint') : t('modal.secretHiddenHint')}
                 </span>
               </div>
               <div className="tv-panel-inset px-4 py-3">
@@ -662,8 +664,8 @@ function HandoutModal({
           {!isGM && formData.secret && playerCanSeeSecret ? (
             <section className="tv-handout-form-section">
               <div className="tv-handout-form-section__head">
-                <span className="tv-label tv-tone-ally-text">Secret</span>
-                <span className="tv-handout-form-section__hint">Onthuld door de GM</span>
+                <span className="tv-label tv-tone-ally-text">{t('modal.playerSecretLabel')}</span>
+                <span className="tv-handout-form-section__hint">{t('modal.playerSecretHint')}</span>
               </div>
               <div className="tv-handout-card__secret tv-handout-card__secret--revealed">
                 <KeyRound className="h-3.5 w-3.5 shrink-0 tv-tone-ally-text" aria-hidden />

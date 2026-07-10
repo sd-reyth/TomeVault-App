@@ -137,6 +137,14 @@ export function getAvatarObjectPosition(position) {
   return `${normalized.x}% ${normalized.y}%`;
 }
 
+/** Bias small chat avatars toward the upper area so portrait faces stay in frame. */
+export function getChatAvatarObjectPosition(position) {
+  const normalized = normalizeAvatarPosition(position);
+  const upwardShift = 16;
+  const y = Math.max(10, Math.min(36, normalized.y - upwardShift));
+  return `${normalized.x}% ${y}%`;
+}
+
 /**
  * Convert pointer drag delta (px) into avatar position shift (%).
  * Dragging right/down moves the visible crop as if pulling the image.

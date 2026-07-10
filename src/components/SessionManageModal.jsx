@@ -3,6 +3,7 @@ import { Copy, Share2, Hash, Link, Save } from 'lucide-react';
 import { buildSessionInviteUrl, toLegacyHashJoinTag } from '../lib/sessionUtils';
 import ModalFrame from './ModalFrame';
 import Button from './Button';
+import { useT } from '../i18n/useT';
 
 export default function SessionManageModal({
   isOpen,
@@ -14,6 +15,7 @@ export default function SessionManageModal({
   onSaveSessionNumber,
   onOpenShare,
 }) {
+  const { t } = useT('session');
   const [draftSession, setDraftSession] = useState(Math.max(1, Number(sessionNumber) || 1));
   const [copyFeedback, setCopyFeedback] = useState('');
   const isGM = role === 'gm';
@@ -49,22 +51,21 @@ export default function SessionManageModal({
     <ModalFrame
       isOpen={isOpen}
       onClose={onClose}
-      title="Sessiebeheer"
+      title={t('manage.title')}
       icon={Hash}
-      subtitle="Sessienummer en deelopties"
+      subtitle={t('manage.subtitle')}
       maxWidthClassName="max-w-md"
       bodyClassName="gap-5"
     >
 
-          {/* Session number stepper */}
           <div>
-            <label className="tv-label mb-2 block">Sessienummer</label>
+            <label className="tv-label mb-2 block">{t('manage.sessionNumber')}</label>
             <div className="flex items-center gap-2">
               <button
                 type="button"
                 onClick={() => setDraftSession((v) => Math.max(1, Number(v || 1) - 1))}
                 className="tv-toolbar-icon-btn tv-button-secondary transition-all duration-200 ease-out active:scale-[0.985]"
-                title="Vorige sessie"
+                title={t('manage.prevSession')}
               >
                 −
               </button>
@@ -79,24 +80,22 @@ export default function SessionManageModal({
                 type="button"
                 onClick={() => setDraftSession((v) => (Number(v) || 1) + 1)}
                 className="tv-toolbar-icon-btn tv-button-secondary transition-all duration-200 ease-out active:scale-[0.985]"
-                title="Volgende sessie"
+                title={t('manage.nextSession')}
               >
                 +
               </button>
             </div>
           </div>
 
-          {/* Session code + URL */}
           {sessionId ? (
             <div>
-              <label className="tv-label mb-2 block">Uitnodiging</label>
+              <label className="tv-label mb-2 block">{t('manage.invitation')}</label>
               <div className="tv-panel-block divide-y divide-[color-mix(in_srgb,var(--tv-border),transparent_42%)]">
-                {/* Code row */}
                 <div className="flex flex-col items-start gap-3 px-3 py-2.5 sm:flex-row sm:items-center sm:justify-between">
                   <div className="min-w-0 flex items-center gap-2">
                     <Hash className="h-3.5 w-3.5 shrink-0 tv-muted" />
                     <div className="min-w-0">
-                      <div className="mb-0.5 text-[9px] uppercase tracking-[0.2em] tv-muted">Sessiecode</div>
+                      <div className="mb-0.5 text-[9px] uppercase tracking-[0.2em] tv-muted">{t('manage.sessionCode')}</div>
                       <div className="truncate text-xs tracking-[0.14em] tv-accent">{canonicalSessionCode}</div>
                     </div>
                   </div>
@@ -106,16 +105,15 @@ export default function SessionManageModal({
                     className="tv-btn tv-button-secondary tv-btn--block w-full shrink-0 gap-1.5 text-[10px] uppercase tracking-[0.12em] transition-all duration-200 ease-out active:scale-[0.985] sm:w-auto"
                   >
                     <Copy className="h-3 w-3" />
-                    {copyFeedback === 'code' ? 'Klaar!' : 'Kopieer'}
+                    {copyFeedback === 'code' ? t('common:copyFeedback.done') : t('manage.copy')}
                   </button>
                 </div>
 
-                {/* URL row */}
                 <div className="flex flex-col items-start gap-3 px-3 py-2.5 sm:flex-row sm:items-center sm:justify-between">
                   <div className="min-w-0 flex items-center gap-2">
                     <Link className="h-3.5 w-3.5 shrink-0 tv-muted" />
                     <div className="min-w-0">
-                      <div className="mb-0.5 text-[9px] uppercase tracking-[0.2em] tv-muted">Join-link</div>
+                      <div className="mb-0.5 text-[9px] uppercase tracking-[0.2em] tv-muted">{t('manage.joinLink')}</div>
                       <div className="truncate text-xs tv-text">{joinUrl}</div>
                     </div>
                   </div>
@@ -125,14 +123,13 @@ export default function SessionManageModal({
                     className="tv-btn tv-button-secondary tv-btn--block w-full shrink-0 gap-1.5 text-[10px] uppercase tracking-[0.12em] transition-all duration-200 ease-out active:scale-[0.985] sm:w-auto"
                   >
                     <Copy className="h-3 w-3" />
-                    {copyFeedback === 'url' ? 'Klaar!' : 'Kopieer'}
+                    {copyFeedback === 'url' ? t('common:copyFeedback.done') : t('manage.copy')}
                   </button>
                 </div>
               </div>
             </div>
           ) : null}
 
-          {/* Save */}
           <div className="-mt-1 grid grid-cols-1 gap-3 pt-1 sm:grid-cols-2">
             {sessionId ? (
               <Button
@@ -144,11 +141,11 @@ export default function SessionManageModal({
                 }}
               >
                 <Share2 className="h-4 w-4" />
-                Deel sessie
+                {t('manage.shareSession')}
               </Button>
             ) : null}
             <Button variant="primary" block onClick={handleSave}>
-              <Save className="h-4 w-4" /> Opslaan
+              <Save className="h-4 w-4" /> {t('common:actions.save')}
             </Button>
           </div>
     </ModalFrame>

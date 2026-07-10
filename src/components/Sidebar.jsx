@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Scroll, MessageSquare, NotebookPen, Crown, Settings, Swords, Shield } from 'lucide-react';
 import Icon from '../ui/Icon';
 import TreasureIcon from '../ui/TreasureIcon';
@@ -6,6 +6,7 @@ import Text from '../ui/Text';
 import { COMBAT_STATUS } from '../lib/battleUtils';
 import { safeLocalStorageGet, safeLocalStorageSet } from '../lib/browserStorage';
 import { playUiSound } from '../lib/uiFeedback';
+import { useT } from '../i18n/useT';
 
 const TAB_SOUND_MAP = {
   handouts: 'book',
@@ -24,18 +25,19 @@ function clampSidebarWidth(width) {
 }
 
 export default function Sidebar({ activeTab, setActiveTab, onOpenSettings, role, sessionNumber, combatStatus, hideMobileNav = false }) {
+  const { t } = useT('sidebar');
   const [sidebarWidth, setSidebarWidth] = useState(SIDEBAR_DEFAULT_WIDTH);
   const [isDragging, setIsDragging] = useState(false);
   const dragStateRef = useRef({ startX: 0, startWidth: SIDEBAR_DEFAULT_WIDTH });
   const navRef = useRef(null);
 
-  const tabs = [
-    { id: 'handouts', icon: Scroll, label: 'Handouts' },
-    { id: 'chat', icon: MessageSquare, label: 'Fluisteringen' },
-    { id: 'inventory', icon: TreasureIcon, label: 'Schatkamer' },
-    ...(role === 'gm' ? [{ id: 'preparations', icon: Crown, label: 'Voorbereidingen' }] : []),
-    { id: 'notes', icon: NotebookPen, label: 'Kronieken' },
-  ];
+  const tabs = useMemo(() => [
+    { id: 'handouts', icon: Scroll, label: t('tabs.handouts') },
+    { id: 'chat', icon: MessageSquare, label: t('tabs.chat') },
+    { id: 'inventory', icon: TreasureIcon, label: t('tabs.inventory') },
+    ...(role === 'gm' ? [{ id: 'preparations', icon: Crown, label: t('tabs.preparations') }] : []),
+    { id: 'notes', icon: NotebookPen, label: t('tabs.notes') },
+  ], [role, t]);
 
   useEffect(() => {
     if (navRef.current) {
@@ -49,7 +51,7 @@ export default function Sidebar({ activeTab, setActiveTab, onOpenSettings, role,
   const isCombatLive = combatStatus === COMBAT_STATUS.ACTIVE;
   const isCombatPaused = combatStatus === COMBAT_STATUS.PAUSED;
   const sessionLabel = `#${Math.max(1, Number(sessionNumber) || 1)}`;
-  const roleLabel = role === 'gm' ? 'Game Master' : 'Speler';
+  const roleLabel = role === 'gm' ? t('common:roles.gm') : t('common:roles.player');
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -156,8 +158,8 @@ export default function Sidebar({ activeTab, setActiveTab, onOpenSettings, role,
         <button
           type="button"
           onClick={onOpenSettings}
-          aria-label="Configuratie"
-          title="Configuratie"
+          aria-label={t('settings')}
+          title={t('settings')}
           className={`tv-nav-mobile-btn group relative flex shrink-0 flex-col items-center justify-center rounded-xl border border-transparent p-0 transition-all duration-200 ease-out active:scale-[0.97] md:hidden tv-nav-item`}
         >
           <Icon as={Settings} size="lg" className="tv-nav-icon" />
@@ -171,15 +173,15 @@ export default function Sidebar({ activeTab, setActiveTab, onOpenSettings, role,
           <button
             type="button"
             onClick={onOpenSettings}
-            aria-label="Configuratie"
-            title="Configuratie"
+            aria-label={t('settings')}
+            title={t('settings')}
             className={`group relative mb-2 flex min-h-[44px] min-w-0 flex-col items-center justify-center rounded-xl border border-transparent p-2 transition-all duration-200 ease-out active:scale-[0.97] md:flex md:w-full md:flex-none ${desktopNavButtonClass(isCollapsed, isIconRail)} tv-nav-item`}
           >
             <Icon as={Settings} size="lg" className="tv-nav-icon" />
-            <Text variant="label" as="span" className={`${isCollapsed || isIconRail ? 'hidden' : 'hidden md:block'} max-w-full truncate`}>Configuratie</Text>
+            <Text variant="label" as="span" className={`${isCollapsed || isIconRail ? 'hidden' : 'hidden md:block'} max-w-full truncate`}>{t('settings')}</Text>
             {isIconRail && !isCollapsed ? (
               <span className="pointer-events-none absolute left-[calc(100%+10px)] top-1/2 z-40 hidden -translate-y-1/2 whitespace-nowrap rounded-md tv-nav-tooltip px-2 py-1 text-[10px] font-fantasy font-semibold uppercase tracking-[0.12em] shadow-lg md:group-hover:block">
-                Configuratie
+                {t('settings')}
               </span>
             ) : null}
           </button>
@@ -199,7 +201,7 @@ export default function Sidebar({ activeTab, setActiveTab, onOpenSettings, role,
             <div className="tv-nav-footer__content tv-nav-footer__content--rail">
               <span className="tv-nav-footer__chip tv-nav-footer__chip--session">{sessionLabel}</span>
               {(isCombatLive || isCombatPaused) ? (
-                <span className={`tv-nav-footer__chip ${isCombatLive ? 'tv-nav-footer__chip--live' : 'tv-nav-footer__chip--paused'}`} title={isCombatLive ? 'Gevecht actief' : 'Gevecht gepauzeerd'}>
+                <span className={`tv-nav-footer__chip ${isCombatLive ? 'tv-nav-footer__chip--live' : 'tv-nav-footer__chip--paused'}`} title={isCombatLive ? t('footer.combatLiveTitle') : t('footer.combatPausedTitle')}>
                   {isCombatLive ? <Swords className="h-3 w-3" /> : <Shield className="h-3 w-3" />}
                 </span>
               ) : null}
@@ -207,17 +209,17 @@ export default function Sidebar({ activeTab, setActiveTab, onOpenSettings, role,
           ) : (
             <div className="tv-nav-footer__content px-3.5">
               <div className="flex flex-wrap items-center gap-1.5">
-                <span className="tv-nav-footer__chip tv-nav-footer__chip--role">{role === 'gm' ? 'GM' : 'Speler'}</span>
-                <span className="tv-nav-footer__chip tv-nav-footer__chip--session">Sessie {sessionLabel}</span>
+                <span className="tv-nav-footer__chip tv-nav-footer__chip--role">{role === 'gm' ? t('common:roles.gmShort') : t('common:roles.playerShort')}</span>
+                <span className="tv-nav-footer__chip tv-nav-footer__chip--session">{t('footer.session', { number: sessionLabel })}</span>
               </div>
 
               {(isCombatLive || isCombatPaused) ? (
                 <div className={`tv-nav-footer__status ${isCombatLive ? 'tv-nav-footer__status--live' : 'tv-nav-footer__status--paused'}`}>
                   {isCombatLive ? <Swords className="h-3 w-3 shrink-0" /> : <Shield className="h-3 w-3 shrink-0" />}
-                  <span>{isCombatLive ? 'Slagorde actief' : 'Gevecht gepauzeerd'}</span>
+                  <span>{isCombatLive ? t('footer.combatLive') : t('footer.combatPaused')}</span>
                 </div>
               ) : (
-                <p className="truncate text-[10px] font-medium tracking-[0.04em] tv-muted">{roleLabel} · aan tafel</p>
+                <p className="truncate text-[10px] font-medium tracking-[0.04em] tv-muted">{roleLabel} · {t('footer.atTable')}</p>
               )}
             </div>
           )}
@@ -227,7 +229,7 @@ export default function Sidebar({ activeTab, setActiveTab, onOpenSettings, role,
 
       <button
         type="button"
-        aria-label="Sleep om navigatiebreedte aan te passen"
+        aria-label={t('resizeAria')}
         onMouseDown={handleResizeStart}
         onDoubleClick={() => setSidebarWidth(SIDEBAR_DEFAULT_WIDTH)}
         className="absolute right-0 top-0 hidden h-full w-3 -translate-x-1/2 cursor-col-resize md:block"

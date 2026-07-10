@@ -1,0 +1,19 @@
+{
+  "runtime": {
+    "label": "Runtime error",
+    "title": "The tome has closed for now",
+    "hint": "A reload usually fixes this. Your session stays saved in the cloud.",
+    "reload": "Reload",
+    "clearAndReload": "Clear browser state and reload",
+    "details": "Error message",
+    "show": "Show",
+    "hide": "Hide",
+    "unknown": "Unknown runtime error",
+    "unknownAsync": "Unknown async error"
+  },
+  "joinCode": {
+    "sessionMissing": "Session is missing.",
+    "sessionNotFound": "Session not found.",
+    "codeTaken": "New code is already taken. Try again."
+  }
+}

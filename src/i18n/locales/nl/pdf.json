@@ -1,0 +1,182 @@
+{
+  "sections": {
+    "profile": {
+      "title": "Karakterprofiel",
+      "subtitleGm": "Complete snapshot van het huidige geselecteerde karakter",
+      "subtitlePlayer": "Persoonlijke status op exportmoment",
+      "description": "Profiel, stats en custom waarden"
+    },
+    "gmOverview": {
+      "title": "GM Overzicht",
+      "subtitle": "Sessie-breed kernbeeld",
+      "description": "Sessie-dashboard en kernstatistieken"
+    },
+    "notes": {
+      "title": "Reislog",
+      "description": "Persoonlijke notities en reisherinneringen"
+    },
+    "inventory": {
+      "title": "Inventaris",
+      "description": "Items, categorieën en notities"
+    },
+    "wallet": {
+      "title": "Wallet",
+      "subtitle": "Persoonlijke munten",
+      "description": "Munten en bezittingen"
+    },
+    "partyWallet": {
+      "title": "Wallet Overzicht (Party)",
+      "description": "Party-brede geldmiddelen"
+    },
+    "handouts": {
+      "title": "Ontdekte Handouts",
+      "description": "Zichtbare ontdekkingen en lore"
+    },
+    "chat": {
+      "title": "Chat Kroniek",
+      "description": "Recente berichten en worpen"
+    },
+    "roster": {
+      "title": "Party Roster",
+      "description": "Spelers en NPC's in de sessie"
+    },
+    "preparations": {
+      "title": "Voorbereidingenbibliotheek",
+      "description": "Toegewezen voorbereidingen"
+    },
+    "backups": {
+      "title": "Herstelpunten",
+      "description": "Back-ups en herstelmomenten"
+    }
+  },
+  "fields": {
+    "name": "Naam",
+    "title": "Titel",
+    "field": "Veld",
+    "value": "Waarde",
+    "hp": "HP",
+    "ac": "AC",
+    "init": "Init"
+  },
+  "tables": {
+    "component": "Onderdeel",
+    "item": "Item",
+    "amount": "Aantal",
+    "owner": "Eigenaar",
+    "category": "Categorie",
+    "note": "Notitie",
+    "coin": "Munt",
+    "public": "Publiek",
+    "secret": "Geheim",
+    "content": "Inhoud",
+    "assigned": "Toegewezen",
+    "type": "Type",
+    "title": "Titel",
+    "author": "Auteur",
+    "moment": "Moment",
+    "message": "Bericht",
+    "role": "Rol",
+    "status": "Status",
+    "player": "Speler",
+    "lastUpdate": "Laatste update",
+    "template": "Template",
+    "created": "Aangemaakt",
+    "restored": "Hersteld",
+    "combatStatus": "Combat status",
+    "currentRound": "Huidige ronde",
+    "partyMembers": "Party leden",
+    "handoutsTotal": "Handouts totaal",
+    "preparations": "Voorbereidingen",
+    "backups": "Backups",
+    "recentChat": "Chat berichten (recent)"
+  },
+  "metrics": {
+    "combat": "Combat",
+    "round": "Ronde",
+    "party": "Party",
+    "handouts": "Handouts"
+  },
+  "callout": {
+    "gm": [
+      "Deze export draait in GM-modus en bevat uitgebreide sessie-inzichten naast spelersdata.",
+      "Gebruik dit document als operationele kroniek en audittrail voor voorbereiding en narratieve continuïteit."
+    ],
+    "player": [
+      "Dit document bundelt jouw reis als speler: profiel, bezittingen, zichtbare handouts en je recente kroniek.",
+      "Gebruik het als persoonlijke archive, recap of als overgangsdossier bij character death-events."
+    ]
+  },
+  "empty": {
+    "notes": "Nog geen reisnotities vastgelegd in deze export.",
+    "inventory": "Geen items vastgelegd in bezit.",
+    "handouts": "Nog geen handouts ontdekt of toegewezen.",
+    "chat": "Nog geen chatberichten in deze export."
+  },
+  "fallbacks": {
+    "unknown": "Onbekend",
+    "unknownItem": "Onbekend item",
+    "unnamedNote": "Naamloze notitie",
+    "unnamedHandout": "Naamloze handout",
+    "unnamed": "Naamloos",
+    "adventurer": "avonturier",
+    "dash": "-"
+  },
+  "labels": {
+    "notesCount": "{{count}} notities",
+    "itemsCount": "{{count}} items",
+    "handoutsCount": "{{count}} zichtbaar",
+    "walletOwners": "{{count}} eigenaars",
+    "chatCount": "{{count}} recente berichten",
+    "rosterCount": "{{count}} leden",
+    "preparationCount": "{{count}} entries",
+    "backupCount": "{{count}} backups",
+    "lastEdited": "Laatst bewerkt: {{date}}",
+    "truncated": "{{shown}} van {{total}} {{type}} opgenomen in deze kroniek."
+  },
+  "truncation": {
+    "notes": "notities",
+    "messages": "berichten"
+  },
+  "roster": {
+    "npc": "NPC",
+    "player": "Speler"
+  },
+  "currency": {
+    "platinum": "Platinum",
+    "gold": "Gold",
+    "silver": "Silver",
+    "bronze": "Bronze",
+    "platinumShort": "Platinum (PP)",
+    "goldShort": "Gold (GP)",
+    "silverShort": "Silver (SP)",
+    "bronzeShort": "Bronze (BP)"
+  },
+  "cover": {
+    "badgeGm": "GM DOSSIER",
+    "badgePlayer": "SPELERKRONIEK",
+    "subjectFallback": "Naamloze Avonturier",
+    "modeGm": "Grandmaster Chronicle — campagnedossier",
+    "modePlayer": "Character Chronicle — persoonlijke kroniek",
+    "metaSession": "Sessie",
+    "metaExport": "Export",
+    "metaLayout": "Layout",
+    "scopeGm": "Uitgebreide GM-export met sessiebreed overzicht, audittrail en narratieve continuïteit.",
+    "scopePlayer": "Alle speler-zichtbare gegevens op het moment van export — jouw reis, vastgelegd.",
+    "tagline": "Sessies en herinneringen — eeuwig bewaard."
+  },
+  "layout": {
+    "sectionFallback": "Sectie",
+    "cardTitleFallback": "Naamloos",
+    "imageLoadFailed": "Kon afbeelding niet laden: {{src}}"
+  },
+  "toc": {
+    "title": "Inhoudsopgave",
+    "modeGm": "Exportmodus: GM volledig",
+    "modePlayer": "Exportmodus: Speler persoonlijk",
+    "overflow": "+ {{count}} extra secties — verhoog TOC-reserve"
+  },
+  "footer": {
+    "brand": "TomeVault by Sneezing Donkey · {{sessionId}}",
+    "page": "Pagina {{page}}/{{pages}}"
+  }
+}

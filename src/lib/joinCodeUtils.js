@@ -3,11 +3,13 @@ import {
   doc,
   getDoc,
   getDocs,
+  limit,
   query,
   runTransaction,
   serverTimestamp,
   where,
 } from 'firebase/firestore';
+import i18n from '../i18n/index.js';
 import {
   getJoinTagLookupVariants,
   slugifySessionName,
@@ -34,8 +36,8 @@ async function isJoinTagAvailable(db, candidate) {
   const sessionsRef = collection(db, 'sessions');
   const safeCandidate = toSafeJoinTagForLink(candidate);
   const [hashSnap, safeSnap, aliasSnap] = await Promise.all([
-    getDocs(query(sessionsRef, where('joinTag', '==', candidate))),
-    getDocs(query(sessionsRef, where('joinTag', '==', safeCandidate))),
+    getDocs(query(sessionsRef, where('joinTag', '==', candidate), limit(1))),
+    getDocs(query(sessionsRef, where('joinTag', '==', safeCandidate), limit(1))),
     getJoinCodeAliasDoc(db, safeCandidate),
   ]);
 
@@ -59,25 +61,35 @@ export async function generateUniqueJoinTag(db, sessionName) {
 export async function resolveSessionDocFromJoinInput(db, joinTagRaw) {
   const variants = getJoinTagLookupVariants(joinTagRaw);
   const seenSessionIds = new Set();
+  const sessionsRef = collection(db, 'sessions');
 
   for (const candidate of variants) {
     const safeCode = toSafeJoinTagForLink(candidate);
     const aliasSnap = await getJoinCodeAliasDoc(db, safeCode);
     if (aliasSnap?.exists?.()) {
-      const { sessionId } = aliasSnap.data() || {};
+      const { sessionId, joinTag } = aliasSnap.data() || {};
       if (sessionId && !seenSessionIds.has(sessionId)) {
         seenSessionIds.add(sessionId);
-        const sessionSnap = await getDoc(doc(db, 'sessions', sessionId));
-        if (sessionSnap.exists()) {
-          return sessionSnap;
+        const lookupTag = joinTag || candidate;
+        const byAliasTag = await getDocs(query(sessionsRef, where('joinTag', '==', lookupTag), limit(1)));
+        if (!byAliasTag.empty) {
+          return byAliasTag.docs[0];
+        }
+
+        try {
+          const sessionSnap = await getDoc(doc(db, 'sessions', sessionId));
+          if (sessionSnap.exists()) {
+            return sessionSnap;
+          }
+        } catch (error) {
+          if (!isPermissionError(error)) throw error;
         }
       }
     }
   }
 
-  const sessionsRef = collection(db, 'sessions');
   for (const candidate of variants) {
-    const byTag = await getDocs(query(sessionsRef, where('joinTag', '==', candidate)));
+    const byTag = await getDocs(query(sessionsRef, where('joinTag', '==', candidate), limit(1)));
     if (!byTag.empty) {
       return byTag.docs[0];
     }
@@ -140,7 +152,7 @@ export async function ensureJoinCodeAlias(db, sessionDocId, joinTag) {
 
 export async function rollJoinCodeForSession(db, { sessionDocId, sessionName, currentJoinTag }) {
   if (!sessionDocId) {
-    throw new Error('Sessie ontbreekt.');
+    throw new Error(i18n.t('errors:joinCode.sessionMissing'));
   }
 
   const newJoinTag = await generateUniqueJoinTag(db, sessionName);
@@ -152,12 +164,12 @@ export async function rollJoinCodeForSession(db, { sessionDocId, sessionName, cu
   await runTransaction(db, async (transaction) => {
     const sessionSnap = await transaction.get(sessionRef);
     if (!sessionSnap.exists()) {
-      throw new Error('Sessie niet gevonden.');
+      throw new Error(i18n.t('errors:joinCode.sessionNotFound'));
     }
 
     const aliasSnap = await transaction.get(newAliasRef);
     if (aliasSnap.exists()) {
-      throw new Error('Nieuwe code is al bezet. Probeer opnieuw.');
+      throw new Error(i18n.t('errors:joinCode.codeTaken'));
     }
 
     transaction.set(newAliasRef, {

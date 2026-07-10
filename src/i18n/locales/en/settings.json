@@ -1,0 +1,112 @@
+{
+  "title": "Settings",
+  "profile": {
+    "section": "My profile",
+    "namePlaceholder": "Your name at the table",
+    "avatarTitle": "Change profile picture",
+    "gmParticipates": "Plays in battle order",
+    "gmLeadOnly": "Lead only",
+    "playerLinked": "linked to your battle order card"
+  },
+  "combatRole": {
+    "section": "Battle order role",
+    "plays": "Plays along",
+    "leadOnly": "Lead only",
+    "participatesHint": "Your GM profile appears as its own card in the battle order.",
+    "leadOnlyHint": "Your GM profile is saved but does not participate in initiative.",
+    "lead": "Lead",
+    "play": "Play"
+  },
+  "display": {
+    "title": "Display",
+    "theme": "Color theme",
+    "brightness": "Brightness",
+    "brightnessAria": "Brightness",
+    "pro": "Pro",
+    "language": {
+      "label": "Language",
+      "hint": "Language for buttons, menus and messages in TomeVault.",
+      "en": "English",
+      "nl": "Nederlands"
+    }
+  },
+  "sound": {
+    "title": "Sound",
+    "uiSounds": "Interface sounds",
+    "uiSoundsHint": "Click and turn sounds at the table"
+  },
+  "session": {
+    "title": "Session",
+    "plan": "Plan: {{label}}",
+    "exportGm": "Export GM dossier",
+    "exportPlayer": "Export player chronicle",
+    "ownerPanel": "Owner Panel"
+  },
+  "backups": {
+    "title": "Restore points",
+    "hint": "Your last 3 profile versions. Saved automatically on save and when leaving.",
+    "empty": "No restore points yet. Save your profile to create one.",
+    "confirmRestore": "Restore profile to the restore point{{label}}? Your current profile data will be overwritten.",
+    "confirmRestoreLabelPrefix": " from {{date}}",
+    "reason": {
+      "profile_save": "Profile saved",
+      "settings_save": "Settings saved",
+      "leave": "Left session",
+      "logout": "Logged out",
+      "manual": "Manual"
+    }
+  },
+  "plans": {
+    "labels": {
+      "gm_free": "GM Free",
+      "gm_premium": "GM Premium",
+      "player_free": "Player Free",
+      "player_plus": "Player Plus"
+    },
+    "grantDurations": {
+      "1month": "1 month",
+      "3months": "3 months",
+      "6months": "6 months",
+      "lifetime": "Lifetime"
+    },
+    "features": {
+      "gmMultipleCampaigns": "Multiple active campaigns",
+      "gmSingleCampaign": "{{count}} active campaign",
+      "gmUnlimitedNpcs": "Unlimited NPCs per session",
+      "gmMaxNpcs": "Max {{count}} NPCs per session",
+      "gmUnlimitedPreparations": "Unlimited preparations",
+      "gmMaxPreparations": "Max {{count}} preparation templates",
+      "gmExportArchive": "Export session archive",
+      "gmPremiumThemes": "Premium themes",
+      "gmAdvancedPreparation": "Advanced preparation",
+      "playerCore": "Chat, notes, handouts & inventory",
+      "playerPersonalExport": "Export personal profile",
+      "playerCrossCampaignVault": "Character vault across campaigns",
+      "playerCustomThemes": "Custom player themes",
+      "playerPrivateMedia": "{{count}} MB private media"
+    }
+  },
+  "ownerAdmin": {
+    "title": "Owner",
+    "notice": "Manual plan assignment. Without an entitlement, a user automatically gets the free plan.",
+    "email": "Email",
+    "emailPlaceholder": "tester@example.com",
+    "search": "Search",
+    "plan": "Plan",
+    "duration": "Duration",
+    "freeReset": "Free",
+    "phase2Note": "Stripe and redeem codes follow in phase 2.",
+    "uidLabel": "UID: {{id}}",
+    "roleLabel": "Role: {{role}}",
+    "ok": "OK",
+    "errors": {
+      "emailRequired": "Enter an email address.",
+      "userNotFound": "No user found with this email address. Have this user sign in at least once."
+    },
+    "messages": {
+      "found": "✓ {{name}} found.",
+      "granted": "✓ {{plan}} granted to {{name}}.",
+      "reset": "✓ {{name}} reset to {{plan}}."
+    }
+  }
+}

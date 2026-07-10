@@ -1,0 +1,112 @@
+{
+  "title": "Configuratie",
+  "profile": {
+    "section": "Mijn profiel",
+    "namePlaceholder": "Je naam aan tafel",
+    "avatarTitle": "Profielafbeelding wijzigen",
+    "gmParticipates": "Speelt mee in slagorde",
+    "gmLeadOnly": "Alleen leiden",
+    "playerLinked": "gekoppeld aan je slagordekaart"
+  },
+  "combatRole": {
+    "section": "Slagorde rol",
+    "plays": "Speelt mee",
+    "leadOnly": "Alleen leiden",
+    "participatesHint": "Je GM-profiel verschijnt als eigen kaart in de slagorde.",
+    "leadOnlyHint": "Je GM-profiel blijft bewaard, maar doet niet mee aan initiatief.",
+    "lead": "Leiden",
+    "play": "Spelen"
+  },
+  "display": {
+    "title": "Weergave",
+    "theme": "Kleurenthema",
+    "brightness": "Helderheid",
+    "brightnessAria": "Helderheid",
+    "pro": "Pro",
+    "language": {
+      "label": "Taal",
+      "hint": "Taal voor knoppen, menu's en meldingen in TomeVault.",
+      "en": "English",
+      "nl": "Nederlands"
+    }
+  },
+  "sound": {
+    "title": "Geluid",
+    "uiSounds": "Interfacegeluiden",
+    "uiSoundsHint": "Klik- en beurtgeluiden aan tafel"
+  },
+  "session": {
+    "title": "Sessie",
+    "plan": "Plan: {{label}}",
+    "exportGm": "GM-dossier exporteren",
+    "exportPlayer": "Spelerkroniek exporteren",
+    "ownerPanel": "Owner Panel"
+  },
+  "backups": {
+    "title": "Herstelpunten",
+    "hint": "Je laatste 3 profielversies. Automatisch bewaard bij opslaan en verlaten.",
+    "empty": "Nog geen herstelpunten. Sla je profiel op om er een te maken.",
+    "confirmRestore": "Profiel herstellen naar het herstelpunt{{label}}? Je huidige profielgegevens worden overschreven.",
+    "confirmRestoreLabelPrefix": " van {{date}}",
+    "reason": {
+      "profile_save": "Profiel opgeslagen",
+      "settings_save": "Instellingen opgeslagen",
+      "leave": "Sessie verlaten",
+      "logout": "Uitgelogd",
+      "manual": "Handmatig"
+    }
+  },
+  "plans": {
+    "labels": {
+      "gm_free": "GM Free",
+      "gm_premium": "GM Premium",
+      "player_free": "Player Free",
+      "player_plus": "Player Plus"
+    },
+    "grantDurations": {
+      "1month": "1 maand",
+      "3months": "3 maanden",
+      "6months": "6 maanden",
+      "lifetime": "Lifetime"
+    },
+    "features": {
+      "gmMultipleCampaigns": "Meerdere actieve campagnes",
+      "gmSingleCampaign": "{{count}} actieve campagne",
+      "gmUnlimitedNpcs": "Onbeperkt NPC's per sessie",
+      "gmMaxNpcs": "Max {{count}} NPC's per sessie",
+      "gmUnlimitedPreparations": "Onbeperkte voorbereidingen",
+      "gmMaxPreparations": "Max {{count}} voorbereidingssjablonen",
+      "gmExportArchive": "Sessie-archief exporteren",
+      "gmPremiumThemes": "Premium thema's",
+      "gmAdvancedPreparation": "Geavanceerde voorbereiding",
+      "playerCore": "Chat, notities, handouts & inventaris",
+      "playerPersonalExport": "Persoonlijk profiel exporteren",
+      "playerCrossCampaignVault": "Karakterkluis over campagnes",
+      "playerCustomThemes": "Eigen spelerthema's",
+      "playerPrivateMedia": "{{count}} MB privé-media"
+    }
+  },
+  "ownerAdmin": {
+    "title": "Owner",
+    "notice": "Handmatige plan-toekenning. Zonder entitlement krijgt een gebruiker automatisch het gratis plan.",
+    "email": "E-mail",
+    "emailPlaceholder": "tester@example.com",
+    "search": "Zoek",
+    "plan": "Plan",
+    "duration": "Duur",
+    "freeReset": "Gratis",
+    "phase2Note": "Stripe en redeem codes volgen in fase 2.",
+    "uidLabel": "UID: {{id}}",
+    "roleLabel": "Rol: {{role}}",
+    "ok": "OK",
+    "errors": {
+      "emailRequired": "Voer een e-mailadres in.",
+      "userNotFound": "Geen gebruiker gevonden met dit e-mailadres. Laat deze gebruiker eerst een keer inloggen."
+    },
+    "messages": {
+      "found": "✓ {{name}} gevonden.",
+      "granted": "✓ {{plan}} toegekend aan {{name}}.",
+      "reset": "✓ {{name}} teruggezet naar {{plan}}."
+    }
+  }
+}

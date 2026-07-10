@@ -1,0 +1,19 @@
+{
+  "runtime": {
+    "label": "Runtimefout",
+    "title": "De tome is even dichtgevallen",
+    "hint": "Meestal lost een herstart dit op. Je sessie blijft bewaard in de cloud.",
+    "reload": "Opnieuw laden",
+    "clearAndReload": "Browserstatus wissen en herladen",
+    "details": "Foutmelding",
+    "show": "Tonen",
+    "hide": "Verbergen",
+    "unknown": "Onbekende runtimefout",
+    "unknownAsync": "Onbekende async fout"
+  },
+  "joinCode": {
+    "sessionMissing": "Sessie ontbreekt.",
+    "sessionNotFound": "Sessie niet gevonden.",
+    "codeTaken": "Nieuwe code is al bezet. Probeer opnieuw."
+  }
+}

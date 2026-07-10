@@ -27,3 +27,15 @@
 ## Active plan
 
 See `references/TOMEVAULT_MASTER_PLAN.md` for the current wave roadmap.
+
+## i18n
+
+All user-facing strings go through `src/i18n/` — never hardcode UI copy in JSX or lib files.
+
+- **Components:** `useT()` from `src/i18n/useT.js`
+- **Lib / non-React code:** `i18n.t('namespace.key')` from `src/i18n/index.js`
+- **Dialogs:** `confirmDialog()` / `alertDialog()` from `src/i18n/dialogs.js`
+- **Formatting:** `getIntlLocale()`, `formatRelativeTime()`, `localeCompare()` from `src/lib/localeFormat.js`
+- **Both locales:** update `src/i18n/locales/en/` and `src/i18n/locales/nl/` in the same change
+- **Verify:** `npm run check:i18n` (runs automatically via `prebuild`)
+- **Glossary:** fixed terms in `src/i18n/glossary.md`

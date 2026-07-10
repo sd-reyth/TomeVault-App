@@ -1,0 +1,200 @@
+{
+  "campaignFallback": "Campaign",
+  "sessionLabel": "Session {{number}}",
+  "hubTitle": "Open Campaign Hub",
+  "party": {
+    "hide": "Hide battle order",
+    "idle": "Open battle order — idle",
+    "myTurn": "Open battle order — your turn",
+    "paused": "Open battle order — combat paused",
+    "active": "Open battle order — combat active",
+    "turnsUntil": "Open battle order — {{count}} turn(s) left"
+  },
+  "profileTitle": "My Character Sheet",
+  "leaveTitle": "Leave Session",
+  "turnAlert": {
+    "now": "It's your turn now.",
+    "soon": "Almost your turn. Get your action ready.",
+    "start": "Combat started. Watch the battle order."
+  },
+  "invite": {
+    "shareText": "Join {{campaignName}} on TomeVault!\n\nCampaign: {{campaignName}}\nCode: {{code}}\n\nPlay along: {{url}}"
+  },
+  "profileBackup": {
+    "reasons": {
+      "profile_save": "Profile saved",
+      "settings_save": "Settings saved",
+      "leave": "Left session",
+      "logout": "Logged out",
+      "manual": "Manual"
+    }
+  },
+  "profileArchive": {
+    "activateConfirm": "Switch to \"{{name}}\"? Your current profile will be saved to your archive. An active GM preparation returns to the library.",
+    "alreadyActive": "This profile is already your active character."
+  },
+  "gmTransfer": {
+    "success": "{{name}} is now the GM of this session."
+  },
+  "hub": {
+    "title": "Campaign Hub",
+    "tabsAria": "Campaign hub sections",
+    "tabs": {
+      "overview": "Overview",
+      "invite": "Invite",
+      "manage": "Manage",
+      "help": "Help"
+    },
+    "players": "Players",
+    "status": "Status",
+    "statusActive": "Active · join open",
+    "joinCodeHint": "Join code (only if needed)",
+    "inviteLink": "Invite link",
+    "copyCode": "Code",
+    "copyLink": "Link",
+    "shareNative": "Share via system",
+    "shareCopy": "Copy share text",
+    "whatsapp": "WhatsApp",
+    "campaignName": "Campaign name",
+    "campaignNamePlaceholder": "e.g. Shadow of the Dragons",
+    "campaignNameHint": "Changes display name only — your session data stays intact.",
+    "sessionNumber": "Session number",
+    "prevSession": "Previous session",
+    "nextSession": "Next session",
+    "currentJoinCode": "Current join code",
+    "rollJoinCode": "Roll again",
+    "rollJoinCodeConfirm": "Generate a new join code? Old links will stop working.",
+    "errors": {
+      "emptyCampaignName": "Campaign name cannot be empty.",
+      "saveFailed": "Save failed.",
+      "rollFailed": "Refreshing the join code failed."
+    },
+    "help": {
+      "gmTitle": "Game Master",
+      "gmItems": [
+        "Share via QR or invite link in the Invite tab.",
+        "Adjust campaign name and session number under Manage.",
+        "Roll the join code again if an old link leaked."
+      ],
+      "playerTitle": "Player",
+      "playerItems": [
+        "Scan the QR code or open the invite link on your phone.",
+        "Sign in with Google or email — then choose your character name.",
+        "You join the campaign directly without a PIN via QR invite."
+      ]
+    }
+  },
+  "manage": {
+    "title": "Session management",
+    "subtitle": "Session number and share options",
+    "sessionNumber": "Session number",
+    "prevSession": "Previous session",
+    "nextSession": "Next session",
+    "invitation": "Invitation",
+    "sessionCode": "Session code",
+    "joinLink": "Join link",
+    "copy": "Copy",
+    "shareSession": "Share session"
+  },
+  "share": {
+    "title": "Share session",
+    "subtitle": "Scan or copy",
+    "sessionCode": "Session code",
+    "joinLink": "Join link",
+    "copyCode": "Code",
+    "copyLink": "Link",
+    "whatsapp": "Share on WhatsApp",
+    "whatsappText": "Join my epic adventure on TomeVault! 🐉\n\nSession code: *{{code}}*\n\nPlay along: {{url}}"
+  },
+  "leaveConfirm": {
+    "title": "Stay by the campfire a little longer?",
+    "body": "Warm up by the fire a little longer, or return to the hall.",
+    "sessionMeta": "Session #{{number}} · {{role}}",
+    "stay": "Keep playing",
+    "leave": "Leave"
+  },
+  "ambience": {
+    "playerSettings": "Open audio settings",
+    "activeSession": "Open active session ambience",
+    "panel": "Open ambience panel",
+    "badge": "Ambience",
+    "title": "Ambience",
+    "subtitleGm": "Pick a scene and control sound for the whole table.",
+    "subtitlePlayer": "Listen along — adjust your volume below.",
+    "nowPlaying": "Now playing",
+    "noScene": "No scene",
+    "selectScene": "Select a scene to get started.",
+    "pause": "Pause",
+    "play": "Play",
+    "start": "Start",
+    "enableAudio": "Enable audio",
+    "pauseAmbience": "Pause ambience",
+    "startAmbience": "Start ambience",
+    "sessionVolume": "Session",
+    "sessionVolumeAria": "Session volume",
+    "mixVolume": "Mix",
+    "yourVolumeAria": "Your volume",
+    "audioBlocked": "Your browser blocks audio until you allow it once.",
+    "enableAudioAction": "Turn audio on",
+    "scenes": "Scenes",
+    "sceneActive": ", active",
+    "live": "Live",
+    "ready": "Ready",
+    "creditsLink": "Audio usage & credits",
+    "creditsAria": "Audio usage and credits",
+    "sourcelist": {
+      "badge": "Credits",
+      "title": "Audio usage",
+      "subtitle": "Sources and thanks for the ambience layers in TomeVault.",
+      "verified": "Verified",
+      "verifiedAria": "Verified sources",
+      "archive": "Archive",
+      "archiveAria": "Archive",
+      "sourceLink": "Source",
+      "empty": "No audio data available.",
+      "disclaimer": "All rights belong to the original creators. TomeVault only hosts the files for session use."
+    }
+  },
+  "appErrors": {
+    "loginRequired": "Sign in first before starting or joining a session.",
+    "pinInvalid": "PIN must be 4 to 8 digits.",
+    "testSessionInUse": "This test session is already in use by another GM.",
+    "sessionCodeMissing": "Session code is missing.",
+    "characterNameMissing": "Character name is missing.",
+    "sessionNotFound": "Session not found. Check the code.",
+    "wrongPin": "Incorrect PIN.",
+    "openSessionFailed": "Could not open session. Check Firebase rules and your internet connection.",
+    "sessionGone": "This session no longer exists.",
+    "notGm": "You are not the GM of this session.",
+    "openRecentFailed": "Could not open recent session.",
+    "deleteSessionFailed": "Permanently deleting this session failed.",
+    "deleteOnlyActiveGm": "Only the active GM can permanently delete this campaign.",
+    "logoutFailed": "Sign out failed. Please try again.",
+    "restoreSessionsFailed": "Restoring old sessions failed. Check Firestore access and try again.",
+    "authTimeout": "Authentication took too long. Try again with Google or email.",
+    "authInitFailed": "Could not initialize authentication. Try again or use email.",
+    "authStartFailed": "Could not start authentication. Try again or use email.",
+    "noteSaveFailed": "Could not save your personal note.",
+    "returnToHandoutsFailed": "Returning to handouts failed. Please try again.",
+    "acceptRoleOfferFailed": "Could not accept the role offer. Check your connection and try again.",
+    "declineRoleOfferFailed": "Could not decline the role offer. Please try again.",
+    "switchProfileFailed": "Switching profile failed. Please try again.",
+    "restoreProfileFailed": "Restoring profile failed. Please try again.",
+    "gmTransferFailed": "GM transfer failed. Please try again.",
+    "exportFailed": "Export failed. Please try again.",
+    "ambienceTrackLoadFailed": "The selected track could not be loaded. Check the asset or credits."
+  },
+  "appInfo": {
+    "devSessionTakenover": "The existing local test session was in use. A new test session is being created for you.",
+    "recentReferenceRemoved": "The reference to {{name}} was removed from your recent sessions.",
+    "campaignDeleted": "Campaign {{name}} was permanently deleted.",
+    "sessionLeftAndRemoved": "You permanently left {{name}} and removed it from your recent sessions.",
+    "backfillNoneFound": "No missing sessions found ({{scanned}} sessions checked).",
+    "backfillComplete": "Restore complete: {{restored}} session(s) added or updated.",
+    "roleOfferAccepted": "Role \"{{name}}\" accepted. Your previous profile is in your archive.",
+    "roleOfferDeclined": "Role offer declined. The preparation is ready for the GM again.",
+    "profileActivated": "Profile \"{{name}}\" activated.",
+    "profileRestored": "Profile restored to an earlier restore point.",
+    "exportSuccess": "Chronicle saved: {{pageCount}} pages, {{sectionCount}} sections · {{filename}}"
+  }
+}

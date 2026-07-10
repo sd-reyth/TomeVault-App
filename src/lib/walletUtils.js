@@ -1,3 +1,6 @@
+import i18n from '../i18n/index.js';
+import { getIntlLocale } from './localeFormat.js';
+
 const COIN_ORDER = ['platinum', 'gold', 'silver', 'bronze'];
 
 const UNIT_FACTOR = {
@@ -34,29 +37,30 @@ export function walletGoldEquivalent(wallet) {
 /** Compact label for headers — always reflects copper/silver, not rounded away. */
 export function formatWalletTotal(wallet) {
   const totalBronze = walletTotalBronze(wallet);
-  if (totalBronze === 0) return '0 goud';
+  if (totalBronze === 0) return i18n.t('inventory:wallet.total.zeroGold');
 
   const gold = Math.floor(totalBronze / UNIT_FACTOR.gold);
   const remainder = totalBronze % UNIT_FACTOR.gold;
   const silver = Math.floor(remainder / UNIT_FACTOR.silver);
   const copper = remainder % UNIT_FACTOR.silver;
+  const locale = getIntlLocale();
 
   if (gold > 0 && silver === 0 && copper === 0) {
-    return `${gold.toLocaleString('nl-NL')} goud`;
+    return i18n.t('inventory:wallet.total.goldOnly', { count: gold.toLocaleString(locale) });
   }
 
   if (gold === 0 && silver > 0 && copper === 0) {
-    return `${silver.toLocaleString('nl-NL')} zilver`;
+    return i18n.t('inventory:wallet.total.silverOnly', { count: silver.toLocaleString(locale) });
   }
 
   if (gold === 0 && silver === 0 && copper > 0) {
-    return `${copper.toLocaleString('nl-NL')} koper`;
+    return i18n.t('inventory:wallet.total.copperOnly', { count: copper.toLocaleString(locale) });
   }
 
   const parts = [];
-  if (gold > 0) parts.push(`${gold} goud`);
-  if (silver > 0) parts.push(`${silver} zilver`);
-  if (copper > 0) parts.push(`${copper} koper`);
+  if (gold > 0) parts.push(i18n.t('inventory:wallet.total.goldPart', { count: gold }));
+  if (silver > 0) parts.push(i18n.t('inventory:wallet.total.silverPart', { count: silver }));
+  if (copper > 0) parts.push(i18n.t('inventory:wallet.total.copperPart', { count: copper }));
   return parts.join(', ');
 }
 

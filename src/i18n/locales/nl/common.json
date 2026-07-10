@@ -1,0 +1,75 @@
+{
+  "actions": {
+    "save": "Opslaan",
+    "cancel": "Annuleren",
+    "close": "Sluiten",
+    "delete": "Verwijderen",
+    "confirm": "Bevestigen",
+    "restore": "Herstel",
+    "export": "Exporteren",
+    "exporting": "Exporteren...",
+    "loading": "Laden...",
+    "retry": "Opnieuw",
+    "back": "Terug",
+    "next": "Volgende",
+    "add": "Toevoegen",
+    "edit": "Bewerken",
+    "remove": "Verwijderen",
+    "search": "Zoeken",
+    "share": "Delen",
+    "copy": "Kopiëren",
+    "yes": "Ja",
+    "no": "Nee"
+  },
+  "status": {
+    "on": "Aan",
+    "off": "Uit",
+    "recent": "Onlangs",
+    "unknown": "Onbekend",
+    "busy": "Bezig…"
+  },
+  "roles": {
+    "gm": "Game Master",
+    "gmShort": "GM",
+    "player": "Speler",
+    "playerShort": "Speler"
+  },
+  "fallbacks": {
+    "adventurer": "Avonturier",
+    "unnamedHandout": "Naamloze handout",
+    "unnamedNote": "Nieuwe Notitie",
+    "unnamedSession": "Naamloze Sessie",
+    "unnamedNpc": "Naamloze NPC",
+    "unnamedProfile": "Naamloos profiel",
+    "unnamedCharacter": "Naamloos personage",
+    "unnamed": "Naamloos",
+    "thisProfile": "dit profiel",
+    "enemy": "Vijand",
+    "campaign": "Campagne",
+    "myCampaign": "mijn campagne",
+    "backupPoint": "Herstelpunt"
+  },
+  "copyFeedback": {
+    "copied": "Gekopieerd",
+    "done": "Klaar!",
+    "error": "fout"
+  },
+  "time": {
+    "todayAt": "Vandaag om {{time}}",
+    "yesterdayAt": "Gisteren om {{time}}",
+    "yesterdayEveningAt": "Gisterenavond om {{time}}",
+    "weekdayAt": "{{weekday}} om {{time}}",
+    "dateAt": "{{date}} om {{time}}"
+  },
+  "brightness": {
+    "dark": "Donker",
+    "darker": "Iets donkerder",
+    "normal": "Normaal",
+    "lighter": "Iets lichter",
+    "light": "Lichter"
+  },
+  "updateBanner": {
+    "message": "Er staat een nieuwe versie klaar. Vernieuw de pagina om verder te gaan.",
+    "refresh": "Nu verversen"
+  }
+}

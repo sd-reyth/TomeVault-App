@@ -1,0 +1,182 @@
+{
+  "sections": {
+    "profile": {
+      "title": "Character Profile",
+      "subtitleGm": "Complete snapshot of the currently selected character",
+      "subtitlePlayer": "Personal status at export moment",
+      "description": "Profile, stats, and custom values"
+    },
+    "gmOverview": {
+      "title": "GM Overview",
+      "subtitle": "Session-wide core view",
+      "description": "Session dashboard and core statistics"
+    },
+    "notes": {
+      "title": "Travel Log",
+      "description": "Personal notes and travel memories"
+    },
+    "inventory": {
+      "title": "Inventory",
+      "description": "Items, categories, and notes"
+    },
+    "wallet": {
+      "title": "Wallet",
+      "subtitle": "Personal coins",
+      "description": "Coins and possessions"
+    },
+    "partyWallet": {
+      "title": "Wallet Overview (Party)",
+      "description": "Party-wide funds"
+    },
+    "handouts": {
+      "title": "Discovered Handouts",
+      "description": "Visible discoveries and lore"
+    },
+    "chat": {
+      "title": "Chat Chronicle",
+      "description": "Recent messages and rolls"
+    },
+    "roster": {
+      "title": "Party Roster",
+      "description": "Players and NPCs in the session"
+    },
+    "preparations": {
+      "title": "Preparation Library",
+      "description": "Assigned preparations"
+    },
+    "backups": {
+      "title": "Restore Points",
+      "description": "Backups and restore moments"
+    }
+  },
+  "fields": {
+    "name": "Name",
+    "title": "Title",
+    "field": "Field",
+    "value": "Value",
+    "hp": "HP",
+    "ac": "AC",
+    "init": "Init"
+  },
+  "tables": {
+    "component": "Component",
+    "item": "Item",
+    "amount": "Amount",
+    "owner": "Owner",
+    "category": "Category",
+    "note": "Note",
+    "coin": "Coin",
+    "public": "Public",
+    "secret": "Secret",
+    "content": "Content",
+    "assigned": "Assigned",
+    "type": "Type",
+    "title": "Title",
+    "author": "Author",
+    "moment": "Moment",
+    "message": "Message",
+    "role": "Role",
+    "status": "Status",
+    "player": "Player",
+    "lastUpdate": "Last update",
+    "template": "Template",
+    "created": "Created",
+    "restored": "Restored",
+    "combatStatus": "Combat status",
+    "currentRound": "Current round",
+    "partyMembers": "Party members",
+    "handoutsTotal": "Handouts total",
+    "preparations": "Preparations",
+    "backups": "Backups",
+    "recentChat": "Chat messages (recent)"
+  },
+  "metrics": {
+    "combat": "Combat",
+    "round": "Round",
+    "party": "Party",
+    "handouts": "Handouts"
+  },
+  "callout": {
+    "gm": [
+      "This export runs in GM mode and includes extended session insights alongside player data.",
+      "Use this document as an operational chronicle and audit trail for prep and narrative continuity."
+    ],
+    "player": [
+      "This document bundles your journey as a player: profile, possessions, visible handouts, and your recent chronicle.",
+      "Use it as a personal archive, recap, or transition dossier for character death events."
+    ]
+  },
+  "empty": {
+    "notes": "No travel notes recorded in this export yet.",
+    "inventory": "No items recorded in possession.",
+    "handouts": "No handouts discovered or assigned yet.",
+    "chat": "No chat messages in this export yet."
+  },
+  "fallbacks": {
+    "unknown": "Unknown",
+    "unknownItem": "Unknown item",
+    "unnamedNote": "Untitled note",
+    "unnamedHandout": "Untitled handout",
+    "unnamed": "Untitled",
+    "adventurer": "adventurer",
+    "dash": "-"
+  },
+  "labels": {
+    "notesCount": "{{count}} notes",
+    "itemsCount": "{{count}} items",
+    "handoutsCount": "{{count}} visible",
+    "walletOwners": "{{count}} owners",
+    "chatCount": "{{count}} recent messages",
+    "rosterCount": "{{count}} members",
+    "preparationCount": "{{count}} entries",
+    "backupCount": "{{count}} backups",
+    "lastEdited": "Last edited: {{date}}",
+    "truncated": "{{shown}} of {{total}} {{type}} included in this chronicle."
+  },
+  "truncation": {
+    "notes": "notes",
+    "messages": "messages"
+  },
+  "roster": {
+    "npc": "NPC",
+    "player": "Player"
+  },
+  "currency": {
+    "platinum": "Platinum",
+    "gold": "Gold",
+    "silver": "Silver",
+    "bronze": "Bronze",
+    "platinumShort": "Platinum (PP)",
+    "goldShort": "Gold (GP)",
+    "silverShort": "Silver (SP)",
+    "bronzeShort": "Bronze (BP)"
+  },
+  "cover": {
+    "badgeGm": "GM DOSSIER",
+    "badgePlayer": "PLAYER CHRONICLE",
+    "subjectFallback": "Untitled Adventurer",
+    "modeGm": "Grandmaster Chronicle — campaign dossier",
+    "modePlayer": "Character Chronicle — personal chronicle",
+    "metaSession": "Session",
+    "metaExport": "Export",
+    "metaLayout": "Layout",
+    "scopeGm": "Extended GM export with session-wide overview, audit trail and narrative continuity.",
+    "scopePlayer": "All player-visible data at export moment — your journey, captured.",
+    "tagline": "Sessions and memories — preserved forever."
+  },
+  "layout": {
+    "sectionFallback": "Section",
+    "cardTitleFallback": "Untitled",
+    "imageLoadFailed": "Could not load image: {{src}}"
+  },
+  "toc": {
+    "title": "Table of contents",
+    "modeGm": "Export mode: GM full",
+    "modePlayer": "Export mode: Player personal",
+    "overflow": "+ {{count}} extra sections — increase TOC reserve"
+  },
+  "footer": {
+    "brand": "TomeVault by Sneezing Donkey · {{sessionId}}",
+    "page": "Page {{page}}/{{pages}}"
+  }
+}

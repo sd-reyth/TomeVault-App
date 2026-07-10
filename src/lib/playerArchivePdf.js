@@ -1,5 +1,6 @@
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
+import i18n from '../i18n/index.js';
 import { getItemCategoryLabel } from './itemCategories';
 import { formatCustomStatValue } from './statModifiers';
 import {
@@ -19,6 +20,8 @@ import {
   tableBaseOptions,
 } from './pdfTheme';
 
+const t = (key, options) => i18n.t(`pdf:${key}`, options);
+
 function formatChatMomentLabel(msg) {
   const date = asString(msg?.date, '');
   const time = asString(msg?.time, '');
@@ -26,22 +29,16 @@ function formatChatMomentLabel(msg) {
   if (date && time) return `${date} ${time}`;
   if (date) return date;
   if (time) return time;
-  return '-';
+  return t('fallbacks.dash');
 }
 
-const SECTION_DESCRIPTIONS = {
-  'Karakterprofiel': 'Profiel, stats en custom waarden',
-  'GM Overzicht': 'Sessie-dashboard en kernstatistieken',
-  'Reislog': 'Persoonlijke notities en reisherinneringen',
-  'Inventaris': 'Items, categorieën en notities',
-  'Wallet': 'Munten en bezittingen',
-  'Wallet Overzicht (Party)': 'Party-brede geldmiddelen',
-  'Ontdekte Handouts': 'Zichtbare ontdekkingen en lore',
-  'Chat Kroniek': 'Recente berichten en worpen',
-  'Party Roster': 'Spelers en NPC\'s in de sessie',
-  'Voorbereidingenbibliotheek': 'Toegewezen voorbereidingen',
-  'Herstelpunten': 'Back-ups en herstelmomenten',
-};
+function startSection(layout, sectionKey, subtitle = '') {
+  return layout.startSection(
+    t(`sections.${sectionKey}.title`),
+    subtitle,
+    t(`sections.${sectionKey}.description`),
+  );
+}
 
 /**
  * @param {import('jspdf').jsPDF} doc
@@ -67,26 +64,16 @@ function drawTable(doc, layout, options) {
 
 /**
  * @param {PdfLayoutEngine} layout
- * @param {string} title
- * @param {string} subtitle
- */
-function startSection(layout, title, subtitle = '') {
-  const description = SECTION_DESCRIPTIONS[title] || '';
-  return layout.startSection(title, subtitle, description);
-}
-
-/**
- * @param {PdfLayoutEngine} layout
  * @param {object} profile
  * @param {object} archive
  */
 function renderProfileSection(layout, profile, archive) {
   const doc = layout.doc;
   const subtitle = archive.mode === 'gm'
-    ? 'Complete snapshot van het huidige geselecteerde karakter'
-    : 'Persoonlijke status op exportmoment';
+    ? t('sections.profile.subtitleGm')
+    : t('sections.profile.subtitlePlayer');
 
-  startSection(layout, 'Karakterprofiel', subtitle);
+  startSection(layout, 'profile', subtitle);
 
   const hp = `${Number(profile.hp ?? 0)}/${Number(profile.maxHp ?? profile.hp ?? 0)}`;
   layout.cursorY = layout.ensureSpace(60);
@@ -94,37 +81,29 @@ function renderProfileSection(layout, profile, archive) {
     doc,
     layout.cursorY,
     [
-      { label: 'HP', value: hp },
-      { label: 'AC', value: String(Number(profile.ac ?? 10)) },
-      { label: 'Init', value: String(Number(profile.initMod ?? 0)) },
+      { label: t('fields.hp'), value: hp },
+      { label: t('fields.ac'), value: String(Number(profile.ac ?? 10)) },
+      { label: t('fields.init'), value: String(Number(profile.initMod ?? 0)) },
     ],
     layout.contentWidth,
   ) + PDF_LAYOUT.blockGap;
 
   const statRows = [
-    ['Naam', asString(profile.name, archive.subjectName || 'Onbekend')],
-    ['Titel', asString(profile.subtitle, '-')],
+    [t('fields.name'), asString(profile.name, archive.subjectName || t('fallbacks.unknown'))],
+    [t('fields.title'), asString(profile.subtitle, t('fallbacks.dash'))],
   ].concat((profile.customStats || []).map((entry) => [
     asString(entry?.name, 'STAT'),
     formatCustomStatValue(entry),
   ]));
 
   drawTable(doc, layout, {
-    head: [['Veld', 'Waarde']],
+    head: [[t('fields.field'), t('fields.value')]],
     body: statRows,
     theme: 'grid',
   });
 
   layout.renderCallout(
-    archive.mode === 'gm'
-      ? [
-          'Deze export draait in GM-modus en bevat uitgebreide sessie-inzichten naast spelersdata.',
-          'Gebruik dit document als operationele kroniek en audittrail voor voorbereiding en narratieve continuïteit.',
-        ]
-      : [
-          'Dit document bundelt jouw reis als speler: profiel, bezittingen, zichtbare handouts en je recente kroniek.',
-          'Gebruik het als persoonlijke archive, recap of als overgangsdossier bij character death-events.',
-        ],
+    t(`callout.${archive.mode === 'gm' ? 'gm' : 'player'}`, { returnObjects: true }),
   );
 }
 
@@ -136,7 +115,7 @@ function renderGmOverview(layout, archive) {
   if (archive.mode !== 'gm' || !archive.gmData) return;
 
   const gm = archive.gmData;
-  startSection(layout, 'GM Overzicht', 'Sessie-breed kernbeeld');
+  startSection(layout, 'gmOverview', t('sections.gmOverview.subtitle'));
 
   const doc = layout.doc;
   layout.cursorY = layout.ensureSpace(60);
@@ -144,24 +123,24 @@ function renderGmOverview(layout, archive) {
     doc,
     layout.cursorY,
     [
-      { label: 'Combat', value: asString(gm.combatStatus, 'idle') },
-      { label: 'Ronde', value: String(Number(gm.turnRound ?? 1)) },
-      { label: 'Party', value: String((gm.party || []).length) },
-      { label: 'Handouts', value: String((gm.handouts || []).length) },
+      { label: t('metrics.combat'), value: asString(gm.combatStatus, 'idle') },
+      { label: t('metrics.round'), value: String(Number(gm.turnRound ?? 1)) },
+      { label: t('metrics.party'), value: String((gm.party || []).length) },
+      { label: t('metrics.handouts'), value: String((gm.handouts || []).length) },
     ],
     layout.contentWidth,
   ) + PDF_LAYOUT.blockGap;
 
   drawTable(doc, layout, {
-    head: [['Onderdeel', 'Waarde']],
+    head: [[t('tables.component'), t('fields.value')]],
     body: [
-      ['Combat status', asString(gm.combatStatus, 'idle')],
-      ['Huidige ronde', String(Number(gm.turnRound ?? 1))],
-      ['Party leden', String((gm.party || []).length)],
-      ['Handouts totaal', String((gm.handouts || []).length)],
-      ['Voorbereidingen', String((gm.preparations || []).length)],
-      ['Backups', String((gm.preparationBackups || []).length)],
-      ['Chat berichten (recent)', String((archive.chat || []).length)],
+      [t('tables.combatStatus'), asString(gm.combatStatus, 'idle')],
+      [t('tables.currentRound'), String(Number(gm.turnRound ?? 1))],
+      [t('tables.partyMembers'), String((gm.party || []).length)],
+      [t('tables.handoutsTotal'), String((gm.handouts || []).length)],
+      [t('tables.preparations'), String((gm.preparations || []).length)],
+      [t('tables.backups'), String((gm.preparationBackups || []).length)],
+      [t('tables.recentChat'), String((archive.chat || []).length)],
     ],
     theme: 'grid',
   });
@@ -175,16 +154,16 @@ function renderNotesSection(layout, archive) {
   const notes = Array.isArray(archive.notes) ? archive.notes : [];
   const limit = archive.mode === 'gm' ? PDF_LIMITS.notesGm : PDF_LIMITS.notesPlayer;
 
-  startSection(layout, 'Reislog', `${notes.length} notities`);
+  startSection(layout, 'notes', t('labels.notesCount', { count: notes.length }));
 
   if (notes.length === 0) {
-    layout.drawEmptyState('Nog geen reisnotities vastgelegd in deze export.');
+    layout.drawEmptyState(t('empty.notes'));
     return;
   }
 
   const doc = layout.doc;
   notes.slice(0, limit).forEach((note, index) => {
-    const bodyText = asString(note.content, '-').replace(/\s+/g, ' ') || '-';
+    const bodyText = asString(note.content, t('fallbacks.dash')).replace(/\s+/g, ' ') || t('fallbacks.dash');
     const wrapped = doc.splitTextToSize(bodyText, layout.contentWidth - 28).slice(0, PDF_LIMITS.noteExcerptLines);
     const estimatedHeight = Math.max(58, 36 + (wrapped.length * 12) + (note.lastEdited ? 10 : 0));
     layout.cursorY = layout.ensureSpace(estimatedHeight + 12);
@@ -192,16 +171,16 @@ function renderNotesSection(layout, archive) {
       doc,
       layout.cursorY,
       {
-        title: `${index + 1}. ${asString(note.title, 'Naamloze notitie')}`,
-        meta: note.lastEdited ? `Laatst bewerkt: ${formatDateShort(note.lastEdited)}` : undefined,
-        body: asString(note.content, '-') || '-',
+        title: `${index + 1}. ${asString(note.title, t('fallbacks.unnamedNote'))}`,
+        meta: note.lastEdited ? t('labels.lastEdited', { date: formatDateShort(note.lastEdited) }) : undefined,
+        body: asString(note.content, t('fallbacks.dash')) || t('fallbacks.dash'),
       },
       layout.contentWidth,
     );
     layout.cursorY += cardHeight + 10;
   });
 
-  layout.drawTruncationNotice('notities', Math.min(notes.length, limit), notes.length);
+  layout.drawTruncationNotice(t('truncation.notes'), Math.min(notes.length, limit), notes.length);
 }
 
 /**
@@ -210,22 +189,22 @@ function renderNotesSection(layout, archive) {
  */
 function renderInventorySection(layout, archive) {
   const inventoryRows = (archive.inventory || []).map((item) => [
-    asString(item.name, 'Onbekend item'),
+    asString(item.name, t('fallbacks.unknownItem')),
     String(Number(item.amount ?? 1)),
-    asString(item.ownerName || item.ownerId || '-', '-'),
+    asString(item.ownerName || item.ownerId || t('fallbacks.dash'), t('fallbacks.dash')),
     getItemCategoryLabel(item.category),
-    asString(item.desc, '-'),
+    asString(item.desc, t('fallbacks.dash')),
   ]);
 
-  startSection(layout, 'Inventaris', `${inventoryRows.length} items`);
+  startSection(layout, 'inventory', t('labels.itemsCount', { count: inventoryRows.length }));
 
   if (inventoryRows.length === 0) {
-    layout.drawEmptyState('Geen items vastgelegd in bezit.');
+    layout.drawEmptyState(t('empty.inventory'));
     return;
   }
 
   drawTable(layout.doc, layout, {
-    head: [['Item', 'Aantal', 'Eigenaar', 'Categorie', 'Notitie']],
+    head: [[t('tables.item'), t('tables.amount'), t('tables.owner'), t('tables.category'), t('tables.note')]],
     body: inventoryRows,
     theme: 'striped',
     columnStyles: {
@@ -244,7 +223,7 @@ function renderInventorySection(layout, archive) {
  */
 function renderWalletSection(layout, archive) {
   const wallet = archive.wallet || {};
-  startSection(layout, 'Wallet', 'Persoonlijke munten');
+  startSection(layout, 'wallet', t('sections.wallet.subtitle'));
 
   const doc = layout.doc;
   layout.cursorY = layout.ensureSpace(60);
@@ -252,29 +231,29 @@ function renderWalletSection(layout, archive) {
     doc,
     layout.cursorY,
     [
-      { label: 'Platinum', value: String(Number(wallet.platinum ?? 0)) },
-      { label: 'Gold', value: String(Number(wallet.gold ?? 0)) },
-      { label: 'Silver', value: String(Number(wallet.silver ?? 0)) },
-      { label: 'Bronze', value: String(Number(wallet.bronze ?? 0)) },
+      { label: t('currency.platinum'), value: String(Number(wallet.platinum ?? 0)) },
+      { label: t('currency.gold'), value: String(Number(wallet.gold ?? 0)) },
+      { label: t('currency.silver'), value: String(Number(wallet.silver ?? 0)) },
+      { label: t('currency.bronze'), value: String(Number(wallet.bronze ?? 0)) },
     ],
     layout.contentWidth,
   ) + PDF_LAYOUT.blockGap;
 
   drawTable(doc, layout, {
-    head: [['Munt', 'Aantal']],
+    head: [[t('tables.coin'), t('tables.amount')]],
     body: [
-      ['Platinum (PP)', String(Number(wallet.platinum ?? 0))],
-      ['Gold (GP)', String(Number(wallet.gold ?? 0))],
-      ['Silver (SP)', String(Number(wallet.silver ?? 0))],
-      ['Bronze (BP)', String(Number(wallet.bronze ?? 0))],
+      [t('currency.platinumShort'), String(Number(wallet.platinum ?? 0))],
+      [t('currency.goldShort'), String(Number(wallet.gold ?? 0))],
+      [t('currency.silverShort'), String(Number(wallet.silver ?? 0))],
+      [t('currency.bronzeShort'), String(Number(wallet.bronze ?? 0))],
     ],
     theme: 'grid',
   });
 
   if (archive.mode === 'gm' && archive.gmData?.walletRows?.length) {
-    startSection(layout, 'Wallet Overzicht (Party)', `${archive.gmData.walletRows.length} eigenaars`);
+    startSection(layout, 'partyWallet', t('labels.walletOwners', { count: archive.gmData.walletRows.length }));
     drawTable(doc, layout, {
-      head: [['Eigenaar', 'PP', 'GP', 'SP', 'BP']],
+      head: [[t('tables.owner'), 'PP', 'GP', 'SP', 'BP']],
       body: archive.gmData.walletRows,
       theme: 'striped',
     });
@@ -290,30 +269,30 @@ function renderHandoutsSection(layout, archive) {
   const handoutRows = (archive.handouts || []).map((handout) => (
     hasSecretColumn
       ? [
-          asString(handout.title, 'Naamloze handout'),
+          asString(handout.title, t('fallbacks.unnamedHandout')),
           asString(handout.type, 'clue'),
-          asString(handout.assignedToNick || '-', '-'),
-          asString(handout.content, '-'),
-          asString(handout.secret || '-', '-'),
+          asString(handout.assignedToNick || t('fallbacks.dash'), t('fallbacks.dash')),
+          asString(handout.content, t('fallbacks.dash')),
+          asString(handout.secret || t('fallbacks.dash'), t('fallbacks.dash')),
         ]
       : [
-          asString(handout.title, 'Naamloze handout'),
+          asString(handout.title, t('fallbacks.unnamedHandout')),
           asString(handout.type, 'clue'),
-          asString(handout.assignedToNick || '-', '-'),
-          asString(handout.content, '-'),
+          asString(handout.assignedToNick || t('fallbacks.dash'), t('fallbacks.dash')),
+          asString(handout.content, t('fallbacks.dash')),
         ]
   ));
 
-  startSection(layout, 'Ontdekte Handouts', `${handoutRows.length} zichtbaar`);
+  startSection(layout, 'handouts', t('labels.handoutsCount', { count: handoutRows.length }));
 
   if (handoutRows.length === 0) {
-    layout.drawEmptyState('Nog geen handouts ontdekt of toegewezen.');
+    layout.drawEmptyState(t('empty.handouts'));
     return;
   }
 
   const handoutHead = hasSecretColumn
-    ? [['Titel', 'Type', 'Toegewezen', 'Publiek', 'Geheim']]
-    : [['Titel', 'Type', 'Toegewezen', 'Inhoud']];
+    ? [[t('tables.title'), t('tables.type'), t('tables.assigned'), t('tables.public'), t('tables.secret')]]
+    : [[t('tables.title'), t('tables.type'), t('tables.assigned'), t('tables.content')]];
 
   const handoutColumnStyles = hasSecretColumn
     ? {
@@ -346,20 +325,20 @@ function renderChatSection(layout, archive) {
   const chatLimit = archive.mode === 'gm' ? PDF_LIMITS.chatGm : PDF_LIMITS.chatPlayer;
   const allChat = Array.isArray(archive.chat) ? archive.chat : [];
   const chatRows = allChat.slice(-chatLimit).map((msg) => [
-    asString(msg.author, 'Onbekend'),
+    asString(msg.author, t('fallbacks.unknown')),
     formatChatMomentLabel(msg),
     asString(msg.text, ''),
   ]);
 
-  startSection(layout, 'Chat Kroniek', `${chatRows.length} recente berichten`);
+  startSection(layout, 'chat', t('labels.chatCount', { count: chatRows.length }));
 
   if (chatRows.length === 0) {
-    layout.drawEmptyState('Nog geen chatberichten in deze export.');
+    layout.drawEmptyState(t('empty.chat'));
     return;
   }
 
   drawTable(layout.doc, layout, {
-    head: [['Auteur', 'Moment', 'Bericht']],
+    head: [[t('tables.author'), t('tables.moment'), t('tables.message')]],
     body: chatRows,
     theme: 'plain',
     columnStyles: {
@@ -369,7 +348,7 @@ function renderChatSection(layout, archive) {
     },
   });
 
-  layout.drawTruncationNotice('berichten', chatRows.length, allChat.length);
+  layout.drawTruncationNotice(t('truncation.messages'), chatRows.length, allChat.length);
 }
 
 /**
@@ -383,29 +362,29 @@ function renderGmDetailSections(layout, archive) {
   const gm = archive.gmData;
 
   if (gm.party?.length) {
-    startSection(layout, 'Party Roster', `${gm.party.length} leden`);
+    startSection(layout, 'roster', t('labels.rosterCount', { count: gm.party.length }));
     drawTable(doc, layout, {
-      head: [['Naam', 'Rol', 'HP', 'AC', 'Init', 'Type']],
+      head: [[t('fields.name'), t('tables.role'), t('fields.hp'), t('fields.ac'), t('fields.init'), t('tables.type')]],
       body: gm.party.map((entry) => [
-        asString(entry.name, 'Onbekend'),
-        asString(entry.subtitle, '-'),
+        asString(entry.name, t('fallbacks.unknown')),
+        asString(entry.subtitle, t('fallbacks.dash')),
         `${Number(entry.hp ?? 0)}/${Number(entry.maxHp ?? entry.hp ?? 0)}`,
         String(Number(entry.ac ?? 10)),
         String(Number(entry.init ?? 0)),
-        entry.isNpc ? 'NPC' : 'Speler',
+        entry.isNpc ? t('roster.npc') : t('roster.player'),
       ]),
       theme: 'striped',
     });
   }
 
   if (Array.isArray(gm.preparations) && gm.preparations.length) {
-    startSection(layout, 'Voorbereidingenbibliotheek', `${gm.preparations.length} entries`);
+    startSection(layout, 'preparations', t('labels.preparationCount', { count: gm.preparations.length }));
     drawTable(doc, layout, {
-      head: [['Naam', 'Status', 'Speler', 'Laatste update']],
+      head: [[t('fields.name'), t('tables.status'), t('tables.player'), t('tables.lastUpdate')]],
       body: gm.preparations.map((entry) => [
-        asString(entry.name, 'Naamloos'),
+        asString(entry.name, t('fallbacks.unnamed')),
         asString(entry.assignmentStatus, 'unassigned'),
-        asString(entry.assignedToName || '-', '-'),
+        asString(entry.assignedToName || t('fallbacks.dash'), t('fallbacks.dash')),
         formatDateShort(entry.updatedAtMs),
       ]),
       theme: 'striped',
@@ -413,12 +392,12 @@ function renderGmDetailSections(layout, archive) {
   }
 
   if (Array.isArray(gm.preparationBackups) && gm.preparationBackups.length) {
-    startSection(layout, 'Herstelpunten', `${gm.preparationBackups.length} backups`);
+    startSection(layout, 'backups', t('labels.backupCount', { count: gm.preparationBackups.length }));
     drawTable(doc, layout, {
-      head: [['Speler', 'Template', 'Aangemaakt', 'Hersteld']],
+      head: [[t('tables.player'), t('tables.template'), t('tables.created'), t('tables.restored')]],
       body: gm.preparationBackups.map((entry) => [
-        asString(entry.playerName, '-'),
-        asString(entry.templateName, '-'),
+        asString(entry.playerName, t('fallbacks.dash')),
+        asString(entry.templateName, t('fallbacks.dash')),
         formatDateShort(entry.createdAtMs),
         formatDateShort(entry.restoredAtMs),
       ]),
@@ -437,15 +416,15 @@ function planSectionCount(archive) {
   const gm = archive.gmData || {};
   let count = 0;
 
-  count += 1; // Karakterprofiel
-  if (isGm && archive.gmData) count += 1; // GM Overzicht
-  count += 1; // Reislog
-  count += 1; // Inventaris
-  count += 1; // Wallet
-  if (isGm && gm.walletRows?.length) count += 1; // Wallet Overzicht (Party)
-  count += 1; // Ontdekte Handouts
-  count += 1; // Chat Kroniek
-  if (isGm && gm.party?.length) count += 1; // Party Roster
+  count += 1; // profile
+  if (isGm && archive.gmData) count += 1; // gmOverview
+  count += 1; // notes
+  count += 1; // inventory
+  count += 1; // wallet
+  if (isGm && gm.walletRows?.length) count += 1; // partyWallet
+  count += 1; // handouts
+  count += 1; // chat
+  if (isGm && gm.party?.length) count += 1; // roster
   if (isGm && Array.isArray(gm.preparations) && gm.preparations.length) count += 1;
   if (isGm && Array.isArray(gm.preparationBackups) && gm.preparationBackups.length) count += 1;
 
@@ -492,7 +471,7 @@ export async function downloadPlayerArchivePdf(archive = {}) {
   drawTableOfContents(doc, layout, archive.mode === 'gm' ? 'gm' : 'player');
   addFooterToAllPages(doc, archive);
 
-  const safeName = asString(archive.subjectName, 'adventurer').toLowerCase().replace(/[^a-z0-9]+/g, '-');
+  const safeName = asString(archive.subjectName, t('fallbacks.adventurer')).toLowerCase().replace(/[^a-z0-9]+/g, '-');
   const safeSession = asString(archive.sessionId, 'session').toLowerCase().replace(/[^a-z0-9]+/g, '-');
   const mode = archive.mode === 'gm' ? 'gm' : 'player';
   const versionTag = asString(archive.layoutVersion, 'tv-pdf-r5').toLowerCase().replace(/[^a-z0-9]+/g, '-');

@@ -1,7 +1,8 @@
 import React from 'react'
+import { useT } from '../i18n/useT'
 
 interface ModalFooterProps {
-  /** Cancel button text (default: "Annuleren") */
+  /** Cancel button text (defaults to common.actions.cancel) */
   cancelLabel?: string
   
   /** Confirm button text */
@@ -31,15 +32,14 @@ interface ModalFooterProps {
  * 
  * Usage:
  * <ModalFooter
- *   cancelLabel="Annuleren"
- *   confirmLabel="Verwijderen"
+ *   confirmLabel="Delete"
  *   onCancel={() => setOpen(false)}
  *   onConfirm={() => deleteItem()}
  *   isDestructive={true}
  * />
  */
 export default function ModalFooter({
-  cancelLabel = 'Annuleren',
+  cancelLabel,
   confirmLabel,
   onCancel,
   onConfirm,
@@ -47,6 +47,8 @@ export default function ModalFooter({
   isDestructive = false,
   isLoading = false,
 }: ModalFooterProps) {
+  const { t } = useT('common')
+  const resolvedCancelLabel = cancelLabel || t('actions.cancel')
   return (
     <div className="mt-6 flex flex-col gap-2 border-t border-[color:var(--tv-border)] pt-4 sm:flex-row sm:gap-3 sm:justify-end">
       {/* Cancel Button (Secondary) */}
@@ -54,7 +56,7 @@ export default function ModalFooter({
         onClick={onCancel}
         className="tv-btn tv-button-secondary order-2 sm:order-1 px-4 text-sm font-medium"
       >
-        {cancelLabel}
+        {resolvedCancelLabel}
       </button>
 
       {/* Confirm Button (Primary or Destructive) */}

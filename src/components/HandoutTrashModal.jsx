@@ -3,10 +3,21 @@ import { RotateCcw, Scroll, Trash2 } from 'lucide-react';
 import ModalFrame from './ModalFrame';
 import Button from './Button';
 import {
-  formatHandoutTrashRemaining,
   getHandoutIcon,
-  getHandoutTypeLabel,
+  getHandoutTrashExpiresMs,
 } from '../lib/handoutUtils';
+import { useT } from '../i18n/useT';
+
+function formatTrashRemaining(handout, t, now = Date.now()) {
+  const expires = getHandoutTrashExpiresMs(handout);
+  if (!expires) return '';
+  const ms = Math.max(0, expires - now);
+  const hours = Math.floor(ms / (60 * 60 * 1000));
+  const minutes = Math.floor((ms % (60 * 60 * 1000)) / (60 * 1000));
+  if (hours > 0) return t('trash.remainingHours', { hours, minutes });
+  if (minutes > 0) return t('trash.remainingMinutes', { minutes });
+  return t('trash.almostExpired');
+}
 
 export default function HandoutTrashModal({
   isOpen,
@@ -15,6 +26,7 @@ export default function HandoutTrashModal({
   onRestore,
   onPermanentDelete,
 }) {
+  const { t } = useT('handouts');
   const [pendingPermanentId, setPendingPermanentId] = useState(null);
   const [busyId, setBusyId] = useState(null);
   const [, setTick] = useState(0);
@@ -54,8 +66,8 @@ export default function HandoutTrashModal({
     <ModalFrame
       isOpen={isOpen}
       onClose={onClose}
-      title="Prullenbak"
-      subtitle="Verwijderde handouts · 24 uur bewaard"
+      title={t('trash.title')}
+      subtitle={t('trash.subtitle')}
       icon={Trash2}
       iconClassName="h-5 w-5 shrink-0 tv-muted"
       maxWidthClassName="max-w-lg"
@@ -64,9 +76,9 @@ export default function HandoutTrashModal({
       {sortedHandouts.length === 0 ? (
         <div className="flex flex-col items-center justify-center gap-2 py-10 text-center">
           <Trash2 className="h-8 w-8 tv-muted opacity-50" aria-hidden />
-          <p className="text-sm tv-text-sub">De prullenbak is leeg.</p>
+          <p className="text-sm tv-text-sub">{t('trash.empty')}</p>
           <p className="max-w-xs text-xs tv-muted">
-            Verwijderde handouts verschijnen hier en blijven 24 uur bewaard.
+            {t('trash.emptyHint')}
           </p>
         </div>
       ) : (
@@ -75,7 +87,8 @@ export default function HandoutTrashModal({
             const Icon = getHandoutIcon(handout.type);
             const isBusy = busyId === handout.id;
             const confirmPermanent = pendingPermanentId === handout.id;
-            const remaining = formatHandoutTrashRemaining(handout);
+            const remaining = formatTrashRemaining(handout, t);
+            const typeLabel = t(`types.${String(handout.type || 'clue').toLowerCase()}`, { defaultValue: handout.type });
 
             return (
               <li
@@ -87,10 +100,10 @@ export default function HandoutTrashModal({
                     <Icon className="h-4 w-4 tv-muted" aria-hidden />
                   </div>
                   <div className="min-w-0 flex-1">
-                    <p className="truncate text-sm font-medium tv-text">{handout.title || 'Naamloze handout'}</p>
+                    <p className="truncate text-sm font-medium tv-text">{handout.title || t('modal.unnamed')}</p>
                     <p className="mt-0.5 text-[11px] tv-muted">
-                      {getHandoutTypeLabel(handout.type)}
-                      {remaining ? ` · nog ${remaining}` : ''}
+                      {typeLabel}
+                      {remaining ? t('trash.remainingPrefix', { remaining }) : ''}
                     </p>
                   </div>
                 </div>
@@ -98,7 +111,7 @@ export default function HandoutTrashModal({
                 {confirmPermanent ? (
                   <div className="mt-3 space-y-2 border-t border-[color-mix(in_srgb,var(--tv-border),transparent_40%)] pt-3">
                     <p className="text-xs leading-relaxed tv-text-sub">
-                      Definitief verwijderen? Dit kan niet ongedaan worden gemaakt.
+                      {t('trash.permanentConfirm')}
                     </p>
                     <div className="grid grid-cols-2 gap-2">
                       <Button
@@ -108,7 +121,7 @@ export default function HandoutTrashModal({
                         disabled={isBusy}
                         onClick={() => setPendingPermanentId(null)}
                       >
-                        Annuleren
+                        {t('common:actions.cancel')}
                       </Button>
                       <Button
                         variant="danger"
@@ -118,7 +131,7 @@ export default function HandoutTrashModal({
                         disabled={isBusy}
                         onClick={() => runAction(handout.id, onPermanentDelete)}
                       >
-                        {isBusy ? 'Bezig…' : 'Definitief'}
+                        {isBusy ? t('common:status.busy') : t('trash.permanent')}
                       </Button>
                     </div>
                   </div>
@@ -132,7 +145,7 @@ export default function HandoutTrashModal({
                       disabled={isBusy}
                       onClick={() => runAction(handout.id, onRestore)}
                     >
-                      {isBusy ? 'Bezig…' : 'Terugzetten'}
+                      {isBusy ? t('common:status.busy') : t('trash.restore')}
                     </Button>
                     <Button
                       variant="ghost"
@@ -143,7 +156,7 @@ export default function HandoutTrashModal({
                       className="tv-hover-danger"
                       onClick={() => setPendingPermanentId(handout.id)}
                     >
-                      Definitief
+                      {t('trash.permanent')}
                     </Button>
                   </div>
                 )}
@@ -156,7 +169,7 @@ export default function HandoutTrashModal({
       {sortedHandouts.length > 0 ? (
         <p className="mt-4 flex items-start gap-2 text-[11px] leading-relaxed tv-muted">
           <Scroll className="mt-0.5 h-3.5 w-3.5 shrink-0 opacity-70" aria-hidden />
-          Handouts die langer dan 24 uur in de prullenbak staan, worden automatisch definitief verwijderd.
+          {t('trash.autoDeleteHint')}
         </p>
       ) : null}
     </ModalFrame>

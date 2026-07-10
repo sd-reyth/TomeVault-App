@@ -1,21 +1,29 @@
 import { Map as MapIcon, Crown, Scroll, User } from 'lucide-react';
+import i18n from '../i18n/index.js';
 
-export const HANDOUT_TYPE_LABELS = {
-  clue: 'Document',
-  loot: 'Voorwerp',
-  map: 'Kaart',
-  npc: 'NPC',
+const HANDOUT_TYPE_VALUES = ['clue', 'loot', 'map', 'npc'];
+
+const HANDOUT_SECRET_TOGGLE_ERROR_KEYS = {
+  'no-gm': 'handouts:secretToggle.errors.no-gm',
+  missing: 'handouts:secretToggle.errors.missing',
+  'no-secret': 'handouts:secretToggle.errors.no-secret',
+  'no-session': 'handouts:secretToggle.errors.no-session',
+  firestore: 'handouts:secretToggle.errors.firestore',
 };
 
-export const HANDOUT_TYPE_OPTIONS = [
-  { value: 'clue', label: 'Document' },
-  { value: 'loot', label: 'Voorwerp' },
-  { value: 'map', label: 'Kaart' },
-  { value: 'npc', label: 'NPC' },
-];
+export function getHandoutTypeOptions() {
+  return HANDOUT_TYPE_VALUES.map((value) => ({
+    value,
+    label: i18n.t(`handouts:types.${value}`),
+  }));
+}
 
 export function getHandoutTypeLabel(type) {
-  return HANDOUT_TYPE_LABELS[String(type || '').toLowerCase()] || 'Document';
+  const normalized = String(type || '').toLowerCase();
+  if (HANDOUT_TYPE_VALUES.includes(normalized)) {
+    return i18n.t(`handouts:types.${normalized}`);
+  }
+  return i18n.t('handouts:types.clue');
 }
 
 /**
@@ -59,8 +67,8 @@ export function getHandoutSecretToggleMeta(handout) {
     return {
       canToggle: false,
       state: 'missing',
-      label: 'Geen secret',
-      hint: 'Voeg een GM secret toe via bewerken.',
+      label: i18n.t('handouts:secretToggle.meta.noSecret'),
+      hint: i18n.t('handouts:secretToggle.meta.noSecretHint'),
     };
   }
 
@@ -68,26 +76,23 @@ export function getHandoutSecretToggleMeta(handout) {
     return {
       canToggle: true,
       state: 'revealed',
-      label: 'Party ziet het',
-      hint: 'Spelers zien het GM secret. Klik om te verbergen.',
+      label: i18n.t('handouts:secretToggle.meta.partySees'),
+      hint: i18n.t('handouts:secretToggle.meta.partySeesHint'),
     };
   }
 
   return {
     canToggle: true,
     state: 'hidden',
-    label: 'Alleen GM',
-    hint: 'Alleen jij ziet het GM secret. Klik om het te onthullen aan spelers.',
+    label: i18n.t('handouts:secretToggle.meta.gmOnly'),
+    hint: i18n.t('handouts:secretToggle.meta.gmOnlyHint'),
   };
 }
 
-export const HANDOUT_SECRET_TOGGLE_ERRORS = {
-  'no-gm': 'Alleen de GM kan secrets tonen of verbergen.',
-  missing: 'Deze handout is even niet beschikbaar. Vernieuw de lijst of open de handout opnieuw.',
-  'no-secret': 'Deze handout heeft geen GM secret. Bewerk de handout om er een toe te voegen.',
-  'no-session': 'Geen actieve sessie — wijziging is alleen lokaal opgeslagen.',
-  firestore: 'Opslaan mislukt. Controleer je verbinding en probeer opnieuw.',
-};
+export function getHandoutSecretToggleError(reason) {
+  const key = HANDOUT_SECRET_TOGGLE_ERROR_KEYS[reason];
+  return i18n.t(key || 'handouts:secretToggle.errors.unknown');
+}
 
 /** Soft-deleted handouts stay recoverable for 24 hours. */
 export const HANDOUT_TRASH_RETENTION_MS = 24 * 60 * 60 * 1000;
@@ -118,7 +123,11 @@ export function formatHandoutTrashRemaining(handout, now = Date.now()) {
   const ms = Math.max(0, expires - now);
   const hours = Math.floor(ms / (60 * 60 * 1000));
   const minutes = Math.floor((ms % (60 * 60 * 1000)) / (60 * 1000));
-  if (hours > 0) return `${hours} u ${minutes} min`;
-  if (minutes > 0) return `${minutes} min`;
-  return 'bijna verlopen';
+  if (hours > 0) {
+    return i18n.t('handouts:trash.remainingHours', { hours, minutes });
+  }
+  if (minutes > 0) {
+    return i18n.t('handouts:trash.remainingMinutes', { minutes });
+  }
+  return i18n.t('handouts:trash.almostExpired');
 }

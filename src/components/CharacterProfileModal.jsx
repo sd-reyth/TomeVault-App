@@ -13,6 +13,7 @@ import {
   CONDITIONS,
   CONDITION_BADGE_COLORS,
   getActiveConditions,
+  getCondition,
 } from '../lib/battleConditions';
 import { CONDITION_ICON_MAP } from '../features/combat/conditionIconMap';
 import { profileSnapshotMatchesPlayer } from '../lib/preparationLifecycle';
@@ -20,6 +21,8 @@ import ModalFrame from './ModalFrame';
 import TvImage from './TvImage';
 import Button from './Button';
 import ImagePositionFrame from '../ui/ImagePositionFrame';
+import { useT } from '../i18n/useT';
+import { confirmDialog } from '../i18n/dialogs';
 
 function ProfileFold({ title, badge, open, onToggle, children }) {
   return (
@@ -59,6 +62,7 @@ function CharacterProfileModal({
   onActivateProfileArchive,
   profileArchiveBusy = false,
 }) {
+  const { t } = useT('combat');
   const [formData, setFormData] = useState({});
   const [pendingAvatarFile, setPendingAvatarFile] = useState(null);
   const [confirmTransfer, setConfirmTransfer] = useState(false);
@@ -173,10 +177,9 @@ function CharacterProfileModal({
 
   const handleRemoveFromSlagorde = async () => {
     const targetName = formData.name || character.name;
-    const warningMessage = character.isNpc
-      ? `Weet je zeker dat je ${targetName} uit de slagorde wilt verwijderen?`
-      : `${targetName} wordt verborgen uit de slagorde en kan later opnieuw meedoen. Doorgaan?`;
-    const confirmed = typeof window !== 'undefined' ? window.confirm(warningMessage) : true;
+    const confirmed = character.isNpc
+      ? confirmDialog('combat:profile.removeNpcConfirm', { name: targetName })
+      : confirmDialog('combat:profile.hidePlayerConfirm', { name: targetName });
     if (!confirmed) return;
 
     await onRemoveFromCombat?.(character);
@@ -228,7 +231,9 @@ function CharacterProfileModal({
     onSave?.(character.id, newLevel);
 
     if (character.type === 'player' || character.type === 'pet') {
-      const message = `${character.name} ${change > 0 ? 'is een level gestegen' : 'is een level gedaald'} en is nu level ${newLevel}! Controleer de regels van je TTRPG om te zien wat je moet weten en/of voorbereiden.`;
+      const message = change > 0
+        ? t('profile.levelUpChat', { name: character.name, level: newLevel })
+        : t('profile.levelDownChat', { name: character.name, level: newLevel });
       sendChatMessage(message, 'system');
     }
   };
@@ -237,8 +242,8 @@ function CharacterProfileModal({
     <ModalFrame
       isOpen={isOpen}
       onClose={onClose}
-      title={character.isNpc ? 'NPC' : 'Profiel'}
-      subtitle={formData.subtitle || (character.isNpc ? 'Vijand' : 'Speler')}
+      title={character.isNpc ? t('profile.titleNpc') : t('profile.titlePlayer')}
+      subtitle={formData.subtitle || (character.isNpc ? t('common:fallbacks.enemy') : t('common:roles.player'))}
       icon={UserRound}
       maxWidthClassName="max-w-md"
       bodyClassName="!p-0"
@@ -246,13 +251,13 @@ function CharacterProfileModal({
         <div className="flex w-full flex-col gap-2">
           {canEdit ? (
             <Button variant="primary" block onClick={handleSave}>
-              <Save className="h-4 w-4" /> Opslaan
+              <Save className="h-4 w-4" /> {t('common:actions.save')}
             </Button>
           ) : null}
           {canRemoveFromSlagorde ? (
             <Button variant="danger" block onClick={handleRemoveFromSlagorde}>
               <Trash2 className="h-4 w-4" />
-              {character.isNpc ? 'Verwijder uit slagorde' : 'Verberg uit slagorde'}
+              {character.isNpc ? t('profile.removeFromOrderNpc') : t('profile.hideFromOrderPlayer')}
             </Button>
           ) : null}
         </div>
@@ -263,7 +268,7 @@ function CharacterProfileModal({
         <section className="tv-profile-identity">
           <ImagePositionFrame
             src={displayAvatar}
-            alt="Portret"
+            alt={t('profile.portraitAlt')}
             value={avatarPosition}
             onChange={handleAvatarPositionChange}
             canReposition={canRepositionAvatar}
@@ -277,8 +282,8 @@ function CharacterProfileModal({
                 type="button"
                 className={`tv-image-pos-frame__action tv-toolbar-icon-btn ${showAvatarPicker ? 'tv-button-primary' : 'tv-button-secondary'}`}
                 onClick={() => setShowAvatarPicker((current) => !current)}
-                title="Avatar kiezen"
-                aria-label="Avatar kiezen"
+                title={t('profile.pickAvatar')}
+                aria-label={t('profile.pickAvatar')}
                 aria-pressed={showAvatarPicker}
               >
                 <LayoutGrid className="h-4 w-4" aria-hidden />
@@ -294,14 +299,14 @@ function CharacterProfileModal({
                   value={formData.name || ''}
                   onChange={(e) => handleChange('name', e.target.value)}
                   className="tv-profile-name-input"
-                  placeholder="Naam"
+                  placeholder={t('profile.namePlaceholder')}
                 />
                 <input
                   type="text"
                   value={formData.subtitle || ''}
                   onChange={(e) => handleChange('subtitle', e.target.value)}
                   className="tv-profile-subtitle-input"
-                  placeholder="Ras / klasse"
+                  placeholder={t('profile.subtitlePlaceholder')}
                 />
               </>
             ) : (
@@ -342,7 +347,7 @@ function CharacterProfileModal({
         ) : null}
 
         <section>
-          <p className="tv-profile-section-label">Gevecht</p>
+          <p className="tv-profile-section-label">{t('profile.combatSection')}</p>
 
           <div className="tv-hp-control" data-tone={hpTone}>
             {canEditHp ? (
@@ -350,7 +355,7 @@ function CharacterProfileModal({
                 type="button"
                 className="tv-hp-control__step"
                 onClick={() => adjustHp(-1)}
-                aria-label="HP verlagen"
+                aria-label={t('profile.decreaseHp')}
               >
                 <Minus className="h-4 w-4" />
               </button>
@@ -367,7 +372,7 @@ function CharacterProfileModal({
                       onChange={(e) => handleChange('hp', e.target.value)}
                       onBlur={(e) => commitHp(Number(e.target.value) || 0)}
                       className="tv-hp-control__input hide-arrows"
-                      aria-label="Huidige HP"
+                      aria-label={t('profile.currentHp')}
                     />
                     <span className="tv-hp-control__sep">/</span>
                     <input
@@ -375,7 +380,7 @@ function CharacterProfileModal({
                       value={formData.maxHp ?? 0}
                       onChange={(e) => handleChange('maxHp', e.target.value)}
                       className="tv-hp-control__input tv-hp-control__input--max hide-arrows"
-                      aria-label="Maximale HP"
+                      aria-label={t('profile.maxHp')}
                     />
                   </span>
                 ) : (
@@ -392,7 +397,7 @@ function CharacterProfileModal({
                 type="button"
                 className="tv-hp-control__step"
                 onClick={() => adjustHp(1)}
-                aria-label="HP verhogen"
+                aria-label={t('profile.increaseHp')}
               >
                 <Plus className="h-4 w-4" />
               </button>
@@ -411,7 +416,7 @@ function CharacterProfileModal({
               </div>
             </div>
             <div className="tv-profile-stat tv-stat-tile">
-              <span className="tv-label" title="Initiative Modifier">Init</span>
+              <span className="tv-label" title={t('profile.initModTitle')}>Init</span>
               <div className="tv-profile-stat__value">
                 {canEdit ? (
                   <input type="number" value={formData.initMod || 0} onChange={(e) => handleChange('initMod', e.target.value)} className="tv-stat-input hide-arrows text-lg tv-text" />
@@ -427,12 +432,10 @@ function CharacterProfileModal({
               <div className="tv-profile-control-card__row">
                 <div className="min-w-0">
                   <p className="tv-label inline-flex items-center gap-1.5">
-                    <Skull className="h-3.5 w-3.5" aria-hidden /> Levensstatus
+                    <Skull className="h-3.5 w-3.5" aria-hidden /> {t('profile.lifeStatus')}
                   </p>
                   <p className="mt-1 text-xs leading-5 tv-muted">
-                    {isDead
-                      ? 'Gemarkeerd als overleden. Toont een doodshoofd in de slagorde.'
-                      : 'Op 0 HP. Markeer als overleden of laat herstellen.'}
+                    {isDead ? t('profile.deadHint') : t('profile.zeroHpHint')}
                   </p>
                 </div>
                 <Button
@@ -442,7 +445,7 @@ function CharacterProfileModal({
                   icon={isDead ? Heart : Skull}
                   onClick={handleToggleDeath}
                 >
-                  {isDead ? 'Herleven' : 'Overleden'}
+                  {isDead ? t('profile.revive') : t('profile.markDead')}
                 </Button>
               </div>
             </div>
@@ -453,10 +456,10 @@ function CharacterProfileModal({
               <div className="tv-profile-control-card__row">
                 <div className="min-w-0">
                   <p className="tv-label inline-flex items-center gap-1.5">
-                    <Zap className="h-3.5 w-3.5" aria-hidden /> Alert Feat
+                    <Zap className="h-3.5 w-3.5" aria-hidden /> {t('profile.alertFeat')}
                   </p>
                   <p className="mt-1 text-xs leading-5 tv-muted">
-                    Kan het initiatief omwisselen aan het begin van het gevecht.
+                    {t('profile.alertFeatHint')}
                   </p>
                 </div>
                 <Button
@@ -466,14 +469,14 @@ function CharacterProfileModal({
                   icon={formData.hasAlertFeat ? Check : Plus}
                   onClick={() => handleChange('hasAlertFeat', !formData.hasAlertFeat)}
                 >
-                  {formData.hasAlertFeat ? 'Actief' : 'Inschakelen'}
+                  {formData.hasAlertFeat ? t('profile.active') : t('profile.enable')}
                 </Button>
               </div>
 
               {formData.hasAlertFeat ? (
                 <div className="tv-profile-control-card__extra">
                   <div className="flex items-center gap-2">
-                    <span className="tv-label">PB</span>
+                    <span className="tv-label">{t('profile.proficiencyBonus')}</span>
                     <input
                       type="number"
                       value={formData.proficiencyBonus || 2}
@@ -488,7 +491,7 @@ function CharacterProfileModal({
                       size="sm"
                       onClick={() => onOpenInitiativeSwap?.(character)}
                     >
-                      Wissel initiatief
+                      {t('profile.swapInitiative')}
                     </Button>
                   ) : null}
                 </div>
@@ -500,11 +503,11 @@ function CharacterProfileModal({
             <div className="tv-profile-control-card tv-panel-inset">
               <div className="tv-profile-control-card__row">
                 <div className="min-w-0">
-                  <p className="tv-label">Spelerszichtbaarheid</p>
+                  <p className="tv-label">{t('profile.playerVisibility')}</p>
                   <p className="mt-1 text-xs leading-5 tv-muted">
                     {formData.isRevealed === false
-                      ? 'Verborgen NPC’s staan niet in de spelers-slagorde.'
-                      : 'Deze NPC is zichtbaar voor spelers in de slagorde.'}
+                      ? t('profile.npcHiddenHint')
+                      : t('profile.npcVisibleHint')}
                   </p>
                 </div>
                 <Button
@@ -514,7 +517,7 @@ function CharacterProfileModal({
                   icon={formData.isRevealed === false ? Eye : EyeOff}
                   onClick={handleNpcVisibilityToggle}
                 >
-                  {formData.isRevealed === false ? 'Onthul' : 'Verberg'}
+                  {formData.isRevealed === false ? t('profile.reveal') : t('profile.hide')}
                 </Button>
               </div>
             </div>
@@ -523,7 +526,7 @@ function CharacterProfileModal({
 
         {isGM ? (
           <ProfileFold
-            title="Status & condities"
+            title={t('profile.conditionsTitle')}
             badge={activeConditions.length ? String(activeConditions.length) : null}
             open={showConditionsPanel}
             onToggle={() => setShowConditionsPanel((current) => !current)}
@@ -547,7 +550,7 @@ function CharacterProfileModal({
                       <ConditionListIcon className="h-4 w-4" />
                       {isActive ? <Check className="h-3 w-3" /> : null}
                     </div>
-                    <div className="text-xs font-bold uppercase tracking-[0.12em]">{condition.label}</div>
+                    <div className="text-xs font-bold uppercase tracking-[0.12em]">{getCondition(condition.id)?.label || condition.label}</div>
                   </button>
                 );
               })}
@@ -565,16 +568,16 @@ function CharacterProfileModal({
               >
                 <span className="tv-profile-fold__title inline-flex items-center gap-2">
                   <Crown className="h-3.5 w-3.5" />
-                  GM overdragen
+                  {t('profile.transferGm')}
                 </span>
                 <ChevronDown className="h-4 w-4 tv-muted" />
               </button>
             ) : (
               <div className="space-y-3">
-                <p className="text-sm tv-text-sub">GM-rechten overdraagt aan {formData.name || 'speler'}?</p>
+                <p className="text-sm tv-text-sub">{t('profile.transferConfirm', { name: formData.name || t('common:roles.playerShort') })}</p>
                 <div className="flex gap-2">
-                  <Button variant="secondary" block onClick={() => setConfirmTransfer(false)}>Nee</Button>
-                  <Button variant="primary" block onClick={() => onTransferGm?.(formData)}>Ja</Button>
+                  <Button variant="secondary" block onClick={() => setConfirmTransfer(false)}>{t('common:actions.no')}</Button>
+                  <Button variant="primary" block onClick={() => onTransferGm?.(formData)}>{t('common:actions.yes')}</Button>
                 </div>
               </div>
             )}
@@ -583,14 +586,14 @@ function CharacterProfileModal({
 
         {isMine && !isGM ? (
           <ProfileFold
-            title="Profielarchief"
+            title={t('profile.archiveTitle')}
             badge={profileArchives.length ? String(profileArchives.length) : null}
             open={showArchivePanel}
             onToggle={() => setShowArchivePanel((current) => !current)}
           >
             {profileArchives.length === 0 ? (
               <p className="text-sm leading-7 tv-text-sub">
-                Opgeslagen profielen verschijnen hier na een rolacceptatie of profielwissel.
+                {t('profile.archiveEmpty')}
               </p>
             ) : (
               <div className="space-y-2">
@@ -601,16 +604,16 @@ function CharacterProfileModal({
                     <div key={entry.id} className="tv-panel-inset rounded-xl p-3">
                       <div className="flex items-start justify-between gap-3">
                         <div className="min-w-0">
-                          <p className="truncate text-sm font-semibold tv-text">{snapshot.name || 'Naamloos profiel'}</p>
+                          <p className="truncate text-sm font-semibold tv-text">{snapshot.name || t('common:fallbacks.unnamedProfile')}</p>
                           {snapshot.subtitle ? (
                             <p className="mt-0.5 truncate text-xs italic tv-muted">{snapshot.subtitle}</p>
                           ) : null}
                           <p className="mt-1 text-[10px] uppercase tracking-[0.14em] tv-muted">
-                            {entry.templateName ? `via ${entry.templateName}` : 'Eigen profiel'}
+                            {entry.templateName ? t('profile.viaTemplate', { name: entry.templateName }) : t('profile.ownProfile')}
                           </p>
                         </div>
                         {isActive ? (
-                          <span className="tv-tag shrink-0 px-2 py-1 text-[10px]">Actief</span>
+                          <span className="tv-tag shrink-0 px-2 py-1 text-[10px]">{t('profile.active')}</span>
                         ) : (
                           <Button
                             type="button"
@@ -620,7 +623,7 @@ function CharacterProfileModal({
                             loading={profileArchiveBusy}
                             onClick={() => onActivateProfileArchive?.(entry)}
                           >
-                            Activeer
+                            {t('profile.activate')}
                           </Button>
                         )}
                       </div>
@@ -633,12 +636,12 @@ function CharacterProfileModal({
         ) : null}
 
         <section>
-          <p className="tv-profile-section-label mb-2">Lore</p>
+          <p className="tv-profile-section-label mb-2">{t('profile.loreSection')}</p>
           {canEdit ? (
             <textarea
               value={formData.bio || ''}
               onChange={(e) => handleChange('bio', e.target.value)}
-              placeholder="Achtergrond, spreuken, effecten…"
+              placeholder={t('profile.lorePlaceholder')}
               className="tv-field min-h-[100px] w-full resize-none font-story leading-relaxed"
             />
           ) : (

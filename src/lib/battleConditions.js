@@ -1,21 +1,23 @@
+import i18n from '../i18n/index.js';
+
 // Battle Conditions System
-// Vereenvoudigde D&D 2024 conditions voor TomeVault
+// Simplified D&D 2024 conditions for TomeVault
 
 export const CONDITIONS = [
-  { id: 'blinded', label: 'Blinded', icon: 'eye', color: 'amber', description: 'Kan niet zien' },
-  { id: 'charmed', label: 'Charmed', icon: 'heart', color: 'pink', description: 'Beperkt in acties' },
-  { id: 'deafened', label: 'Deafened', icon: 'volume-x', color: 'slate', description: 'Kan niet horen' },
-  { id: 'frightened', label: 'Frightened', icon: 'alert-circle', color: 'orange', description: 'Bang en nadelig' },
-  { id: 'grappled', label: 'Grappled', icon: 'hand', color: 'cyan', description: 'Vast in gevecht' },
-  { id: 'incapacitated', label: 'Incapacitated', icon: 'circle-off', color: 'red', description: 'Kan niet handelen' },
-  { id: 'invisible', label: 'Invisible', icon: 'ghost', color: 'purple', description: 'Onzichtbaar' },
-  { id: 'paralyzed', label: 'Paralyzed', icon: 'snowflake', color: 'blue', description: 'Verlamd' },
-  { id: 'petrified', label: 'Petrified', icon: 'mountain', color: 'gray', description: 'Versteend' },
-  { id: 'poisoned', label: 'Poisoned', icon: 'skull', color: 'emerald', description: 'Vergiftigd' },
-  { id: 'prone', label: 'Prone', icon: 'arrow-down', color: 'rose', description: 'Op de grond' },
-  { id: 'restrained', label: 'Restrained', icon: 'link', color: 'indigo', description: 'Gebonden' },
-  { id: 'stunned', label: 'Stunned', icon: 'zap', color: 'yellow', description: 'Verdwaasd' },
-  { id: 'unconscious', label: 'Unconscious', icon: 'bed', color: 'slate', description: 'Bewusteloos' },
+  { id: 'blinded', label: 'Blinded', icon: 'eye', color: 'amber' },
+  { id: 'charmed', label: 'Charmed', icon: 'heart', color: 'pink' },
+  { id: 'deafened', label: 'Deafened', icon: 'volume-x', color: 'slate' },
+  { id: 'frightened', label: 'Frightened', icon: 'alert-circle', color: 'orange' },
+  { id: 'grappled', label: 'Grappled', icon: 'hand', color: 'cyan' },
+  { id: 'incapacitated', label: 'Incapacitated', icon: 'circle-off', color: 'red' },
+  { id: 'invisible', label: 'Invisible', icon: 'ghost', color: 'purple' },
+  { id: 'paralyzed', label: 'Paralyzed', icon: 'snowflake', color: 'blue' },
+  { id: 'petrified', label: 'Petrified', icon: 'mountain', color: 'gray' },
+  { id: 'poisoned', label: 'Poisoned', icon: 'skull', color: 'emerald' },
+  { id: 'prone', label: 'Prone', icon: 'arrow-down', color: 'rose' },
+  { id: 'restrained', label: 'Restrained', icon: 'link', color: 'indigo' },
+  { id: 'stunned', label: 'Stunned', icon: 'zap', color: 'yellow' },
+  { id: 'unconscious', label: 'Unconscious', icon: 'bed', color: 'slate' },
 ];
 
 export const CONDITION_COLORS = {
@@ -67,8 +69,17 @@ export const CONDITION_TONE_HEX = {
   yellow: '#eab308',
 };
 
+export function getConditionDescription(conditionId) {
+  return i18n.t(`combat:conditions.descriptions.${conditionId}`, { defaultValue: '' });
+}
+
 export function getCondition(conditionId) {
-  return CONDITIONS.find(c => c.id === conditionId);
+  const base = CONDITIONS.find((c) => c.id === conditionId);
+  if (!base) return undefined;
+  return {
+    ...base,
+    description: getConditionDescription(base.id),
+  };
 }
 
 export function getConditionColor(conditionId) {
@@ -116,8 +127,8 @@ export function toggleCondition(member, conditionId) {
 
 // Alert Feat (2024) Properties
 export const ALERT_FEAT = {
-  hasAlertFeat: false, // boolean - speler heeft alert feat
-  canInitiativeSwap: false, // boolean - heeft nog een swap beschikbaar deze beurt
+  hasAlertFeat: false,
+  canInitiativeSwap: false,
 };
 
 export function applyAlertFeatBonus(initMod, proficiencyBonus) {

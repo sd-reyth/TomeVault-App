@@ -14,6 +14,7 @@ import {
   Wine,
   X,
 } from 'lucide-react';
+import { useT } from '../i18n/useT';
 
 const SCENE_ICONS = {
   warm: Wine,
@@ -47,7 +48,7 @@ function AmbienceSlider({ label, value, onChange, icon: Icon, muted = false, ari
   );
 }
 
-function SceneCard({ track, isActive, isPlaying, canControlSession, onSelect }) {
+function SceneCard({ track, isActive, isPlaying, canControlSession, onSelect, t }) {
   const Icon = SCENE_ICONS[track.accentTone] || Music2;
   const tone = track.accentTone || 'warm';
 
@@ -58,7 +59,7 @@ function SceneCard({ track, isActive, isPlaying, canControlSession, onSelect }) 
       disabled={!canControlSession}
       className={`tv-ambience-scene-card tv-ambience-scene-card--${tone} ${isActive ? 'tv-ambience-scene-card--active' : ''} ${!canControlSession ? 'tv-ambience-scene-card--readonly' : ''}`}
       aria-pressed={isActive}
-      aria-label={`Scene ${track.scene}${isActive ? ', actief' : ''}`}
+      aria-label={`Scene ${track.scene}${isActive ? t('ambience.sceneActive') : ''}`}
     >
       <div className="tv-ambience-scene-card__glow" aria-hidden />
       <div className="tv-ambience-scene-card__icon-wrap">
@@ -69,7 +70,7 @@ function SceneCard({ track, isActive, isPlaying, canControlSession, onSelect }) 
           <span className="tv-ambience-scene-card__title">{track.scene}</span>
           {isActive ? (
             <span className={`tv-ambience-scene-card__live ${isPlaying ? 'tv-ambience-scene-card__live--on' : ''}`}>
-              {isPlaying ? 'Live' : 'Gereed'}
+              {isPlaying ? t('ambience.live') : t('ambience.ready')}
             </span>
           ) : null}
         </div>
@@ -98,6 +99,7 @@ export default function AmbiencePanel({
   onUnlockAudio,
   onOpenSourcelist,
 }) {
+  const { t } = useT('session');
   const canControlSession = role === 'gm';
   const activeTone = currentTrack?.accentTone || 'warm';
 
@@ -132,28 +134,26 @@ export default function AmbiencePanel({
           <div className="min-w-0">
             <span className="tv-ambience-sheet__badge">
               <Music2 className="h-3.5 w-3.5" aria-hidden />
-              Sfeer
+              {t('ambience.badge')}
             </span>
-            <h1 className="tv-ambience-sheet__title">Ambience</h1>
+            <h1 className="tv-ambience-sheet__title">{t('ambience.title')}</h1>
             <p className="tv-ambience-sheet__subtitle max-md:hidden">
-              {canControlSession
-                ? 'Kies een scene en stuur het geluid voor de hele tafel.'
-                : 'Luister mee — volume pas je hieronder aan.'}
+              {canControlSession ? t('ambience.subtitleGm') : t('ambience.subtitlePlayer')}
             </p>
           </div>
           <button
             type="button"
             onClick={onClose}
             className="tv-icon-btn shrink-0"
-            title="Sluiten"
-            aria-label="Sluiten"
+            title={t('common:actions.close')}
+            aria-label={t('common:actions.close')}
           >
             <X className="h-4 w-4" />
           </button>
         </header>
 
         <div className="tv-ambience-sheet__body">
-          <section className={`tv-ambience-hero tv-ambience-hero--${activeTone}`} aria-label="Nu speelt">
+          <section className={`tv-ambience-hero tv-ambience-hero--${activeTone}`} aria-label={t('ambience.nowPlaying')}>
             <div className="tv-ambience-hero__backdrop" aria-hidden>
               <div className="tv-ambience-hero__waves">
                 {Array.from({ length: 5 }).map((_, index) => (
@@ -168,20 +168,20 @@ export default function AmbiencePanel({
 
             <div className="tv-ambience-hero__content">
               <div className="tv-ambience-hero__meta">
-                <span className="tv-ambience-hero__eyebrow">Nu speelt</span>
+                <span className="tv-ambience-hero__eyebrow">{t('ambience.nowPlaying')}</span>
                 {currentTrack ? (
                   <span className="tv-ambience-hero__scene-chip">{currentTrack.scene}</span>
                 ) : null}
               </div>
 
               <h2 className="tv-ambience-hero__scene">
-                {currentTrack?.scene || 'Geen scene'}
+                {currentTrack?.scene || t('ambience.noScene')}
               </h2>
               {currentTrack?.subtitle ? (
                 <p className="tv-ambience-hero__description">{currentTrack.subtitle}</p>
               ) : (
                 <p className="tv-ambience-hero__description tv-ambience-hero__description--empty">
-                  Selecteer een scene om te beginnen.
+                  {t('ambience.selectScene')}
                 </p>
               )}
 
@@ -190,30 +190,30 @@ export default function AmbiencePanel({
                   type="button"
                   onClick={canControlSession ? onTogglePlayback : onUnlockAudio}
                   className={`tv-ambience-play-btn ${isPlaying ? 'tv-ambience-play-btn--active' : ''}`}
-                  title={canControlSession ? (isPlaying ? 'Pauzeer' : 'Start') : 'Activeer audio'}
-                  aria-label={canControlSession ? (isPlaying ? 'Pauzeer sfeer' : 'Start sfeer') : 'Activeer audio'}
+                  title={canControlSession ? (isPlaying ? t('ambience.pause') : t('ambience.start')) : t('ambience.enableAudio')}
+                  aria-label={canControlSession ? (isPlaying ? t('ambience.pauseAmbience') : t('ambience.startAmbience')) : t('ambience.enableAudio')}
                 >
                   {isPlaying ? <Pause className="h-5 w-5" /> : <Play className="h-5 w-5" />}
-                  <span>{isPlaying ? 'Pauzeer' : 'Afspelen'}</span>
+                  <span>{isPlaying ? t('ambience.pause') : t('ambience.play')}</span>
                 </button>
               </div>
 
               <div className={`tv-ambience-hero__mix ${canControlSession ? 'tv-ambience-hero__mix--dual' : ''}`}>
                 {canControlSession ? (
                   <AmbienceSlider
-                    label="Sessie"
+                    label={t('ambience.sessionVolume')}
                     value={sessionVolume}
                     onChange={onSessionVolumeChange}
-                    ariaLabel="Sessievolume"
+                    ariaLabel={t('ambience.sessionVolumeAria')}
                   />
                 ) : null}
                 <AmbienceSlider
-                  label="Mix"
+                  label={t('ambience.mixVolume')}
                   value={listenerVolume}
                   onChange={onListenerVolumeChange}
                   icon={listenerVolume === 0 ? VolumeX : Volume2}
                   muted={listenerVolume === 0}
-                  ariaLabel="Jouw volume"
+                  ariaLabel={t('ambience.yourVolumeAria')}
                 />
               </div>
             </div>
@@ -221,15 +221,15 @@ export default function AmbiencePanel({
 
           {needsAudioUnlock ? (
             <div className="tv-ambience-alert">
-              <p className="tv-ambience-alert__text">Je browser blokkeert audio tot je het eenmalig toestaat.</p>
+              <p className="tv-ambience-alert__text">{t('ambience.audioBlocked')}</p>
               <button
                 type="button"
                 onClick={onUnlockAudio}
                 className="tv-ambience-alert__action"
-                aria-label="Audio inschakelen"
+                aria-label={t('ambience.enableAudioAction')}
               >
                 <Music2 className="h-4 w-4" />
-                Audio aan
+                {t('ambience.enableAudioAction')}
               </button>
             </div>
           ) : null}
@@ -242,7 +242,7 @@ export default function AmbiencePanel({
 
           <section className="tv-ambience-scenes" aria-labelledby="ambience-scenes-heading">
             <div className="tv-ambience-scenes__head">
-              <h2 id="ambience-scenes-heading" className="tv-ambience-scenes__title">Scenes</h2>
+              <h2 id="ambience-scenes-heading" className="tv-ambience-scenes__title">{t('ambience.scenes')}</h2>
               <span className="tv-ambience-scenes__count">{verifiedTracks.length}</span>
             </div>
             <div className="tv-ambience-scenes__grid">
@@ -254,6 +254,7 @@ export default function AmbiencePanel({
                   isPlaying={isPlaying && currentTrack?.id === track.id}
                   canControlSession={canControlSession}
                   onSelect={onSelectTrack}
+                  t={t}
                 />
               ))}
             </div>
@@ -264,9 +265,9 @@ export default function AmbiencePanel({
               type="button"
               onClick={onOpenSourcelist}
               className="tv-ambience-footer__link"
-              aria-label="Audiogebruik en credits"
+              aria-label={t('ambience.creditsAria')}
             >
-              <span>Audiogebruik & credits</span>
+              <span>{t('ambience.creditsLink')}</span>
               <ChevronRight className="h-4 w-4 shrink-0" aria-hidden />
             </button>
           </footer>

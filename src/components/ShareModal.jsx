@@ -4,6 +4,7 @@ import { Copy, QrCode, Share2 } from 'lucide-react';
 import { buildSessionInviteUrl, toLegacyHashJoinTag, toSafeJoinTagForLink } from '../lib/sessionUtils';
 import { DEFAULT_THEME, getThemeQrColors } from '../lib/appThemes';
 import ModalFrame from './ModalFrame';
+import { useT } from '../i18n/useT';
 
 function StyledQRCode({ value, theme, size }) {
   const containerRef = useRef(null);
@@ -62,13 +63,13 @@ function StyledQRCode({ value, theme, size }) {
 }
 
 export default function ShareModal({ isOpen, onClose, sessionId, theme }) {
+  const { t } = useT('session');
   const [copyFeedback, setCopyFeedback] = useState('');
 
   const resolvedTheme = theme || DEFAULT_THEME;
   const canonicalSessionCode = toLegacyHashJoinTag(sessionId);
-  const scannerSafeCode = toSafeJoinTagForLink(sessionId);
   const joinUrl = buildSessionInviteUrl(sessionId);
-  const waText = `Sluit je aan bij mijn epische avontuur op TomeVault! 🐉\n\nSessie Code: *${canonicalSessionCode}*\n\nSpeel direct mee: ${joinUrl}`;
+  const waText = t('share.whatsappText', { code: canonicalSessionCode, url: joinUrl });
   
   const qrSize = useMemo(() => {
     if (typeof window === 'undefined') return 160;
@@ -88,9 +89,9 @@ export default function ShareModal({ isOpen, onClose, sessionId, theme }) {
     <ModalFrame
       isOpen={isOpen}
       onClose={onClose}
-      title="Deel sessie"
+      title={t('share.title')}
       icon={QrCode}
-      subtitle="Scan of kopieer"
+      subtitle={t('share.subtitle')}
       maxWidthClassName="max-w-sm"
       bodyClassName="gap-4"
     >
@@ -100,12 +101,12 @@ export default function ShareModal({ isOpen, onClose, sessionId, theme }) {
         </div>
 
         <div className="tv-panel-block px-3.5 py-3">
-          <div className="text-[9px] uppercase tracking-[0.2em] tv-muted">Sessiecode</div>
+          <div className="text-[9px] uppercase tracking-[0.2em] tv-muted">{t('share.sessionCode')}</div>
           <div className="tv-accent mt-1.5 font-mono text-sm tracking-widest">{canonicalSessionCode}</div>
         </div>
 
         <div className="tv-panel-block px-3.5 py-3">
-          <div className="text-[9px] uppercase tracking-[0.2em] tv-muted">Join-link</div>
+          <div className="text-[9px] uppercase tracking-[0.2em] tv-muted">{t('share.joinLink')}</div>
           <div className="tv-text mt-1.5 break-all font-mono text-xs leading-relaxed">{joinUrl}</div>
         </div>
       </div>
@@ -116,7 +117,7 @@ export default function ShareModal({ isOpen, onClose, sessionId, theme }) {
           className="tv-btn tv-button-secondary tv-btn--block w-full gap-2 text-xs uppercase tracking-[0.14em] transition-all duration-200 ease-out active:scale-[0.985]"
         >
           <Copy className="h-3.5 w-3.5" />
-          {copyFeedback === 'code' ? 'Gekopieerd' : 'Code'}
+          {copyFeedback === 'code' ? t('common:copyFeedback.copied') : t('share.copyCode')}
         </button>
 
         <button
@@ -124,7 +125,7 @@ export default function ShareModal({ isOpen, onClose, sessionId, theme }) {
           className="tv-btn tv-button-secondary tv-btn--block w-full gap-2 text-xs uppercase tracking-[0.14em] transition-all duration-200 ease-out active:scale-[0.985]"
         >
           <Copy className="h-3.5 w-3.5" />
-          {copyFeedback === 'link' ? 'Gekopieerd' : 'Link'}
+          {copyFeedback === 'link' ? t('common:copyFeedback.copied') : t('share.copyLink')}
         </button>
 
         <a
@@ -134,7 +135,7 @@ export default function ShareModal({ isOpen, onClose, sessionId, theme }) {
           className="tv-btn tv-button-primary tv-btn--block w-full gap-2 text-xs uppercase tracking-[0.14em] transition-all duration-200 ease-out active:scale-[0.985] sm:col-span-2"
         >
           <Share2 className="h-3.5 w-3.5" />
-          WhatsApp Delen
+          {t('share.whatsapp')}
         </a>
       </div>
     </ModalFrame>
