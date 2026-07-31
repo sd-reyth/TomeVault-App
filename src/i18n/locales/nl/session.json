@@ -18,7 +18,7 @@
     "start": "Gevecht gestart. Let op de slagorde."
   },
   "invite": {
-    "shareText": "Sluit je aan bij {{campaignName}} op TomeVault!\n\nCampagne: {{campaignName}}\nCode: {{code}}\n\nSpeel direct mee: {{url}}"
+    "shareText": "Doe mee aan {{campaignName}} op TomeVault — gratis open bèta!\n\nCampagne: {{campaignName}}\nCode: {{code}}\n\nMaak een gratis account en speel mee: {{url}}"
   },
   "profileBackup": {
     "reasons": {

@@ -18,7 +18,7 @@
     "start": "Combat started. Watch the battle order."
   },
   "invite": {
-    "shareText": "Join {{campaignName}} on TomeVault!\n\nCampaign: {{campaignName}}\nCode: {{code}}\n\nPlay along: {{url}}"
+    "shareText": "Join {{campaignName}} on TomeVault — free open beta!\n\nCampaign: {{campaignName}}\nCode: {{code}}\n\nCreate a free account and play along: {{url}}"
   },
   "profileBackup": {
     "reasons": {
