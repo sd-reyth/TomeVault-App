@@ -40,7 +40,11 @@
     "plan": "Plan: {{label}}",
     "exportGm": "GM-dossier exporteren",
     "exportPlayer": "Spelerkroniek exporteren",
-    "ownerPanel": "Owner Panel"
+    "ownerPanel": "Owner Panel",
+    "betaNote": "Open bèta: zelf-afrekenen voor Premium is nog niet live. Gratis plannen werken nu; betaalde unlocks kunnen handmatig worden toegekend.",
+    "premiumInterest": "Wil je vroeg Premium? Laat het weten",
+    "premiumInterestSubject": "TomeVault interesse in vroege Premium (via Instellingen)",
+    "premiumInterestBody": "Hoi — ik wil graag vroege toegang tot Premium/Plus zodra checkout klaar is.\n\nRol (GM / speler):\nWat ik het meest nodig heb:\n"
   },
   "backups": {
     "title": "Herstelpunten",
@@ -84,6 +88,14 @@
       "playerCrossCampaignVault": "Karakterkluis over campagnes",
       "playerCustomThemes": "Eigen spelerthema's",
       "playerPrivateMedia": "{{count}} MB privé-media"
+    },
+    "upgrade": {
+      "export": "Sessie-export is een Premium-functie. Checkout komt eraan — vraag om vroege Premium als je dit nu nodig hebt.",
+      "npcs": "Onbeperkte NPC's is een Premium-functie. Checkout komt eraan — vraag om vroege Premium als je dit nu nodig hebt.",
+      "templates": "Onbeperkte voorbereidingen is een Premium-functie. Checkout komt eraan — vraag om vroege Premium als je dit nu nodig hebt.",
+      "campaigns": "Meerdere actieve campagnes is een Premium-functie. Checkout komt eraan — vraag om vroege Premium als je dit nu nodig hebt.",
+      "themes": "Extra thema's ontgrendelen met Speler Plus of GM Premium. Checkout komt eraan.",
+      "default": "Deze functie ontgrendelt met Premium. Checkout komt eraan — begin gratis en vraag vroege toegang als je het nodig hebt."
     }
   },
   "ownerAdmin": {
@@ -95,7 +107,7 @@
     "plan": "Plan",
     "duration": "Duur",
     "freeReset": "Gratis",
-    "phase2Note": "Stripe en redeem codes volgen in fase 2.",
+    "phase2Note": "Stripe zelf-afrekenen volgt. Tot die tijd ken je hier Premium/Plus toe aan vroege testers.",
     "uidLabel": "UID: {{id}}",
     "roleLabel": "Rol: {{role}}",
     "ok": "OK",

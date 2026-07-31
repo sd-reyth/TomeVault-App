@@ -2,7 +2,7 @@
   "learningNotes": "manifest.json is a Web App Manifest — it tells browsers how to install this web app on a phone's home screen (PWA). It defines the app name, icon, startup URL, display mode, and colors.",
   "name": "TomeVault",
   "short_name": "TomeVault",
-  "description": "A multiplayer TTRPG companion app for handouts, inventory, and ambience.",
+  "description": "Open beta — a multiplayer TTRPG companion for handouts, inventory, combat and ambience.",
   "start_url": "./index.html",
   "display": "standalone",
   "orientation": "portrait-primary",

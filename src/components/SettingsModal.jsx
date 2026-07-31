@@ -9,6 +9,7 @@ import {
   History,
   ImagePlus,
   Languages,
+  Mail,
   RotateCcw,
   Save,
   Settings,
@@ -110,6 +111,13 @@ function SettingsModal({
   const [openPanel, setOpenPanel] = useState(null);
   const wasOpenRef = useRef(false);
   const planFeatures = getPlanFeatureSummary(currentAccessPlan);
+  const isFreePlan = currentAccessPlan?.tier === 'free';
+
+  const handlePremiumInterest = () => {
+    const subject = t('session.premiumInterestSubject');
+    const body = t('session.premiumInterestBody');
+    window.location.href = `mailto:hello@tomevault.app?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+  };
 
   const togglePanel = (panel) => {
     setOpenPanel((current) => (current === panel ? null : panel));
@@ -452,10 +460,24 @@ function SettingsModal({
                   ))}
                 </ul>
               ) : null}
+              {isFreePlan ? (
+                <p className="text-xs leading-relaxed tv-muted">
+                  {t('session.betaNote')}
+                </p>
+              ) : null}
             </div>
           ) : null}
 
           <div className="flex flex-col gap-2">
+            {isFreePlan ? (
+              <Button
+                variant="secondary"
+                block
+                onClick={handlePremiumInterest}
+              >
+                <Mail className="h-4 w-4" /> {t('session.premiumInterest')}
+              </Button>
+            ) : null}
             <Button
               variant="secondary"
               block
