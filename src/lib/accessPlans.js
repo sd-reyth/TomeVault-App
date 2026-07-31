@@ -158,6 +158,9 @@ export function getPlanFeatureSummary(plan) {
 
   if (plan.audience === 'gm') {
     const items = [];
+    if (plan.tier === 'free') {
+      items.push(i18n.t('settings:plans.features.betaOpenTable'));
+    }
     if (plan.limits.activeCampaigns == null) {
       items.push(i18n.t('settings:plans.features.gmMultipleCampaigns'));
     } else {
@@ -183,6 +186,9 @@ export function getPlanFeatureSummary(plan) {
   }
 
   const items = [i18n.t('settings:plans.features.playerCore')];
+  if (plan.tier === 'free') {
+    items.unshift(i18n.t('settings:plans.features.betaOpenTable'));
+  }
   if (plan.features.personalExport) items.push(i18n.t('settings:plans.features.playerPersonalExport'));
   if (plan.features.crossCampaignVault) items.push(i18n.t('settings:plans.features.playerCrossCampaignVault'));
   if (plan.features.customPlayerThemes) items.push(i18n.t('settings:plans.features.playerCustomThemes'));

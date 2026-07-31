@@ -74,12 +74,13 @@
       "lifetime": "Lifetime"
     },
     "features": {
+      "betaOpenTable": "Open beta — table limits not locked yet",
       "gmMultipleCampaigns": "Multiple active campaigns",
-      "gmSingleCampaign": "{{count}} active campaign",
+      "gmSingleCampaign": "Planned free tier: {{count}} active campaign",
       "gmUnlimitedNpcs": "Unlimited NPCs per session",
-      "gmMaxNpcs": "Max {{count}} NPCs per session",
+      "gmMaxNpcs": "Planned free tier: max {{count}} NPCs per session",
       "gmUnlimitedPreparations": "Unlimited preparations",
-      "gmMaxPreparations": "Max {{count}} preparation templates",
+      "gmMaxPreparations": "Planned free tier: max {{count}} preparation templates",
       "gmExportArchive": "Export session archive",
       "gmPremiumThemes": "Premium themes",
       "gmAdvancedPreparation": "Advanced preparation",

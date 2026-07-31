@@ -74,12 +74,13 @@
       "lifetime": "Lifetime"
     },
     "features": {
+      "betaOpenTable": "Open bèta — tafellimieten nog niet vergrendeld",
       "gmMultipleCampaigns": "Meerdere actieve campagnes",
-      "gmSingleCampaign": "{{count}} actieve campagne",
+      "gmSingleCampaign": "Gepland gratis: {{count}} actieve campagne",
       "gmUnlimitedNpcs": "Onbeperkt NPC's per sessie",
-      "gmMaxNpcs": "Max {{count}} NPC's per sessie",
+      "gmMaxNpcs": "Gepland gratis: max {{count}} NPC's per sessie",
       "gmUnlimitedPreparations": "Onbeperkte voorbereidingen",
-      "gmMaxPreparations": "Max {{count}} voorbereidingssjablonen",
+      "gmMaxPreparations": "Gepland gratis: max {{count}} voorbereidingssjablonen",
       "gmExportArchive": "Sessie-archief exporteren",
       "gmPremiumThemes": "Premium thema's",
       "gmAdvancedPreparation": "Geavanceerde voorbereiding",
