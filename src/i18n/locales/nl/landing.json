@@ -1,6 +1,6 @@
 {
   "hero": {
-    "eyebrow": "De digitale tafel voor je tafelrollenspel",
+    "eyebrow": "Open bèta — gratis te starten met je groep",
     "title": "TOMEVAULT",
     "subtitle": "Eén warme, rustige tafel waar spelleiders en spelers samenkomen. Handouts, chat, slagorde, notities en je hele wereld — realtime, zonder dashboard-chaos.",
     "primaryCta": "Begin gratis",
@@ -59,8 +59,8 @@
         "price": "€7,99",
         "period": "per maand",
         "altPrice": "of €79 per jaar",
-        "cta": "Word Premium",
-        "badge": "Meest gekozen"
+        "cta": "Begin gratis — Premium volgt",
+        "badge": "Binnenkort"
       }
     },
     "player": {
@@ -77,19 +77,19 @@
         "price": "€3,99",
         "period": "per maand",
         "altPrice": "of €39 per jaar",
-        "cta": "Word Plus",
-        "badge": "Populair"
+        "cta": "Begin gratis — Plus volgt",
+        "badge": "Binnenkort"
       }
     }
   },
   "faq": {
     "start": {
       "q": "Heb ik iets nodig om te beginnen?",
-      "a": "Nee. Maak een gratis account, start een sessie als spelleider of voeg je toe met een code als speler. Alles draait in je browser."
+      "a": "Nee. Maak een gratis account, start een sessie als spelleider of voeg je toe met een code als speler. Alles draait in je browser — ook op Steam Deck en telefoon."
     },
     "cost": {
       "q": "Wat kost het?",
-      "a": "TomeVault is gratis te gebruiken. Premium-abonnementen ontgrendelen extra's zoals onbeperkte campagnes, exporteren en premium thema's. De getoonde prijzen zijn indicatief."
+      "a": "Tijdens de open bèta kun je TomeVault gratis gebruiken. Premium en Plus hieronder zijn de geplande betaalde lagen. Zelf-afrekenen volgt — begin gratis en laat weten als je vroeg Premium wilt."
     },
     "mobile": {
       "q": "Werkt het ook op mijn telefoon?",
@@ -97,7 +97,7 @@
     },
     "upgrade": {
       "q": "Kan ik later upgraden?",
-      "a": "Zeker. Je begint gratis en stapt op elk moment over naar Premium of Plus — je campagnes en personages blijven bewaard."
+      "a": "Ja. Begin nu gratis. Als Premium-checkout live gaat, blijven je campagnes en personages bewaard — je kunt dan op elk moment upgraden."
     }
   },
   "about": {
@@ -157,7 +157,6 @@
     "volumeAria": "Volume van sfeergeluid"
   },
   "marketing": {
-    "or": "Of",
     "audiencesEyebrow": "Eén tafel, twee rollen",
     "audiencesTitle": "Gebouwd voor jouw groep",
     "featuresEyebrow": "Wat biedt de Waard",
@@ -170,8 +169,11 @@
     "showcaseSessionChip": "Sessie #3",
     "pricingEyebrow": "Gratis beginnen, groeien wanneer je wilt",
     "pricingTitle": "Kies je pad",
-    "pricingLead": "TomeVault is gratis te gebruiken. Upgrade voor onbeperkte werelden en premium extra's.",
-    "pricingNote": "Getoonde prijzen zijn indicatief. Je begint gratis — een betaalmethode is niet nodig om te starten.",
+    "pricingLead": "De open bèta is gratis. Premium en Plus zijn de geplande betaalde lagen voor onbeperkte werelden en extra's.",
+    "pricingNote": "Geplande prijzen — checkout is nog niet live. Begin vandaag gratis; geen kaart nodig.",
+    "premiumInterest": "Wil je vroeg Premium? Laat het weten",
+    "premiumInterestSubject": "TomeVault interesse in vroege Premium",
+    "premiumInterestBody": "Hoi — ik wil graag vroege toegang tot Premium/Plus zodra checkout klaar is.\n\nRol (GM / speler):\nGroepsgrootte:\nWat ik het meest nodig heb:\n",
     "footerTagline": "© {{year}} TomeVault — Jouw magische tafel aan de taverne.",
     "forgedBy": "Gesmeed door"
   },

@@ -562,6 +562,12 @@ export default function LandingScreen({
     window.location.href = `mailto:hello@tomevault.app?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
   };
 
+  const handlePremiumInterest = () => {
+    const subject = t('landing:marketing.premiumInterestSubject');
+    const body = t('landing:marketing.premiumInterestBody');
+    window.location.href = `mailto:hello@tomevault.app?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+  };
+
   const pricing = buildPricingColumns(pricingAudience, landingPricing);
 
   const landingAmbienceDock = (
@@ -841,8 +847,6 @@ export default function LandingScreen({
                 {loginCard}
               </div>
 
-              <p className="lp-hero-or" aria-hidden="true">{t('landing:marketing.or')}</p>
-
               <div className="lp-hero-cta">
                 <button type="button" className="lp-btn lp-btn--ghost lp-btn--lg" onClick={() => scrollToSection('functies')}>
                   {landingHero.secondaryCta}
@@ -1110,6 +1114,15 @@ export default function LandingScreen({
             <p className="lp-price-note">
               {t('landing:marketing.pricingNote')}
             </p>
+            <div className="lp-price-interest">
+              <button
+                type="button"
+                className="lp-btn lp-btn--ghost"
+                onClick={handlePremiumInterest}
+              >
+                {t('landing:marketing.premiumInterest')}
+              </button>
+            </div>
           </div>
         </section>
 

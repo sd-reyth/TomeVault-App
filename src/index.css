@@ -6937,6 +6937,12 @@ body {
   color: var(--tv-text-secondary);
 }
 
+.lp-price-interest {
+  margin-top: 0.85rem;
+  display: flex;
+  justify-content: center;
+}
+
 /* ─── FAQ ─── */
 .lp-faq {
   display: flex;

@@ -1,6 +1,6 @@
 {
   "hero": {
-    "eyebrow": "The digital table for your tabletop RPG",
+    "eyebrow": "Open beta — free to start for your group",
     "title": "TOMEVAULT",
     "subtitle": "One warm, calm table where GMs and players come together. Handouts, chat, battle order, notes and your whole world — realtime, without dashboard chaos.",
     "primaryCta": "Start free",
@@ -59,8 +59,8 @@
         "price": "€7.99",
         "period": "per month",
         "altPrice": "or €79 per year",
-        "cta": "Go Premium",
-        "badge": "Most popular"
+        "cta": "Start free — Premium soon",
+        "badge": "Coming soon"
       }
     },
     "player": {
@@ -77,19 +77,19 @@
         "price": "€3.99",
         "period": "per month",
         "altPrice": "or €39 per year",
-        "cta": "Go Plus",
-        "badge": "Popular"
+        "cta": "Start free — Plus soon",
+        "badge": "Coming soon"
       }
     }
   },
   "faq": {
     "start": {
       "q": "Do I need anything to get started?",
-      "a": "No. Create a free account, start a session as GM or join with a code as a player. Everything runs in your browser."
+      "a": "No. Create a free account, start a session as GM or join with a code as a player. Everything runs in your browser — including Steam Deck and phones."
     },
     "cost": {
       "q": "What does it cost?",
-      "a": "TomeVault is free to use. Premium subscriptions unlock extras like unlimited campaigns, export and premium themes. Prices shown are indicative."
+      "a": "Right now you can use TomeVault free during open beta. Premium and Plus prices below are the planned paid tiers. Self-serve checkout is next — until then, start free and tell us if you want early Premium."
     },
     "mobile": {
       "q": "Does it work on my phone?",
@@ -97,7 +97,7 @@
     },
     "upgrade": {
       "q": "Can I upgrade later?",
-      "a": "Absolutely. Start free and upgrade to Premium or Plus anytime — your campaigns and characters stay saved."
+      "a": "Yes. Start free now. When Premium checkout goes live, your campaigns and characters stay saved — you can upgrade anytime."
     }
   },
   "about": {
@@ -157,7 +157,6 @@
     "volumeAria": "Ambience volume"
   },
   "marketing": {
-    "or": "Or",
     "audiencesEyebrow": "One table, two roles",
     "audiencesTitle": "Built for your group",
     "featuresEyebrow": "What the Innkeeper offers",
@@ -170,8 +169,11 @@
     "showcaseSessionChip": "Session #3",
     "pricingEyebrow": "Start free, grow when you want",
     "pricingTitle": "Choose your path",
-    "pricingLead": "TomeVault is free to use. Upgrade for unlimited worlds and premium extras.",
-    "pricingNote": "Prices shown are indicative. You start free — no payment method needed to begin.",
+    "pricingLead": "Open beta is free. Premium and Plus are the planned paid tiers for unlimited worlds and extras.",
+    "pricingNote": "Planned prices — checkout is not live yet. Start free today; no card needed.",
+    "premiumInterest": "Want early Premium? Tell us",
+    "premiumInterestSubject": "TomeVault early Premium interest",
+    "premiumInterestBody": "Hi — I'd like early access to Premium/Plus when checkout is ready.\n\nRole (GM / player):\nGroup size:\nWhat I need most:\n",
     "footerTagline": "© {{year}} TomeVault — Your magical table at the tavern.",
     "forgedBy": "Forged by"
   },
