@@ -40,7 +40,11 @@
     "plan": "Plan: {{label}}",
     "exportGm": "Export GM dossier",
     "exportPlayer": "Export player chronicle",
-    "ownerPanel": "Owner Panel"
+    "ownerPanel": "Owner Panel",
+    "betaNote": "Open beta: self-serve Premium checkout is not live yet. Free plans work now; paid unlocks can be granted manually.",
+    "premiumInterest": "Want early Premium? Tell us",
+    "premiumInterestSubject": "TomeVault early Premium interest (from Settings)",
+    "premiumInterestBody": "Hi — I'd like early access to Premium/Plus when checkout is ready.\n\nRole (GM / player):\nWhat I need most:\n"
   },
   "backups": {
     "title": "Restore points",
@@ -70,12 +74,13 @@
       "lifetime": "Lifetime"
     },
     "features": {
+      "betaOpenTable": "Open beta — table limits not locked yet",
       "gmMultipleCampaigns": "Multiple active campaigns",
-      "gmSingleCampaign": "{{count}} active campaign",
+      "gmSingleCampaign": "Planned free tier: {{count}} active campaign",
       "gmUnlimitedNpcs": "Unlimited NPCs per session",
-      "gmMaxNpcs": "Max {{count}} NPCs per session",
+      "gmMaxNpcs": "Planned free tier: max {{count}} NPCs per session",
       "gmUnlimitedPreparations": "Unlimited preparations",
-      "gmMaxPreparations": "Max {{count}} preparation templates",
+      "gmMaxPreparations": "Planned free tier: max {{count}} preparation templates",
       "gmExportArchive": "Export session archive",
       "gmPremiumThemes": "Premium themes",
       "gmAdvancedPreparation": "Advanced preparation",
@@ -84,7 +89,18 @@
       "playerCrossCampaignVault": "Character vault across campaigns",
       "playerCustomThemes": "Custom player themes",
       "playerPrivateMedia": "{{count}} MB private media"
+    },
+    "upgrade": {
+      "export": "Session export is a Premium feature. Checkout is coming soon — ask for early Premium if you need it now.",
+      "npcs": "Unlimited NPCs is a Premium feature. Checkout is coming soon — ask for early Premium if you need it now.",
+      "templates": "Unlimited preparations is a Premium feature. Checkout is coming soon — ask for early Premium if you need it now.",
+      "campaigns": "Multiple active campaigns is a Premium feature. Checkout is coming soon — ask for early Premium if you need it now.",
+      "themes": "Extra themes unlock with Player Plus or GM Premium. Checkout is coming soon.",
+      "default": "This feature unlocks with Premium. Checkout is coming soon — start free and ask for early access if you need it."
     }
+  },
+  "about": {
+    "version": "TomeVault v{{version}} · Open beta"
   },
   "ownerAdmin": {
     "title": "Owner",
@@ -95,7 +111,7 @@
     "plan": "Plan",
     "duration": "Duration",
     "freeReset": "Free",
-    "phase2Note": "Stripe and redeem codes follow in phase 2.",
+    "phase2Note": "Stripe self-checkout is next. Until then, grant Premium/Plus here for early testers.",
     "uidLabel": "UID: {{id}}",
     "roleLabel": "Role: {{role}}",
     "ok": "OK",

@@ -10,6 +10,7 @@ import {
   Save,
   Share2,
   Shield,
+  UserPlus,
   Users,
 } from 'lucide-react';
 import {
@@ -169,9 +170,15 @@ export default function SessionHubModal({
       setCopyFeedback(kind);
       window.setTimeout(() => setCopyFeedback(''), 2000);
     } catch (_) {
-      setCopyFeedback('fout');
+      setCopyFeedback('error');
       window.setTimeout(() => setCopyFeedback(''), 2000);
     }
+  };
+
+  const copyButtonLabel = (kind, defaultLabel) => {
+    if (copyFeedback === 'error') return t('common:copyFeedback.error');
+    if (copyFeedback === kind) return t('common:copyFeedback.copied');
+    return defaultLabel;
   };
 
   const handleNativeShare = async () => {
@@ -182,7 +189,7 @@ export default function SessionHubModal({
 
     try {
       await navigator.share({
-        title: `${displayName} · TomeVault`,
+        title: t('hub.shareTitle', { campaignName: displayName }),
         text: shareText,
         url: joinUrl,
       });
@@ -285,11 +292,27 @@ export default function SessionHubModal({
             <div className="text-[9px] uppercase tracking-[0.2em] tv-muted">{t('hub.joinCodeHint')}</div>
             <div className="mt-1.5 font-mono text-sm tracking-widest tv-accent">{canonicalSessionCode}</div>
           </div>
+
+          {isGM ? (
+            <button
+              type="button"
+              onClick={() => setActiveTab('invite')}
+              className="tv-btn tv-button-primary tv-btn--block w-full gap-2 text-xs uppercase tracking-[0.14em] transition-all duration-200 ease-out active:scale-[0.985]"
+            >
+              <UserPlus className="h-3.5 w-3.5" />
+              {activePlayerCount < 2 ? t('hub.invitePlayersCta') : t('hub.inviteMoreCta')}
+            </button>
+          ) : null}
         </div>
       ) : null}
 
       {activeTab === 'invite' ? (
         <div className="flex flex-col gap-4">
+          <div className="tv-panel-block px-3.5 py-3">
+            <p className="text-sm leading-relaxed tv-text-sub">{t('hub.inviteLead')}</p>
+            <p className="mt-1.5 text-xs leading-relaxed tv-muted">{t('hub.inviteHint')}</p>
+          </div>
+
           <div className="tv-panel-block flex justify-center overflow-hidden p-3">
             <StyledQRCode value={joinUrl} theme={resolvedTheme} size={qrSize} />
           </div>
@@ -306,7 +329,7 @@ export default function SessionHubModal({
               className="tv-btn tv-button-secondary tv-btn--block w-full gap-2 text-xs uppercase tracking-[0.14em] transition-all duration-200 ease-out active:scale-[0.985]"
             >
               <Copy className="h-3.5 w-3.5" />
-              {copyFeedback === 'code' ? t('common:copyFeedback.copied') : t('hub.copyCode')}
+              {copyButtonLabel('code', t('hub.copyCode'))}
             </button>
 
             <button
@@ -315,7 +338,7 @@ export default function SessionHubModal({
               className="tv-btn tv-button-secondary tv-btn--block w-full gap-2 text-xs uppercase tracking-[0.14em] transition-all duration-200 ease-out active:scale-[0.985]"
             >
               <Copy className="h-3.5 w-3.5" />
-              {copyFeedback === 'link' ? t('common:copyFeedback.copied') : t('hub.copyLink')}
+              {copyButtonLabel('link', t('hub.copyLink'))}
             </button>
 
             <button
@@ -324,9 +347,11 @@ export default function SessionHubModal({
               className="tv-btn tv-button-primary tv-btn--block w-full gap-2 text-xs uppercase tracking-[0.14em] transition-all duration-200 ease-out active:scale-[0.985] sm:col-span-2"
             >
               <Share2 className="h-3.5 w-3.5" />
-              {copyFeedback === 'share'
-                ? t('common:copyFeedback.copied')
-                : (canNativeShare ? t('hub.shareNative') : t('hub.shareCopy'))}
+              {copyFeedback === 'error'
+                ? t('common:copyFeedback.error')
+                : (copyFeedback === 'share'
+                  ? t('common:copyFeedback.copied')
+                  : (canNativeShare ? t('hub.shareNative') : t('hub.shareCopy')))}
             </button>
 
             <a

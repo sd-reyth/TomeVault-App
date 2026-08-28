@@ -1,7 +1,7 @@
 {
   "campaignFallback": "Campagne",
   "sessionLabel": "Sessie {{number}}",
-  "hubTitle": "Campaign Hub openen",
+  "hubTitle": "Campagnehub openen",
   "party": {
     "hide": "Verberg slagorde",
     "idle": "Open slagorde - ruststand",
@@ -18,7 +18,7 @@
     "start": "Gevecht gestart. Let op de slagorde."
   },
   "invite": {
-    "shareText": "Sluit je aan bij {{campaignName}} op TomeVault!\n\nCampagne: {{campaignName}}\nCode: {{code}}\n\nSpeel direct mee: {{url}}"
+    "shareText": "Doe mee aan {{campaignName}} op TomeVault — gratis open bèta!\n\nCampagne: {{campaignName}}\nCode: {{code}}\n\nMaak een gratis account en speel mee: {{url}}"
   },
   "profileBackup": {
     "reasons": {
@@ -37,8 +37,8 @@
     "success": "{{name}} is nu GM van deze sessie."
   },
   "hub": {
-    "title": "Campaign Hub",
-    "tabsAria": "Campaign hub secties",
+    "title": "Campagnehub",
+    "tabsAria": "Campagnehub-onderdelen",
     "tabs": {
       "overview": "Overzicht",
       "invite": "Uitnodigen",
@@ -47,9 +47,14 @@
     },
     "players": "Spelers",
     "status": "Status",
-    "statusActive": "Actief · join open",
-    "joinCodeHint": "Join-code (alleen indien nodig)",
-    "inviteLink": "Invite-link",
+    "statusActive": "Actief · toetreden open",
+    "joinCodeHint": "Toegangscode (alleen indien nodig)",
+    "inviteLink": "Uitnodigingslink",
+    "inviteLead": "Stuur deze link naar je tafel — gratis open bèta.",
+    "inviteHint": "Spelers scannen de QR of openen de link, maken een gratis account en joinen zonder PIN.",
+    "invitePlayersCta": "Spelers uitnodigen",
+    "inviteMoreCta": "Meer spelers uitnodigen",
+    "shareTitle": "{{campaignName}} · TomeVault",
     "copyCode": "Code",
     "copyLink": "Link",
     "shareNative": "Deel via systeem",
@@ -61,24 +66,24 @@
     "sessionNumber": "Sessienummer",
     "prevSession": "Vorige sessie",
     "nextSession": "Volgende sessie",
-    "currentJoinCode": "Huidige join-code",
+    "currentJoinCode": "Huidige toegangscode",
     "rollJoinCode": "Opnieuw rollen",
-    "rollJoinCodeConfirm": "Nieuwe join-code genereren? Oude links blijven niet meer werken.",
+    "rollJoinCodeConfirm": "Nieuwe toegangscode genereren? Oude links werken daarna niet meer.",
     "errors": {
       "emptyCampaignName": "Campagnenaam mag niet leeg zijn.",
       "saveFailed": "Opslaan is mislukt.",
-      "rollFailed": "Join-code vernieuwen is mislukt."
+      "rollFailed": "Toegangscode vernieuwen is mislukt."
     },
     "help": {
-      "gmTitle": "Game Master",
+      "gmTitle": "Spelleider",
       "gmItems": [
-        "Deel via QR of invite-link in het tabblad Uitnodigen.",
+        "Deel via QR of uitnodigingslink in het tabblad Uitnodigen.",
         "Pas campagnenaam en sessienummer aan onder Beheer.",
-        "Roll de join-code opnieuw als een oude link gelekt is."
+        "Rol de toegangscode opnieuw als een oude link gelekt is."
       ],
       "playerTitle": "Speler",
       "playerItems": [
-        "Scan de QR-code of open de invite-link op je telefoon.",
+        "Scan de QR-code of open de uitnodigingslink op je telefoon.",
         "Log in met Google of e-mail — daarna kies je je karakternaam.",
         "Je komt direct in de campagne zonder PIN via QR-uitnodiging."
       ]
@@ -104,7 +109,7 @@
     "copyCode": "Code",
     "copyLink": "Link",
     "whatsapp": "WhatsApp Delen",
-    "whatsappText": "Sluit je aan bij mijn epische avontuur op TomeVault! 🐉\n\nSessie Code: *{{code}}*\n\nSpeel direct mee: {{url}}"
+    "whatsappText": "Doe mee aan {{campaignName}} op TomeVault — gratis open bèta!\n\nCode: {{code}}\n\nMaak een gratis account en speel mee: {{url}}"
   },
   "leaveConfirm": {
     "title": "Nog even bij het kampvuur?",

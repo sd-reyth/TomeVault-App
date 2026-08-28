@@ -89,7 +89,13 @@ export default function QRJoinScreen({
               {t('qr.inviteBody')}
             </p>
           </div>
-        ) : null}
+        ) : (
+          <div className="tv-entry-hero-card w-full px-4 py-4 text-center">
+            <p className="tv-meta text-sm leading-relaxed">
+              {t('qr.inviteBodyGeneric')}
+            </p>
+          </div>
+        )}
 
         <div className="flex w-full items-center gap-3">
           <div className="h-px flex-1 bg-gradient-to-r from-transparent to-[color-mix(in_srgb,var(--tv-border),transparent_20%)]" />
@@ -130,7 +136,7 @@ export default function QRJoinScreen({
                 ) : (
                   <>
                     <LogIn className="h-4 w-4" />
-                    Google
+                    {t('qr.google')}
                   </>
                 )}
               </button>

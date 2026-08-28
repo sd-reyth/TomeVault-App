@@ -562,6 +562,12 @@ export default function LandingScreen({
     window.location.href = `mailto:hello@tomevault.app?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
   };
 
+  const handlePremiumInterest = () => {
+    const subject = t('landing:marketing.premiumInterestSubject');
+    const body = t('landing:marketing.premiumInterestBody');
+    window.location.href = `mailto:hello@tomevault.app?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+  };
+
   const pricing = buildPricingColumns(pricingAudience, landingPricing);
 
   const landingAmbienceDock = (
@@ -841,9 +847,10 @@ export default function LandingScreen({
                 {loginCard}
               </div>
 
-              <p className="lp-hero-or" aria-hidden="true">{t('landing:marketing.or')}</p>
-
               <div className="lp-hero-cta">
+                <button type="button" className="lp-btn lp-btn--primary lp-btn--lg" onClick={() => scrollToSection('inloggen')}>
+                  {landingHero.primaryCta}
+                </button>
                 <button type="button" className="lp-btn lp-btn--ghost lp-btn--lg" onClick={() => scrollToSection('functies')}>
                   {landingHero.secondaryCta}
                 </button>
@@ -1110,6 +1117,15 @@ export default function LandingScreen({
             <p className="lp-price-note">
               {t('landing:marketing.pricingNote')}
             </p>
+            <div className="lp-price-interest">
+              <button
+                type="button"
+                className="lp-btn lp-btn--ghost"
+                onClick={handlePremiumInterest}
+              >
+                {t('landing:marketing.premiumInterest')}
+              </button>
+            </div>
           </div>
         </section>
 
@@ -1148,6 +1164,8 @@ export default function LandingScreen({
               <button type="button" className="lp-footer-link" onClick={() => scrollToSection('prijzen')}>{t('landing:nav.pricing')}</button>
               <button type="button" className="lp-footer-link" onClick={() => scrollToSection('over')}>{t('landing:nav.about')}</button>
               <button type="button" className="lp-footer-link" onClick={() => scrollToSection('inloggen')}>{t('landing:nav.login')}</button>
+              <a className="lp-footer-link" href="/legal/privacy.html">{t('landing:footer.privacy')}</a>
+              <a className="lp-footer-link" href="/legal/terms.html">{t('landing:footer.terms')}</a>
               <button type="button" className="lp-footer-link" onClick={() => setShowContactForm((value) => !value)}>
                 {showContactForm ? t('landing:contact.toggleClose') : t('landing:contact.toggleOpen')}
               </button>
@@ -1332,6 +1350,7 @@ export default function LandingScreen({
               {displayedRecentSessions.length === 0 ? (
                 <div className="mt-4 rounded-xl border border-dashed border-[color-mix(in_srgb,var(--tv-border),transparent_42%)] tv-panel-inset px-4 py-6 text-center">
                   <p className="text-sm tv-text font-story italic">{t('landing:sessionHub.noRecent')}</p>
+                  <p className="mt-2 text-xs leading-relaxed tv-muted">{t('landing:sessionHub.noRecentHint')}</p>
                 </div>
               ) : (
                 <div className="mt-4 grid gap-3">
@@ -1539,9 +1558,13 @@ export default function LandingScreen({
         ) : null}
 
         <div className="lp-hub-footer mt-8 border-t border-[color-mix(in_srgb,var(--tv-border),transparent_55%)] pt-6 text-center">
-          <button type="button" className="lp-footer-link" onClick={() => setShowContactForm((value) => !value)}>
-            {showContactForm ? t('landing:contact.toggleClose') : t('landing:contact.toggleOpen')}
-          </button>
+          <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-2">
+            <a className="lp-footer-link" href="/legal/privacy.html">{t('landing:footer.privacy')}</a>
+            <a className="lp-footer-link" href="/legal/terms.html">{t('landing:footer.terms')}</a>
+            <button type="button" className="lp-footer-link" onClick={() => setShowContactForm((value) => !value)}>
+              {showContactForm ? t('landing:contact.toggleClose') : t('landing:contact.toggleOpen')}
+            </button>
+          </div>
           {contactFormPanel ? (
             <div className="mx-auto mt-4 max-w-xl text-left">{contactFormPanel}</div>
           ) : null}

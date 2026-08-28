@@ -18,7 +18,7 @@
     "start": "Combat started. Watch the battle order."
   },
   "invite": {
-    "shareText": "Join {{campaignName}} on TomeVault!\n\nCampaign: {{campaignName}}\nCode: {{code}}\n\nPlay along: {{url}}"
+    "shareText": "Join {{campaignName}} on TomeVault — free open beta!\n\nCampaign: {{campaignName}}\nCode: {{code}}\n\nCreate a free account and play along: {{url}}"
   },
   "profileBackup": {
     "reasons": {
@@ -50,6 +50,11 @@
     "statusActive": "Active · join open",
     "joinCodeHint": "Join code (only if needed)",
     "inviteLink": "Invite link",
+    "inviteLead": "Send this link to your table — free open beta.",
+    "inviteHint": "Players scan the QR or open the link, create a free account, and join without a PIN.",
+    "invitePlayersCta": "Invite players",
+    "inviteMoreCta": "Invite more players",
+    "shareTitle": "{{campaignName}} · TomeVault",
     "copyCode": "Code",
     "copyLink": "Link",
     "shareNative": "Share via system",
@@ -104,7 +109,7 @@
     "copyCode": "Code",
     "copyLink": "Link",
     "whatsapp": "Share on WhatsApp",
-    "whatsappText": "Join my epic adventure on TomeVault! 🐉\n\nSession code: *{{code}}*\n\nPlay along: {{url}}"
+    "whatsappText": "Join {{campaignName}} on TomeVault — free open beta!\n\nCode: {{code}}\n\nCreate a free account and play along: {{url}}"
   },
   "leaveConfirm": {
     "title": "Stay by the campfire a little longer?",
