@@ -31,7 +31,11 @@ Kort: index.html -> src/main.jsx -> src/App.jsx
 
 ## 2) Firebase koppeling
 
-src/firebase.js initialiseerd:
+Kopieer eerst `.env.example` naar `.env` en vul je Firebase web-app config in (zie `SECURITY.md`).
+
+`src/firebase.js` leest die waarden via `VITE_*` environment variables.
+
+`src/firebase.js` initialiseert:
 - Auth
 - Firestore
 - Storage

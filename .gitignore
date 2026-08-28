@@ -3,6 +3,26 @@ dist
 .firebase
 firebase-debug.log*
 
+# Local secrets and environment-specific config
+.env
+.env.*
+!.env.example
+
+# Private operator notes (admin setup, replication, incident notes)
+.private/
+
+# Credentials and key material
+*.pem
+*.key
+*-service-account*.json
+firebase-adminsdk*.json
+google-services.json
+GoogleService-Info.plist
+
+# Local deploy / debug output
+deploy_log.txt
+*.log
+
 # Te groot voor GitHub (>100 MB) — app gebruikt landingBG.mp4
 Video/landingBGhd2.mov
 
