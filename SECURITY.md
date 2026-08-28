@@ -33,8 +33,10 @@ npm run dev
 ## Before every deploy
 
 1. Build with a valid local `.env` (or CI secrets with the same variable names).
-2. In Google Cloud Console, restrict the Firebase **Web API key** to your domains (`tomevaultapp.web.app`, `tomevaultapp.firebaseapp.com`, `localhost` for dev).
-3. Review `firestore.rules` and `storage.rules` after schema changes.
+2. In Google Cloud Console, restrict the Firebase **Web API key** to your domains (`tomevaultapp.web.app`, `tomevaultapp.firebaseapp.com`, `localhost` for dev).  
+   → Run `./scripts/secure-firebase.sh` or follow `docs/SECURITY_SETUP.md`.
+3. Enable **Firebase App Check** (reCAPTCHA v3) and add `VITE_FIREBASE_APP_CHECK_SITE_KEY` to `.env`.
+4. Review `firestore.rules` and `storage.rules` after schema changes.
 
 ## Private operator folder
 
