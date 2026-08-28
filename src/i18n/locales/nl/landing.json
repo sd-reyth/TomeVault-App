@@ -177,6 +177,10 @@
     "footerTagline": "© {{year}} TomeVault — Jouw magische tafel aan de taverne.",
     "forgedBy": "Gesmeed door"
   },
+  "footer": {
+    "privacy": "Privacy",
+    "terms": "Voorwaarden"
+  },
   "showcase": {
     "nav": {
       "handouts": "Handouts",
@@ -224,6 +228,7 @@
     "hideHidden": "Verberg verborgen",
     "showHidden": "Toon verborgen ({{count}})",
     "noRecent": "Nog geen recente sessies.",
+    "noRecentHint": "Start een sessie als spelleider en open daarna Campagnehub → Uitnodigen om een QR-link met je tafel te delen.",
     "codeLabel": "Code {{code}}",
     "resume": "Hervat",
     "restoreList": "Zet terug in recente lijst",

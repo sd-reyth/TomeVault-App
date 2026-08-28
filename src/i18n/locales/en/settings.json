@@ -99,6 +99,9 @@
       "default": "This feature unlocks with Premium. Checkout is coming soon — start free and ask for early access if you need it."
     }
   },
+  "about": {
+    "version": "TomeVault v{{version}} · Open beta"
+  },
   "ownerAdmin": {
     "title": "Owner",
     "notice": "Manual plan assignment. Without an entitlement, a user automatically gets the free plan.",

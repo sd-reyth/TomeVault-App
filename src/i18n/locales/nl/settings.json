@@ -99,6 +99,9 @@
       "default": "Deze functie ontgrendelt met Premium. Checkout komt eraan — begin gratis en vraag vroege toegang als je het nodig hebt."
     }
   },
+  "about": {
+    "version": "TomeVault v{{version}} · Open bèta"
+  },
   "ownerAdmin": {
     "title": "Owner",
     "notice": "Handmatige plan-toekenning. Zonder entitlement krijgt een gebruiker automatisch het gratis plan.",

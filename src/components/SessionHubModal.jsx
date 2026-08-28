@@ -170,9 +170,15 @@ export default function SessionHubModal({
       setCopyFeedback(kind);
       window.setTimeout(() => setCopyFeedback(''), 2000);
     } catch (_) {
-      setCopyFeedback('fout');
+      setCopyFeedback('error');
       window.setTimeout(() => setCopyFeedback(''), 2000);
     }
+  };
+
+  const copyButtonLabel = (kind, defaultLabel) => {
+    if (copyFeedback === 'error') return t('common:copyFeedback.error');
+    if (copyFeedback === kind) return t('common:copyFeedback.copied');
+    return defaultLabel;
   };
 
   const handleNativeShare = async () => {
@@ -323,7 +329,7 @@ export default function SessionHubModal({
               className="tv-btn tv-button-secondary tv-btn--block w-full gap-2 text-xs uppercase tracking-[0.14em] transition-all duration-200 ease-out active:scale-[0.985]"
             >
               <Copy className="h-3.5 w-3.5" />
-              {copyFeedback === 'code' ? t('common:copyFeedback.copied') : t('hub.copyCode')}
+              {copyButtonLabel('code', t('hub.copyCode'))}
             </button>
 
             <button
@@ -332,7 +338,7 @@ export default function SessionHubModal({
               className="tv-btn tv-button-secondary tv-btn--block w-full gap-2 text-xs uppercase tracking-[0.14em] transition-all duration-200 ease-out active:scale-[0.985]"
             >
               <Copy className="h-3.5 w-3.5" />
-              {copyFeedback === 'link' ? t('common:copyFeedback.copied') : t('hub.copyLink')}
+              {copyButtonLabel('link', t('hub.copyLink'))}
             </button>
 
             <button
@@ -341,9 +347,11 @@ export default function SessionHubModal({
               className="tv-btn tv-button-primary tv-btn--block w-full gap-2 text-xs uppercase tracking-[0.14em] transition-all duration-200 ease-out active:scale-[0.985] sm:col-span-2"
             >
               <Share2 className="h-3.5 w-3.5" />
-              {copyFeedback === 'share'
-                ? t('common:copyFeedback.copied')
-                : (canNativeShare ? t('hub.shareNative') : t('hub.shareCopy'))}
+              {copyFeedback === 'error'
+                ? t('common:copyFeedback.error')
+                : (copyFeedback === 'share'
+                  ? t('common:copyFeedback.copied')
+                  : (canNativeShare ? t('hub.shareNative') : t('hub.shareCopy')))}
             </button>
 
             <a

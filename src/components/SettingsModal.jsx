@@ -502,6 +502,9 @@ function SettingsModal({
               </Button>
             ) : null}
           </div>
+          <p className="mt-3 text-center text-[10px] tracking-wide tv-muted">
+            {t('about.version', { version: __APP_VERSION__ })}
+          </p>
         </SettingsFold>
 
         <SettingsFold

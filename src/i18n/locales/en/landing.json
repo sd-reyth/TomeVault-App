@@ -177,6 +177,10 @@
     "footerTagline": "© {{year}} TomeVault — Your magical table at the tavern.",
     "forgedBy": "Forged by"
   },
+  "footer": {
+    "privacy": "Privacy",
+    "terms": "Terms"
+  },
   "showcase": {
     "nav": {
       "handouts": "Handouts",
@@ -224,6 +228,7 @@
     "hideHidden": "Hide hidden",
     "showHidden": "Show hidden ({{count}})",
     "noRecent": "No recent sessions yet.",
+    "noRecentHint": "Start a session as GM, then open Campaign Hub → Invite to share a QR link with your table.",
     "codeLabel": "Code {{code}}",
     "resume": "Resume",
     "restoreList": "Restore to recent list",
