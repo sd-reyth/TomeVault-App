@@ -1764,12 +1764,15 @@ firebase deploy
 ### Environment Variables
 
 ```
-# .env (local dev)
-VITE_FIREBASE_API_KEY=AIzaSyD...
-VITE_FIREBASE_AUTH_DOMAIN=tomevault.firebaseapp.com
-VITE_FIREBASE_PROJECT_ID=tomevault-prod
-VITE_FIREBASE_STORAGE_BUCKET=tomevault-prod.appspot.com
-VITE_DEV_BOOTSTRAP_KEY=dev-only-bypass-key (optional)
+# .env (local dev — copy from .env.example, never commit)
+VITE_FIREBASE_API_KEY=your-firebase-api-key
+VITE_FIREBASE_AUTH_DOMAIN=your-project.firebaseapp.com
+VITE_FIREBASE_PROJECT_ID=your-project-id
+VITE_FIREBASE_STORAGE_BUCKET=your-project.firebasestorage.app
+VITE_FIREBASE_MESSAGING_SENDER_ID=your-sender-id
+VITE_FIREBASE_APP_ID=your-app-id
+VITE_FIREBASE_MEASUREMENT_ID=your-measurement-id
+VITE_PUBLIC_APP_ORIGIN=https://your-project.web.app
 ```
 
 ### Configuratiebestanden
